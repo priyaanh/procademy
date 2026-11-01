@@ -71,6 +71,9 @@
 <script src="../lib/calculator.js"></script>
 <script src="../lib/numbers.js"></script>
 <script src="../lib/data.js"></script>
+<script src="../lib/shapes.js"></script>
+<script src="../lib/percent.js"></script>
+<script src="../lib/leap.js"></script>
 <script>STORE.useMemory(true); /* the suite never touches real data */</script>
 <script src="../lib/app.js"></script>
 <script>
@@ -907,7 +910,7 @@
   const pt = S.get().profile.prep.tests[0];
   ok(m.querySelector('.prep-result li.miss') && m.querySelectorAll('.prep-result li.ok').length >= 1 && pt && pt.right === tses.items.length - 1 && S.get().profile.prep.done[S.today()], 'test prep: the result goes lesson by lesson, with practice for the lessons missed, and the day is marked done');
   m = await go('#/');
-  ok(m.querySelector('.prep-home') && /test in 3 days/.test(text(m.querySelector('.prep-home'))) && m.querySelectorAll('.tools .tool').length === 11, 'test prep: Home shows the countdown; Home has the tools');
+  ok(m.querySelector('.prep-home') && /test in 3 days/.test(text(m.querySelector('.prep-home'))) && m.querySelectorAll('.tools .tool').length === 14, 'test prep: Home shows the countdown; Home has the tools');
   S.reset(); S.setProfile({ prep: null, enrolled: [] });
   }
 
@@ -1492,7 +1495,7 @@
   ok(m.__data.sets[0].n === 3 && /“x” isn’t a number/.test(text(m)), 'data: something that isn’t a number is left out, and it says so');
 
   m = await go10('#/tools');
-  ok(m.querySelectorAll('.tool').length === 11 && m.querySelector('.tool[href="#/calc"]') && m.querySelector('.tool[href="#/numbers"]') && m.querySelector('.tool[href="#/data"]'), 'tools: every tool on one page');
+  ok(m.querySelectorAll('.tool').length === 14 && m.querySelector('.tool[href="#/calc"]') && m.querySelector('.tool[href="#/numbers"]') && m.querySelector('.tool[href="#/data"]'), 'tools: every tool on one page');
   m = await go10('#/skill/g6.gcf-lcm');
   ok(m.querySelector('.hero a[href="#/numbers/12-18"]'), 'tools: the GCF and LCM skill offers the number explorer');
   m = await go10('#/skill/g6.spread');
@@ -1503,6 +1506,96 @@
   const noNumbers = !m.querySelector('.hero a[href^="#/numbers"]');
   m = await go10('#/skill/int3.normal-distribution');
   ok(noNumbers && m.querySelector('.hero') && !m.querySelector('.hero a[href="#/data"]'), 'tools: factoring polynomials and the normal distribution don’t get the wrong tool');
+  S.reset();
+  }
+
+  { // shapes and space, percents and money, Leap
+  const go10 = async h => { location.hash = '#/settings'; await tick(15); return go(h); };
+  S.reset();
+  const sv = (k, v, u) => SHAPES.solve(k, v, u);
+  ok(sv('rect', [8, 5]).hook.area === 40 && sv('rect', [8, 5]).hook.perimeter === 26 && sv('tri', [10, 6, 50]).hook.area === 30 && sv('tri', [10, 6, 0]).hook.area === 30 && sv('trap', [6, 10, 4]).hook.area === 32 && sv('frame', [12, 9, 8, 5]).hook.area === 68, 'shapes: areas of a rectangle, a triangle (wherever its top is), a trapezoid and a frame');
+  ok(/^25π/.test(sv('circle', [5]).res[0][1]) && /^10π/.test(sv('circle', [5]).res[1][1]) && /^6\.25π/.test(sv('circle', [2.5]).res[0][1]) && /78\.54/.test(sv('circle', [5]).res[0][2]) && /78\.5\b/.test(sv('circle', [5]).res[0][2]), 'shapes: a circle in terms of π, and rounded with π and with 3.14');
+  ok(sv('box', [5, 3, 4]).hook.volume === 60 && sv('box', [5, 3, 4]).hook.surface === 94 && sv('triprism', [6, 4, 10, 1]).hook.volume === 120 && sv('pyramid', [6, 4]).hook.volume === 48 && sv('pyramid', [6, 4]).hook.surface === 96, 'shapes: volume and surface area of prisms and a pyramid');
+  ok(/^72π/.test(sv('cyl', [3, 8]).res[0][1]) && /^66π/.test(sv('cyl', [3, 8]).res[1][1]) && /^24π/.test(sv('cone', [3, 4]).res[1][1]) && /^36π/.test(sv('sphere', [3]).res[0][1]) && /<span class="frac"><span class="num">32<\/span><span class="den">3<\/span><\/span>π/.test(sv('sphere', [2]).res[0][1]), 'shapes: cylinders, cones and spheres exactly (32/3 π stays a fraction)');
+  const t345 = sv('sides', [3, 4, 5]).hook, t567 = sv('sides', [5, 6, 7]).hook;
+  ok(t345.triangle && t345.byAngles === 'right' && Math.abs(t345.angles[2] - 90) < 1e-9 && t567.byAngles === 'acute' && t567.bySides === 'scalene' && sv('sides', [2, 2, 2]).hook.bySides === 'equilateral' && sv('sides', [3, 4, 8]).hook.triangle === false && sv('sides', [3, 4, 7]).hook.triangle === false, 'shapes: the triangle builder sorts triangles by sides and angles, and 3, 4, 8 (or 3, 4, 7) can’t be one');
+  ok(sv('angle', [50]).hook.complement === 40 && sv('angle', [50]).hook.supplement === 130 && sv('angle', [120]).hook.type === 'obtuse' && sv('angle', [90]).hook.type === 'right' && /between 0° and 360°/.test(sv('angle', [400]).error) && /smaller/.test(sv('frame', [5, 5, 6, 2]).error) && /bigger than 0/.test(sv('rect', [0, 3]).error), 'shapes: angle pairs, and clear messages for numbers that don’t work');
+  m = await go10('#/shapes/box/5_3_4_cm');
+  ok(m.__shapes.kind === 'box' && m.__shapes.volume === 60 && m.__shapes.unit === 'cm' && m.querySelectorAll('.sh-net').length === 6 && /60 cm³/.test(text(m)) && m.querySelectorAll('.sh-faces tbody tr').length === 3 && m.querySelector('.sh-hid'), 'shapes page: a link opens a prism in centimetres, drawn with hidden edges, with its net and a table of faces');
+  const sl = m.querySelector('#sh-f0');
+  sl.value = '10'; sl.dispatchEvent(new Event('input', { bubbles: true }));
+  await tick(220);
+  ok(m.__shapes.volume === 120 && location.hash === '#/shapes/box/10_3_4_cm' && S.get().flags && S.get().flags.shapes, 'shapes page: typing a new length works it out again and updates the link (and the badge flag)');
+  m.querySelector('[data-kind="circle"]').click();
+  const dIn = m.querySelector('#sh-d');
+  dIn.value = '10'; dIn.dispatchEvent(new Event('input', { bubbles: true }));
+  await tick(220);
+  ok(m.__shapes.kind === 'circle' && m.querySelector('#sh-f0').value === '5' && Math.abs(m.__shapes.area - 25 * Math.PI) < 1e-9, 'shapes page: switch to a circle and type the diameter; the radius follows');
+  m.querySelector('[data-kind="tri"]').click();
+  const p0 = m.__shapes.perimeter, rng = m.querySelector('input[type="range"]');
+  rng.value = '0'; rng.dispatchEvent(new Event('input', { bubbles: true }));
+  await tick(30);
+  ok(m.__shapes.area === 30 && m.__shapes.perimeter > p0 && /right triangle/.test(text(m)), 'shapes page: sliding the top corner keeps the area and changes the perimeter');
+  m = await go10('#/shapes/sides/3_4_8');
+  ok(m.__shapes.triangle === false && /gap/.test(text(m.querySelector('#sh-fig'))), 'shapes page: three sides that can’t meet are drawn with the gap');
+
+  const pv = (k, v) => PERCENT.solve(k, v).hook;
+  ok(pv('of', [15, 80]).answer === 12 && pv('what', [12, 80]).answer === 15 && pv('whole', [12, 15]).answer === 80 && pv('markup', [40, 35]).price === 54, 'percent: the part, the percent, the whole, and a markup');
+  ok(pv('sale', [60, 25, 8]).sale === 45 && Math.abs(pv('sale', [60, 25, 8]).total - 48.6) < 1e-9 && PERCENT.solve('bill', [48.5, 18, 8, 3]).res[2][1] === '$20.37' && PERCENT.solve('bill', [48.5, 18, 8, 3]).res[1][1] === '$61.11', 'percent: a sale with tax, and a bill with a tip, tax and a three-way split');
+  ok(pv('change', [50, 65]).percent === 30 && Math.abs(pv('change', [65, 50]).percent + 23.0769) < 1e-3 && /23\.08%/.test(PERCENT.solve('change', [50, 65]).notes[1]), 'percent: percent change, and why going back is a different percent');
+  ok(pv('interest', [1000, 5, 10]).interest === 500 && PERCENT.cash(pv('interest', [1000, 5, 10]).compound) === '$1,628.89' && /more than 0/.test(PERCENT.solve('whole', [12, 0]).error) && /whole number/.test(PERCENT.solve('bill', [10, 10, 0, 1.5]).error), 'percent: simple and compound interest, and clear messages');
+  ok(PERCENT.solve('of', [18, 48.5]).work[2][1].join(' ').includes('18% = 10% + 8 × 1%'), 'percent: the in-your-head way builds a percent from 10% and 1%');
+  m = await go10('#/percent/sale/80_20_0');
+  ok(m.__percent.sale === 64 && m.querySelector('.pc-ruler') && /\$64\.00/.test(text(m)), 'percent page: a link opens a sale, drawn on a percent ruler');
+  const tx = m.querySelector('#pc-f2');
+  tx.value = '10%'; tx.dispatchEvent(new Event('input', { bubbles: true }));
+  await tick(220);
+  ok(Math.abs(m.__percent.total - 70.4) < 1e-9 && location.hash === '#/percent/sale/80_20_10' && S.get().flags.money, 'percent page: typing a tax (with a % sign) adds it, and the link follows');
+  m.querySelector('[data-mode="interest"]').click();
+  const gsv = m.querySelector('.pc-growth');
+  gsv.focus(); gsv.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true }));
+  ok(m.__percent.mode === 'interest' && !m.querySelector('.pc-tip').hidden && /After 9 years/.test(text(m.querySelector('.pc-tip'))) && /\$1,551\.33/.test(text(m.querySelector('.pc-tip'))) && m.querySelectorAll('.pc-table tbody tr').length === 11, 'percent page: the interest chart reads out each year from the keyboard, and has a table');
+
+  localStorage.removeItem(LEAP.KEY);
+  let bad = 0;
+  for (let l = 1; l <= 30; l++) { const pz = LEAP.make(l); if (!pz || !LEAP.finish(pz, pz.start, pz.cards.map((_, i) => i)) || pz.holes.some(h => h.join() === pz.target.join() || h.join() === pz.start.join())) bad++; }
+  ok(!bad && LEAP.make(7).cards.map(LEAP.label).join() === LEAP.make(7).cards.map(LEAP.label).join() && LEAP.expression([3, 1], [{ op: '+', v: [4, 1] }, { op: '×', v: [2, 1] }, { op: '−', v: [5, 1] }]) === '(3 + 4) × 2 − 5', 'leap: every level has a way through, is the same for everyone, and writes the moves with the brackets they need');
+  m = await go10('#/leap');
+  ok(m.__leap.level === 1 && m.querySelectorAll('.lp-card').length === 3 && m.querySelector('.lp-line svg .lp-frog'), 'leap: it starts at level 1 with three cards and a frog');
+  m.querySelector('#lp-hint').click();
+  ok(m.querySelectorAll('.lp-card.hint').length === 1 && m.__leap.mistakes === 1, 'leap: a hint lights up the next card (and costs a star)');
+  m.querySelector('.lp-card.hint').click(); await tick(20);
+  m.querySelector('#lp-undo').click(); await tick(20);
+  ok(m.__leap.used === 0 && m.__leap.pos === m.__leap.start, 'leap: undo takes a jump back');
+  for (const i of m.__leap.solution) { m.querySelector(`[data-card="${i}"]`).click(); await tick(20); }
+  ok(m.__leap.won && m.__leap.stars === 2 && m.querySelector('.lp-win') && JSON.parse(localStorage.getItem(LEAP.KEY)).level === 2 && JSON.parse(localStorage.getItem(LEAP.KEY)).stars['1'] === 2, 'leap: playing the cards in a working order wins, with the stars saved and level 2 opened');
+  m.querySelector('#lp-go').click(); await tick(20);
+  for (const i of m.__leap.solution) { m.querySelector(`[data-card="${i}"]`).click(); await tick(20); }
+  ok(m.__leap.level === 2 && m.__leap.won && m.__leap.stars === 3 && location.hash === '#/leap/2', 'leap: the next level, solved cleanly, gets three stars');
+  let lv = 0, ci = -1;
+  for (let l = 1; l <= 30 && ci < 0; l++) { const pz = LEAP.make(l); pz.cards.forEach((c, i) => { if (ci < 0 && pz.holes.some(h => h.join() === LEAP.apply(pz.start, c).join())) { lv = l; ci = i; } }); }
+  localStorage.setItem(LEAP.KEY, JSON.stringify({ level: 30, stars: {}, daily: {} }));
+  m = await go10('#/leap/' + lv);
+  m.querySelector(`[data-card="${ci}"]`).click();
+  ok(ci >= 0 && m.__leap.mistakes === 1 && /Splash/.test(text(m.querySelector('#lp-status'))), 'leap: landing in a hole is a splash');
+  await tick(1000);
+  ok(m.__leap.used === 0 && m.__leap.pos === m.__leap.start, 'leap: after a splash the frog climbs back out');
+  m = await go10('#/leap/daily');
+  ok(m.__leap.level === 'daily' && m.querySelectorAll('.lp-card').length === 5 && /Today’s puzzle/.test(text(m)), 'leap: there is a puzzle of the day');
+  localStorage.removeItem(LEAP.KEY);
+
+  m = await go10('#/skill/math7.circles');
+  const lc = !!m.querySelector('.hero a[href="#/shapes/circle"]');
+  m = await go10('#/cpm/cc2/9.2.4');
+  const lt = !!m.querySelector('.hero a[href="#/shapes/triprism"]');
+  m = await go10('#/skill/alg2.factor-cubes');
+  ok(lc && lt && m.querySelector('.hero') && !m.querySelector('.hero a[href^="#/shapes"]'), 'tools: circles and CPM 9.2.4 offer the right shape; factoring cubes doesn’t');
+  m = await go10('#/skill/math7.percent-change');
+  const lp = !!m.querySelector('.hero a[href="#/percent/change"]');
+  m = await go10('#/cpm/cc2/7.1.8');
+  const li = !!m.querySelector('.hero a[href="#/percent/interest"]');
+  m = await go10('#/skill/math7.add-negatives');
+  ok(lp && li && m.querySelector('.hero a[href="#/leap"]'), 'tools: percent change and simple interest offer the percent tool; adding negatives offers Leap');
   S.reset();
   }
 
