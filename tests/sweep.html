@@ -67,6 +67,9 @@
 <script src="../lib/setup.js"></script>
 <script src="../lib/tiles.js"></script>
 <script src="../lib/chance.js"></script>
+<script src="../lib/calculator.js"></script>
+<script src="../lib/numbers.js"></script>
+<script src="../lib/data.js"></script>
 <script>STORE.useMemory(true); /* the suite never touches real data */</script>
 <script src="../lib/app.js"></script>
 <script>
@@ -85,6 +88,7 @@
   routes.push('#/setup', '#/tiles', '#/tiles/compare', '#/tiles/eq/' + DRAW.encode('3x - 2 = x + 6'), '#/chance', '#/chance/dice', '#/chance/bag', '#/chance/coins2', '#/words', '#/words/cards', '#/words/absolute-value', '#/profile', '#/report', '#/vs/' + DRAW.encode(JSON.stringify({ k: 'p', id: 'math7.add-negatives', seed: 'abc12', score: 6, total: 7, name: 'Sam' })), '#/vs/' + DRAW.encode(JSON.stringify({ k: 's', id: 'times', secs: 60, seed: 'q9', score: 31 })), '#/vs/broken');
   routes.push('#/sprint', '#/steps', '#/steps/' + DRAW.encode('3(x - 4) = 2x + 5\n3x - 12 = 2x + 5\nx = 17\n-2x + 5 > 11\nx > -3'), '#/prep/cc2/3', '#/prep/int1/2');
   SPRINT.DECKS.forEach(d => routes.push('#/sprint/' + d.id));
+  routes.push('#/tools', '#/calc', '#/calc/' + encodeURIComponent('2 + 3 × (4 − 1)² − 1/3 + 1/7'), '#/calc/' + encodeURIComponent('100!'), '#/numbers', '#/numbers/84', '#/numbers/97', '#/numbers/360', '#/numbers/999999999989', '#/numbers/1048576', '#/numbers/12-18', '#/numbers/24-36-60', '#/numbers/1', '#/data', '#/data/' + DRAW.encode(JSON.stringify(DATA.EXAMPLES[1][1])), '#/data/' + DRAW.encode(JSON.stringify(DATA.EXAMPLES[2][1])), '#/data/' + DRAW.encode(JSON.stringify(DATA.EXAMPLES[3][1])));
   routes.push('#/daily', '#/graph', '#/graph/' + DRAW.encode('y = a(x - h)^2 + k\na = 1\nh = 2\nk = -3\nx^2 + y^2 < 16\ntriangle A(1,1) B(4,1) C(1,3)'));
   A.courses.forEach(c => c.units.forEach(u => routes.push('#/worksheet/unit/' + c.id + '/' + u.id)));
   A.cpm.forEach(b => b.chapters.slice(0, 2).forEach(ch => ch.lessons.slice(0, 2).forEach(l => { if (l.skills.some(id => A.skills[id])) routes.push('#/worksheet/lesson/' + b.id + '/' + encodeURIComponent(l.id)); })));

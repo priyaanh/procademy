@@ -68,6 +68,9 @@
 <script src="../lib/setup.js"></script>
 <script src="../lib/tiles.js"></script>
 <script src="../lib/chance.js"></script>
+<script src="../lib/calculator.js"></script>
+<script src="../lib/numbers.js"></script>
+<script src="../lib/data.js"></script>
 <script>STORE.useMemory(true); /* the suite never touches real data */</script>
 <script src="../lib/app.js"></script>
 <script>
@@ -904,7 +907,7 @@
   const pt = S.get().profile.prep.tests[0];
   ok(m.querySelector('.prep-result li.miss') && m.querySelectorAll('.prep-result li.ok').length >= 1 && pt && pt.right === tses.items.length - 1 && S.get().profile.prep.done[S.today()], 'test prep: the result goes lesson by lesson, with practice for the lessons missed, and the day is marked done');
   m = await go('#/');
-  ok(m.querySelector('.prep-home') && /test in 3 days/.test(text(m.querySelector('.prep-home'))) && m.querySelectorAll('.tools .tool').length === 8, 'test prep: Home shows the countdown; Home has the tools');
+  ok(m.querySelector('.prep-home') && /test in 3 days/.test(text(m.querySelector('.prep-home'))) && m.querySelectorAll('.tools .tool').length === 11, 'test prep: Home shows the countdown; Home has the tools');
   S.reset(); S.setProfile({ prep: null, enrolled: [] });
   }
 
@@ -1413,6 +1416,93 @@
   ok(m.querySelector('.hero a[href="#/tiles"]'), 'tools: CPM 6.2.1 (solving equations) offers the equation mat');
   m = await go10('#/cpm/cc2/5.2.4');
   ok(m.querySelector('.hero a[href="#/chance/dice"]'), 'tools: CPM 5.2.4 (probability tables) offers two number cubes');
+  S.reset();
+  }
+
+  { // calculator, number explorer, data and statistics, the Tools page
+  const go10 = async h => { location.hash = '#/settings'; await tick(15); return go(h); };
+  S.reset();
+  localStorage.removeItem('procademy.calc.v1');
+  const C = (e, o) => CALCULATOR.calc(e, o);
+  ok(C('1/3 + 1/4').answer.text === '= 7/12' && C('2/3 ÷ 4/9').answer.text === '= 3/2' && C('1/2 + 2/3 × 3/4').answer.text === '= 1', 'calc: fractions stay exact, and a typed fraction stays together (2/3 ÷ 4/9 = 3/2)');
+  ok(C('0.1 + 0.2').answer.text === '= 0.3' && C('15% of 80').answer.text === '= 12' && C('2^-3').answer.text === '= 1/8' && C('3x4').answer.text === '= 12' && C('1,000 × 3').answer.text === '= 3,000', 'calc: decimals, percent of, negative powers, x for times, commas in big numbers');
+  ok(C('sin(30)').answer.text === '= 1/2' && C('sin(π ÷ 2)', { deg: false }).answer.text === '= 1' && C('√2 × √2').answer.text === '= 2' && /^≈ 3\.4641/.test(C('√12').answer.text) && C('√(9/4)').answer.text === '= 3/2', 'calc: trig in degrees and radians, roots, and a decimal that is really a whole number');
+  ok(/divide by zero/.test(C('1/0').error) && /missing/.test(C('3 +').error) && /don’t know/.test(C('hello').error) && /isn’t defined/.test(C('tan(90)').error) && C('(2 + 3').answer.text === '= 5', 'calc: clear messages for mistakes, and a missing ) is closed for you');
+  const s29 = C('2 + 3 × (4 − 1)²');
+  ok(s29.answer.text === '= 29' && s29.steps.length === 5 && /Common denominator 12: 4\/12 \+ 3\/12 = 7\/12/.test(C('1/3 + 1/4').steps[1].notes.join(' ')) && /reciprocal, 9\/4/.test(C('2/3 ÷ 4/9').steps[1].notes.join(' ')), 'calc: the order of operations one level at a time, with how each fraction step was done');
+  const f7 = C('1/7').answer.forms.map(f => f[0]), f53 = C('5/3').answer.forms;
+  ok(f7.join() === 'Fraction,Decimal,Percent' && f53.some(f => f[0] === 'Mixed number' && /1 <span class="frac">/.test(f[1])) && /<span class="cx-rep"[^>]*>142857<\/span>/.test(C('1/7').answer.forms[1][1]), 'calc: an answer as a fraction, a mixed number, a decimal with the repeating digits marked, and a percent');
+  m = await go10('#/calc');
+  const key = l => [...m.querySelectorAll('.cx-key')].find(b => b.textContent === l);
+  ['AC', '1', 'a/b', '2', '+', '1', 'a/b', '3', '='].forEach(l => key(l).click());
+  ok(m.__calc.text === '= 5/6' && m.querySelectorAll('.cx-h').length === 1 && /5\/6/.test(text(m.querySelector('.cx-hist'))), 'calc page: the keypad works out 1/2 + 1/3 = 5/6, and keeps it in the history');
+  ['×', '6', '='].forEach(l => key(l).click());
+  ok(m.querySelector('#cx-in').value === 'Ans×6' && m.__calc.text === '= 5' && m.querySelectorAll('.cx-h').length === 2, 'calc page: an operator straight after an answer carries on from it (Ans)');
+  key('7').click();
+  ok(m.querySelector('#cx-in').value === '7', 'calc page: a number straight after an answer starts afresh');
+  const cin = m.querySelector('#cx-in');
+  cin.value = '84'; cin.dispatchEvent(new Event('input'));
+  ok(m.querySelector('a[href="#/numbers/84"]'), 'calc page: a whole-number answer offers the number explorer');
+  m.querySelector('#cx-mode').click();
+  cin.value = 'sin(π ÷ 6)'; cin.dispatchEvent(new Event('input'));
+  ok(m.__calc.deg === false && m.__calc.text === '= 1/2' && m.querySelectorAll('.cx-steps li').length >= 2, 'calc page: radians, with the steps shown');
+  m.querySelector('#cx-mode').click();
+  ok(JSON.parse(localStorage.getItem('procademy.calc.v1')).hist.length === 2, 'calc page: the history is kept on this device');
+  m.querySelector('.cx-h').click();
+  ok(cin.value === 'Ans×6', 'calc page: tap a past calculation to use it again');
+  localStorage.removeItem('procademy.calc.v1');
+
+  ok(JSON.stringify(NUMBERS.factorize(360)) === '[[2,3],[3,2],[5,1]]' && NUMBERS.isPrime(97) && !NUMBERS.isPrime(1) && NUMBERS.read('12, 18').join() === '12,18' && NUMBERS.read('1,000').join() === '1000', 'numbers: prime factorization, primes, and reading a list');
+  m = await go10('#/numbers/84');
+  let nu = m.__numbers;
+  ok(!nu.prime && nu.factorization === '2^2 × 3 × 7' && nu.leaves.slice().sort((a, b) => a - b).join() === '2,2,3,7' && m.querySelector('.nm-tree') && m.querySelectorAll('.nm-rules li.yes').length === 4 && m.querySelectorAll('.nm-pair').length === 6, 'numbers: 84 = 2² × 3 × 7, a factor tree, 6 factor pairs, and divisible by 2, 3, 4 and 6');
+  const tree1 = m.querySelector('.nm-tree').outerHTML;
+  m.querySelector('#nm-alt').click();
+  ok(m.querySelector('.nm-tree').outerHTML !== tree1 && m.__numbers.leaves.slice().sort((a, b) => a - b).join() === '2,2,3,7', 'numbers: another tree starts differently but ends in the same primes');
+  ok(S.get().badges.numbers, 'numbers: a factor tree earns Factor finder');
+  m = await go10('#/numbers/97');
+  ok(m.__numbers.prime && !m.querySelector('.nm-tree') && /97 is prime/.test(text(m)), 'numbers: 97 is prime');
+  m = await go10('#/numbers/12-18');
+  ok(m.__numbers.gcf === 6 && m.__numbers.lcm === 36 && m.querySelector('.nm-venn') && /12\/18 = 2\/3/.test(text(m)) && /12 \+ 18 = 6\(2 \+ 3\)/.test(text(m)) && m.querySelector('.nm-chip.best'), 'numbers: GCF 6 and LCM 36 of 12 and 18, with a Venn diagram, listing, and what they are for');
+  m = await go10('#/numbers/24-36-60');
+  ok(m.__numbers.gcf === 12 && m.__numbers.lcm === 360 && !m.querySelector('.nm-venn'), 'numbers: GCF and LCM of three numbers');
+  m.querySelector('#nm-in').value = '0'; m.querySelector('.nm-form button').click();
+  ok(m.__numbers.error && /whole numbers from 1/.test(text(m)), 'numbers: 0 is outside what it explores, and it says so');
+
+  const st7 = DATA.stats([4, 9, 7, 12, 5, 8, 15]);
+  ok(st7.median === 8 && st7.q1 === 5 && st7.q3 === 12 && st7.iqr === 7 && DATA.stats([1, 2, 3, 4, 5, 6]).q1 === 2 && DATA.stats([1, 2, 2, 3, 3]).modes.join() === '2,3', 'data: quartiles leave the middle value out, as the lessons do; two modes');
+  m = await go10('#/data');
+  let dd = m.__data.sets[0];
+  ok(dd.n === 12 && dd.median === 30 && dd.q1 === 22.5 && dd.q3 === 37.5 && dd.modes.join() === '30' && !dd.outliers.length && m.querySelectorAll('.dt-plot circle').length === 12, 'data: the example’s summary, and a dot for every value');
+  ok(S.get().badges.data, 'data: summing up 10 or more numbers earns Data detective');
+  m.querySelector('[data-tab="box"]').click();
+  ok(!m.querySelector('[data-pane="box"]').hidden && m.querySelector('[data-pane="dot"]').hidden && m.querySelector('[data-pane="box"] .dt-box'), 'data: the box plot tab');
+  ok(m.querySelectorAll('.dt-stem tbody tr').length === 6 && /3 \| 0 means 30/.test(text(m.querySelector('[data-pane="stem"]'))), 'data: a stem-and-leaf plot with a key');
+  const w = m.querySelector('#dt-w'); w.value = '5'; w.dispatchEvent(new Event('change', { bubbles: true }));
+  ok(m.__data.binWidth === 5 && m.__data.bins === 11, 'data: change the histogram’s bar width');
+  const ex = m.querySelector('#dt-ex'); ex.value = '1'; ex.dispatchEvent(new Event('change', { bubbles: true }));
+  ok(m.__data.sets.length === 2 && /MADs/.test(text(m)) && m.querySelector('.dt-stem.two') && /^#\/data\/./.test(location.hash), 'data: two sets compared (centre, spread, MADs apart), a back-to-back stem-and-leaf, and a link that keeps them');
+  const link = location.hash;
+  m = await go10(link);
+  ok(m.__data.sets.length === 2 && m.__data.sets[1].name === 'Class B', 'data: the link opens the same two sets');
+  m.querySelector('#dt-ex').value = '3'; m.querySelector('#dt-ex').dispatchEvent(new Event('change', { bubbles: true }));
+  ok(m.__data.sets.length === 1 && m.__data.sets[0].outliers.join() === '450' && m.querySelector('.dt-outlier'), 'data: an outlier is found by the 1.5 × IQR rule and drawn on its own');
+  m.querySelector('#dt-a').value = '3, 5, x, 7'; m.querySelector('#dt-a').dispatchEvent(new Event('input', { bubbles: true }));
+  await tick(260);
+  ok(m.__data.sets[0].n === 3 && /“x” isn’t a number/.test(text(m)), 'data: something that isn’t a number is left out, and it says so');
+
+  m = await go10('#/tools');
+  ok(m.querySelectorAll('.tool').length === 11 && m.querySelector('.tool[href="#/calc"]') && m.querySelector('.tool[href="#/numbers"]') && m.querySelector('.tool[href="#/data"]'), 'tools: every tool on one page');
+  m = await go10('#/skill/g6.gcf-lcm');
+  ok(m.querySelector('.hero a[href="#/numbers/12-18"]'), 'tools: the GCF and LCM skill offers the number explorer');
+  m = await go10('#/skill/g6.spread');
+  ok(m.querySelector('.hero a[href="#/data"]'), 'tools: the box plot skill offers the data tool');
+  m = await go10('#/cpm/cc2/8.1.2');
+  ok(m.querySelector('.hero a[href="#/data"]'), 'tools: CPM 8.1.2 (comparing distributions) offers the data tool');
+  m = await go10('#/skill/int2.gcf-factoring');
+  const noNumbers = !m.querySelector('.hero a[href^="#/numbers"]');
+  m = await go10('#/skill/int3.normal-distribution');
+  ok(noNumbers && m.querySelector('.hero') && !m.querySelector('.hero a[href="#/data"]'), 'tools: factoring polynomials and the normal distribution don’t get the wrong tool');
   S.reset();
   }
 
