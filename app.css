@@ -891,6 +891,12 @@ body.sorting-cards { user-select: none; -webkit-user-select: none; cursor: grabb
 .news { margin-top: 18px; }
 .news-items { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 .news-items a { text-decoration: none; }
+/* what's new (#/new) */
+.whatsnew { max-width: 760px; }
+.wn-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+.wn-list li { display: flex; gap: 12px; align-items: flex-start; }
+.wn-list a { font-weight: 600; }
+.wn-icon { flex: none; width: 2.1rem; height: 2.1rem; display: grid; place-items: center; border-radius: var(--radius-s); background: var(--surface-2); font-size: 1.15rem; }
 /* dark mode: some emoji icons (➗ ✖️) are drawn in black, so they sit on a light chip */
 :root[data-theme="dark"] .course-card .icon, :root[data-theme="dark"] .sprint-icon, :root[data-theme="dark"] .icon-big { background: rgba(255, 255, 255, .88); border-radius: 10px; padding: 3px 6px; align-self: flex-start; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .course-card .icon, :root:not([data-theme="light"]) .sprint-icon, :root:not([data-theme="light"]) .icon-big { background: rgba(255, 255, 255, .88); border-radius: 10px; padding: 3px 6px; align-self: flex-start; } }

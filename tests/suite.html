@@ -64,6 +64,7 @@
 <script src="../lib/account.js"></script>
 <script src="../lib/move.js"></script>
 <script src="../lib/learners.js"></script>
+<script src="../lib/whatsnew.js"></script>
 <script src="../lib/words.js"></script>
 <script src="../lib/vocab.js"></script>
 <script src="../lib/setup.js"></script>
@@ -1134,6 +1135,23 @@
   ok(/not in the offline file/.test(text(m.querySelector('#account'))), 'accounts: the offline file explains that accounts are on the website');
   delete window.PROCADEMY_OFFLINE;
   ACCOUNT.useBackend(null); S.reset();
+  }
+
+  { // what's new: every update, newest first, each linking to a page that exists
+  S.reset();
+  m = await go('#/new');
+  const wnDays = [...m.querySelectorAll('.whatsnew time')].map(t => t.getAttribute('datetime'));
+  ok(/What’s new/.test(text(m.querySelector('h1'))) && wnDays.length >= 8 && wnDays.every((d, i) => !i || d < wnDays[i - 1]) && m.querySelectorAll('.wn-list li').length >= 30, 'what’s new: every update, newest first');
+  ok([...m.querySelectorAll('.wn-list a')].some(a => /\/privacy\.html$/.test(a.href)), 'what’s new: the privacy page is linked on the website');
+  const wnLost = [];
+  for (const h of new Set(WHATSNEW.UPDATES.flatMap(([, items]) => items.map(x => x[0])).filter(h => h.startsWith('#')))) { const p = await go(h); if (/Not here/.test(text(p.querySelector('h1')))) wnLost.push(h); }
+  ok(!wnLost.length, 'what’s new: every link opens a page' + (wnLost.length ? ' (not: ' + wnLost.join(' ') + ')' : ''));
+  m = await go('#/');
+  ok(m.querySelector('#news a[href="#/new"]'), 'what’s new: Home’s news card links to it');
+  m.querySelector('#news-x').click(); await tick(10);
+  m = await go('#/settings');
+  ok(m.querySelector('a[href="#/new"]') && !document.getElementById('news'), 'what’s new: after Got it, it is still in Settings');
+  S.reset();
   }
 
   { // moving progress to another computer with a link: no account, no file
