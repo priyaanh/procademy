@@ -839,6 +839,11 @@ body.sorting-cards { user-select: none; -webkit-user-select: none; cursor: grabb
 .ac-form { max-width: 420px; }
 .ac-msg { margin: 8px 0 0; color: var(--bad); font-size: .92rem; min-height: 1em; }
 .ac-msg.good { color: var(--muted); }
+.ac-google { max-width: 420px; }
+.ac-google-btn { width: 100%; gap: 10px; }
+.ac-google-btn svg { flex: none; }
+.ac-or { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: .85rem; margin-top: 4px; }
+.ac-or::before, .ac-or::after { content: ''; flex: 1; border-top: 1px solid var(--line); }
 .sync-line { font-size: .92rem; }
 .sync-line.saved { color: var(--ok); }
 .sync-line.error, .sync-line.offline { color: var(--warn); }

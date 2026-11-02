@@ -30,7 +30,8 @@ if [ -z "$csp" ]; then fail=1; echo "  ✗ index.html has no Content-Security-Po
 elif echo "$csp" | grep -qE "script-src[^;]*'(unsafe-inline|unsafe-eval)'"; then fail=1; echo "  ✗ the policy lets inline scripts or eval run"
 elif grep -qE "<script>|<script [^>]*>[^<]" index.html; then fail=1; echo "  ✗ index.html has an inline script"
 elif grep -qE " on[a-z]+=\"" index.html; then fail=1; echo "  ✗ index.html has an inline event handler"
-else echo "  ✓ scripts only from this site and pinned libraries; no inline scripts, eval, plug-ins or frames"; fi
+elif ! echo "$csp" | grep -qE "frame-src ('none'|https://[a-z0-9-]+\.firebaseapp\.com)(;|\"|$)"; then fail=1; echo "  ✗ frames are allowed from more than the Google sign-in helper"
+else echo "  ✓ scripts only from this site and pinned libraries; no inline scripts, eval or plug-ins; frames only for Google sign-in"; fi
 
 echo "▶ browser suite (tests/suite.html)"
 CHROME="$CHROME" node tests/cdp.js "file://$ROOT/tests/suite.html" 180000 "RESULTS" >"$TMP/suite.out" 2>&1
