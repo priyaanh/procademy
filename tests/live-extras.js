@@ -42,7 +42,7 @@
   ok(doc1.kind === 'pdf' && /3x\s*=\s*12/.test(doc1.text) && /^data:image\/jpeg/.test(doc1.thumb || ''), `files: a PDF's text is read (${((performance.now() - t0) / 1000).toFixed(1)} s): "${(doc1.text || doc1.error || '').replace(/\s+/g, ' ')}"`);
 
   // 3b. a QR code from the real QR library (loaded from jsDelivr under the policy)
-  const qrSvg = await w.MOVE.qr('https://priyaanh.github.io/priyaan-hub/#/vs/test');
+  const qrSvg = await w.MOVE.qr('https://priyaanh.github.io/procademy/#/vs/test');
   ok(/^<svg/.test(qrSvg || '') && /<path|<rect/.test(qrSvg), 'move: the QR code maker loads and draws a code');
 
   // 4. a picture from the free picture AI (it may be full for a while: Procademy waits and retries)
