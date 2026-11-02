@@ -1,7 +1,7 @@
 # Turning on online accounts
 
-Procademy's Profile page lets a learner sign in with Google, or make an account with a username and a
-password, so their progress is saved online and they can log in on any computer. It runs on Firebase, Google's free plan. The site's
+Procademy's Profile page lets a learner sign in with Google (or GitHub or Facebook), or make an account
+with a username and a password, so their progress is saved online and they can log in on any computer. It runs on Firebase, Google's free plan. The site's
 owner sets this up once, in about five minutes; learners never visit Firebase.
 
 1. Go to <https://console.firebase.google.com> and sign in with a Google account.
@@ -42,7 +42,41 @@ owner sets this up once, in about five minutes; learners never visit Firebase.
    reports back through a hidden frame from that address, and the policy allows no other frames.
 9. Run `./tests/run.sh`, push, and open **Profile** on the site.
 
-Optional, for extra safety: in <https://console.cloud.google.com/apis/credentials> (same Google account,
+## Optional: GitHub and Facebook buttons
+
+Each button appears once its name is in `signIn` in `lib/firebase-config.js`, for example
+`signIn: ['google', 'github', 'facebook']`. Switch the service on first (below), then add its name. GitHub
+and Facebook accept only people aged 13 and over, so these buttons are for older learners and parents.
+
+**GitHub** (about 3 minutes):
+
+1. Firebase console → **Authentication → Sign-in method → Add new provider → GitHub** → switch on
+   **Enable**. Copy the **callback URL** it shows (`https://<project-id>.firebaseapp.com/__/auth/handler`)
+   and leave the page open.
+2. In another tab, open <https://github.com/settings/applications/new> (GitHub → Settings → Developer
+   settings → OAuth Apps → New OAuth App). *Application name* `Procademy`; *Homepage URL*
+   `https://priyaanh.github.io/procademy/`; *Authorization callback URL*: the URL from step 1.
+   **Register application**.
+3. Copy the **Client ID** into Firebase. Press **Generate a new client secret**, copy it into Firebase's
+   **Client secret**, and **Save**.
+
+**Facebook** (about 15 minutes; Meta's screens change often):
+
+1. Firebase console → **Add new provider → Facebook** → switch on **Enable**. Copy the **OAuth redirect
+   URI** it shows and leave the page open.
+2. Open <https://developers.facebook.com/apps> and sign in with Facebook (the first time, it asks you to
+   register as a developer). **Create app** → use case *Authenticate and request data from users with
+   Facebook Login* → app name `Procademy` and your email.
+3. In the app: **Use cases → Authenticate… → Customize**. Under **Permissions**, add `email`. Under
+   **Settings**, paste the redirect URI into **Valid OAuth Redirect URIs**, and **Save**.
+4. **App settings → Basic**: copy the **App ID** and **App secret** into Firebase and **Save** there. Back in
+   Meta, fill in *Privacy policy URL* `https://priyaanh.github.io/procademy/privacy.html`, *User data
+   deletion → Data deletion instructions URL* `https://priyaanh.github.io/procademy/privacy.html#delete`,
+   an *App icon* (1024 × 1024) and *Category* Education, then **Save changes**.
+5. **Publish** the app (switch it from *Development* to *Live*). Until then only you can sign in with
+   Facebook.
+
+Optional, for extra safety (this covers all the sign-in buttons): in <https://console.cloud.google.com/apis/credentials> (same Google account,
 same project), open the **Browser key**, set **Application restrictions → Websites** and add
 `https://priyaanh.github.io/*` and your project's `https://<project-id>.firebaseapp.com/*` (password-reset
 links and the Google pop-up run there), then **Save**. The key then works only on the Procademy site.
@@ -52,10 +86,10 @@ links and the Google pop-up run there), then **Save**. The key then works only o
 One document per learner, `users/{uid}`: the username, when the account was made and last saved, and the
 same progress the site keeps on the device (levels, practice history, settings, badges, speed-sprint
 bests). Tutor chats and attached files are never uploaded. Passwords are held by Firebase Authentication,
-hashed; Procademy never sees them. With Google sign-in there is no password at all: Google confirms who
-it is, and Firebase Authentication keeps the Google account's email, name and photo, as it does for any
-Google sign-in. Procademy shows only the email, on the Profile page, and never saves the name or photo
+hashed; Procademy never sees them. With Google, GitHub or Facebook there is no password at all: that
+service confirms who it is, and Firebase Authentication keeps the email, name and photo it shares, as it
+does for any such sign-in. Procademy shows only the email, on the Profile page, and never saves the name or photo
 with the progress. A learner can delete their account, and everything saved online, from
-the Profile page.
+the Profile page. [`privacy.html`](privacy.html) says all this for learners and parents.
 
 Free-plan limits (50,000 reads and 20,000 writes a day) are far more than a family or a class needs.

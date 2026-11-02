@@ -190,15 +190,15 @@ that wrong?" after a wrong answer. It needs no account, no key and no sign-up an
   where it came from and how long it took, and links to the Procademy skills that match.
 - **Security.** The site sends a Content-Security-Policy: scripts only from the site itself and the pinned
   libraries on jsDelivr (WebLLM, Tesseract.js, PDF.js), never inline scripts, inline event handlers or
-  `eval`; no plug-ins or frames. Everything the AI or a file supplies is escaped before it is shown.
+  `eval`; no plug-ins, and frames only from the account project's own sign-in address. Everything the AI or a file supplies is escaped before it is shown.
 - LLM7's privacy policy says it is not meant for children under 13; the settings' Advanced section can
   switch it off (and holds an optional free LLM7 key, kept on the device only).
 
 ## Profiles and accounts
 
 **Profile** (the avatar at the top right, `#/profile`, `lib/account.js`): a name, a grade (the tutor
-explains at that level) and an avatar. With an account — a username and a password, no email needed —
-progress is saved online and comes back on any computer: log in and it is there, no files to move.
+explains at that level) and an avatar. With an account — Continue with Google (or GitHub or Facebook), or a
+username and a password with no email needed — progress is saved online and comes back on any computer: log in and it is there, no files to move.
 
 - It runs on Firebase (Google's free plan): Firebase Authentication holds the passwords, hashed, with
   lockouts after repeated wrong guesses; Cloud Firestore holds one document per learner, which only that
@@ -213,6 +213,8 @@ progress is saved online and comes back on any computer: log in and it is there,
   account's. Logging out clears the computer unless a copy is kept.
 - What goes online: levels, practice history, settings, badges and sprint bests. Tutor chats and attached
   files never do. A learner can delete the account, and everything saved online, from the Profile page.
+  [`privacy.html`](privacy.html) explains what leaves the device, for learners and parents (and is the
+  privacy policy the sign-in services ask for).
 - **Several learners on one computer** (`lib/learners.js`, "Who's practising?" on Profile): a brother, a
   sister or a parent each get their own progress, badges, sprint bests, tutor chats and graphs, with an
   optional 4-digit PIN (a lock against mistakes, not a strong one). The learner on screen uses the usual

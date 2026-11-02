@@ -976,17 +976,26 @@
 
   { // profiles and accounts, with a stand-in for Firebase that behaves like it (two "computers" share it)
   const go3 = async h => { location.hash = '#/settings'; await tick(15); return go(h); };
-  const server = { users: {}, docs: {}, n: 0 };
+  // who each sign-in button says you are; like Firebase, one account per email address
+  const server = { users: {}, docs: {}, n: 0, as: { google: { email: 'kid@gmail.com' }, github: { login: 'OctoKid', email: 'octo@example.com' }, facebook: { email: 'kid@gmail.com' } } };
   const device = () => { let cur = null; const err = c => Object.assign(new Error(c), { code: c });
-    return { ready: Promise.resolve(), status: () => server.status || 'ready', onChange() {}, current: () => cur && { uid: cur.uid, email: cur.email, google: !!cur.google },
-      async signUp(email, pw) { if (server.users[email]) throw err('auth/email-already-in-use'); const uid = 'u' + (++server.n); server.users[email] = { uid, pw, email }; cur = server.users[email]; return { uid, email }; },
+    return { ready: Promise.resolve(), status: () => server.status || 'ready', providers: server.providers || ['google'], onChange() {}, current: () => cur && { uid: cur.uid, email: cur.email, via: cur.via || null },
+      async signUp(email, pw) { if (Object.values(server.users).some(u => u.email === email)) throw err('auth/email-already-in-use'); const uid = 'u' + (++server.n); server.users[email] = { uid, pw, email, key: email }; cur = server.users[email]; return { uid, email }; },
       async signIn(email, pw) { const u = server.users[email]; if (!u || u.pw !== pw) throw err('auth/invalid-credential'); cur = u; return { uid: u.uid, email }; },
-      async google() { if (server.googleFail) throw err(server.googleFail); const email = 'kid@gmail.com'; if (!server.users[email]) server.users[email] = { uid: 'u' + (++server.n), pw: null, email, google: true }; cur = server.users[email]; return { uid: cur.uid, email, google: true }; },
+      async social(name) {
+        if (server.socialFail) throw err(server.socialFail);
+        const who = server.as[name], key = name + ':' + (who.login || who.email || who.id);
+        if (!server.users[key]) {
+          if (who.email && Object.values(server.users).some(u => u.email === who.email)) throw err('auth/account-exists-with-different-credential');
+          server.users[key] = { uid: 'u' + (++server.n), pw: null, email: who.email || null, via: name, key };
+        }
+        cur = server.users[key]; return { uid: cur.uid, email: cur.email, via: name, login: who.login || null };
+      },
       async signOut() { cur = null; },
       async load(uid) { if (!cur || cur.uid !== uid) throw err('permission-denied'); return server.docs[uid] ? JSON.parse(JSON.stringify(server.docs[uid])) : null; },
       async save(uid, data) { if (!cur || cur.uid !== uid) throw err('permission-denied'); server.docs[uid] = JSON.parse(JSON.stringify(data)); },
       async changePassword(o, n) { if (cur.pw !== o) throw err('auth/invalid-credential'); cur.pw = n; },
-      async remove(pw) { if (cur.google ? pw !== null : cur.pw !== pw) throw err('auth/invalid-credential'); delete server.docs[cur.uid]; delete server.users[cur.email]; cur = null; },
+      async remove(pw) { if (cur.via ? pw !== null : cur.pw !== pw) throw err('auth/invalid-credential'); delete server.docs[cur.uid]; delete server.users[cur.key]; cur = null; },
       async resetPassword() {} }; };
   // merging two copies of progress keeps the most of both
   const ma = { saved: 1, profile: { name: 'Old' }, skills: { a: { level: 3, tries: 7, right: 7, sets: 1, last: 5 } }, days: { '2026-10-01': { q: 5, right: 4, pts: 50 } }, log: [{ t: 1, kind: 'practice' }], badges: { first: 100 }, points: 300 };
@@ -1069,18 +1078,18 @@
   ok(m.querySelector('#ac-google') && /Continue with Google/.test(text(m.querySelector('#ac-google'))) && m.querySelector('#ac-new'), 'google: the profile offers Continue with Google, and a username and password as well');
   server.status = 'loading';
   m.querySelector('#ac-google').click(); await tick(40);
-  ok(!ACCOUNT.user() && /still loading/.test(text(m.querySelector('#ac-g .ac-msg'))) && !server.users['kid@gmail.com'], 'google: a click before sign-in has loaded asks to press again, instead of a pop-up the browser would block');
+  ok(!ACCOUNT.user() && /still loading/.test(text(m.querySelector('#ac-g .ac-msg'))) && !server.users['google:kid@gmail.com'], 'google: a click before sign-in has loaded asks to press again, instead of a pop-up the browser would block');
   server.status = 'failed';
   m.querySelector('#ac-google').click(); await tick(40);
   ok(!ACCOUNT.user() && /can’t be reached/.test(text(m.querySelector('#ac-g .ac-msg'))), 'google: when sign-in can’t load, it says so plainly');
   server.status = null;
-  server.googleFail = 'auth/popup-closed-by-user';
+  server.socialFail = 'auth/popup-closed-by-user';
   m.querySelector('#ac-google').click(); await tick(40);
-  ok(!ACCOUNT.user() && /closed before/.test(text(m.querySelector('#ac-g .ac-msg'))) && !m.querySelector('#ac-google').disabled, 'google: closing the Google window says so, and the button works again');
-  server.googleFail = null;
+  ok(!ACCOUNT.user() && /The Google window was closed before/.test(text(m.querySelector('#ac-g .ac-msg'))) && !m.querySelector('#ac-google').disabled, 'google: closing the Google window says so, and the button works again');
+  server.socialFail = null;
   m.querySelector('#ac-google').click(); await tick(80);
   m = document.getElementById('main');
-  const gUser = server.users['kid@gmail.com'];
+  const gUser = server.users['google:kid@gmail.com'];
   ok(ACCOUNT.user() && gUser && server.docs[gUser.uid] && JSON.parse(server.docs[gUser.uid].state).skills['math7.circles'] && /Signed in as @kid \(kid@gmail\.com\) with Google/.test(text(m)) && !m.querySelector('#ac-pw') && !m.querySelector('#ac-del-pw'), 'google: one click signs in, saves this device’s progress online, and shows no password controls');
   await ACCOUNT.logOut(true);
   ACCOUNT.useBackend(device());
@@ -1090,7 +1099,36 @@
   ok(ACCOUNT.user() && S.skill('math7.circles').level === 2, 'google: signing in with Google on another computer brings the progress back');
   m.querySelector('#ac-del-g').click(); await tick(10);
   m.querySelector('#ac-del-yes').click(); await tick(60);
-  ok(!server.docs[gUser.uid] && !server.users['kid@gmail.com'] && !ACCOUNT.user(), 'google: deleting a Google account asks Google, not a password, and removes everything saved online');
+  ok(!server.docs[gUser.uid] && !server.users['google:kid@gmail.com'] && !ACCOUNT.user(), 'google: deleting a Google account asks Google, not a password, and removes everything saved online');
+  // GitHub and Facebook: offered once switched on; GitHub gives the username; one account per email
+  server.providers = ['google', 'github', 'facebook'];
+  ACCOUNT.useBackend(device()); S.reset();
+  m = await go3('#/profile');
+  ok(/Continue with GitHub/.test(text(m.querySelector('#ac-github'))) && /Continue with Facebook/.test(text(m.querySelector('#ac-facebook'))) && m.querySelector('#ac-google') && m.querySelector('#ac-new'), 'sign-in buttons: GitHub and Facebook are offered once switched on, beside Google and a username');
+  server.socialFail = 'auth/popup-closed-by-user';
+  m.querySelector('#ac-github').click(); await tick(40);
+  ok(!ACCOUNT.user() && /The GitHub window was closed before/.test(text(m.querySelector('#ac-g .ac-msg'))), 'github: closing the GitHub window says so, by name');
+  server.socialFail = null;
+  m.querySelector('#ac-github').click(); await tick(80);
+  m = document.getElementById('main');
+  const ghUser = server.users['github:OctoKid'];
+  ok(ACCOUNT.user() && ghUser && server.docs[ghUser.uid] && /Signed in as @octokid \(octo@example\.com\) with GitHub/.test(text(m)) && /GitHub will ask you to confirm/.test(m.querySelector('#ac-del-box').textContent) && !m.querySelector('#ac-pw') && !m.querySelector('#ac-del-pw'), 'github: one click signs in, the username is the GitHub login, and there are no password controls');
+  m.querySelector('#ac-del-g').click(); await tick(10);
+  m.querySelector('#ac-del-yes').click(); await tick(60);
+  ok(!server.docs[ghUser.uid] && !server.users['github:OctoKid'] && !ACCOUNT.user(), 'github: deleting asks GitHub, not a password, and removes everything saved online');
+  m = document.getElementById('main');
+  m.querySelector('#ac-google').click(); await tick(80);
+  await ACCOUNT.logOut(true);
+  ACCOUNT.useBackend(device());
+  m = await go3('#/profile');
+  m.querySelector('#ac-facebook').click(); await tick(60);
+  ok(!ACCOUNT.user() && /already has a Procademy account, made another way/.test(text(m.querySelector('#ac-g .ac-msg'))) && !m.querySelector('#ac-facebook').disabled, 'facebook: an email that already has an account (from Google) says to sign in that way');
+  server.as.facebook = { id: 'fb-phone-only', email: null };
+  m.querySelector('#ac-facebook').click(); await tick(80);
+  m = document.getElementById('main');
+  ok(ACCOUNT.user() && /Signed in as @facebook with Facebook\./.test(text(m)) && /Facebook will ask you to confirm/.test(m.querySelector('#ac-del-box').textContent), 'facebook: an account with no email (signed up by phone) still works');
+  await ACCOUNT.logOut(true);
+  server.providers = null;
   window.PROCADEMY_OFFLINE = { build: 'test' };
   m = await go3('#/profile');
   ok(/not in the offline file/.test(text(m.querySelector('#account'))), 'accounts: the offline file explains that accounts are on the website');

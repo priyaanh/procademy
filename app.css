@@ -839,12 +839,17 @@ body.sorting-cards { user-select: none; -webkit-user-select: none; cursor: grabb
 .ac-form { max-width: 420px; }
 .ac-msg { margin: 8px 0 0; color: var(--bad); font-size: .92rem; min-height: 1em; }
 .ac-msg.good { color: var(--muted); }
-.ac-google { max-width: 420px; }
-.ac-google-btn { width: 100%; gap: 10px; }
-.ac-google-btn svg { flex: none; }
+.ac-social { max-width: 420px; display: grid; gap: 8px; }
+.ac-social .ac-msg { margin: 0; }
+.ac-social-btn { width: 100%; gap: 10px; }
+.ac-social-btn svg { flex: none; }
 .ac-or { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: .85rem; margin-top: 4px; }
 .ac-or::before, .ac-or::after { content: ''; flex: 1; border-top: 1px solid var(--line); }
 .sync-line { font-size: .92rem; }
+/* privacy.html: a plain page of text */
+.legal { max-width: 760px; }
+.legal ul { padding-left: 1.2rem; margin: 0; }
+.legal li + li { margin-top: .6rem; }
 .sync-line.saved { color: var(--ok); }
 .sync-line.error, .sync-line.offline { color: var(--warn); }
 .ac-confirm { margin-top: 10px; max-width: 460px; }

@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- A plain page: no scripts at all. Linked from the Profile page and Settings → About, and given to
+     Google, GitHub and Facebook as the sign-in buttons' privacy policy and data-deletion page. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'">
+<title>Privacy · Procademy</title>
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<main class="legal">
+  <p><a href="./">← Procademy</a></p>
+  <h1>Privacy</h1>
+  <p class="muted">Last updated 1 November 2026</p>
+
+  <div class="card">
+    <p>Procademy is a free math practice website. It has no ads, no tracking and no analytics, and nothing
+      about you is sold or shared for marketing. This page says what leaves your device, where it goes, and
+      how to delete it.</p>
+  </div>
+
+  <div class="card">
+    <h2>Without an account</h2>
+    <p>Everything (your levels, practice history, settings, profile, badges and tutor chats) is saved in
+      this browser, on this device only. Nobody else sees it.</p>
+  </div>
+
+  <div class="card">
+    <h2>With an account</h2>
+    <p>An account is optional. It keeps the same progress on every computer you use. Accounts run on Google
+      Firebase (Firebase Authentication and Cloud Firestore).</p>
+    <ul>
+      <li><b>What is saved online:</b> your username, when the account was made and last saved, and the same
+        progress kept on the device: levels, practice history, settings, your profile (the name, grade and
+        avatar you chose), badges and speed-sprint bests. Tutor chats and attached files are never uploaded.</li>
+      <li><b>Who can see it:</b> you, when you are signed in. Each account can read and change only its own
+        record, and nobody can browse the records. The site’s owner, who runs the Firebase project, can
+        also see them.</li>
+      <li><b>Passwords</b> are kept by Firebase Authentication, scrambled (hashed), and Procademy never sees them.
+        A username account needs no email. An email, if you give one, is used only to reset a forgotten
+        password.</li>
+      <li><b>Google, GitHub or Facebook:</b> if you sign in with one of these, that service confirms who you
+        are. Firebase Authentication then receives your account’s ID there, and the name, email address
+        and profile picture the service shares. Procademy shows only the email, to you, on your Profile
+        page; it does not save the name or picture with your progress. It never posts anything for you or
+        asks for your friends, contacts or anything else. GitHub and Facebook accounts are only for people
+        aged 13 and over (their rules); anyone can use a username and password instead.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>The tutor</h2>
+    <p>When you ask the ✦ tutor something, your question is sent to a free AI service,
+      <a href="https://llm7.io/privacy">LLM7</a> or <a href="https://pollinations.ai/privacy">Pollinations</a>,
+      along with the course or skill it is about and your grade, so it can answer at your level. Your name
+      is not sent. If you attach a photo or a PDF, its words are read on your device, and only that text goes
+      with the question. When the tutor draws a picture, a short description of the picture is sent to
+      Pollinations. LLM7’s privacy policy says it is not meant for children under 13; it can be switched off
+      in the tutor’s settings. To keep every question on your device, switch the tutor to run on this
+      device instead. Chats are saved on your device only.</p>
+  </div>
+
+  <div class="card">
+    <h2>Other services</h2>
+    <p>The website is hosted by GitHub Pages. Some parts are downloaded the first time they are used: the
+      sign-in code from Google, the photo and PDF readers from jsDelivr, and the on-device tutor’s model
+      from Hugging Face. Like any website visit, those servers see your browser’s request (including its
+      IP address). Procademy sends them nothing about you.</p>
+  </div>
+
+  <div class="card" id="delete">
+    <h2>Deleting your data</h2>
+    <ul>
+      <li><b>Your account:</b> sign in, open <b>Profile</b> (the avatar at the top right), and under
+        <b>Your account</b> choose <b>Delete my account</b>. The account and everything saved online are
+        deleted straight away. If you signed in with Google, GitHub or Facebook, that service asks you to
+        confirm it’s you first.</li>
+      <li><b>This device:</b> log out without keeping a copy, or in <b>Settings</b> choose
+        <b>Erase everything on this device</b>.</li>
+      <li><b>Facebook:</b> you can also remove Procademy in Facebook’s settings, under <i>Apps and
+        websites</i>. That stops Facebook sign-in; to delete your progress as well, delete the account in
+        Procademy as above.</li>
+      <li><b>Can’t sign in any more?</b> Open an issue at
+        <a href="https://github.com/priyaanh/procademy/issues">github.com/priyaanh/procademy/issues</a>
+        (don’t write your email address there, because issues are public), and the site’s owner will
+        reply with how to show which account is yours.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Questions and changes</h2>
+    <p>Ask at <a href="https://github.com/priyaanh/procademy/issues">github.com/priyaanh/procademy/issues</a>.
+      If this page changes, the date at the top changes too, and every earlier version is kept in
+      <a href="https://github.com/priyaanh/procademy/commits/main/privacy.html">the site’s history</a>.</p>
+  </div>
+</main>
+</body>
+</html>
