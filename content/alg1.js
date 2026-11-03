@@ -1296,7 +1296,7 @@
         const opts = [[h, k], [-h, k], [h, c + half * half], [-b, c - b * b]], html = opts.map(([hh, kk]) => vfH(1, hh, kk));
         const answer = html[0];
         return { prompt: `Rewrite in vertex form by completing the square.${big(`${Y} = ${M.poly([1, b, c])}`)}`, type: 'choice', choices: [answer].concat(others(answer, html.slice(1), 3)), answer, params: { kind, b, c, opts, html },
-          hints: [`Half of ${N(b)} is ${N(half)}; its square is ${half * half}. Add and subtract it: ${Y} = (${M.poly([1, b, half * half])}) − ${half * half} ${M.signed(c)}.`, `The bracket is (${X} ${M.signed(half)})², and −${half * half} ${M.signed(c)} = ${N(k)}.`, `<b>${answer}</b>.`] };
+          hints: [`Half of ${N(b)} is ${N(half)}; its square is ${half * half}. Add and subtract it: ${Y} = (${M.poly([1, b, half * half])}) − ${half * half} ${M.signed(c)}.`, `The first part is (${X} ${M.signed(half)})², and −${half * half} ${M.signed(c)} = ${N(k)}.`, `<b>${answer}</b>.`] };
       }
       const a = rng.pick([1, -1, 2, -2, 3, -3]), h = rng.nz(-6, 6); let k = rng.nz(-9, 9); if (Math.abs(k) === Math.abs(h)) k = k > 0 ? k + 1 : k - 1;
       if (kind === 'read') {

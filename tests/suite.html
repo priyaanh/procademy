@@ -969,7 +969,7 @@
   const rp = m.__report;
   ok(rp && rp.q >= 14 && rp.ups.some(u => u.id === 'math7.add-negatives' && u.to === 3) && /Sam/.test(text(m.querySelector('.report h1'))) && m.querySelectorAll('.rp-bars > div').length === 7, 'report: the week on one page: questions, skills levelled up, a bar a day');
   m.querySelector('#rp-copy').click(); await tick(10);
-  ok(/Procademy progress report for Sam/.test(REPORT._lastText) && /Levelled up/.test(REPORT._lastText) && /right first try/.test(REPORT._lastText), 'report: it copies as text for a message');
+  ok(/Procademy progress report for Sam/.test(REPORT._lastText) && /Leveled up/.test(REPORT._lastText) && /right first try/.test(REPORT._lastText), 'report: it copies as text for a message');
   m.querySelector('#rp-days').value = '30'; m.querySelector('#rp-days').dispatchEvent(new Event('change'));
   ok(m.querySelectorAll('.rp-bars > div').length === 30, 'report: or the last 30 days');
   S.reset(); S.setProfile({ enrolled: [] });

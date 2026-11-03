@@ -114,7 +114,7 @@
     rng => { const pr = rng.pick([5, 6, 8, 10, 12]), cap = rng.pick([40, 50, 60, 80, 100, 120]); return discreteSit(`Tickets to a school play cost ${M.money(pr)} each, and the hall holds ${cap} people. The function ${fn('C', V('n'))} gives the cost in dollars of buying ${V('n')} tickets.`, cap, pr, 'tickets', 'ticket'); },
     rng => { const per = rng.pick([4, 6, 8, 12]), cap = rng.pick([10, 15, 20, 25, 30]); return discreteSit(`A bakery packs muffins ${per} to a box and bakes at most ${cap} boxes a day. The function ${fn('M', V('b'))} gives the number of muffins in ${V('b')} boxes.`, cap, per, 'boxes', 'box'); },
     rng => { const r = rng.pick([2, 3, 4]), T = rng.int(4, 10); return continuousSit(`A candle ${N(r * T)} cm tall burns down at a steady ${r} cm per hour until it is gone. The function ${fn('h', V('t'))} gives its height in cm after ${V('t')} hours.`, T, r, 'hours', 'height'); },
-    rng => { const r = rng.pick([20, 25, 40, 50]), T = rng.int(6, 15); return continuousSit(`A tank holding ${N(r * T)} litres drains at a steady ${r} litres per minute until it is empty. The function ${fn('V', V('t'))} gives the volume in litres after ${V('t')} minutes.`, T, r, 'minutes', 'volume'); },
+    rng => { const r = rng.pick([20, 25, 40, 50]), T = rng.int(6, 15); return continuousSit(`A tank holding ${N(r * T)} liters drains at a steady ${r} liters per minute until it is empty. The function ${fn('V', V('t'))} gives the volume in liters after ${V('t')} minutes.`, T, r, 'minutes', 'volume'); },
   ];
 
   A.skill({
@@ -188,7 +188,7 @@
   A.skill({
     id: 'int1.slope', title: 'Slope and rate of change',
     learn: p(`The <b>slope</b> of a line measures how steep it is: how much ${Y} changes for each step of 1 in ${X}. From two points (${X}₁, ${Y}₁) and (${X}₂, ${Y}₂): <b>slope = ${sfrac(`change in ${Y}`, `change in ${X}`)} = ${sfrac(`${Y}₂ − ${Y}₁`, `${X}₂ − ${X}₁`)}</b>. Subtract in the same order on top and bottom.`) +
-      p(`A positive slope rises from left to right, a negative slope falls, and a slope of 0 is a flat line. In a table or a story the slope is the <b>rate of change</b>: dollars per hour, centimetres per week, degrees per hour.`) +
+      p(`A positive slope rises from left to right, a negative slope falls, and a slope of 0 is a flat line. In a table or a story the slope is the <b>rate of change</b>: dollars per hour, centimeters per week, degrees per hour.`) +
       example('Example', `${big('Find the slope of the line through (−2, 7) and (4, −5).')}${sfrac('−5 − 7', '4 − (−2)')} = ${sfrac('−12', '6')} = <b>−2</b>.`),
     make(rng) {
       const kind = rng.pick(['points', 'points', 'table', 'rate']);
@@ -201,7 +201,7 @@
         const ctx = rng.pick([
           { text: `At ${x1} pm the temperature was ${y1}°C, and at ${x2} pm it was ${y2}°C.`, what: 'temperature', per: 'hour', unit: '°C per hour' },
           { text: `A plant was ${y1} cm tall after ${x1} weeks and ${y2} cm tall after ${x2} weeks.`, what: 'height', per: 'week', unit: 'cm per week' },
-          { text: `A tank held ${y1} litres after ${x1} minutes and ${y2} litres after ${x2} minutes.`, what: 'volume', per: 'minute', unit: 'litres per minute' }].filter(c => num > 0 || c.what !== 'height'));
+          { text: `A tank held ${y1} liters after ${x1} minutes and ${y2} liters after ${x2} minutes.`, what: 'volume', per: 'minute', unit: 'liters per minute' }].filter(c => num > 0 || c.what !== 'height'));
         return Object.assign(base, { prompt: `${ctx.text} What was the rate of change of the ${ctx.what}, in ${ctx.unit}?`, unit: ctx.unit,
           hints: [`Rate of change = change in ${ctx.what} ÷ change in time.`, `${sfrac(`${N(y2)} − ${N(y1)}`, `${N(x2)} − ${N(x1)}`)} = ${N(y2 - y1)} ÷ ${N(x2 - x1)}.`, `The rate of change is <b>${N(ans)}</b> ${ctx.unit}.`] });
       }
@@ -245,7 +245,7 @@
     (rng, name) => { const r = rng.pick([1.5, 2, 3]), H = rng.int(15, 30); return { story: `A candle's height in cm after burning for ${V('t')} hours is ${V('h')} = −${N(r)}${V('t')} + ${H}.`, slope: -r, icpt: H, v: 't', dep: 'height', slopeMeaning: 'The number of cm the candle burns down each hour', icptMeaning: 'The height of the candle before it was lit', others: ['The height of the candle after t hours', 'The number of hours the candle has burned'] }; },
     (rng, name) => { const a = rng.pick([10, 15, 20, 25]), d = rng.int(3, 12) * 10; return { story: `${name} saves money according to ${V('S')} = ${a}${V('w')} + ${d}, where ${V('S')} is the amount in dollars saved after ${V('w')} weeks.`, slope: a, icpt: d, v: 'w', dep: 'savings', slopeMeaning: 'The amount saved each week', icptMeaning: 'The amount already saved at the start', others: ['The total amount saved after w weeks', 'The number of weeks of saving'] }; },
     (rng, name) => { const g = rng.pick([5, 8, 10]), c = rng.pick([20, 25, 30, 35]); return { story: `A phone plan costs ${V('P')} = ${g}${V('d')} + ${c} dollars a month, where ${V('d')} is the number of gigabytes of data used.`, slope: g, icpt: c, v: 'd', dep: 'bill', slopeMeaning: 'The charge per gigabyte of data', icptMeaning: 'The monthly charge before any data is used', others: ['The total monthly bill', 'The number of gigabytes used'] }; },
-    (rng, name) => { const r = rng.pick([80, 100, 120, 150]), v0 = rng.int(20, 60) * 100; return { story: `A pool is being drained. Its volume in litres after ${V('t')} minutes is ${V('V')} = −${r}${V('t')} + ${N(v0)}.`, slope: -r, icpt: v0, v: 't', dep: 'volume', slopeMeaning: 'The number of litres drained each minute', icptMeaning: 'The volume of water before draining started', others: ['The volume left after t minutes', 'The number of minutes of draining'] }; },
+    (rng, name) => { const r = rng.pick([80, 100, 120, 150]), v0 = rng.int(20, 60) * 100; return { story: `A pool is being drained. Its volume in liters after ${V('t')} minutes is ${V('V')} = −${r}${V('t')} + ${N(v0)}.`, slope: -r, icpt: v0, v: 't', dep: 'volume', slopeMeaning: 'The number of liters drained each minute', icptMeaning: 'The volume of water before draining started', others: ['The volume left after t minutes', 'The number of minutes of draining'] }; },
   ];
 
   A.skill({
@@ -356,7 +356,7 @@
     { eq: `${V('v')} = ${V('u')} + ${V('a')}${V('t')}`, t: 'a', right: `${V('a')} = ${sfrac(`${V('v')} − ${V('u')}`, V('t'))}`, wrong: [`${V('a')} = ${sfrac(V('v'), V('t'))} − ${V('u')}`, `${V('a')} = ${sfrac(`${V('u')} − ${V('v')}`, V('t'))}`, `${V('a')} = ${sfrac(`${V('v')} + ${V('u')}`, V('t'))}`],
       steps: [`Subtract ${V('u')} from both sides: ${V('v')} − ${V('u')} = ${V('a')}${V('t')}.`, `Divide both sides by ${V('t')}.`], vals: { v: 20, u: 5, t: 3 }, solved: v => (v.v - v.u) / v.t, holds: (v, a) => v.v === v.u + a * v.t },
     { eq: `${V('A')} = ${F(1, 2)}(${M.sub(V('b'), 1)} + ${M.sub(V('b'), 2)})${V('h')}`, t: 'h', right: `${V('h')} = ${sfrac(`2${V('A')}`, `${M.sub(V('b'), 1)} + ${M.sub(V('b'), 2)}`)}`, wrong: [`${V('h')} = ${sfrac(V('A'), `2(${M.sub(V('b'), 1)} + ${M.sub(V('b'), 2)})`)}`, `${V('h')} = ${sfrac(`${M.sub(V('b'), 1)} + ${M.sub(V('b'), 2)}`, `2${V('A')}`)}`, `${V('h')} = 2${V('A')} − (${M.sub(V('b'), 1)} + ${M.sub(V('b'), 2)})`],
-      steps: [`Multiply both sides by 2: 2${V('A')} = (${M.sub(V('b'), 1)} + ${M.sub(V('b'), 2)})${V('h')}.`, `Divide both sides by the whole bracket (${M.sub(V('b'), 1)} + ${M.sub(V('b'), 2)}).`], vals: { A: 20, b1: 3, b2: 5 }, solved: v => 2 * v.A / (v.b1 + v.b2), holds: (v, h) => v.A === (v.b1 + v.b2) * h / 2 },
+      steps: [`Multiply both sides by 2: 2${V('A')} = (${M.sub(V('b'), 1)} + ${M.sub(V('b'), 2)})${V('h')}.`, `Divide both sides by everything in the parentheses, (${M.sub(V('b'), 1)} + ${M.sub(V('b'), 2)}).`], vals: { A: 20, b1: 3, b2: 5 }, solved: v => 2 * v.A / (v.b1 + v.b2), holds: (v, h) => v.A === (v.b1 + v.b2) * h / 2 },
     { eq: `${V('I')} = ${V('P')}${V('r')}${V('t')}`, t: 'r', right: `${V('r')} = ${sfrac(V('I'), `${V('P')}${V('t')}`)}`, wrong: [`${V('r')} = ${sfrac(`${V('P')}${V('t')}`, V('I'))}`, `${V('r')} = ${V('I')} − ${V('P')}${V('t')}`, `${V('r')} = ${sfrac(V('I'), V('P'))} − ${V('t')}`],
       steps: [`${V('r')} is multiplied by ${V('P')} and by ${V('t')}, so divide both sides by ${V('P')}${V('t')}.`], vals: { I: 30, P: 100, t: 3 }, solved: v => v.I / (v.P * v.t), holds: (v, r) => Math.abs(v.I - v.P * r * v.t) < 1e-9 },
     { eq: `${V('S')} = 180(${V('n')} − 2)`, t: 'n', right: `${V('n')} = ${sfrac(V('S'), '180')} + 2`, wrong: [`${V('n')} = ${sfrac(`${V('S')} + 2`, '180')}`, `${V('n')} = ${sfrac(V('S'), '180')} − 2`, `${V('n')} = ${sfrac(`${V('S')} − 2`, '180')}`],
@@ -366,7 +366,7 @@
   A.skill({
     id: 'int1.literal-equations', title: 'Solving literal equations',
     learn: p(`A <b>literal equation</b> is a formula with several letters, like ${V('P')} = 2${V('l')} + 2${V('w')}. Solving it for one letter means rearranging until that letter is alone on one side. <b>Use exactly the same moves as with numbers:</b> undo addition with subtraction, undo multiplication with division, and do each move to both sides.`) +
-      p(`Treat every other letter as if it were a known number. If the letter you want is inside a bracket or multiplied by a bracket, divide by the whole bracket. A fraction like ${F(1, 2)} is cleared by multiplying both sides by 2.`) +
+      p(`Treat every other letter as if it were a known number. If the letter you want is inside parentheses or multiplied by something in parentheses, divide by everything in the parentheses. A fraction like ${F(1, 2)} is cleared by multiplying both sides by 2.`) +
       example('Example', `${big(`Solve ${V('A')} = ${F(1, 2)}${V('b')}${V('h')} for ${V('b')}.`)}Multiply both sides by 2: 2${V('A')} = ${V('b')}${V('h')}. Divide by ${V('h')}: <b>${V('b')} = ${sfrac(`2${V('A')}`, V('h'))}</b>.`),
     make(rng) {
       const idx = rng.int(0, FORMULAS.length - 1), e = FORMULAS[idx];
@@ -627,7 +627,7 @@
     { k: 'negative', text: 'Age of a used car and its selling price', why: 'older cars sell for less' },
     { k: 'negative', text: 'Driving speed and the time a 100 km trip takes', why: 'faster driving means a shorter trip' },
     { k: 'negative', text: 'Altitude on a mountain hike and the air temperature', why: 'the air gets colder the higher you climb' },
-    { k: 'none', text: 'Shoe size and score on a history test', why: 'foot size says nothing about history marks' },
+    { k: 'none', text: 'Shoe size and score on a history test', why: 'foot size says nothing about history grades' },
     { k: 'none', text: 'Length of a person\'s first name and their height', why: 'a name has nothing to do with height' },
     { k: 'none', text: 'Day of the month someone was born and the number of pets they own', why: 'a birthday tells you nothing about pets' },
     { k: 'none', text: 'Last digit of a phone number and monthly rent', why: 'a phone digit is unrelated to rent' },
@@ -641,7 +641,7 @@
     make(rng) {
       if (rng.chance(0.6)) {
         const dir = rng.pick(['positive', 'negative', 'none']), strong = rng.bool();
-        const ctx = rng.pick([['hours spent practising', 'scores on a music exam'], ['outside temperature', 'cups of hot chocolate sold'], ['age of a used car', 'its selling price'], ['hours of sleep', 'number of mistakes on a test'], ['shoe size', 'score on a spelling test'], ['daily hours of sunshine', 'ice creams sold'], ['distance from the city centre', 'monthly rent of an apartment']]);
+        const ctx = rng.pick([['hours spent practicing', 'scores on a music exam'], ['outside temperature', 'cups of hot chocolate sold'], ['age of a used car', 'its selling price'], ['hours of sleep', 'number of mistakes on a test'], ['shoe size', 'score on a spelling test'], ['daily hours of sunshine', 'ice creams sold'], ['distance from the city center', 'monthly rent of an apartment']]);
         const shape = dir === 'none' ? 'The dots are scattered all over the plot with no pattern.' : `The dots ${dir === 'positive' ? 'rise from the lower left to the upper right' : 'fall from the upper left to the lower right'}, ${strong ? 'tightly clustered around a line' : 'loosely scattered but with a clear trend'}.`;
         const choices = ['Strong positive association', 'Weak positive association', 'Strong negative association', 'Weak negative association', 'No association'];
         const answer = dir === 'none' ? choices[4] : `${strong ? 'Strong' : 'Weak'} ${dir} association`;
@@ -903,7 +903,7 @@
 
   A.skill({
     id: 'int1.least-squares', title: 'Using a least squares regression line',
-    learn: p(`Of all the lines you could draw through a scatter plot, the <b>least squares regression line</b> (LSRL) is the one that makes the <b>sum of the squared residuals as small as possible</b>. Squaring stops positive and negative misses from cancelling out. A calculator finds it for you; your job is to use it.`) +
+    learn: p(`Of all the lines you could draw through a scatter plot, the <b>least squares regression line</b> (LSRL) is the one that makes the <b>sum of the squared residuals as small as possible</b>. Squaring stops positive and negative misses from canceling out. A calculator finds it for you; your job is to use it.`) +
       p(`To <b>predict</b>, substitute the ${X}-value into ${YH} = ${V('m')}${X} + ${V('b')}. To find the ${X} that gives a certain prediction, set ${YH} equal to that value and solve. <b>The slope is the predicted change in ${Y} for each extra unit of ${X}</b>, and the ${Y}-intercept is the predicted ${Y} when ${X} = 0 (which only makes sense when ${X} = 0 is realistic).`) +
       example('Example', `${big(model(4.5, 52))}for hours studied ${X} and test score ${Y}. Predict the score for 6 hours: 4.5(6) + 52 = <b>79</b> points. The slope 4.5 means each extra hour of study adds 4.5 points to the predicted score.`),
     make(rng) {
@@ -1115,7 +1115,7 @@
   A.skill({
     id: 'int1.standard-deviation', title: 'Standard deviation',
     learn: p(`The <b>standard deviation</b> measures spread: roughly, the typical distance of the data values from the mean. A small standard deviation means the values huddle close to the mean; a large one means they are spread far from it.`) +
-      p(`<b>To find it: find the mean, subtract the mean from each value, square those deviations, find the mean of the squares, then take the square root.</b> Squaring stops the negative and positive deviations from cancelling. This course divides by ${V('n')}, the number of values (a calculator shows this as σ${X}; some books divide by ${V('n')} − 1 for a sample, which gives a slightly larger number).`) +
+      p(`<b>To find it: find the mean, subtract the mean from each value, square those deviations, find the mean of the squares, then take the square root.</b> Squaring stops the negative and positive deviations from canceling. This course divides by ${V('n')}, the number of values (a calculator shows this as σ${X}; some books divide by ${V('n')} − 1 for a sample, which gives a slightly larger number).`) +
       p(`Adding the same number to every value moves the data but does not spread it out, so the standard deviation stays the same. Multiplying every value by ${V('k')} multiplies the standard deviation by ${V('k')}.`) +
       example('Example', `${big('4, 8, 6, 2, 10')}Mean = 30 ÷ 5 = 6. Deviations: −2, 2, 0, −4, 4. Squares: 4, 4, 0, 16, 16, total 40. 40 ÷ 5 = 8, and √8 ≈ <b>2.8</b>.`),
     make(rng) {
@@ -1469,7 +1469,7 @@
   A.skill({
     id: 'int1.symmetry', title: 'Reflection and rotation symmetry',
     learn: p(`A shape has <b>reflection symmetry</b> when a line can split it into two mirror-image halves: fold along that <b>line of symmetry</b> and the halves match exactly. A rectangle has 2 lines of symmetry (through the middles of opposite sides), not 4: folding along a diagonal does not match the halves.`) +
-      p(`A shape has <b>rotation symmetry</b> when a turn of less than 360° about its centre carries it onto itself. <b>The smallest such turn is 360° divided by the number of matching positions.</b> A regular polygon with ${V('n')} sides has ${V('n')} lines of symmetry and a smallest turn of 360° ÷ ${V('n')}. A parallelogram has no lines of symmetry but fits onto itself after 180°.`) +
+      p(`A shape has <b>rotation symmetry</b> when a turn of less than 360° about its center carries it onto itself. <b>The smallest such turn is 360° divided by the number of matching positions.</b> A regular polygon with ${V('n')} sides has ${V('n')} lines of symmetry and a smallest turn of 360° ÷ ${V('n')}. A parallelogram has no lines of symmetry but fits onto itself after 180°.`) +
       example('Example', `A regular hexagon: 6 lines of symmetry (3 through opposite corners, 3 through the middles of opposite sides). It matches itself 6 times in a full turn, so the smallest turn is 360° ÷ 6 = <b>60°</b>.`),
     make(rng) {
       const kind = rng.pick(['lines', 'lines', 'turn', 'turn', 'which']);

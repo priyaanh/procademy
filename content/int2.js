@@ -259,7 +259,7 @@
   A.skill({
     id: 'int2.solve-square-roots', title: 'Solving quadratics with square roots',
     learn: p(`If an equation has a squared expression and no plain ${X} term, isolate the square and take the square root of both sides. Remember <b>both</b> roots: if ${sq(X)} = 49 then ${X} = 7 or ${X} = −7, written ${X} = ±7.`) +
-      p(`The same works when a whole bracket is squared: ${sq(`(${X} − 2)`)} = 25 gives ${X} − 2 = ±5, so ${X} = 2 + 5 = 7 or ${X} = 2 − 5 = −3. Undo everything around the square first: move a constant across, divide away a coefficient.`) +
+      p(`The same works when a whole expression in parentheses is squared: ${sq(`(${X} − 2)`)} = 25 gives ${X} − 2 = ±5, so ${X} = 2 + 5 = 7 or ${X} = 2 − 5 = −3. Undo everything around the square first: move a constant across, divide away a coefficient.`) +
       example('Example', `${big(`3${sq(X)} − 12 = 63`)}Add 12: 3${sq(X)} = 75. Divide by 3: ${sq(X)} = 25. Square root: <b>${X} = ±5</b>.`),
     make(rng) {
       const kind = rng.pick(['plain', 'coef', 'shift', 'shift', 'const', 'both']);
@@ -302,7 +302,7 @@
       return { prompt: `Complete the square to write the function in vertex form.${big(`${Y} = ${M.poly([1, b, c])}`)}`, type: 'choice', answer, choices, params: { b, c },
         hints: [`Half of ${N(b)} is ${N(m)}, and ${wrap(m)}² = ${N(m * m)}. That is the constant that completes the square.`,
           `Add it and subtract it: ${Y} = (${M.poly([1, b, m * m])}) ${M.signed(c)} − ${N(m * m)}.`,
-          `The bracket is a perfect square: ${M.poly([1, b, m * m])} = ${sq(`(${M.poly([1, m])})`)}. And ${N(c)} − ${N(m * m)} = ${N(k)}.`,
+          `The trinomial is a perfect square: ${M.poly([1, b, m * m])} = ${sq(`(${M.poly([1, m])})`)}. And ${N(c)} − ${N(m * m)} = ${N(k)}.`,
           `<b>${answer}</b>. The vertex is ${M.pt(-m, k)}.`] };
     },
     verify(q) {
@@ -368,7 +368,7 @@
         const pts = (u, w) => `${M.pt(Math.min(u, w), 0)} and ${M.pt(Math.max(u, w), 0)}`;
         const answer = pts(r, s);
         return { prompt: `What are the ${X}-intercepts of the graph?${big(`${Y} = ${shown}`)}`, type: 'choice', answer, choices: rng.shuffle([answer, pts(-r, -s), pts(r, -s), pts(-r, s)]), params: { kind, coefs, r, s },
-          hints: [`The ${X}-intercepts are the points where ${Y} = 0.`, `${shown === fact ? 'The function is already factored' : 'Factor'}: ${Y} = ${fact}. Set each bracket equal to 0.`, `${X} = ${N(r)} or ${X} = ${N(s)}, so the intercepts are <b>${answer}</b>.`] };
+          hints: [`The ${X}-intercepts are the points where ${Y} = 0.`, `${shown === fact ? 'The function is already factored' : 'Factor'}: ${Y} = ${fact}. Set each factor equal to 0.`, `${X} = ${N(r)} or ${X} = ${N(s)}, so the intercepts are <b>${answer}</b>.`] };
       }
       const a = rng.pick([1, 1, -1, 2, -2, 3]), h = rng.nz(-6, 6), k = rng.int(-9, 9);
       const b = -2 * a * h, c = a * h * h + k;                        // vertex (h, k) written out in standard form
@@ -406,12 +406,12 @@
       if (kind === 'describe') {
         const answer = `Shift ${dir(h, k)}`;
         return { prompt: `How is the graph of this function related to the graph of ${Y} = ${sq(X)}?${big(vform(1, h, k))}`, type: 'choice', answer, choices: rng.shuffle([answer, `Shift ${dir(-h, k)}`, `Shift ${dir(h, -k)}`, `Shift ${dir(-h, -k)}`]), params: { kind, h, k },
-          hints: [`In ${Y} = ${sq(`(${X} − ${V('h')})`)} + ${V('k')} the vertex moves to (${V('h')}, ${V('k')}). The bracket here is (${M.poly([1, -h])}), so ${V('h')} = ${N(h)}: the sign inside the bracket is flipped.`, `${V('k')} = ${N(k)} is added outside the bracket, so the graph moves ${k < 0 ? 'down' : 'up'} ${N(Math.abs(k))}.`, `<b>Shift ${dir(h, k)}</b>: the vertex is now at ${M.pt(h, k)}.`] };
+          hints: [`In ${Y} = ${sq(`(${X} − ${V('h')})`)} + ${V('k')} the vertex moves to (${V('h')}, ${V('k')}). The parentheses here hold (${M.poly([1, -h])}), so ${V('h')} = ${N(h)}: the sign inside the parentheses is flipped.`, `${V('k')} = ${N(k)} is added outside the parentheses, so the graph moves ${k < 0 ? 'down' : 'up'} ${N(Math.abs(k))}.`, `<b>Shift ${dir(h, k)}</b>: the vertex is now at ${M.pt(h, k)}.`] };
       }
       if (kind === 'equation') {
         const answer = vform(1, h, k);
         return { prompt: `Which function is the graph of ${Y} = ${sq(X)} shifted ${dir(h, k)}?`, type: 'choice', answer, choices: rng.shuffle([answer, vform(1, -h, k), vform(1, h, -k), vform(1, -h, -k)]), params: { kind, h, k },
-          hints: [`A shift ${h < 0 ? 'left' : 'right'} ${N(Math.abs(h))} puts ${V('h')} = ${N(h)} inside the bracket: (${X} − ${wrap(h)}) = (${M.poly([1, -h])}).`, `A shift ${k < 0 ? 'down' : 'up'} ${N(Math.abs(k))} adds ${N(k)} outside the bracket.`, `<b>${answer}</b>.`] };
+          hints: [`A shift ${h < 0 ? 'left' : 'right'} ${N(Math.abs(h))} puts ${V('h')} = ${N(h)} inside the parentheses: (${X} − ${wrap(h)}) = (${M.poly([1, -h])}).`, `A shift ${k < 0 ? 'down' : 'up'} ${N(Math.abs(k))} adds ${N(k)} outside the parentheses.`, `<b>${answer}</b>.`] };
       }
       const a = rng.pick([2, 3, 4, -2, -3, 0.5, 0.25, -0.5]);
       const words = aa => cap((aa < 0 ? `reflected over the ${X}-axis and ` : '') + (Math.abs(aa) > 1 ? `stretched vertically by a factor of ${N(Math.abs(aa))}` : `compressed vertically by a factor of ${N(Math.abs(aa))}`));
@@ -442,7 +442,7 @@
       if (kind === 'area') {
         const P = rng.pick([40, 48, 60, 80, 100, 120, 160, 200]), w = P / 4, wantArea = rng.bool();
         const thing = rng.pick(['a rectangular garden', 'a dog pen', 'a vegetable patch', 'a chicken run']);
-        return { prompt: `${name} has ${N(P)} metres of fencing for ${thing}. If the width is ${V('w')} metres, the area is ${V('A')}(${V('w')}) = ${V('w')}(${N(P / 2)} − ${V('w')}). ${wantArea ? 'What is the largest area possible?' : 'What width gives the largest area?'}`, type: 'number', answer: wantArea ? w * w : w, unit: wantArea ? 'm²' : 'm', params: { kind, P, wantArea },
+        return { prompt: `${name} has ${N(P)} meters of fencing for ${thing}. If the width is ${V('w')} meters, the area is ${V('A')}(${V('w')}) = ${V('w')}(${N(P / 2)} − ${V('w')}). ${wantArea ? 'What is the largest area possible?' : 'What width gives the largest area?'}`, type: 'number', answer: wantArea ? w * w : w, unit: wantArea ? 'm²' : 'm', params: { kind, P, wantArea },
           hints: [`Expand: ${V('A')} = −${sq(V('w'))} + ${N(P / 2)}${V('w')}. This parabola opens down, so its vertex is the maximum.`, `Vertex at ${V('w')} = ${F(`−${V('b')}`, `2${V('a')}`)} = ${F(N(-P / 2), N(-2))} = ${N(w)}, so the best shape is a ${N(w)} by ${N(w)} square.`, wantArea ? `Largest area: ${N(w)} × ${N(w)} = <b>${N(w * w)}</b> m².` : `The best width is <b>${N(w)}</b> m.`] };
       }
       const t2 = rng.pick([0.5, 1, 1.5]), t1 = rng.pick([1.5, 2, 2.5, 3, 4, 5].filter(t => t > t2));
@@ -787,7 +787,7 @@
 
   A.skill({
     id: 'int2.inscribed-angles', title: 'Inscribed angles',
-    learn: p(`A <b>central angle</b> has its vertex at the centre of the circle, and it has the same measure as the arc it cuts off. An <b>inscribed angle</b> has its vertex on the circle itself, and it is <b>half the measure of its intercepted arc</b>. So an inscribed angle is half the central angle that cuts off the same arc.`) +
+    learn: p(`A <b>central angle</b> has its vertex at the center of the circle, and it has the same measure as the arc it cuts off. An <b>inscribed angle</b> has its vertex on the circle itself, and it is <b>half the measure of its intercepted arc</b>. So an inscribed angle is half the central angle that cuts off the same arc.`) +
       p(`Two consequences: inscribed angles that cut off the same arc are equal, and an inscribed angle that cuts off a semicircle (its sides go through the ends of a diameter) is always 90°.`) +
       example('Example', `Central angle AOB = 110°, and C is on the circle away from arc AB. The inscribed angle ACB cuts off the same arc, so it is 110° ÷ 2 = <b>55°</b>.`),
     make(rng) {
@@ -796,13 +796,13 @@
       const aPos = 230, bPos = aPos + m, cPos = 50 + m / 2;
       if (kind === 'semi') {
         const x = rng.int(20, 70), fig = circleFig({ A: 180, B: 0, C: 2 * x }, [['A', 'B'], ['A', 'C'], ['C', 'B']]);
-        return { prompt: `AB is a diameter of the circle with centre O, and C is on the circle. Angle CAB = ${N(x)}°. What is angle CBA?${fig}`, type: 'number', answer: 90 - x, unit: '°', params: { kind, x },
+        return { prompt: `AB is a diameter of the circle with center O, and C is on the circle. Angle CAB = ${N(x)}°. What is angle CBA?${fig}`, type: 'number', answer: 90 - x, unit: '°', params: { kind, x },
           hints: [`Angle ACB is inscribed in a semicircle, so it is 90°.`, `The angles of triangle ABC add to 180°: ${N(x)}° + 90° + angle CBA = 180°.`, `Angle CBA = 180° − 90° − ${N(x)}° = <b>${N(90 - x)}°</b>.`] };
       }
       const fig = circleFig({ A: aPos, B: bPos, C: cPos }, [['O', 'A'], ['O', 'B'], ['C', 'A'], ['C', 'B']], ['A', 'B']);
-      if (kind === 'central') return { prompt: `O is the centre of the circle. The central angle AOB is ${N(m)}°. What is the inscribed angle ACB?${fig}`, type: 'number', answer: m / 2, unit: '°', params: { kind, m },
+      if (kind === 'central') return { prompt: `O is the center of the circle. The central angle AOB is ${N(m)}°. What is the inscribed angle ACB?${fig}`, type: 'number', answer: m / 2, unit: '°', params: { kind, m },
         hints: [`Both angles cut off the same arc AB. The central angle equals the arc, so arc AB = ${N(m)}°.`, `An inscribed angle is half its arc: ${N(m)}° ÷ 2 = <b>${N(m / 2)}°</b>.`] };
-      if (kind === 'inscribed') return { prompt: `O is the centre of the circle. The inscribed angle ACB is ${N(m / 2)}°. What is the central angle AOB?${fig}`, type: 'number', answer: m, unit: '°', params: { kind, m },
+      if (kind === 'inscribed') return { prompt: `O is the center of the circle. The inscribed angle ACB is ${N(m / 2)}°. What is the central angle AOB?${fig}`, type: 'number', answer: m, unit: '°', params: { kind, m },
         hints: [`An inscribed angle is half the arc it cuts off, so arc AB = 2 × ${N(m / 2)}° = ${N(m)}°.`, `The central angle equals its arc: angle AOB = <b>${N(m)}°</b>.`] };
       return { prompt: `The inscribed angle ACB is ${N(m / 2)}°. What is the measure of the highlighted arc AB?${fig}`, type: 'number', answer: m, unit: '°', params: { kind, m },
         hints: [`An inscribed angle is half its intercepted arc.`, `So the arc is twice the angle: 2 × ${N(m / 2)}° = <b>${N(m)}°</b>.`] };
@@ -823,20 +823,20 @@
 
   A.skill({
     id: 'int2.circle-equation', title: 'Equation of a circle',
-    learn: p(`A circle is every point at distance ${V('r')} from its centre (${V('h')}, ${V('k')}). Writing that distance with the Pythagorean theorem gives the <b>equation of a circle</b>: <b>${sq(`(${X} − ${V('h')})`)} + ${sq(`(${Y} − ${V('k')})`)} = ${sq(V('r'))}</b>.`) +
-      p(`Watch two things. The signs inside the brackets are the opposite of the centre's coordinates: centre (−2, 5) gives ${sq(`(${X} + 2)`)} + ${sq(`(${Y} − 5)`)}. And the right side is the radius <i>squared</i>: radius 3 means = 9, and = 49 means the radius is 7.`) +
-      example('Example', `Centre (4, −1), radius 6: <b>${sq(`(${X} − 4)`)} + ${sq(`(${Y} + 1)`)} = 36</b>.`),
+    learn: p(`A circle is every point at distance ${V('r')} from its center (${V('h')}, ${V('k')}). Writing that distance with the Pythagorean theorem gives the <b>equation of a circle</b>: <b>${sq(`(${X} − ${V('h')})`)} + ${sq(`(${Y} − ${V('k')})`)} = ${sq(V('r'))}</b>.`) +
+      p(`Watch two things. The signs inside the parentheses are the opposite of the center's coordinates: center (−2, 5) gives ${sq(`(${X} + 2)`)} + ${sq(`(${Y} − 5)`)}. And the right side is the radius <i>squared</i>: radius 3 means = 9, and = 49 means the radius is 7.`) +
+      example('Example', `Center (4, −1), radius 6: <b>${sq(`(${X} − 4)`)} + ${sq(`(${Y} + 1)`)} = 36</b>.`),
     make(rng) {
       const h = rng.int(-8, 8), k = rng.int(-8, 8), r = rng.int(2, 9);
       const eqn = (hh, kk, rr) => `${sqBin('x', hh)} + ${sqBin('y', kk)} = ${N(rr)}`;
       if (rng.chance(0.35)) {
         const wantR = rng.bool();
-        return { prompt: `What is the ${wantR ? 'radius of the circle' : `${X}-coordinate of the centre of the circle`}?${big(eqn(h, k, r * r))}`, type: 'number', answer: wantR ? r : h, params: { kind: wantR ? 'r' : 'h', h, k, r },
-          hints: [`Compare with ${sq(`(${X} − ${V('h')})`)} + ${sq(`(${Y} − ${V('k')})`)} = ${sq(V('r'))}.`, wantR ? `${sq(V('r'))} = ${N(r * r)}, so ${V('r')} = ${R(N(r * r))}.` : `The bracket ${h === 0 ? sq(X) : `(${M.poly([1, -h])})`} means ${X} − ${wrap(h)}, so ${V('h')} = ${N(h)}.`, wantR ? `The radius is <b>${N(r)}</b>.` : `The centre is ${M.pt(h, k)}, so its ${X}-coordinate is <b>${N(h)}</b>.`] };
+        return { prompt: `What is the ${wantR ? 'radius of the circle' : `${X}-coordinate of the center of the circle`}?${big(eqn(h, k, r * r))}`, type: 'number', answer: wantR ? r : h, params: { kind: wantR ? 'r' : 'h', h, k, r },
+          hints: [`Compare with ${sq(`(${X} − ${V('h')})`)} + ${sq(`(${Y} − ${V('k')})`)} = ${sq(V('r'))}.`, wantR ? `${sq(V('r'))} = ${N(r * r)}, so ${V('r')} = ${R(N(r * r))}.` : `The part ${h === 0 ? sq(X) : `(${M.poly([1, -h])})`} means ${X} − ${wrap(h)}, so ${V('h')} = ${N(h)}.`, wantR ? `The radius is <b>${N(r)}</b>.` : `The center is ${M.pt(h, k)}, so its ${X}-coordinate is <b>${N(h)}</b>.`] };
       }
       const answer = eqn(h, k, r * r);
       const choices = rng.shuffle([answer].concat(distinct(answer, [eqn(-h, -k, r * r), eqn(h, k, r), eqn(-h, -k, r), eqn(k, h, r * r), eqn(h, -k, r * r), eqn(h, k, 2 * r)], 3)));
-      return { prompt: `Which is the equation of the circle with centre ${M.pt(h, k)} and radius ${N(r)}?`, type: 'choice', answer, choices, params: { kind: 'eq', h, k, r },
+      return { prompt: `Which is the equation of the circle with center ${M.pt(h, k)} and radius ${N(r)}?`, type: 'choice', answer, choices, params: { kind: 'eq', h, k, r },
         hints: [`Use ${sq(`(${X} − ${V('h')})`)} + ${sq(`(${Y} − ${V('k')})`)} = ${sq(V('r'))} with ${V('h')} = ${N(h)}, ${V('k')} = ${N(k)}, ${V('r')} = ${N(r)}.`, `${X} − ${wrap(h)} = ${h === 0 ? X : M.poly([1, -h])} and ${Y} − ${wrap(k)} = ${k === 0 ? Y : M.poly([1, -k], 'y')}; the right side is ${sq(N(r))} = ${N(r * r)}.`, `<b>${answer}</b>.`] };
     },
     verify(q) {
@@ -1316,7 +1316,7 @@
 
   A.skill({
     id: 'int2.write-quadratic', title: 'Writing quadratic equations from x-intercepts',
-    learn: p(`If a parabola crosses the ${X}-axis at ${X} = ${V('r')} and ${X} = ${V('s')}, its equation can be written in <b>factored form</b>: <b>${Y} = ${V('a')}(${X} − ${V('r')})(${X} − ${V('s')})</b>. The intercepts fix the brackets (watch the signs: an intercept at −3 gives the factor ${X} + 3), but many parabolas share those intercepts, some tall, some flat, some upside down.`) +
+    learn: p(`If a parabola crosses the ${X}-axis at ${X} = ${V('r')} and ${X} = ${V('s')}, its equation can be written in <b>factored form</b>: <b>${Y} = ${V('a')}(${X} − ${V('r')})(${X} − ${V('s')})</b>. The intercepts fix the factors (watch the signs: an intercept at −3 gives the factor ${X} + 3), but many parabolas share those intercepts, some tall, some flat, some upside down.`) +
       p(`To pin down ${V('a')}, use <b>one more point</b> on the graph, such as the ${Y}-intercept or the vertex: substitute its ${X} and ${Y} into the equation and solve for ${V('a')}. A negative ${V('a')} means the parabola opens downward.`) +
       example('Example', `${big(`${X}-intercepts −1 and 3, passing through (1, −8)`)}${Y} = ${V('a')}(${X} + 1)(${X} − 3). Substitute (1, −8): −8 = ${V('a')}(2)(−2) = −4${V('a')}, so ${V('a')} = 2 and <b>${Y} = 2(${X} + 1)(${X} − 3)</b>.`),
     make(rng) {
@@ -1334,7 +1334,7 @@
       let intro;
       if (graph) {
         const yv = a * ((s - r) / 2) * ((r - s) / 2), lo = Math.min(0, yv, y0), hi = Math.max(0, yv, y0), padY = Math.max(2, Math.round((hi - lo) / 8));
-        intro = `The parabola crosses the ${X}-axis at the two labelled points and passes through the third.${curveFig(x => a * (x - r) * (x - s), [Math.min(r, x0) - 2, Math.max(s, x0) + 2], [lo - padY, hi + padY], { dots: [[r, 0, M.pt(r, 0), 'bl'], [s, 0, M.pt(s, 0), 'br'], [x0, y0, M.pt(x0, y0)]] })}`;
+        intro = `The parabola crosses the ${X}-axis at the two labeled points and passes through the third.${curveFig(x => a * (x - r) * (x - s), [Math.min(r, x0) - 2, Math.max(s, x0) + 2], [lo - padY, hi + padY], { dots: [[r, 0, M.pt(r, 0), 'bl'], [s, 0, M.pt(s, 0), 'br'], [x0, y0, M.pt(x0, y0)]] })}`;
       } else intro = `A parabola has ${X}-intercepts ${M.pt(r, 0)} and ${M.pt(s, 0)}, and its ${what === 'point' ? 'graph passes through' : `${what} is`} ${M.pt(x0, y0)}.`;
       const hints = [`The ${X}-intercepts ${N(r)} and ${N(s)} give the factors: ${Y} = ${V('a')}${fac(r)}${fac(s)}.`,
         `Substitute ${M.pt(x0, y0)}: ${N(y0)} = ${V('a')}(${N(x0)} − ${wrap(r)})(${N(x0)} − ${wrap(s)}) = ${V('a')}(${N(x0 - r)})(${N(x0 - s)}) = ${N(prod)}${V('a')}.`];
@@ -1551,7 +1551,7 @@
         const d2 = (i, j) => (P[i][0] - P[j][0]) ** 2 + (P[i][1] - P[j][1]) ** 2, answer = QUAD_NAMES[type];
         const right = vdot(vsub(P[1], P[0]), vsub(P[3], P[0])) === 0;
         return { prompt: `ABCD has vertices A${M.pt(...P[0])}, B${M.pt(...P[1])}, C${M.pt(...P[2])} and D${M.pt(...P[3])}. It is a parallelogram. What is its most specific name?${gridQuad(P)}`, type: 'choice', answer, choices: QUAD_NAMES, keepOrder: true, params: { kind, P },
-          hints: [`Compare two neighbouring sides with the distance formula: AB² = ${N(d2(0, 1))} and AD² = ${N(d2(0, 3))}, so ${d2(0, 1) === d2(0, 3) ? 'neighbouring sides match and all four sides are congruent' : 'neighbouring sides differ: it is not a rhombus or a square'}.`,
+          hints: [`Compare two neighboring sides with the distance formula: AB² = ${N(d2(0, 1))} and AD² = ${N(d2(0, 3))}, so ${d2(0, 1) === d2(0, 3) ? 'neighboring sides match and all four sides are congruent' : 'neighboring sides differ: it is not a rhombus or a square'}.`,
             `Check the angle at A with slopes: ${sideSlope('AB', u)} and ${sideSlope('AD', v)}. ${right ? (u[0] === 0 || u[1] === 0 ? 'One is horizontal and the other vertical' : 'They multiply to −1') + ', so the sides are perpendicular and the angles are right angles.' : 'They are not perpendicular, so the angles are not right angles.'}`,
             `<b>${answer}</b>.`] };
       }
@@ -2154,18 +2154,18 @@
       }
       if (kind === 'depression') {
         const h = rng.int(20, 120), ans = M.round(h / Math.tan(toRad(deg)), 1);
-        return { prompt: `From the top of a ${N(h)} m cliff, ${name} sees a boat at an angle of depression of ${N(deg)}°. How far is the boat from the foot of the cliff, to the nearest tenth of a metre? (tan ${N(deg)}° ≈ ${N(t)})`, type: 'number', answer: ans, unit: 'm', tolerance: tolOf(ans), params: { kind, h, deg },
+        return { prompt: `From the top of a ${N(h)} m cliff, ${name} sees a boat at an angle of depression of ${N(deg)}°. How far is the boat from the foot of the cliff, to the nearest tenth of a meter? (tan ${N(deg)}° ≈ ${N(t)})`, type: 'number', answer: ans, unit: 'm', tolerance: tolOf(ans), params: { kind, h, deg },
           hints: [`The angle of depression from the cliff top equals the angle of elevation from the boat up to the cliff top: ${N(deg)}°.`, `From the boat, the cliff (${N(h)} m) is opposite and the distance ${V('d')} is adjacent: tan ${N(deg)}° = ${F(N(h), V('d'))}.`, `${V('d')} = ${N(h)} ÷ ${N(t)} ≈ <b>${N(ans)}</b> m.`] };
       }
       if (kind === 'ramp') {
         const small = rng.int(3, 12), run = rng.int(2, 15), ans = M.round(run * Math.tan(toRad(small)), 2);
-        return { prompt: `A wheelchair ramp makes a ${N(small)}° angle with the ground and covers a horizontal distance of ${N(run)} m. How high does it rise, to the nearest hundredth of a metre? (tan ${N(small)}° ≈ ${N(tan4(small))})`, type: 'number', answer: ans, unit: 'm', tolerance: 0.01, params: { kind, deg: small, d: run, eye: 0 },
+        return { prompt: `A wheelchair ramp makes a ${N(small)}° angle with the ground and covers a horizontal distance of ${N(run)} m. How high does it rise, to the nearest hundredth of a meter? (tan ${N(small)}° ≈ ${N(tan4(small))})`, type: 'number', answer: ans, unit: 'm', tolerance: 0.01, params: { kind, deg: small, d: run, eye: 0 },
           hints: ['The rise is opposite the angle and the horizontal distance is adjacent, so use the tangent.', `rise = ${N(run)} × tan ${N(small)}°.`, `rise ≈ ${N(run)} × ${N(tan4(small))} ≈ <b>${N(ans)}</b> m.`] };
       }
       const d = rng.int(5, 60), eye = kind === 'eye' ? rng.pick([1.4, 1.5, 1.6, 1.7]) : 0, ans = M.round(d * Math.tan(toRad(deg)) + eye, 1);
-      const prompt = kind === 'shadow' ? `A flagpole casts a shadow ${N(d)} m long when the sun is ${N(deg)}° above the horizon. How tall is the flagpole, to the nearest tenth of a metre? (tan ${N(deg)}° ≈ ${N(t)})`
-        : kind === 'eye' ? `${name} stands ${N(d)} m from a building and looks up at its top at an angle of elevation of ${N(deg)}°. ${name}'s eyes are ${N(eye)} m above the ground. How tall is the building, to the nearest tenth of a metre? (tan ${N(deg)}° ≈ ${N(t)})`
-          : `From a point ${N(d)} m from the foot of a tree, the angle of elevation to the top of the tree is ${N(deg)}°. How tall is the tree, to the nearest tenth of a metre? (tan ${N(deg)}° ≈ ${N(t)})`;
+      const prompt = kind === 'shadow' ? `A flagpole casts a shadow ${N(d)} m long when the sun is ${N(deg)}° above the horizon. How tall is the flagpole, to the nearest tenth of a meter? (tan ${N(deg)}° ≈ ${N(t)})`
+        : kind === 'eye' ? `${name} stands ${N(d)} m from a building and looks up at its top at an angle of elevation of ${N(deg)}°. ${name}'s eyes are ${N(eye)} m above the ground. How tall is the building, to the nearest tenth of a meter? (tan ${N(deg)}° ≈ ${N(t)})`
+          : `From a point ${N(d)} m from the foot of a tree, the angle of elevation to the top of the tree is ${N(deg)}°. How tall is the tree, to the nearest tenth of a meter? (tan ${N(deg)}° ≈ ${N(t)})`;
       const legs = kind === 'shadow' ? 'the shadow is the adjacent leg and the pole is the opposite leg' : `the ground distance is the adjacent leg and the height${kind === 'eye' ? ' above eye level' : ''} is the opposite leg`;
       return { prompt, type: 'number', answer: ans, unit: 'm', tolerance: tolOf(ans), params: { kind, deg, d, eye },
         hints: [`Draw the right triangle: ${legs}. Use tan = ${F('opposite', 'adjacent')}.`, `opposite = ${N(d)} × tan ${N(deg)}° ≈ ${N(d)} × ${N(t)} ≈ ${N(M.round(d * Math.tan(toRad(deg)), 2))} m.`,

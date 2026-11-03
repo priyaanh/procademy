@@ -692,7 +692,7 @@
         }
         const t = seq(s, k, 6), gap = rng.int(1, 4), shown = t.map((x, i) => (i === gap ? '__' : x));
         return { prompt: `What number is missing from this pattern?${big(shown.join(', '))}`, type: 'number', answer: t[gap], params: { kind, shown },
-          hints: [`Find the rule: compare two neighbours. ${t[gap === 1 ? 3 : 1]} − ${t[gap === 1 ? 2 : 0]} = ${k}, so the rule is add ${k}.`, `The number before the blank is ${t[gap - 1]}. Add ${k}.`, `${t[gap - 1]} + ${k} = <b>${t[gap]}</b>.`] };
+          hints: [`Find the rule: compare two neighbors. ${t[gap === 1 ? 3 : 1]} − ${t[gap === 1 ? 2 : 0]} = ${k}, so the rule is add ${k}.`, `The number before the blank is ${t[gap - 1]}. Add ${k}.`, `${t[gap - 1]} + ${k} = <b>${t[gap]}</b>.`] };
       }
       const a = rng.int(2, 6), m = rng.int(2, 5), b = a * m;
       const A5 = seq(0, a, 5), B5 = seq(0, b, 5);

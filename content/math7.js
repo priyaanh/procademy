@@ -177,7 +177,7 @@
 
   A.skill({
     id: 'math7.mul-div-fractions', title: 'Multiplying and dividing fractions',
-    learn: p('To multiply fractions, multiply the numerators and multiply the denominators, then simplify. Cancelling common factors first keeps the numbers small.') +
+    learn: p('To multiply fractions, multiply the numerators and multiply the denominators, then simplify. Canceling common factors first keeps the numbers small.') +
       p('To divide by a fraction, multiply by its reciprocal (flip it): ' + `${F(2, 3)} ÷ ${F(4, 5)} = ${F(2, 3)} × ${F(5, 4)} = ${F(10, 12, { raw: true })} = ${F(5, 6)}.`) +
       example('Example', `${big(`${F(3, 8)} × ${F(4, 9)}`)}Multiply across: ${F(12, 72, { raw: true })}, which simplifies to <b>${F(1, 6)}</b>.`),
     make(rng) {
@@ -254,10 +254,10 @@
     make(rng) {
       const name = rng.pick(NAMES);
       const kinds = [
-        () => { const r = rng.int(35, 75), t = rng.int(2, 6); return { prompt: `A train travels ${N(r * t)} km in ${t} hours at a steady speed. How many kilometres does it travel per hour?`, ans: r, unit: 'km/h', a: r * t, b: t, what: 'kilometres', per: 'hour' }; },
+        () => { const r = rng.int(35, 75), t = rng.int(2, 6); return { prompt: `A train travels ${N(r * t)} km in ${t} hours at a steady speed. How many kilometers does it travel per hour?`, ans: r, unit: 'km/h', a: r * t, b: t, what: 'kilometers', per: 'hour' }; },
         () => { const r = rng.pick([0.25, 0.4, 0.5, 0.6, 0.75, 0.8, 1.2, 1.25, 1.5, 2.5]), n = rng.int(4, 12); return { prompt: `${n} notebooks cost ${M.money(M.round(r * n, 2))}. What is the cost per notebook?`, ans: r, unit: '$', a: M.round(r * n, 2), b: n, what: 'dollars', per: 'notebook' }; },
         () => { const r = rng.int(20, 60), t = rng.int(3, 9); return { prompt: `${name} reads ${N(r * t)} pages in ${t} days, the same number each day. How many pages per day is that?`, ans: r, unit: 'pages/day', a: r * t, b: t, what: 'pages', per: 'day' }; },
-        () => { const r = rng.pick([1.5, 2, 2.5, 3, 4, 6]), t = rng.int(2, 8); return { prompt: `A tap fills ${N(r * t)} litres in ${t} minutes. How many litres per minute?`, ans: r, unit: 'L/min', a: M.round(r * t, 2), b: t, what: 'litres', per: 'minute' }; },
+        () => { const r = rng.pick([1.5, 2, 2.5, 3, 4, 6]), t = rng.int(2, 8); return { prompt: `A tap fills ${N(r * t)} liters in ${t} minutes. How many liters per minute?`, ans: r, unit: 'L/min', a: M.round(r * t, 2), b: t, what: 'liters', per: 'minute' }; },
         () => { const r = rng.int(8, 25), t = rng.int(3, 12); return { prompt: `${name} earns ${M.money(r * t)} for ${t} hours of work. How much is that per hour?`, ans: r, unit: '$/hour', a: r * t, b: t, what: 'dollars', per: 'hour' }; },
       ];
       const k = rng.pick(kinds)();
@@ -268,7 +268,7 @@
   });
 
   A.skill({
-    id: 'math7.proportional-table', title: 'Recognising proportional relationships',
+    id: 'math7.proportional-table', title: 'Recognizing proportional relationships',
     learn: p(`Two quantities are <b>proportional</b> when ${V('y')} is always the same multiple of ${V('x')}: ${V('y')} = ${V('k')}${V('x')}. In a table, check the ratio ${V('y')} ÷ ${V('x')} in every row. If it is the same number each time, the relationship is proportional and that number is the constant ${V('k')}.`) +
       p('A relationship like y = 3x + 2 is not proportional: the ratio changes from row to row, and the graph does not pass through (0, 0).') +
       example('Example', `${M.table([V('x'), V('y')], [[2, 10], [5, 25], [8, 40]], { compact: true })}10 ÷ 2 = 5, 25 ÷ 5 = 5, 40 ÷ 8 = 5. Proportional, with ${V('y')} = 5${V('x')}.`),
@@ -441,7 +441,7 @@
   A.skill({
     id: 'math7.circles', title: 'Area and circumference of circles',
     learn: p(`<b>Circumference</b> is the distance around a circle: ${V('C')} = 2π${V('r')} = π${V('d')}. <b>Area</b> is the space inside: ${V('A')} = π${V('r')}².`) +
-      p('The radius goes from the centre to the edge; the diameter goes all the way across, so it is twice the radius. On this site use 3.14 for π and round to two decimal places.') +
+      p('The radius goes from the center to the edge; the diameter goes all the way across, so it is twice the radius. On this site use 3.14 for π and round to two decimal places.') +
       example('Example', `${big('A circle has radius 5 cm.')}${V('C')} = 2 × 3.14 × 5 = <b>31.4 cm</b>. ${V('A')} = 3.14 × 5² = 3.14 × 25 = <b>78.5 cm²</b>.`),
     make(rng) {
       const kind = rng.pick(['area-r', 'area-d', 'circ-r', 'circ-d', 'r-from-c']);
@@ -480,7 +480,7 @@
 
   A.skill({
     id: 'math7.scale-drawings', title: 'Scale drawings',
-    learn: p('A scale drawing keeps every length in the same ratio to the real thing. A scale of <b>1 cm : 4 m</b> means each centimetre on the drawing stands for 4 metres in real life.') +
+    learn: p('A scale drawing keeps every length in the same ratio to the real thing. A scale of <b>1 cm : 4 m</b> means each centimeter on the drawing stands for 4 meters in real life.') +
       p('Drawing → real: multiply by the scale. Real → drawing: divide by the scale. Between two similar figures, the <b>scale factor</b> is new length ÷ original length, and every length (but not the area) is multiplied by it.') +
       example('Example', `${big('Scale 1 cm : 4 m. A wall is 6.5 cm long on the plan.')}Real length = 6.5 × 4 = <b>26 m</b>.`),
     make(rng) {
@@ -488,7 +488,7 @@
       const scale = rng.pick([2, 3, 4, 5, 8, 10, 20, 25, 50]);
       const draw = rng.pick([2, 2.5, 3, 3.5, 4, 4.5, 5, 6, 7.5, 8, 9, 12]);
       const real = M.round(draw * scale, 3);
-      if (kind === 'to-real') return { prompt: `A map uses a scale of 1 cm : ${scale} km. Two towns are ${N(draw)} cm apart on the map. How far apart are they really?`, type: 'number', answer: real, unit: 'km', params: { kind, scale, draw, real }, hints: [`Each centimetre stands for ${scale} km, so multiply the map distance by ${scale}.`, `${N(draw)} × ${scale} = <b>${N(real)} km</b>.`] };
+      if (kind === 'to-real') return { prompt: `A map uses a scale of 1 cm : ${scale} km. Two towns are ${N(draw)} cm apart on the map. How far apart are they really?`, type: 'number', answer: real, unit: 'km', params: { kind, scale, draw, real }, hints: [`Each centimeter stands for ${scale} km, so multiply the map distance by ${scale}.`, `${N(draw)} × ${scale} = <b>${N(real)} km</b>.`] };
       if (kind === 'to-drawing') return { prompt: `A floor plan uses a scale of 1 cm : ${scale} m. A room is ${N(real)} m long. How long is it on the plan?`, type: 'number', answer: draw, unit: 'cm', params: { kind, scale, draw, real }, hints: [`Going from real life to the drawing, divide by the scale.`, `${N(real)} ÷ ${scale} = <b>${N(draw)} cm</b>.`] };
       const k = rng.pick([1.5, 2, 2.5, 3, 4]), s = rng.int(2, 9), other = rng.int(2, 9);
       return { prompt: `A triangle with sides ${s} cm and ${other} cm is enlarged so that the ${s} cm side becomes ${N(s * k)} cm. How long does the ${other} cm side become?`, type: 'number', answer: M.round(other * k, 3), unit: 'cm', params: { kind, s, k, other }, hints: [`Find the scale factor: new ÷ original = ${N(s * k)} ÷ ${s} = ${N(k)}.`, `Every side is multiplied by ${N(k)}: ${other} × ${N(k)} = <b>${N(M.round(other * k, 3))} cm</b>.`] };
@@ -531,7 +531,7 @@
 
   A.skill({
     id: 'math7.simple-probability', title: 'Simple probability',
-    learn: p('When every outcome is equally likely, <b>probability = favourable outcomes ÷ total outcomes</b>. It is a number from 0 (impossible) to 1 (certain), written as a fraction, decimal or percent.') +
+    learn: p('When every outcome is equally likely, <b>probability = favorable outcomes ÷ total outcomes</b>. It is a number from 0 (impossible) to 1 (certain), written as a fraction, decimal or percent.') +
       p(`A bag with 3 red and 5 blue marbles has 8 marbles, so P(red) = ${F(3, 8)}. The probability of <b>not</b> red is 1 − ${F(3, 8)} = ${F(5, 8)}.`) +
       example('Example', `${big('Roll a fair six-sided die. P(number greater than 4)?')}The outcomes greater than 4 are 5 and 6: two out of six. P = ${F(2, 6, { raw: true })} = <b>${F(1, 3)}</b>.`),
     make(rng) {
@@ -711,7 +711,7 @@
           const lo = Math.ceil(T * 0.2), hi = Math.floor(T * 0.4);
           const counts = [rng.int(lo, hi), rng.int(lo, hi)]; counts.push(T - counts[0] - counts[1]);
           const i = rng.int(0, 2); c = counts[i]; what = `landed on ${cols[i]}`;
-          prompt = `${name} spun a spinner ${T} times and recorded the results.${M.table(['Colour'].concat(cols.map(s => s[0].toUpperCase() + s.slice(1))), [['Times'].concat(counts)])}What is the experimental probability of landing on ${cols[i]}? ${ask}`;
+          prompt = `${name} spun a spinner ${T} times and recorded the results.${M.table(['Color'].concat(cols.map(s => s[0].toUpperCase() + s.slice(1))), [['Times'].concat(counts)])}What is the experimental probability of landing on ${cols[i]}? ${ask}`;
         } else {
           const heads = rng.int(Math.ceil(T * 0.3), Math.floor(T * 0.7)), side = rng.pick(['heads', 'tails']);
           c = side === 'heads' ? heads : T - heads; what = `came up ${side}`;
@@ -797,9 +797,9 @@
       const L = d1 * d2 / M.gcd(d1, d2), a = n1 * L / d1, b = n2 * L / d2, fav = neither ? L - a - b : a + b;
       const [c1, c2, c3] = rng.sample(['red', 'blue', 'yellow', 'green'], 3);
       const hints = [`The spinner cannot land on ${c1} and ${c2} at once, so add the probabilities. Use the common denominator ${L}: ${R(n1, d1)} = ${R(a, L)} and ${R(n2, d2)} = ${R(b, L)}.`, `P(${c1} or ${c2}) = ${R(a, L)} + ${R(b, L)} = ${R(a + b, L)}.`];
-      if (neither) hints.push(`The only other colour is ${c3}, so P(${c3}) = 1 − ${R(a + b, L)} = ${R(L - a - b, L)}.`);
+      if (neither) hints.push(`The only other color is ${c3}, so P(${c3}) = 1 − ${R(a + b, L)} = ${R(L - a - b, L)}.`);
       hints.push(simpLine(fav, L));
-      return Object.assign({ prompt: `A spinner is coloured ${c1}, ${c2} and ${c3}. It lands on ${c1} with probability ${R(n1, d1)} and on ${c2} with probability ${R(n2, d2)}. What is the probability that it lands on ${neither ? c3 : `${c1} or ${c2}`}? Give your answer as a fraction.`, type: 'number', params: { kind, n1, d1, n2, d2, neither }, hints }, fracAns(fav, L));
+      return Object.assign({ prompt: `A spinner is colored ${c1}, ${c2} and ${c3}. It lands on ${c1} with probability ${R(n1, d1)} and on ${c2} with probability ${R(n2, d2)}. What is the probability that it lands on ${neither ? c3 : `${c1} or ${c2}`}? Give your answer as a fraction.`, type: 'number', params: { kind, n1, d1, n2, d2, neither }, hints }, fracAns(fav, L));
     },
     verify(q) {
       const P = q.params;
@@ -1154,7 +1154,7 @@
     rectangle(rng) {
       const m = rng.int(2, 3), d = rng.int(0, 6), s = rng.int(2, 15), len = m * s + d, T = 2 * (s + len), askLen = rng.bool();
       const rel = d ? `${d} cm more than ${m === 2 ? 'twice' : 'three times'} its width` : `${m === 2 ? 'twice' : 'three times'} its width`;
-      return { text: `A rectangle’s length is ${rel}. Its perimeter is ${T} cm. What is its ${askLen ? 'length' : 'width'}, in centimetres?`,
+      return { text: `A rectangle’s length is ${rel}. Its perimeter is ${T} cm. What is its ${askLen ? 'length' : 'width'}, in centimeters?`,
         x: 'the width', other: `the length is ${M.term(m, 'x')}${d ? ` + ${d}` : ''}`, eq: `2(${X} + ${M.term(m, 'x')}${d ? ` + ${d}` : ''}) = ${T}`, comb: `${2 * (m + 1)}${X}${d ? ` + ${2 * d}` : ''} = ${T}`, s, total: g => 2 * (g + m * g + d), T, word: 'perimeter',
         ans: askLen ? len : s, declare: askLen ? `The length is ${m} × ${s}${d ? ` + ${d}` : ''} = <b>${len} cm</b>.` : `The width is <b>${s} cm</b>.`, params: { m, d, T, askLen } };
     },
@@ -1168,7 +1168,7 @@
 
   A.skill({
     id: 'math7.five-d-problems', title: 'Word problems with related unknowns (the 5-D Process)',
-    learn: p('The <b>5-D Process</b> organises a word problem: <b>Describe</b> it, <b>Define</b> what to call the unknown, <b>Do</b> a trial, <b>Decide</b> whether the trial is too big or too small, and <b>Declare</b> the answer. A table with one row per trial keeps the work tidy.') +
+    learn: p('The <b>5-D Process</b> organizes a word problem: <b>Describe</b> it, <b>Define</b> what to call the unknown, <b>Do</b> a trial, <b>Decide</b> whether the trial is too big or too small, and <b>Declare</b> the answer. A table with one row per trial keeps the work tidy.') +
       p(`After a trial or two, let ${X} stand for the trial value. Every column of the table becomes an expression in ${X}, and the last column gives an <b>equation</b>. Solving it finds the answer without more guessing.`) +
       example('Example', `Ana has 3 times as many stickers as Ben, and together they have 36. Trial: Ben 10, Ana 30, total 40: too big. Define Ben = ${X}, Ana = 3${X}: ${X} + 3${X} = 36, so 4${X} = 36 and ${X} = 9. Declare: Ben has <b>9</b>, Ana has <b>27</b>.`),
     make(rng) {
@@ -1297,7 +1297,7 @@
 
   A.skill({
     id: 'math7.axis-scales', title: 'Choosing and reading axis scales',
-    learn: p('The marks on a graph’s axis must be <b>evenly spaced</b>, and every space must stand for the same amount: the <b>scale</b>. Not every mark has to be labelled. To find the scale, take two labelled marks, subtract their values and divide by the number of spaces between them.') +
+    learn: p('The marks on a graph’s axis must be <b>evenly spaced</b>, and every space must stand for the same amount: the <b>scale</b>. Not every mark has to be labeled. To find the scale, take two labeled marks, subtract their values and divide by the number of spaces between them.') +
       p('To choose a scale, find the range the axis must cover and divide it by the number of spaces you have. Then round <b>up</b> to a friendly number such as 1, 2, 5, 10, 20, 25 or 50, so that all of the data fits. Rounding down would leave some data off the graph.') +
       example('Example', `Data run from 0 to 470 on an axis with 10 spaces. 470 ÷ 10 = 47, so each space must be at least 47. The smallest friendly scale that fits is <b>50</b>, and the axis runs from 0 to 500.`),
     make(rng) {
@@ -1324,7 +1324,7 @@
       const val = i => M.round(v0 + st * i, 4);
       if (kind === 'tick') {
         const i1 = rng.int(0, 3), i2 = i1 + rng.int(2, 6);
-        return { prompt: `Only two marks on this axis are labelled. The spaces between marks are all equal. How much does each space stand for?${axisSvg(v0, st, [i1, i2], null)}`, type: 'number', answer: st, params: { kind, a: val(i1), b: val(i2), gap: i2 - i1 },
+        return { prompt: `Only two marks on this axis are labeled. The spaces between marks are all equal. How much does each space stand for?${axisSvg(v0, st, [i1, i2], null)}`, type: 'number', answer: st, params: { kind, a: val(i1), b: val(i2), gap: i2 - i1 },
           hints: [`From ${N(val(i1))} to ${N(val(i2))} is ${N(val(i2))} − ${val(i1) < 0 ? `(${N(val(i1))})` : N(val(i1))} = ${N(M.round(val(i2) - val(i1), 4))}.`, `Count the spaces between those two marks: ${i2 - i1}.`, `${N(M.round(val(i2) - val(i1), 4))} ÷ ${i2 - i1} = <b>${N(st)}</b> per space.`] };
       }
       const every = rng.pick([2, 5]), labels = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].filter(i => i % every === 0);
@@ -1363,7 +1363,7 @@
   A.skill({
     id: 'math7.representative-samples', title: 'Representative and biased samples',
     learn: p('A <b>population</b> is the whole group you want to know about; a <b>sample</b> is the part of it you actually ask. A sample is <b>representative</b> when it looks like the population in the ways that matter. The surest way to get one is a <b>random sample</b>: everyone in the population has the same chance of being picked.') +
-      p('A sample is <b>biased</b> when the way it was chosen favours some answers. Two common causes: asking only <b>one group</b> (the soccer team, the people in one shop), and letting people <b>choose themselves</b> (call-in polls, online surveys), because people with strong opinions answer most. A random sample also only represents the population it was drawn from.') +
+      p('A sample is <b>biased</b> when the way it was chosen favors some answers. Two common causes: asking only <b>one group</b> (the soccer team, the people in one shop), and letting people <b>choose themselves</b> (call-in polls, online surveys), because people with strong opinions answer most. A random sample also only represents the population it was drawn from.') +
       example('Example', 'To learn what all students think of the lunch menu, asking the cooking club is biased: they may care about food more than others. Picking 60 names at random from a list of every student is <b>representative</b>.'),
     make(rng) {
       const name = rng.pick(NAMES);
@@ -1406,7 +1406,7 @@
         ? `A factory checks a random sample of ${n} light bulbs from a batch of ${N(Np)} and finds ${k} that do not work. About how many bulbs in the whole batch do not work?`
         : rng.pick([`In a random sample of ${n} of the ${N(Np)} students at a school, ${k} said they bike to school. Estimate how many of the ${N(Np)} students bike to school.`,
           `${name} asks a random sample of ${n} of the ${N(Np)} people at a fair, and ${k} of them say they would buy a ticket for the raffle. About how many people at the fair would buy one?`,
-          `A random sample of ${n} of the ${N(Np)} voters in a town finds ${k} in favour of a new park. Estimate how many of the town’s voters favour the park.`]);
+          `A random sample of ${n} of the ${N(Np)} voters in a town finds ${k} in favor of a new park. Estimate how many of the town’s voters favor the park.`]);
       return { prompt, type: 'number', answer: ans, params: { kind, n, k, Np },
         hints: [`The sample fraction is ${R(k, n)}${M.gcd(k, n) > 1 ? ` = ${F(k, n)}` : ''}.`, `Assume the whole group has the same fraction: ${R(k, n)} = ${R(V('n'), N(Np))}.`, `${V('n')} = ${N(Np)} × ${k} ÷ ${n} = <b>${N(ans)}</b>.`] };
     },
@@ -1433,7 +1433,7 @@
         const m = rng.int(40, 90), A1 = rng.shuffle(pat.map(d => m + d)), B1 = rng.shuffle(pat2.map(d => m + d)), ma = madOf(A1), mb = madOf(B1);
         const choices = ['Method A', 'Method B', 'They are equally precise'];
         const answer = choices[ma < mb ? 0 : mb < ma ? 1 : 2];
-        return { prompt: `Two methods are used to measure the same length several times, in millimetres.${M.table(['Method', 'Measurements'], [['A', A1.join(', ')], ['B', B1.join(', ')]])}Both sets have a mean of ${m} mm. Which method is more precise?`, type: 'choice', choices, answer, keepOrder: true, params: { kind, A1, B1 },
+        return { prompt: `Two methods are used to measure the same length several times, in millimeters.${M.table(['Method', 'Measurements'], [['A', A1.join(', ')], ['B', B1.join(', ')]])}Both sets have a mean of ${m} mm. Which method is more precise?`, type: 'choice', choices, answer, keepOrder: true, params: { kind, A1, B1 },
           hints: ['The more precise method gives measurements that are closer together: the one with the smaller MAD.', `Distances from ${m}: A gives ${A1.map(v => Math.abs(v - m)).join(', ')}, so its MAD is ${N(M.round(ma, 3))}. B gives ${B1.map(v => Math.abs(v - m)).join(', ')}, so its MAD is ${N(M.round(mb, 3))}.`, ma === mb ? `The MADs are equal: <b>they are equally precise</b>.` : `${ma < mb ? 'A' : 'B'} has the smaller MAD: <b>${answer}</b> is more precise.`] };
       }
       let ratio; do { ratio = rng.pick([1, 1.5, 2, 2.5, 3, 4]); } while (!Number.isInteger(ratio * mad));
@@ -1444,7 +1444,7 @@
           hints: [`The difference of the means: ${m1 + shift} − ${m1} = ${shift}.`, `Divide by the MAD: ${shift} ÷ ${N(mad)} = <b>${N(ratio)}</b> MADs.`] };
       }
       const A1 = rng.shuffle(pat.map(d => m1 + d)), B1 = rng.shuffle(pat.map(d => m1 + shift + d));
-      return { prompt: `Plants grown with two kinds of soil reached these heights, in centimetres.${M.table(['Soil', 'Heights'], [['Soil 1', A1.join(', ')], ['Soil 2', B1.join(', ')]])}The two sets have the same MAD. How many MADs apart are their means?`, type: 'number', answer: ratio, params: { kind, A1, B1 },
+      return { prompt: `Plants grown with two kinds of soil reached these heights, in centimeters.${M.table(['Soil', 'Heights'], [['Soil 1', A1.join(', ')], ['Soil 2', B1.join(', ')]])}The two sets have the same MAD. How many MADs apart are their means?`, type: 'number', answer: ratio, params: { kind, A1, B1 },
         hints: [`Mean of soil 1: ${A1.reduce((s, v) => s + v, 0)} ÷ ${A1.length} = ${m1}. Mean of soil 2: ${B1.reduce((s, v) => s + v, 0)} ÷ ${B1.length} = ${m1 + shift}. They differ by ${shift}.`,
           `The MAD of soil 1: the distances from ${m1} are ${A1.map(v => Math.abs(v - m1)).join(', ')}, and their mean is ${N(mad)}.`, `${shift} ÷ ${N(mad)} = <b>${N(ratio)}</b> MADs.`] };
     },
@@ -1489,13 +1489,13 @@
       if (kind === 'range') {
         const right = `${lo} &lt; ${xx} &lt; ${hi}`;
         const choices = [right].concat(distinct(right, rng.shuffle([`${a} &lt; ${xx} &lt; ${b}`, `${lo} &lt; ${xx} &lt; ${b}`, `${b} &lt; ${xx} &lt; ${hi}`, `${a} &lt; ${xx} &lt; ${hi}`]), 3));
-        return { prompt: `${intro} Which inequality describes every possible length ${xx} of the third side, in centimetres?`, type: 'choice', choices, answer: choices[0], params: { kind, a, b },
+        return { prompt: `${intro} Which inequality describes every possible length ${xx} of the third side, in centimeters?`, type: 'choice', choices, answer: choices[0], params: { kind, a, b },
           hints: [`If the third side were ${hi} cm or longer, the two given sides could not reach across it.`, `If it were ${lo} cm or shorter, it and the ${a} cm side could not reach across the ${b} cm side.`, `${bounds} <b>${lo} &lt; ${xx} &lt; ${hi}</b>.`] };
       }
       const Q = {
-        max: [`What is the <b>longest</b> whole number of centimetres the third side could be?`, hi - 1, `It must be shorter than ${hi}, so the longest whole number is <b>${hi - 1}</b>.`],
-        min: [`What is the <b>shortest</b> whole number of centimetres the third side could be?`, lo + 1, `It must be longer than ${lo}, so the shortest whole number is <b>${lo + 1}</b>.`],
-        count: [`How many different whole-number lengths, in centimetres, could the third side have?`, hi - lo - 1, `The whole numbers from ${lo + 1} to ${hi - 1}: ${hi - 1} − ${lo + 1} + 1 = <b>${hi - lo - 1}</b>.`],
+        max: [`What is the <b>longest</b> whole number of centimeters the third side could be?`, hi - 1, `It must be shorter than ${hi}, so the longest whole number is <b>${hi - 1}</b>.`],
+        min: [`What is the <b>shortest</b> whole number of centimeters the third side could be?`, lo + 1, `It must be longer than ${lo}, so the shortest whole number is <b>${lo + 1}</b>.`],
+        count: [`How many different whole-number lengths, in centimeters, could the third side have?`, hi - lo - 1, `The whole numbers from ${lo + 1} to ${hi - 1}: ${hi - 1} − ${lo + 1} + 1 = <b>${hi - lo - 1}</b>.`],
       }[kind];
       return { prompt: `${intro} ${Q[0]}`, type: 'number', answer: Q[1], unit: kind === 'count' ? undefined : 'cm', params: { kind, a, b },
         hints: ['The two shorter sides of a triangle must add to more than the longest side.', bounds, Q[2]] };
@@ -1548,9 +1548,9 @@
     { solid: 'spyr', cut: 'straight down, parallel to one edge of the base, but missing the top point', shape: 'Trapezoid', plane: [[0, 1, 0], 1], why: 'The bottom edge lies along the base; the top edge is shorter and parallel to it, because the slice leaves the sloping faces before the top point. One pair of parallel sides: a trapezoid.' },
     { solid: 'tpyr', cut: 'parallel to its base', shape: 'Triangle', plane: [[0, 0, 1], 2], why: 'A slice parallel to the base of a pyramid has the same shape as the base, only smaller: a triangle.' },
     { solid: 'cylinder', cut: 'parallel to its base', shape: 'Circle', why: 'A slice parallel to the base of a cylinder is an exact copy of the base, a circle.' },
-    { solid: 'cylinder', cut: 'straight down through the centres of both circular ends', shape: 'Rectangle', noSquare: true, why: 'The slice is as wide as the diameter and as tall as the cylinder, with straight sides: a rectangle.' },
+    { solid: 'cylinder', cut: 'straight down through the centers of both circular ends', shape: 'Rectangle', noSquare: true, why: 'The slice is as wide as the diameter and as tall as the cylinder, with straight sides: a rectangle.' },
     { solid: 'cone', cut: 'parallel to its base', shape: 'Circle', why: 'A slice parallel to the base of a cone is a smaller circle.' },
-    { solid: 'cone', cut: 'straight down through its tip and the centre of its base', shape: 'Triangle', why: 'The slice meets the base along a diameter and rises to the tip, so it has three sides.' },
+    { solid: 'cone', cut: 'straight down through its tip and the center of its base', shape: 'Triangle', why: 'The slice meets the base along a diameter and rises to the tip, so it has three sides.' },
   ];
   /** the polyhedra in coordinates: vertices and edges (pairs of vertex indices) */
   const boxSolid = (l, w, h) => { const v = []; [0, l].forEach(x => [0, w].forEach(y => [0, h].forEach(z => v.push([x, y, z])))); const e = []; v.forEach((p, i) => v.forEach((q, j) => { if (i < j && p.filter((c, k) => c !== q[k]).length === 1) e.push([i, j]); })); return { v, e }; };

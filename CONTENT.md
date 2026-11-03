@@ -2,7 +2,7 @@
 
 One file per course in `content/`, loaded by a `<script>` tag in `index.html`. Plain script, no modules:
 wrap the file in `(function () { 'use strict'; … })();`. Three globals are available: `ACADEMY` (the
-registry), `M` (HTML helpers for maths) and `RNG`. The offline file (`procademy-offline.html`) picks up every
+registry), `M` (HTML helpers for math) and `RNG`. The offline file (`procademy-offline.html`) picks up every
 script `index.html` loads by itself; `./tests/run.sh` rebuilds it.
 
 Check a file while writing it with `node tests/content.js content/<file>.js`; it must print `PASS`.
@@ -38,7 +38,7 @@ ACADEMY.skill({
 
 **learn** is a short HTML article, at least 120 characters of text: two to four short paragraphs that
 explain the idea the way a tutor would, with the rule in bold, then one worked example in the
-`example` box. Use the `M` helpers for any maths. Inline SVG is allowed (`class="figure"`); no images or
+`example` box. Use the `M` helpers for any math. Inline SVG is allowed (`class="figure"`); no images or
 external links.
 
 **make(rng)** builds one question. It must be deterministic: use only `rng` for randomness, never
@@ -88,7 +88,7 @@ the same answer, and a right choice that is by far the longest option in most qu
   negatives get a real minus sign, and put a negative in parentheses after an operator: `3 − (−4)`.
 - **Drawings**: inside `<svg>`, never use HTML tags like `<i>`, `<b>` or `<sub>`: a browser ends the
   drawing at them. Use `font-style="italic"` / `font-weight="700"` on `<text>` or `<tspan>`. The registry
-  converts stray `<i>`/`<b>`, and the checker rejects the rest. Use `currentColor` and `var(--…)` colours
+  converts stray `<i>`/`<b>`, and the checker rejects the rest. Use `currentColor` and `var(--…)` colors
   so the drawing works in dark mode.
 - **Inequality signs**: write `&lt;` and `&gt;` in HTML strings (a bare `<` starts a tag). The registry
   repairs a `<` or `>` that has a space on the inside, but entities are safer.

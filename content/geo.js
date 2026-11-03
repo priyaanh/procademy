@@ -74,7 +74,7 @@
       { id: 'similarity', title: 'Similarity', blurb: 'Scale factors, similar triangles, and the triangle proportionality theorem.', skills: ['geo.similar-triangles', 'geo.triangle-proportionality'] },
       { id: 'right-triangles', title: 'Right triangles & trigonometry', blurb: 'The Pythagorean theorem, special right triangles, and the sine, cosine and tangent ratios.', skills: ['geo.pythagorean-special', 'geo.trig-ratios', 'geo.solve-right-triangles'] },
       { id: 'analytic', title: 'Analytic geometry', blurb: 'Distance, midpoints, dividing segments, and slopes of parallel and perpendicular lines.', skills: ['geo.distance-midpoint', 'geo.parallel-perpendicular'] },
-      { id: 'conics', title: 'Conic sections', blurb: 'The equation of a circle, and reading its centre and radius.', skills: ['geo.circle-equation', 'geo.circle-center-radius'] },
+      { id: 'conics', title: 'Conic sections', blurb: 'The equation of a circle, and reading its center and radius.', skills: ['geo.circle-equation', 'geo.circle-center-radius'] },
       { id: 'circles', title: 'Circles', blurb: 'Arc length, sector area, radians, and inscribed angles.', skills: ['geo.arc-sector', 'geo.inscribed-angles'] },
       { id: 'solids', title: 'Solid geometry', blurb: 'Volume and surface area of prisms, cylinders, pyramids, cones and spheres.', skills: ['geo.volume', 'geo.surface-area'] },
     ],
@@ -166,7 +166,7 @@
 
   A.skill({
     id: 'geo.rotations', title: 'Rotations about the origin',
-    learn: p('A <b>rotation</b> turns a figure about a fixed point, the centre of rotation. Counterclockwise is the positive direction. Every point stays the same distance from the centre.') +
+    learn: p('A <b>rotation</b> turns a figure about a fixed point, the center of rotation. Counterclockwise is the positive direction. Every point stays the same distance from the center.') +
       p(`About the origin the rules are: <b>90° counterclockwise</b>: (${X}, ${Y}) → (−${Y}, ${X}). <b>180°</b>: (${X}, ${Y}) → (−${X}, −${Y}). <b>90° clockwise</b> (the same as 270° counterclockwise): (${X}, ${Y}) → (${Y}, −${X}).`) +
       p('A quick check: after a quarter turn the point should be in the next quadrant over, in the direction you turned.') +
       example('Example', `${big('Rotate (4, 1) by 90° counterclockwise about the origin.')}Use (−${Y}, ${X}): the image is <b>(−1, 4)</b>, one quadrant over from quadrant I into quadrant II.`),
@@ -194,10 +194,10 @@
 
   A.skill({
     id: 'geo.dilations', title: 'Dilations',
-    learn: p(`A <b>dilation</b> with centre ${V('C')} and scale factor ${V('k')} moves every point along the ray from ${V('C')}, multiplying its distance from ${V('C')} by ${V('k')}. A scale factor above 1 enlarges the figure; between 0 and 1 it shrinks it.`) +
-      p(`From the origin the rule is simple: <b>(${X}, ${Y}) → (${V('k')}${X}, ${V('k')}${Y})</b>. From any other centre, find how far the point is from the centre in each direction, multiply those by ${V('k')}, and add them back on to the centre.`) +
+    learn: p(`A <b>dilation</b> with center ${V('C')} and scale factor ${V('k')} moves every point along the ray from ${V('C')}, multiplying its distance from ${V('C')} by ${V('k')}. A scale factor above 1 enlarges the figure; between 0 and 1 it shrinks it.`) +
+      p(`From the origin the rule is simple: <b>(${X}, ${Y}) → (${V('k')}${X}, ${V('k')}${Y})</b>. From any other center, find how far the point is from the center in each direction, multiply those by ${V('k')}, and add them back on to the center.`) +
       p('The scale factor is image length ÷ original length.') +
-      example('Example', `${big('Dilate (5, 3) by a factor of 2 about the centre (1, 1).')}From the centre the point is 4 right and 2 up. Doubled, that is 8 right and 4 up, so the image is (1 + 8, 1 + 4) = <b>(9, 5)</b>.`),
+      example('Example', `${big('Dilate (5, 3) by a factor of 2 about the center (1, 1).')}From the center the point is 4 right and 2 up. Doubled, that is 8 right and 4 up, so the image is (1 + 8, 1 + 4) = <b>(9, 5)</b>.`),
     make(rng) {
       const form = rng.pick(['origin', 'centre', 'centre', 'factor']);
       const kk = rng.pick([[2, 1], [3, 1], [1, 2], [1, 3], [3, 2]]), k = kk[0] / kk[1];
@@ -216,8 +216,8 @@
       const ctr = form === 'origin' ? 'the origin' : `the point ${PT(cx, cy)}`;
       const hints = form === 'origin'
         ? [`From the origin, multiply both coordinates by the scale factor ${kTxt}.`, `${N(x)} × ${kTxt} = ${N(ix)} and ${N(y)} × ${kTxt} = ${N(iy)}.`, `The image is <b>${PT(ix, iy)}</b>.`]
-        : [`Find how far ${PT(x, y)} is from the centre: ${N(x)} − ${wrap(cx)} = ${N(dx)} across and ${N(y)} − ${wrap(cy)} = ${N(dy)} up.`, `Multiply those by ${kTxt}: ${N(dx * k)} across and ${N(dy * k)} up.`, `Add them back on to the centre: (${N(cx)} ${M.signed(dx * k)}, ${N(cy)} ${M.signed(dy * k)}) = <b>${PT(ix, iy)}</b>.`];
-      return { prompt: `Point ${V('Q')}${PT(x, y)} is dilated by a scale factor of ${kTxt} with centre at ${ctr}. What are the coordinates of ${V('Q')}′?`, type: 'choice', choices, answer: PT(ix, iy), params: { form, x, y, cx, cy, k },
+        : [`Find how far ${PT(x, y)} is from the center: ${N(x)} − ${wrap(cx)} = ${N(dx)} across and ${N(y)} − ${wrap(cy)} = ${N(dy)} up.`, `Multiply those by ${kTxt}: ${N(dx * k)} across and ${N(dy * k)} up.`, `Add them back on to the center: (${N(cx)} ${M.signed(dx * k)}, ${N(cy)} ${M.signed(dy * k)}) = <b>${PT(ix, iy)}</b>.`];
+      return { prompt: `Point ${V('Q')}${PT(x, y)} is dilated by a scale factor of ${kTxt} with center at ${ctr}. What are the coordinates of ${V('Q')}′?`, type: 'choice', choices, answer: PT(ix, iy), params: { form, x, y, cx, cy, k },
         hints };
     },
     verify(q) {
@@ -588,7 +588,7 @@
   A.skill({
     id: 'geo.pythagorean-special', title: 'Pythagorean theorem and special right triangles',
     learn: p(`In a right triangle with legs ${V('a')} and ${V('b')} and hypotenuse ${V('c')} (the side opposite the right angle), <b>${V('a')}² + ${V('b')}² = ${V('c')}²</b>. To find a leg, subtract: ${V('a')}² = ${V('c')}² − ${V('b')}².`) +
-      p(`Two right triangles come up so often that their side ratios are worth memorising. A <b>45°-45°-90°</b> triangle has sides in the ratio <b>1 : 1 : √2</b>, so the hypotenuse is a leg times √2. A <b>30°-60°-90°</b> triangle has sides <b>1 : √3 : 2</b>: the hypotenuse is twice the short leg (opposite 30°), and the long leg is the short leg times √3.`) +
+      p(`Two right triangles come up so often that their side ratios are worth memorizing. A <b>45°-45°-90°</b> triangle has sides in the ratio <b>1 : 1 : √2</b>, so the hypotenuse is a leg times √2. A <b>30°-60°-90°</b> triangle has sides <b>1 : √3 : 2</b>: the hypotenuse is twice the short leg (opposite 30°), and the long leg is the short leg times √3.`) +
       example('Example', `${big('A 30°-60°-90° triangle has hypotenuse 14.')}The short leg is half of it, <b>7</b>, and the long leg is <b>7√3</b>.`),
     make(rng) {
       const form = rng.pick(['hyp', 'leg', 'round', '45', '30', '30']);
@@ -844,17 +844,17 @@
   const circText = (h, k, R) => `${sq('x', h)} + ${sq('y', k)} = ${N(R)}`;
   A.skill({
     id: 'geo.circle-equation', title: 'Equation of a circle',
-    learn: p(`A circle is every point at distance ${V('r')} from its centre (${V('h')}, ${V('k')}). Writing that distance with the distance formula and squaring gives the <b>standard form</b>: <b>(${X} − ${V('h')})² + (${Y} − ${V('k')})² = ${V('r')}²</b>.`) +
-      p(`Watch the signs: the equation <i>subtracts</i> the centre, so a centre of (−2, 5) gives (${X} + 2)² + (${Y} − 5)². And the right-hand side is the radius <i>squared</i>.`) +
-      p('If you are given a point on the circle instead of the radius, the squared distance from the centre to that point is ' + V('r') + '².') +
-      example('Example', `${big('Centre (3, −1), radius 4')}<b>(${X} − 3)² + (${Y} + 1)² = 16</b>.`),
+    learn: p(`A circle is every point at distance ${V('r')} from its center (${V('h')}, ${V('k')}). Writing that distance with the distance formula and squaring gives the <b>standard form</b>: <b>(${X} − ${V('h')})² + (${Y} − ${V('k')})² = ${V('r')}²</b>.`) +
+      p(`Watch the signs: the equation <i>subtracts</i> the center, so a center of (−2, 5) gives (${X} + 2)² + (${Y} − 5)². And the right-hand side is the radius <i>squared</i>.`) +
+      p('If you are given a point on the circle instead of the radius, the squared distance from the center to that point is ' + V('r') + '².') +
+      example('Example', `${big('Center (3, −1), radius 4')}<b>(${X} − 3)² + (${Y} + 1)² = 16</b>.`),
     make(rng) {
       const h = rng.nz(-7, 7), k = rng.nz(-7, 7);
       if (rng.chance(0.6)) {
         const r = rng.int(2, 9);
         const choices = [...new Set([circText(h, k, r * r), circText(-h, -k, r * r), circText(h, k, r), circText(k === h ? -k : k, h, r * r)])];
         [circText(h, -k, r * r), circText(-h, k, r * r)].forEach(c => { if (choices.length < 4 && !choices.includes(c)) choices.push(c); });
-        return { prompt: `Which is the equation of the circle with centre ${PT(h, k)} and radius ${r}?`, type: 'choice', choices, answer: choices[0], params: { h, k, r, ans: [h, k, r * r], pts: [[h + r, k], [h, k - r]] },
+        return { prompt: `Which is the equation of the circle with center ${PT(h, k)} and radius ${r}?`, type: 'choice', choices, answer: choices[0], params: { h, k, r, ans: [h, k, r * r], pts: [[h + r, k], [h, k - r]] },
           hints: [`Standard form is (${X} − ${V('h')})² + (${Y} − ${V('k')})² = ${V('r')}² with ${V('h')} = ${N(h)} and ${V('k')} = ${N(k)}: subtracting a negative becomes adding.`, `The right side is ${r}² = ${r * r}.`, `<b>${choices[0]}</b>`] };
       }
       const dx = rng.nz(-6, 6), dy = rng.nz(-6, 6), px = h + dx, py = k + dy, R = dx * dx + dy * dy;
@@ -862,8 +862,8 @@
       const cand = [circText(h, k, R), circText(-h, -k, R), circText(h, k, wrongR === R ? R + 1 : wrongR), circText(px, py, R)];
       const choices = [...new Set(cand)];
       [circText(h, -k, R), circText(-h, k, R)].forEach(c => { if (choices.length < 4 && !choices.includes(c)) choices.push(c); });
-      return { prompt: `A circle has centre ${PT(h, k)} and passes through ${PT(px, py)}. Which is its equation?`, type: 'choice', choices, answer: cand[0], params: { h, k, ans: [h, k, R], pts: [[px, py], [2 * h - px, 2 * k - py]] },
-        hints: [`${V('r')}² is the squared distance from the centre to the point: (${N(px)} − ${wrap(h)})² + (${N(py)} − ${wrap(k)})² = ${N(dx * dx)} + ${N(dy * dy)} = ${N(R)}.`, `Put the centre in with the signs flipped: ${sq('x', h)} + ${sq('y', k)}.`, `<b>${cand[0]}</b>`] };
+      return { prompt: `A circle has center ${PT(h, k)} and passes through ${PT(px, py)}. Which is its equation?`, type: 'choice', choices, answer: cand[0], params: { h, k, ans: [h, k, R], pts: [[px, py], [2 * h - px, 2 * k - py]] },
+        hints: [`${V('r')}² is the squared distance from the center to the point: (${N(px)} − ${wrap(h)})² + (${N(py)} − ${wrap(k)})² = ${N(dx * dx)} + ${N(dy * dy)} = ${N(R)}.`, `Put the center in with the signs flipped: ${sq('x', h)} + ${sq('y', k)}.`, `<b>${cand[0]}</b>`] };
     },
     verify(q) {
       const { ans, pts } = q.params, [h, k, R] = ans;
@@ -880,10 +880,10 @@
     return s + ' = 0';
   }
   A.skill({
-    id: 'geo.circle-center-radius', title: 'Centre and radius of a circle',
-    learn: p(`From standard form (${X} − ${V('h')})² + (${Y} − ${V('k')})² = ${V('r')}², read the centre (${V('h')}, ${V('k')}) with the <b>signs flipped</b> from the brackets, and take the <b>square root</b> of the right side for the radius.`) +
+    id: 'geo.circle-center-radius', title: 'Center and radius of a circle',
+    learn: p(`From standard form (${X} − ${V('h')})² + (${Y} − ${V('k')})² = ${V('r')}², read the center (${V('h')}, ${V('k')}) with the <b>signs flipped</b> from the parentheses, and take the <b>square root</b> of the right side for the radius.`) +
       p(`An equation like ${M.sup(X, 2)} + ${M.sup(Y, 2)} − 6${X} + 4${Y} − 12 = 0 is a circle in disguise. <b>Complete the square</b> in ${X} and in ${Y}: take half of each coefficient, square it, and add it to both sides.`) +
-      example('Example', `${big(`${M.sup(X, 2)} + ${M.sup(Y, 2)} − 6${X} + 4${Y} − 12 = 0`)}(${M.sup(X, 2)} − 6${X} + 9) + (${M.sup(Y, 2)} + 4${Y} + 4) = 12 + 9 + 4, so (${X} − 3)² + (${Y} + 2)² = 25. Centre <b>(3, −2)</b>, radius <b>5</b>.`),
+      example('Example', `${big(`${M.sup(X, 2)} + ${M.sup(Y, 2)} − 6${X} + 4${Y} − 12 = 0`)}(${M.sup(X, 2)} − 6${X} + 9) + (${M.sup(Y, 2)} + 4${Y} + 4) = 12 + 9 + 4, so (${X} − 3)² + (${Y} + 2)² = 25. Center <b>(3, −2)</b>, radius <b>5</b>.`),
     make(rng) {
       const h = rng.nz(-6, 6), k = rng.nz(-6, 6), r = rng.int(1, 9);
       const form = rng.pick(['std-r', 'gen-c', 'gen-r', 'gen-c']);
@@ -897,8 +897,8 @@
       if (form === 'gen-r') return { prompt: `What is the radius of this circle?${big(generalForm(D, E, Fc))}`, type: 'number', answer: r, params: { form, D, E, Fc },
         hints: steps.concat([`The radius is ${M.sqrt(r * r)} = <b>${r}</b>.`]) };
       const choices = ptChoices(rng, [h, k], [[-h, -k], [D, E], [k, h], [h, -k]]);
-      return { prompt: `What is the centre of this circle?${big(generalForm(D, E, Fc))}`, type: 'choice', choices, answer: PT(h, k), params: { form, D, E, Fc },
-        hints: steps.concat([`Read the centre with the signs flipped: <b>${PT(h, k)}</b>.`]) };
+      return { prompt: `What is the center of this circle?${big(generalForm(D, E, Fc))}`, type: 'choice', choices, answer: PT(h, k), params: { form, D, E, Fc },
+        hints: steps.concat([`Read the center with the signs flipped: <b>${PT(h, k)}</b>.`]) };
     },
     verify(q) {
       const pr = q.params;
@@ -977,7 +977,7 @@
 
   A.skill({
     id: 'geo.inscribed-angles', title: 'Inscribed angles',
-    learn: p('A <b>central angle</b> has its vertex at the centre and equals its intercepted arc. An <b>inscribed angle</b> has its vertex on the circle, and <b>it is half the arc it intercepts</b> (so half the central angle on the same arc).') +
+    learn: p('A <b>central angle</b> has its vertex at the center and equals its intercepted arc. An <b>inscribed angle</b> has its vertex on the circle, and <b>it is half the arc it intercepts</b> (so half the central angle on the same arc).') +
       p('Three consequences come up all the time: inscribed angles on the same arc are equal; an angle inscribed in a semicircle is a <b>right angle</b>; and in a quadrilateral inscribed in a circle, <b>opposite angles add to 180°</b>.') +
       example('Example', `${big('An inscribed angle intercepts an arc of 140°.')}It measures half the arc: 140° ÷ 2 = <b>70°</b>.`),
     make(rng) {

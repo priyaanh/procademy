@@ -43,10 +43,10 @@
     units: [
       { id: 'numbers', title: 'Numbers and operations', blurb: 'Exponent rules, negative exponents, scientific notation, square and cube roots.', skills: ['math8.exponent-properties', 'math8.negative-exponents', 'math8.scientific-notation', 'math8.roots'] },
       { id: 'equations', title: 'Solving equations with one unknown', blurb: 'The unknown on both sides, the distributive property, and how many solutions an equation has.', skills: ['math8.variables-both-sides', 'math8.distributive-equations', 'math8.number-of-solutions'] },
-      { id: 'linear', title: 'Linear equations and functions', blurb: 'Slope and rate of change, slope-intercept form, recognising functions, linear and nonlinear tables.', skills: ['math8.slope', 'math8.slope-intercept-form', 'math8.recognize-functions', 'math8.linear-nonlinear'] },
+      { id: 'linear', title: 'Linear equations and functions', blurb: 'Slope and rate of change, slope-intercept form, recognizing functions, linear and nonlinear tables.', skills: ['math8.slope', 'math8.slope-intercept-form', 'math8.recognize-functions', 'math8.linear-nonlinear'] },
       { id: 'systems', title: 'Systems of equations', blurb: 'Two equations, two unknowns: solving them, and how many solutions there are.', skills: ['math8.solve-systems', 'math8.systems-solutions'] },
       { id: 'geometry', title: 'Geometry', blurb: 'The Pythagorean theorem and distance, volume of cylinders, cones and spheres, triangle angles, transformations.', skills: ['math8.pythagorean-theorem', 'math8.volume', 'math8.triangle-angles', 'math8.transformations'] },
-      { id: 'data', title: 'Data and modelling', blurb: 'Two-way tables and the story a scatter plot tells.', skills: ['math8.two-way-tables', 'math8.scatter-plots'] },
+      { id: 'data', title: 'Data and modeling', blurb: 'Two-way tables and the story a scatter plot tells.', skills: ['math8.two-way-tables', 'math8.scatter-plots'] },
       { id: 'graphs-lines', title: 'Reading and graphing lines', blurb: 'What a graph’s axes say, which points lie on a line, and drawing a line straight from y = mx + b.', skills: ['math8.interpret-graphs', 'math8.point-on-line', 'math8.graph-lines'] },
       { id: 'circle-trend', title: 'Circle graphs and trend lines', blurb: 'Percents and central angles in circle graphs, and trend lines that sum up a scatter plot and make predictions.', skills: ['math8.circle-graphs', 'math8.trend-lines'] },
       { id: 'pythagoras-more', title: 'More with the Pythagorean theorem', blurb: 'Diagonals of boxes and cans in three dimensions, and the converse: testing whether a triangle is right, acute or obtuse.', skills: ['math8.pythagorean-3d', 'math8.pythagorean-converse'] },
@@ -312,7 +312,7 @@
   A.skill({
     id: 'math8.slope', title: 'Slope and rate of change',
     learn: p(`The <b>slope</b> of a line says how steep it is: how much ${Y} changes for each step of 1 in ${X}. From two points, <b>slope = (change in ${Y}) ÷ (change in ${X}) = (${M.sub(Y, 2)} − ${M.sub(Y, 1)}) ÷ (${M.sub(X, 2)} − ${M.sub(X, 1)})</b>. Subtract in the same order on top and bottom.`) +
-      p(`A positive slope rises from left to right, a negative slope falls, and a horizontal line has slope 0. In a word problem the slope is the <b>rate of change</b>, with units such as dollars per hour or centimetres per day.`) +
+      p(`A positive slope rises from left to right, a negative slope falls, and a horizontal line has slope 0. In a word problem the slope is the <b>rate of change</b>, with units such as dollars per hour or centimeters per day.`) +
       example('Example', `${big(`${PT(1, 2)} and ${PT(5, 10)}`)}Change in ${Y}: 10 − 2 = 8. Change in ${X}: 5 − 1 = 4. Slope = 8 ÷ 4 = <b>2</b>.`),
     make(rng) {
       const kind = rng.pick(['points', 'points', 'table', 'word']);
@@ -339,9 +339,9 @@
     const t1 = rng.int(1, 4), t2 = t1 + rng.int(2, 5);
     const story = rng.pick([
       () => { const r = rng.pick([12, 15, 18, 20, 25]), v1 = r * t1 + rng.int(0, 4) * 10; return { r, v1, text: v => `${name}'s savings grow at a steady rate. After ${t1} weeks there is ${M.money(v1)} in the account; after ${t2} weeks there is ${M.money(v)}. What is the rate of change, in dollars per week?`, unitOut: '$/week', per: 'week' }; },
-      () => { const r = -rng.pick([1.5, 2, 2.5, 3, 4]), v1 = rng.int(20, 30); return { r, v1, unitOut: 'cm/hour', per: 'hour', text: v => `A candle burns down at a steady rate. After ${t1} hours it is ${N(v1)} cm tall; after ${t2} hours it is ${N(v)} cm tall. What is the rate of change of its height, in centimetres per hour?` }; },
-      () => { const r = rng.pick([45, 50, 55, 60, 65]), v1 = r * t1 + rng.int(0, 3) * 20; return { r, v1, unitOut: 'km/hour', per: 'hour', text: v => `A bus travels at a steady speed. After ${t1} hours it has gone ${N(v1)} km; after ${t2} hours it has gone ${N(v)} km. What is the rate of change, in kilometres per hour?` }; },
-      () => { const r = -rng.pick([3, 4, 5, 6, 8]), v1 = rng.int(60, 90); return { r, v1, unitOut: 'L/min', per: 'minute', text: v => `A tank is drained at a steady rate. After ${t1} minutes it holds ${N(v1)} litres; after ${t2} minutes it holds ${N(v)} litres. What is the rate of change, in litres per minute?` }; },
+      () => { const r = -rng.pick([1.5, 2, 2.5, 3, 4]), v1 = rng.int(20, 30); return { r, v1, unitOut: 'cm/hour', per: 'hour', text: v => `A candle burns down at a steady rate. After ${t1} hours it is ${N(v1)} cm tall; after ${t2} hours it is ${N(v)} cm tall. What is the rate of change of its height, in centimeters per hour?` }; },
+      () => { const r = rng.pick([45, 50, 55, 60, 65]), v1 = r * t1 + rng.int(0, 3) * 20; return { r, v1, unitOut: 'km/hour', per: 'hour', text: v => `A bus travels at a steady speed. After ${t1} hours it has gone ${N(v1)} km; after ${t2} hours it has gone ${N(v)} km. What is the rate of change, in kilometers per hour?` }; },
+      () => { const r = -rng.pick([3, 4, 5, 6, 8]), v1 = rng.int(60, 90); return { r, v1, unitOut: 'L/min', per: 'minute', text: v => `A tank is drained at a steady rate. After ${t1} minutes it holds ${N(v1)} liters; after ${t2} minutes it holds ${N(v)} liters. What is the rate of change, in liters per minute?` }; },
     ])();
     const v2 = M.round(story.v1 + story.r * (t2 - t1), 2);
     return { prompt: story.text(v2), type: 'number', answer: story.r, unit: story.unitOut, params: { kind: 'word', t1, t2, v1: story.v1, v2 },
@@ -585,7 +585,7 @@
   A.skill({
     id: 'math8.triangle-angles', title: 'Angles in triangles',
     learn: p(`The three <b>interior angles</b> of any triangle add up to <b>180°</b>. So if you know two of them, subtract their sum from 180° to get the third.`) +
-      p(`An <b>exterior angle</b> is formed by extending one side. It sits on a straight line with its neighbouring interior angle, so the two add to 180°. That makes the exterior angle equal to the <b>sum of the two remote interior angles</b> (the two that are not next to it).`) +
+      p(`An <b>exterior angle</b> is formed by extending one side. It sits on a straight line with its neighboring interior angle, so the two add to 180°. That makes the exterior angle equal to the <b>sum of the two remote interior angles</b> (the two that are not next to it).`) +
       example('Example', `A triangle has angles 48° and 67°. The third is 180° − (48° + 67°) = 180° − 115° = <b>65°</b>. The exterior angle next to it is 48° + 67° = 115°.`),
     make(rng) {
       const kind = rng.pick(['third', 'third', 'exterior', 'remote', 'algebra']);
@@ -701,7 +701,7 @@
     id: 'math8.scatter-plots', title: 'Describing scatter plots',
     learn: p(`A <b>scatter plot</b> shows pairs of measurements as dots, one dot per person or thing. Read it from left to right. If the dots tend to <b>rise</b>, the two quantities have a <b>positive association</b>: as one goes up, the other tends to go up. If they tend to <b>fall</b>, it is a <b>negative association</b>.`) +
       p(`If the dots form a shapeless cloud with no upward or downward drift, there is <b>no association</b>. When the dots hug a straight line the association is <b>linear</b>; the closer they hug it, the stronger it is. An association is a tendency, not a rule for every single dot.`) +
-      example('Example', `Hours spent practising piano each week against mistakes made in a recital: more practice, fewer mistakes. The dots fall from left to right, a <b>negative association</b>.`),
+      example('Example', `Hours spent practicing piano each week against mistakes made in a recital: more practice, fewer mistakes. The dots fall from left to right, a <b>negative association</b>.`),
     make(rng) {
       const kind = rng.pick(['positive', 'negative', 'none']);
       const ctx = rng.pick([
@@ -809,7 +809,7 @@
     g += `<path d="M${X0 + 10 * s + 14} ${Y0} l-9 -5 v10 z" fill="currentColor"/><path d="M${X0} ${Y0 - 10 * s - 14} l-5 9 h10 z" fill="currentColor"/>`;
     pts.forEach(([x, y, lab]) => { g += `<circle data-p="${lab}" cx="${X0 + x * s}" cy="${Y0 - y * s}" r="4.5" fill="var(--primary)"/><text x="${X0 + x * s + 7}" y="${Y0 - y * s - 6}" font-size="13" font-weight="700">${lab}</text>`; });
     g += `<text x="${X0 + 5 * s}" y="${Y0 + 22}" text-anchor="middle" font-size="13">${M.esc(xl)}</text><text x="18" y="${Y0 - 5 * s}" text-anchor="middle" font-size="13" transform="rotate(-90 18 ${Y0 - 5 * s})">${M.esc(yl)}</text>`;
-    return `<svg class="figure" viewBox="0 0 240 216" width="250" role="img" aria-label="${M.esc(`graph of ${yl} against ${xl} with labelled points`)}">${g}</svg>`;
+    return `<svg class="figure" viewBox="0 0 240 216" width="250" role="img" aria-label="${M.esc(`graph of ${yl} against ${xl} with labeled points`)}">${g}</svg>`;
   }
   /** the dots of a pointsSvg drawing, read back as { A: [x, y], … } in grid units */
   const readPoints = html => { const out = {}; String(html).replace(/<circle data-p="(\w)" cx="([\d.]+)" cy="([\d.]+)"/g, (_, l, cx, cy) => { out[l] = [(Number(cx) - 44) / 17, (186 - Number(cy)) / 17]; }); return out; };
@@ -922,7 +922,7 @@
     if (ask === 'read') {
       const k = rng.int(1, n), [tk, dk] = verts[k];
       return { prompt: `${intro} How far from home was ${name} after ${tk} minutes?${graph}`, type: 'number', answer: dk, unit: 'm', params: { kind: 'walk', ask, verts, t: tk },
-        hints: [`Find ${tk} minutes on the horizontal (time) axis and go straight up to the graph.`, `From that point, go across to the vertical axis, which shows the distance from home in metres.`, `The graph is at <b>${N(dk)} m</b> after ${tk} minutes.`] };
+        hints: [`Find ${tk} minutes on the horizontal (time) axis and go straight up to the graph.`, `From that point, go across to the vertical axis, which shows the distance from home in meters.`, `The graph is at <b>${N(dk)} m</b> after ${tk} minutes.`] };
     }
     const s = rng.pick(segs);
     const answer = s.ty === 'away' ? WALK[0] : s.ty === 'stop' ? WALK[1] : WALK[2];
@@ -1032,9 +1032,9 @@
   /* ---------- Unit 8: Circle graphs and trend lines ---------- */
   const PIE_SETS = [
     { q: 'how they get to school', cats: ['Walk', 'Bike', 'Bus', 'Car', 'Scooter'] },
-    { q: 'to name their favourite fruit', cats: ['Apple', 'Banana', 'Mango', 'Grapes', 'Orange'] },
-    { q: 'to name their favourite sport', cats: ['Soccer', 'Basketball', 'Swimming', 'Tennis', 'Track'] },
-    { q: 'to name their favourite season', cats: ['Spring', 'Summer', 'Autumn', 'Winter'] },
+    { q: 'to name their favorite fruit', cats: ['Apple', 'Banana', 'Mango', 'Grapes', 'Orange'] },
+    { q: 'to name their favorite sport', cats: ['Soccer', 'Basketball', 'Swimming', 'Tennis', 'Track'] },
+    { q: 'to name their favorite season', cats: ['Spring', 'Summer', 'Autumn', 'Winter'] },
     { q: 'what kind of pet they have', cats: ['Dog', 'Cat', 'Fish', 'Bird', 'No pet'] },
     { q: 'which club they would join', cats: ['Art', 'Music', 'Chess', 'Drama', 'Robotics'] },
   ];
@@ -1100,9 +1100,9 @@
 
   const TREND_CTX = [
     { xl: 'Hours of practice', yl: 'Test score', xw: 'number of hours of practice', yw: 'test score', xmax: 10, xstep: 2, ymax: 100, ystep: 20, ms: [3, 3.5, 4, 4.5], bs: [35, 40, 45], xs: [2, 4, 6, 8, 12],
-      ask: x => `the test score of a student who practises for ${N(x)} hours`, slopeQ: 'By how many points does the predicted test score go up for each extra hour of practice?', per: 'hour of practice', unit: 'points' },
-    { xl: 'Age (weeks)', yl: 'Height (cm)', xw: 'age in weeks', yw: 'height in centimetres', xmax: 10, xstep: 2, ymax: 50, ystep: 10, ms: [2, 2.5, 3, 3.5], bs: [4, 5, 6, 8], xs: [3, 5, 7, 9, 11, 12],
-      ask: x => `the height of a plant that is ${N(x)} weeks old`, slopeQ: 'By how many centimetres does the predicted height go up for each extra week?', per: 'week', unit: 'cm' },
+      ask: x => `the test score of a student who practices for ${N(x)} hours`, slopeQ: 'By how many points does the predicted test score go up for each extra hour of practice?', per: 'hour of practice', unit: 'points' },
+    { xl: 'Age (weeks)', yl: 'Height (cm)', xw: 'age in weeks', yw: 'height in centimeters', xmax: 10, xstep: 2, ymax: 50, ystep: 10, ms: [2, 2.5, 3, 3.5], bs: [4, 5, 6, 8], xs: [3, 5, 7, 9, 11, 12],
+      ask: x => `the height of a plant that is ${N(x)} weeks old`, slopeQ: 'By how many centimeters does the predicted height go up for each extra week?', per: 'week', unit: 'cm' },
     { xl: 'Temperature (°C)', yl: 'Drinks sold', xw: 'temperature in °C', yw: 'number of drinks sold', xmax: 40, xstep: 10, ymax: 200, ystep: 40, ms: [2.5, 3, 3.5], bs: [20, 30, 40], xs: [12, 18, 24, 32, 36, 42],
       ask: x => `the number of drinks sold on a day when it is ${N(x)} °C`, slopeQ: 'By how many drinks do the predicted sales go up for each extra degree?', per: 'degree', unit: 'drinks' },
     { xl: 'Age of car (years)', yl: 'Value ($1000s)', xw: 'age of the car in years', yw: 'value in thousands of dollars', xmax: 10, xstep: 2, ymax: 30, ystep: 5, ms: [-1.5, -2], bs: [24, 26, 28], xs: [3, 5, 6, 7, 9],
@@ -1122,7 +1122,7 @@
     learn: p(`When a scatter plot shows a linear association, a <b>trend line</b> (line of best fit) sums it up. A good trend line <b>follows the direction of the dots and passes through the middle of the cloud</b>, with about as many dots above it as below. It does not have to touch any dot.`) +
       p(`Write its equation like any line: read the ${Y}-intercept where it crosses the ${Y}-axis, and find the slope from two points on the line (not two dots of data). The slope is the predicted change in ${Y} for each extra unit of ${X}.`) +
       p(`To <b>predict</b>, substitute the ${X}-value into the equation. A prediction is an estimate: real data points sit near the line, not exactly on it.`) +
-      example('Example', `${big(`Trend line: ${eqn(3.5, 40)}`)}For a student who practises 6 hours, ${Y} = 3.5(6) + 40 = 21 + 40 = <b>61 points</b>. The slope says each extra hour goes with about 3.5 more points.`),
+      example('Example', `${big(`Trend line: ${eqn(3.5, 40)}`)}For a student who practices 6 hours, ${Y} = 3.5(6) + 40 = 21 + 40 = <b>61 points</b>. The slope says each extra hour goes with about 3.5 more points.`),
     make(rng) {
       const c = rng.pick(TREND_CTX), m = rng.pick(c.ms), b = rng.pick(c.bs), kind = rng.pick(['predict', 'predict', 'meaning', 'choose', 'read']);
       const step = c.xmax / 20, noise = c.ymax * 0.06, ydp = c.ymax >= 100 ? 0 : 1;

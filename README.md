@@ -30,7 +30,7 @@ Get it right and it comes off the list. Nothing is stored but (skill, seed).
 
 - **Today's practice** (`#/daily`, on Home). Spaced review: every skill gets a next date after each try
   (all right → 3, 7, 16, 37 … days later; mostly right → a little later; a miss → tomorrow), and skills
-  practised before dates existed are due three days after they were last practised. Today's practice
+  practiced before dates existed are due three days after they were last practiced. Today's practice
   mixes the skills due, up to three missed questions and new skills from the class lesson and saved
   courses, interleaved; each question says why it is there. It never lowers a level. Progress lists what
   is due under *Keep fresh*.
@@ -92,8 +92,8 @@ Get it right and it comes off the list. Nothing is stored but (skill, seed).
   name only if ticked — and says who won, with a challenge back. Nothing but the link; every field of a
   link is checked before it is used.
 - **A progress report** (`lib/report.js`, `#/report`, from Progress): the last 7 or 30 days on one
-  printable page for a parent or teacher — days practised, questions and first-try accuracy, a bar a day,
-  skills levelled up, what kinds of practice, usual slips with tips, what is due, a coming CPM test,
+  printable page for a parent or teacher — days practiced, questions and first-try accuracy, a bar a day,
+  skills leveled up, what kinds of practice, usual slips with tips, what is due, a coming CPM test,
   new badges and three suggestions — to print, save as PDF or copy as text.
 - **Math words** (`lib/words.js`, `lib/vocab.js`, `#/words`): 174 words of school math, Kindergarten to
   Algebra, each with a plain definition and an example, searchable and filtered by grade, with the
@@ -127,12 +127,12 @@ course means adding a file and a `<script>` tag (and a line in `sw.js`); see [CO
 **CPM books** (`cpm/`, one file per book): Core Connections Courses 1, 2 and 3, and Integrated I, II
 and III, chapter by chapter and lesson by lesson. The lesson numbers are checked against CPM's own
 homework-help site. Each lesson has our own one-line summary and links to the Procademy skills that
-practise it, to a mixed practice set for the lesson or the whole chapter, to the tutor, and to CPM's
+practice it, to a mixed practice set for the lesson or the whole chapter, to the tutor, and to CPM's
 homework help for that lesson. Press *I'm on this lesson in class* and the lesson stays on the home page.
 Nothing from the books is copied; see [CPM.md](CPM.md).
 
 **Home and Courses.** *Home* is the learner's own page: their saved courses and CPM books, each with a
-Continue button, then the lesson they are on in class, what they practised last, what is up next and
+Continue button, then the lesson they are on in class, what they practiced last, what is up next and
 this week's activity. *Courses* is where everything is browsed: every grade and every CPM book, with tabs
 (All, Elementary, Middle school, High school, CPM books, Saved) and a search box. **☆ Save** on any card,
 course page or book page puts it on Home; pressing it again takes it off. My courses can be put in any
@@ -184,7 +184,7 @@ that wrong?" after a wrong answer. It needs no account, no key and no sign-up an
   tall, and pulled right down it closes). Only the panel moves while dragging, so it stays smooth; the
   page lays itself out beside it when let go, or the panel floats over a page too narrow to share. ⤢ opens the same
   conversation on the tutor's own page (**✦ Tutor** in the top bar): saved chats (kept on the device,
-  never in a backup), *Ask about* (any question, the class lesson, or a skill being practised),
+  never in a backup), *Ask about* (any question, the class lesson, or a skill being practiced),
   *Explain for* (a grade level), a style (step by step, short, with an example, new to this, check my
   work), and under every answer Copy, follow-ups (simpler, another example, a practice question, why?),
   where it came from and how long it took, and links to the Procademy skills that match.
@@ -215,7 +215,7 @@ username and a password with no email needed — progress is saved online and co
   files never do. A learner can delete the account, and everything saved online, from the Profile page.
   [`privacy.html`](privacy.html) explains what leaves the device, for learners and parents (and is the
   privacy policy the sign-in services ask for).
-- **Several learners on one computer** (`lib/learners.js`, "Who's practising?" on Profile): a brother, a
+- **Several learners on one computer** (`lib/learners.js`, "Who's practicing?" on Profile): a brother, a
   sister or a parent each get their own progress, badges, sprint bests, tutor chats and graphs, with an
   optional 4-digit PIN (a lock against mistakes, not a strong one). The learner on screen uses the usual
   storage; the others are kept aside under their own keys and swapped in when chosen.

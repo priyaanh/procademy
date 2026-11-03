@@ -161,7 +161,7 @@
     id: 'int3.poly-graphs', title: 'Zeros and graphs of polynomials',
     learn: p(`In factored form, a polynomial shows its zeros directly: ${V('f')}(${X}) = (${X} − 2)²(${X} + 1) is zero at ${X} = 2 and ${X} = −1. The power on a factor is the zero’s <b>multiplicity</b>.`) +
       p('<b>Odd multiplicity: the graph crosses the x-axis. Even multiplicity: it touches and turns back.</b> A multiplicity of 3 or more also flattens the graph out at the zero, like ' + M.sup(X, 3) + ' does at 0.') +
-      p(`<b>End behaviour</b> depends only on the leading term. Even degree: both ends point the same way (up if the leading coefficient is positive). Odd degree: the ends point opposite ways (rising on the right if the leading coefficient is positive). If you know one zero ${V('a')}, divide by ${X} − ${V('a')} to find the rest.`) +
+      p(`<b>End behavior</b> depends only on the leading term. Even degree: both ends point the same way (up if the leading coefficient is positive). Odd degree: the ends point opposite ways (rising on the right if the leading coefficient is positive). If you know one zero ${V('a')}, divide by ${X} − ${V('a')} to find the rest.`) +
       example('Example', `${big(`${V('f')}(${X}) = −2${X}${M.sup(`(${X} − 3)`, 2)}`)}The degree is 1 + 2 = 3 (odd) and the leading coefficient −2 is negative, so the graph <b>rises on the left and falls on the right</b>. It crosses at 0 and touches at 3.`),
     make(rng) {
       const kind = rng.pick(['cross', 'end', 'zero', 'zero']);
@@ -199,7 +199,7 @@
       const L = deg % 2 ? -sg : sg;
       const answer = end(inf(L), inf(sg));
       const choices = [end('∞', '∞'), end('−∞', '−∞'), end('−∞', '∞'), end('∞', '−∞')];
-      return { prompt: `Which describes the end behaviour of ${V('f')}?${big(fShow)}`, type: 'choice', choices, answer, params,
+      return { prompt: `Which describes the end behavior of ${V('f')}?${big(fShow)}`, type: 'choice', choices, answer, params,
         hints: [`Find the degree by adding the multiplicities: ${mults.join(' + ')} = ${deg}. The leading coefficient is ${N(lead)}.`,
           `${deg % 2 ? 'Odd' : 'Even'} degree, so the ends point ${deg % 2 ? 'in opposite directions' : 'the same way'}. With a ${sg > 0 ? 'positive' : 'negative'} leading coefficient, the right end goes to ${inf(sg)}.`,
           `<b>${answer}</b>`] };
@@ -512,7 +512,7 @@
       if (kind === 'ph') {
         const m = rng.pick([1.5, 2, 2.5, 3.2, 4, 5, 6.3, 8]), k = rng.int(3, 10);
         const ans = r2(k - Math.log10(m));
-        return { prompt: `pH = −log[H<sup>+</sup>]. A solution has a hydrogen ion concentration of ${N(m)} × 10<sup>−${k}</sup> moles per litre. What is its pH? Round to the nearest hundredth.`, type: 'number', answer: ans, tolerance: 0.01, params: { kind, m, k },
+        return { prompt: `pH = −log[H<sup>+</sup>]. A solution has a hydrogen ion concentration of ${N(m)} × 10<sup>−${k}</sup> moles per liter. What is its pH? Round to the nearest hundredth.`, type: 'number', answer: ans, tolerance: 0.01, params: { kind, m, k },
           hints: [`pH = −log(${N(m)} × 10<sup>−${k}</sup>) = −(log ${N(m)} + log 10<sup>−${k}</sup>).`, `log ${N(m)} ≈ ${N(M.round(Math.log10(m), 4))} and log 10<sup>−${k}</sup> = −${k}.`, `pH ≈ ${k} − ${N(M.round(Math.log10(m), 4))} = <b>${N(ans)}</b>.`] };
       }
       const P0 = rng.int(5, 50) * 100, r = rng.pick([2, 2.5, 3, 4, 4.5, 5, 6]), t = rng.int(2, 20);
@@ -600,9 +600,9 @@
         const name = rng.pick(NAMES), dia = rng.pick([20, 30, 40, 50, 60, 80, 100]), hub = dia / 2 + rng.int(1, 6), T = rng.pick([20, 30, 40, 45, 60, 90]);
         const ask = rng.pick(['amp', 'mid', 'per', 'max']);
         const ans = { amp: dia / 2, mid: hub, per: T, max: hub + dia / 2 }[ask];
-        const what = { amp: 'the amplitude of the height function, in metres', mid: 'the midline height, in metres', per: 'the period, in seconds', max: 'the greatest height of the seat, in metres' }[ask];
-        return { prompt: `A Ferris wheel is ${dia} m across and its centre is ${hub} m above the ground. It turns once every ${T} seconds. ${name}’s seat height is a sinusoidal function of time. What is ${what}?`, type: 'number', answer: ans, unit: ask === 'per' ? 's' : 'm', params: { kind, dia, hub, T, ask },
-          hints: [`The seat swings between the bottom and the top of the wheel, ${dia / 2} m (the radius) below and above the centre.`, `So the midline is the centre height ${hub} m, the amplitude is the radius ${dia / 2} m, and one full cycle takes ${T} s.`, `The answer is <b>${N(ans)} ${ask === 'per' ? 's' : 'm'}</b>.`] };
+        const what = { amp: 'the amplitude of the height function, in meters', mid: 'the midline height, in meters', per: 'the period, in seconds', max: 'the greatest height of the seat, in meters' }[ask];
+        return { prompt: `A Ferris wheel is ${dia} m across and its center is ${hub} m above the ground. It turns once every ${T} seconds. ${name}’s seat height is a sinusoidal function of time. What is ${what}?`, type: 'number', answer: ans, unit: ask === 'per' ? 's' : 'm', params: { kind, dia, hub, T, ask },
+          hints: [`The seat swings between the bottom and the top of the wheel, ${dia / 2} m (the radius) below and above the center.`, `So the midline is the center height ${hub} m, the amplitude is the radius ${dia / 2} m, and one full cycle takes ${T} s.`, `The answer is <b>${N(ans)} ${ask === 'per' ? 's' : 'm'}</b>.`] };
       }
       const fn = rng.pick(['sin', 'cos']), a = rng.pick([-5, -4, -3, -2, 2, 3, 4, 5, 6]), dd = rng.int(-6, 8), h = rng.pick([1, 2, 3, 4, 6]);
       const inner = h === 1 ? `π${X}` : F(`π${X}`, h);
@@ -790,7 +790,7 @@
       }
       if (kind === 'seats') {
         const r = rng.int(10, 30), dd = rng.int(1, 4), rows = rng.int(10, 25), lr = r + (rows - 1) * dd, tot = rows * (r + lr) / 2;
-        return { prompt: `The front row of a theatre has ${r} seats, and each row behind it has ${dd} more seat${dd > 1 ? 's' : ''} than the row in front. There are ${rows} rows. How many seats are there in all?`, type: 'number', answer: tot, unit: 'seats', params: { a1: r, d: dd, n: rows },
+        return { prompt: `The front row of a theater has ${r} seats, and each row behind it has ${dd} more seat${dd > 1 ? 's' : ''} than the row in front. There are ${rows} rows. How many seats are there in all?`, type: 'number', answer: tot, unit: 'seats', params: { a1: r, d: dd, n: rows },
           hints: [`The row sizes are arithmetic: ${r}, ${r + dd}, ${r + 2 * dd}, …. The last row has ${r} + ${rows - 1} × ${dd} = ${lr} seats.`, `Total = ${F(rows, 2, { raw: true })}(${r} + ${lr}).`, `That is <b>${N(tot)}</b> seats.`] };
       }
       return { prompt: `An arithmetic sequence has first term ${N(a1)} and common difference ${N(d)}. Find the sum of its first ${n} terms.`, type: 'number', answer: S, params: { a1, d, n }, hints: steps };
@@ -844,7 +844,7 @@
   const SEG = [0.15, 2.35, 13.5, 34, 34, 13.5, 2.35, 0.15];                                 // below −3σ, …, above 3σ
   A.skill({
     id: 'int3.normal-distribution', title: 'The normal distribution and z-scores',
-    learn: p(`A normal distribution is the symmetric bell curve, centred on the mean μ with spread σ. <b>The 68–95–99.7 rule:</b> about 68% of values lie within 1σ of the mean, 95% within 2σ, and 99.7% within 3σ.`) +
+    learn: p(`A normal distribution is the symmetric bell curve, centered on the mean μ with spread σ. <b>The 68–95–99.7 rule:</b> about 68% of values lie within 1σ of the mean, 95% within 2σ, and 99.7% within 3σ.`) +
       p(`Halving those gives the pieces: 34% between μ and μ + σ, 13.5% between σ and 2σ, 2.35% between 2σ and 3σ, and 0.15% beyond 3σ, the same on each side. Add pieces to answer “what percent is between…” questions.`) +
       p(`<b>A z-score counts standard deviations from the mean: ${V('z')} = ${F(`${V('x')} − μ`, 'σ')}</b>. It lets you compare values from different distributions: the larger z is the more unusual (higher) result.`) +
       example('Example', `Heights have μ = 160 cm and σ = 8 cm. What percent are between 152 and 176?${big('152 = μ − σ, &nbsp; 176 = μ + 2σ')}34% + 34% + 13.5% = <b>81.5%</b>.`),
@@ -937,14 +937,14 @@
   const SHAPES = ['circle', 'ellipse', 'square', 'rectangle', 'triangle', 'trapezoid'];
   const SOLIDS = { cube: { base: 'square', side: 'square' }, box: { base: 'rectangle', side: 'rectangle' }, cylinder: { base: 'circle', side: 'rectangle', round: true }, cone: { base: 'circle', side: 'triangle', round: true }, pyramid: { base: 'square', side: 'triangle' }, tprism: { base: 'triangle', side: 'rectangle' }, sphere: { base: 'circle', side: 'circle', round: true } };
   const SOLID_NAME = { cube: 'a cube', box: 'a rectangular box that is not a cube', cylinder: 'a cylinder', cone: 'a cone', pyramid: 'a square pyramid', tprism: 'a triangular prism', sphere: 'a sphere' };
-  const CUT_TEXT = { base: 'parallel to its base', side: 'perpendicular to its base, through its centre', tilt: 'at a slant, without touching the base' };
+  const CUT_TEXT = { base: 'parallel to its base', side: 'perpendicular to its base, through its center', tilt: 'at a slant, without touching the base' };
   const SPINS = [['a rectangle', 'one of its sides', 'cylinder'], ['a right triangle', 'one of its legs', 'cone'], ['a semicircle', 'its diameter', 'sphere'], ['a right trapezoid', 'its side that is perpendicular to both bases', 'frustum (a cone with its top cut off)']];
   A.skill({
     id: 'int3.cross-sections', title: 'Cross-sections and solids of revolution',
-    learn: p('A <b>cross-section</b> is the flat shape you see when a plane slices through a solid. <b>A slice parallel to the base of a prism, cylinder, pyramid or cone has the same shape as the base</b> (smaller, for a pyramid or cone). A slice straight down through the centre shows the solid’s side profile: a rectangle for a prism or cylinder, a triangle for a pyramid or cone.') +
+    learn: p('A <b>cross-section</b> is the flat shape you see when a plane slices through a solid. <b>A slice parallel to the base of a prism, cylinder, pyramid or cone has the same shape as the base</b> (smaller, for a pyramid or cone). A slice straight down through the center shows the solid’s side profile: a rectangle for a prism or cylinder, a triangle for a pyramid or cone.') +
       p('Every slice of a sphere is a circle. A slanted slice through a cylinder or cone that misses the base is an <b>ellipse</b>.') +
       p('Spinning a flat shape around a line sweeps out a <b>solid of revolution</b>: a rectangle spun about one side makes a cylinder, a right triangle spun about a leg makes a cone, and a semicircle spun about its diameter makes a sphere.') +
-      example('Example', 'A cone is sliced straight down through its tip and the centre of its base. The slice cuts the base along a diameter and meets the tip, so it is a <b>triangle</b>.'),
+      example('Example', 'A cone is sliced straight down through its tip and the center of its base. The slice cuts the base along a diameter and meets the tip, so it is a <b>triangle</b>.'),
     make(rng) {
       if (rng.chance(0.3)) {
         const [shape, axis, solid] = rng.pick(SPINS);
@@ -958,9 +958,9 @@
       const cut = rng.pick(cuts);
       const answer = cut === 'tilt' ? 'ellipse' : S[cut];
       const choices = options(answer, rng.shuffle(SHAPES.filter(s => s !== answer)));
-      const how = solid === 'sphere' ? rng.pick(['by any flat plane', 'by a plane that misses its centre', 'by a plane through its centre']) : CUT_TEXT[cut];
+      const how = solid === 'sphere' ? rng.pick(['by any flat plane', 'by a plane that misses its center', 'by a plane through its center']) : CUT_TEXT[cut];
       return { prompt: `${SOLID_NAME[solid].charAt(0).toUpperCase() + SOLID_NAME[solid].slice(1)} is sliced ${how}. What is the shape of the cross-section?`, type: 'choice', choices, answer, params: { solid, cut },
-        hints: [cut === 'base' ? 'A slice parallel to the base copies the shape of the base.' : cut === 'side' ? 'A slice straight down through the centre shows the side profile of the solid.' : 'A slanted slice through a round solid stretches the circle in one direction.',
+        hints: [cut === 'base' ? 'A slice parallel to the base copies the shape of the base.' : cut === 'side' ? 'A slice straight down through the center shows the side profile of the solid.' : 'A slanted slice through a round solid stretches the circle in one direction.',
           `So the cross-section is ${answer === 'ellipse' ? 'an' : 'a'} <b>${answer}</b>.`] };
     },
     verify(q) {
@@ -1123,7 +1123,7 @@
       const xs = []; for (let x = 1; 2 * x < W; x++) xs.push(x);
       const vols = xs.map(x => x * (L - 2 * x) * (W - 2 * x)), top = Math.max(...vols), bx = xs[vols.indexOf(top)];
       if (vols.filter(v => v === top).length > 1) return this.make(rng);
-      return { prompt: `${setup} The cut must be a whole number of ${unit === 'cm' ? 'centimetres' : 'inches'}. Which cut gives the box with the greatest volume?`, type: 'number', answer: bx, unit, params,
+      return { prompt: `${setup} The cut must be a whole number of ${unit === 'cm' ? 'centimeters' : 'inches'}. Which cut gives the box with the greatest volume?`, type: 'number', answer: bx, unit, params,
         hints: [`Use ${rule}, for every whole-number cut from 1 up to ${xs[xs.length - 1]}.`, `${xs.map((x, i) => `${V('V')}(${x}) = ${N(vols[i])}`).join(', ')}.`, `The greatest volume is ${N(top)} ${unit}³, at ${X} = <b>${bx}</b>.`] };
     },
     verify(q) {
@@ -1173,7 +1173,7 @@
   A.skill({
     id: 'int3.survey-questions', title: 'Biased and leading survey questions',
     learn: p('The way a survey question is worded can change the answers people give. <b>A fair question is neutral: it does not hint at which answer is “right”, and it asks about one thing only.</b>') +
-      p('Watch for two common faults. A <b>leading</b> question pushes people toward an answer, with loaded words (“boring”, “waste”, “dangerous”), a reason for one side only, or a claim about what most people or experts think. A <b>double-barrelled</b> question asks about two things at once, so someone who likes one part and not the other cannot answer honestly.') +
+      p('Watch for two common faults. A <b>leading</b> question pushes people toward an answer, with loaded words (“boring”, “waste”, “dangerous”), a reason for one side only, or a claim about what most people or experts think. A <b>double-barreled</b> question asks about two things at once, so someone who likes one part and not the other cannot answer honestly.') +
       p('To fix a question, remove the opinion words and give both sides equal weight: “Do you support or oppose …?” or “Would you rather A or B?”.') +
       example('Example', `${big('“Don’t you agree that the noisy new gym is a waste of money?”')}The words “Don’t you agree”, “noisy” and “waste” all push toward no, so this is <b>a leading question</b>. A fair version: “Do you support or oppose building the new gym?”`),
     make(rng) {
@@ -1181,11 +1181,11 @@
       if (rng.bool()) {
         const answer = T.fair;
         return { prompt: 'A student council is writing a survey. Which question is worded most fairly?', type: 'choice', choices: [T.fair, T.lead[0], T.lead[1], T.two], answer, params: { kind: 'pick', t },
-          hints: ['Look for opinion words, or a reason given for one side only: those push people toward an answer.', 'Also look for a question that asks about two things at once; it cannot be answered with one honest yes or no.', `The neutral one asks about one thing and favours neither answer: <b>“${answer}”</b>`] };
+          hints: ['Look for opinion words, or a reason given for one side only: those push people toward an answer.', 'Also look for a question that asks about two things at once; it cannot be answered with one honest yes or no.', `The neutral one asks about one thing and favors neither answer: <b>“${answer}”</b>`] };
       }
       const variant = rng.pick(['fair', 'lead0', 'lead1', 'two']), text = variant === 'fair' ? T.fair : variant === 'two' ? T.two : T.lead[Number(variant.slice(4))];
       const fault = variant.startsWith('lead') ? 'lead' : variant, answer = SURVEY_FAULTS[fault];
-      const why = { lead: 'The wording favours one answer: it uses loaded words, gives a reason for only one side, or says what others think.', two: 'It joins two separate proposals with “and”, so a person who wants one but not the other cannot answer.', fair: 'It names both options evenly, uses no opinion words, and asks about one thing only.' }[fault];
+      const why = { lead: 'The wording favors one answer: it uses loaded words, gives a reason for only one side, or says what others think.', two: 'It joins two separate proposals with “and”, so a person who wants one but not the other cannot answer.', fair: 'It names both options evenly, uses no opinion words, and asks about one thing only.' }[fault];
       return { prompt: `What, if anything, is wrong with this survey question?${big(`“${text}”`)}`, type: 'choice', choices: [SURVEY_FAULTS.lead, SURVEY_FAULTS.two, SURVEY_FAULTS.fair, SURVEY_FAULTS.hard], answer, params: { kind: 'fault', t, variant },
         hints: ['Check two things: does the wording hint at an answer, and does it ask about more than one thing?', why, `<b>${answer}</b>`] };
     },
@@ -1244,7 +1244,7 @@
       if (kind === 'classify') {
         const type = rng.pick(STUDY_KINDS), i = rng.int(0, 3), text = STUDY_CASES[type][i];
         return { prompt: `What kind of study is this?${big(text)}`, type: 'choice', choices: STUDY_KINDS.slice(), answer: type, keepOrder: true, params: { kind, type, i },
-          hints: ['Ask: does the researcher decide who gets a treatment? If so, it is an experiment.', 'If not, ask: are people being asked questions (a survey), or is existing behaviour or data just being watched and recorded (an observational study)?',
+          hints: ['Ask: does the researcher decide who gets a treatment? If so, it is an experiment.', 'If not, ask: are people being asked questions (a survey), or is existing behavior or data just being watched and recorded (an observational study)?',
             `${type === 'Experiment' ? 'The researcher assigns the treatment' : type === 'Survey' ? 'People are asked questions and nothing is assigned' : 'Nothing is assigned and no one is asked questions; what already happens is recorded'}, so it is <b>${type === 'Experiment' ? 'an experiment' : type === 'Survey' ? 'a survey' : 'an observational study'}</b>.`] };
       }
       const e = rng.int(0, EXPERIMENTS.length - 1), E = EXPERIMENTS[e];
@@ -1305,7 +1305,7 @@
     learn: p('What a study can conclude depends on how its data were collected. <b>Only a randomized experiment can show cause and effect.</b> Because chance decided who got the treatment, the groups differ only in the treatment, so a difference too big for chance must come from the treatment.') +
       p('<b>An observational study can show an association (a link), but not cause and effect.</b> The groups chose themselves, so they may differ in other ways. A <b>lurking variable</b> that affects both things can create a link on its own: hot weather raises both ice-cream sales and swimming accidents.') +
       p('To test whether one thing causes another, design an experiment: randomly assign subjects to the treatment or to a control group and compare the results.') +
-      example('Example', `${big('People who take the stairs at work are fitter, on average, than people who take the lift.')}Nobody was assigned to the stairs, so this is observational. It shows <b>a link, not cause and effect</b>: fitter people may simply choose the stairs.`),
+      example('Example', `${big('People who take the stairs at work are fitter, on average, than people who take the elevator.')}Nobody was assigned to the stairs, so this is observational. It shows <b>a link, not cause and effect</b>: fitter people may simply choose the stairs.`),
     make(rng) {
       const c = rng.int(0, CONCLUSION_CASES.length - 1), C = CONCLUSION_CASES[c];
       const kind = C.obs ? rng.pick(C.assign ? ['conclude', 'why', 'fix'] : ['conclude', 'why']) : 'conclude';
@@ -1330,7 +1330,7 @@
     verify(q) {
       const P = q.params, C = CONCLUSION_CASES[P.c];
       const randomized = /randomly assigned|randomly chose/.test(C.text);          // read the design from the description itself
-      if (randomized === C.obs) return 'the case is labelled with the wrong design';
+      if (randomized === C.obs) return 'the case is labeled with the wrong design';
       if (P.kind === 'conclude') return q.answer === (randomized ? C.cause : C.link);
       if (P.kind === 'why') return !randomized && q.answer.includes(C.lurk);
       return !randomized && /^Randomly assign/.test(q.answer);
@@ -1354,7 +1354,7 @@
   }
   const HIST_CTX = [
     { intro: n => `${n} students recorded how many minutes they spent on homework last night.`, axis: 'minutes', subj: 'students', start: 0, w: 15, ge: v => `spent at least ${v} minutes`, lt: v => `spent less than ${v} minutes` },
-    { intro: n => `A farmer measured the heights of ${n} sunflowers, in centimetres.`, axis: 'height (cm)', subj: 'sunflowers', start: 100, w: 20, ge: v => `were at least ${v} cm tall`, lt: v => `were shorter than ${v} cm` },
+    { intro: n => `A farmer measured the heights of ${n} sunflowers, in centimeters.`, axis: 'height (cm)', subj: 'sunflowers', start: 100, w: 20, ge: v => `were at least ${v} cm tall`, lt: v => `were shorter than ${v} cm` },
     { intro: n => `${n} runners were each timed over one mile, in minutes.`, axis: 'time (minutes)', subj: 'runners', start: 6, w: 1, ge: v => `took at least ${v} minutes`, lt: v => `took less than ${v} minutes` },
     { intro: n => `The ages of ${n} people at a concert were recorded.`, axis: 'age (years)', subj: 'people', start: 10, w: 10, ge: v => `were at least ${v} years old`, lt: v => `were younger than ${v}` },
   ];
@@ -1954,7 +1954,7 @@
       if (kind === 'pascal') {
         const n = rng.int(5, 10), k = rng.int(2, n - 2);
         return { prompt: `In the expansion of (${V('a')} + ${V('b')})<sup>${n}</sup>, what is the coefficient of ${M.sup(V('a'), n - k)}${M.sup(V('b'), k)}?`, type: 'number', answer: nCk(n, k), params: { kind, n, k, pp: 1, qq: 1, j: n - k },
-          hints: [`The coefficient of ${M.sup(V('a'), n - k)}${M.sup(V('b'), k)} is ${Cn(n, k)}, the number of ways to choose ${V('b')} from ${k} of the ${n} brackets.`, `${Cn(n, k)} = ${F(`${n}!`, `${k}! · ${n - k}!`)}, or read entry ${k} of row ${n} of Pascal’s triangle (counting from 0).`, `The coefficient is <b>${nCk(n, k)}</b>.`] };
+          hints: [`The coefficient of ${M.sup(V('a'), n - k)}${M.sup(V('b'), k)} is ${Cn(n, k)}, the number of ways to choose ${V('b')} from ${k} of the ${n} factors.`, `${Cn(n, k)} = ${F(`${n}!`, `${k}! · ${n - k}!`)}, or read entry ${k} of row ${n} of Pascal’s triangle (counting from 0).`, `The coefficient is <b>${nCk(n, k)}</b>.`] };
       }
       if (kind === 'expand') {
         const n = rng.pick([3, 4]), qq = rng.nz(-3, 3);
@@ -2190,7 +2190,7 @@
       const ptsTxt = M.list(xs.map((x, i) => M.pt(x, ys[i])));
       const abc = x => x === 0 ? V('c') : `${M.term(x * x, 'a')} ${x < 0 ? '−' : '+'} ${M.term(Math.abs(x), 'b')} + ${V('c')}`, ab = t => t === 0 ? V('b') : `${M.term(t, 'a')} + ${V('b')}`;
       const hints = [`Substitute each point into ${Y} = ${V('a')}${M.sup(X, 2)} + ${V('b')}${X} + ${V('c')}: ${xs.map((x, i) => `${abc(x)} = ${N(ys[i])}`).join('; ')}.`,
-        `Subtract neighbouring equations to remove ${V('c')}, and divide by the change in ${X}: ${ab(xs[0] + xs[1])} = ${N(s12)} and ${ab(xs[1] + xs[2])} = ${N(s23)}.`,
+        `Subtract neighboring equations to remove ${V('c')}, and divide by the change in ${X}: ${ab(xs[0] + xs[1])} = ${N(s12)} and ${ab(xs[1] + xs[2])} = ${N(s23)}.`,
         `Subtract these: ${M.term(xs[2] - xs[0], 'a')} = ${N(s23 - s12)}, so ${V('a')} = ${N(a)}. Then ${V('b')} = ${N(s12)} − ${pw(a)}(${N(xs[0] + xs[1])}) = ${N(b)}, and ${V('c')} = ${N(c)}.`];
       if (rng.chance(0.35)) {
         const answer = `${Y} = ${M.poly([a, b, c])}`, wrong = [`${Y} = ${M.poly([a, -b, c])}`, `${Y} = ${M.poly([-a, b, c])}`, `${Y} = ${M.poly([c, b, a])}`, `${Y} = ${M.poly([a, b, -c])}`];

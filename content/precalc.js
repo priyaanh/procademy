@@ -63,7 +63,7 @@
       { id: 'composite-inverse', title: 'Composite and inverse functions', blurb: 'Feeding one function into another, and running a function backwards.', skills: ['pre.composite-functions', 'pre.inverse-functions'] },
       { id: 'trigonometry', title: 'Trigonometry', blurb: 'Inverse trig values, the laws of sines and cosines, identities, and trig equations.', skills: ['pre.inverse-trig', 'pre.law-of-sines-cosines', 'pre.trig-identities', 'pre.trig-equations'] },
       { id: 'complex', title: 'Complex numbers', blurb: 'Modulus, argument and polar form, and multiplying in polar form.', skills: ['pre.complex-polar-form', 'pre.multiply-polar'] },
-      { id: 'rational', title: 'Rational functions', blurb: 'Vertical asymptotes, holes, and end behaviour.', skills: ['pre.rational-asymptotes-holes', 'pre.rational-end-behavior'] },
+      { id: 'rational', title: 'Rational functions', blurb: 'Vertical asymptotes, holes, and end behavior.', skills: ['pre.rational-asymptotes-holes', 'pre.rational-end-behavior'] },
       { id: 'conics', title: 'Conic sections', blurb: 'Telling the conics apart, and reading the features of ellipses, hyperbolas and parabolas.', skills: ['pre.identify-conics', 'pre.conic-features'] },
       { id: 'vectors', title: 'Vectors', blurb: 'Components, magnitude and unit vectors; adding, scaling and the dot product.', skills: ['pre.vector-components', 'pre.vector-operations'] },
       { id: 'matrices', title: 'Matrices', blurb: 'Adding and scaling, multiplying, determinants and inverses.', skills: ['pre.matrix-add-scale', 'pre.matrix-multiply', 'pre.determinant-inverse'] },
@@ -616,8 +616,8 @@
 
   A.skill({
     id: 'pre.conic-features', title: 'Features of ellipses, hyperbolas and parabolas',
-    learn: p(`<b>Ellipse</b> ${sfrac(M.sup(`(${X} − ${V('h')})`, 2), M.sup(V('a'), 2))} + ${sfrac(M.sup(`(${Y} − ${V('k')})`, 2), M.sup(V('b'), 2))} = 1: centre (${V('h')}, ${V('k')}); the axis lengths are 2${V('a')} and 2${V('b')}, and the longer one is the major axis.`) +
-      p(`<b>Hyperbola</b> ${sfrac(M.sup(`(${X} − ${V('h')})`, 2), M.sup(V('a'), 2))} − ${sfrac(M.sup(`(${Y} − ${V('k')})`, 2), M.sup(V('b'), 2))} = 1: the asymptotes pass through the centre with slopes ±${sfrac(V('b'), V('a'))}. If the ${Y} term comes first, the slopes are ±${sfrac(V('a'), V('b'))}: always ${sfrac('√(number under y)', '√(number under x)')}.`) +
+    learn: p(`<b>Ellipse</b> ${sfrac(M.sup(`(${X} − ${V('h')})`, 2), M.sup(V('a'), 2))} + ${sfrac(M.sup(`(${Y} − ${V('k')})`, 2), M.sup(V('b'), 2))} = 1: center (${V('h')}, ${V('k')}); the axis lengths are 2${V('a')} and 2${V('b')}, and the longer one is the major axis.`) +
+      p(`<b>Hyperbola</b> ${sfrac(M.sup(`(${X} − ${V('h')})`, 2), M.sup(V('a'), 2))} − ${sfrac(M.sup(`(${Y} − ${V('k')})`, 2), M.sup(V('b'), 2))} = 1: the asymptotes pass through the center with slopes ±${sfrac(V('b'), V('a'))}. If the ${Y} term comes first, the slopes are ±${sfrac(V('a'), V('b'))}: always ${sfrac('√(number under y)', '√(number under x)')}.`) +
       p(`<b>Parabola</b> (${X} − ${V('h')})² = 4${V('p')}(${Y} − ${V('k')}): vertex (${V('h')}, ${V('k')}), focus (${V('h')}, ${V('k')} + ${V('p')}), directrix ${Y} = ${V('k')} − ${V('p')}. The focus is ${V('p')} inside the curve and the directrix is ${V('p')} outside.`) +
       example('Example', `${big(`(${X} − 2)² = 12(${Y} + 1)`)}4${V('p')} = 12, so ${V('p')} = 3. The vertex is (2, −1), the focus is (2, −1 + 3) = (2, 2), and the directrix is <b>${Y} = −4</b>.`),
     make(rng) {
@@ -628,8 +628,8 @@
         const eq = `${sfrac(shift2('x', h), a * a)} + ${sfrac(shift2('y', k), b * b)} = 1`;
         if (kind === 'centre') {
           const ans = M.pt(h, k), cands = [M.pt(-h, -k), M.pt(k, h), M.pt(h, -k), M.pt(-h, k), M.pt(h + 1, k - 1)];
-          return { prompt: `What is the centre of this ellipse?${big(eq)}`, type: 'choice', answer: ans, choices: [ans, ...distinct(ans, cands, 3)], params: { kind, h, k },
-            hints: [`Compare with (${X} − ${V('h')})² and (${Y} − ${V('k')})². The centre is (${V('h')}, ${V('k')}), and the signs flip.`, `${shift('x', h)} gives ${V('h')} = ${N(h)}, and ${shift('y', k)} gives ${V('k')} = ${N(k)}.`, `The centre is <b>${ans}</b>.`] };
+          return { prompt: `What is the center of this ellipse?${big(eq)}`, type: 'choice', answer: ans, choices: [ans, ...distinct(ans, cands, 3)], params: { kind, h, k },
+            hints: [`Compare with (${X} − ${V('h')})² and (${Y} − ${V('k')})². The center is (${V('h')}, ${V('k')}), and the signs flip.`, `${shift('x', h)} gives ${V('h')} = ${N(h)}, and ${shift('y', k)} gives ${V('k')} = ${N(k)}.`, `The center is <b>${ans}</b>.`] };
         }
         const ans = 2 * (kind === 'major' ? Math.max(a, b) : Math.min(a, b));
         return { prompt: `What is the length of the ${kind} axis of this ellipse?${big(eq)}`, type: 'number', answer: ans, params: { kind, d: [a * a, b * b] },

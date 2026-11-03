@@ -1002,7 +1002,7 @@
       const shown = `${Y} = ${a === 1 ? '' : a === -1 ? '−' : N(a)}${fn}(${bTxt}${X})${d ? ' ' + M.signed(d) : ''}`;
       const params = { kind, a, d, fn, k, two };
       if (kind === 'amp') return { prompt: `What is the amplitude?${big(shown)}`, type: 'number', answer: Math.abs(a), params, hints: [`The amplitude is the absolute value of the number in front of ${fn}.`, `That number is ${N(a)}${a < 0 ? '; the minus sign only flips the wave' : ''}.`, `Amplitude = <b>${Math.abs(a)}</b>.`] };
-      if (kind === 'mid') return { prompt: `The midline is ${Y} = ${V('k')}. What is ${V('k')}?${big(shown)}`, type: 'number', answer: d, params, hints: [`The midline is set by the number added at the end, which shifts the whole wave up or down.`, d ? `The wave is shifted by ${N(d)}.` : `Nothing is added, so the wave is centred on the ${X}-axis.`, `Midline ${Y} = <b>${N(d)}</b>.`] };
+      if (kind === 'mid') return { prompt: `The midline is ${Y} = ${V('k')}. What is ${V('k')}?${big(shown)}`, type: 'number', answer: d, params, hints: [`The midline is set by the number added at the end, which shifts the whole wave up or down.`, d ? `The wave is shifted by ${N(d)}.` : `Nothing is added, so the wave is centered on the ${X}-axis.`, `Midline ${Y} = <b>${N(d)}</b>.`] };
       return { prompt: `What is the period?${big(shown)}`, type: 'number', answer: per, params, hints: [`Period = 2π ÷ ${V('b')}, where ${V('b')} multiplies ${X}. Here ${V('b')} = ${bTxt}.`, `Dividing by ${bTxt} is the same as multiplying by its reciprocal, and the π cancels: 2π ÷ ${bTxt} = ${per}.`, `Period = <b>${per}</b>.`] };
     },
     verify(q) {

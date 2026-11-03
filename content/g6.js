@@ -34,7 +34,7 @@
       { id: 'expressions', title: 'Variables and expressions', blurb: 'Exponents, order of operations, and writing expressions with letters.', skills: ['g6.evaluate-expressions', 'g6.write-expressions'] },
       { id: 'equations', title: 'Equations and inequalities', blurb: 'One-step equations, and inequalities that describe many answers.', skills: ['g6.one-step-equations', 'g6.inequalities'] },
       { id: 'geometry', title: 'Geometry', blurb: 'Area of flat shapes, and volume and surface area of boxes.', skills: ['g6.area', 'g6.volume-surface-area'] },
-      { id: 'stats', title: 'Data and statistics', blurb: 'The centre of a data set and how spread out it is.', skills: ['g6.mean-median', 'g6.spread'] },
+      { id: 'stats', title: 'Data and statistics', blurb: 'The center of a data set and how spread out it is.', skills: ['g6.mean-median', 'g6.spread'] },
       { id: 'fraction-sense', title: 'Fractions as division and mixed numbers', blurb: 'Sharing things equally to make a fraction, and multiplying mixed numbers.', skills: ['g6.fraction-as-division', 'g6.multiply-mixed-numbers'] },
       { id: 'data-displays', title: 'Statistical questions and data displays', blurb: 'Questions with answers that vary, and reading histograms and stem-and-leaf plots.', skills: ['g6.statistical-questions', 'g6.histograms', 'g6.stem-and-leaf'] },
       { id: 'logic', title: 'Logic puzzles and Venn diagrams', blurb: 'Using clues to reason your way to an answer, and sorting things into overlapping circles.', skills: ['g6.logic-puzzles', 'g6.venn-diagrams'] },
@@ -61,7 +61,7 @@
         return { prompt: `What is the ratio of <b>${xw}</b> to <b>${yw}</b>?${big(e1.repeat(a) + ' ' + e2.repeat(b))}`, type: 'choice', answer, choices: options(answer, [`${y} : ${x}`, `${x} : ${a + b}`, `${y} : ${a + b}`]), params: { kind, xe, ye },
           hints: [`Count each kind: there are ${a} ${w1} and ${b} ${w2}.`, `The ${xw} are named first, so their number goes first.`, `The ratio of ${xw} to ${yw} is <b>${answer}</b>.`] };
       }
-      const [w1, w2, place, all] = rng.pick([['hamsters', 'rabbits', 'a pet shop', 'the animals'], ['red marbles', 'green marbles', 'a bag', 'the marbles'], ['violins', 'cellos', 'an orchestra', 'the instruments'], ['oak trees', 'pine trees', 'a park', 'the trees'], ['pencils', 'pens', 'a pencil case', 'the pens and pencils']]);
+      const [w1, w2, place, all] = rng.pick([['hamsters', 'rabbits', 'a pet store', 'the animals'], ['red marbles', 'green marbles', 'a bag', 'the marbles'], ['violins', 'cellos', 'an orchestra', 'the instruments'], ['oak trees', 'pine trees', 'a park', 'the trees'], ['pencils', 'pens', 'a pencil case', 'the pens and pencils']]);
       if (kind === 'whole') {
         const answer = `${b} : ${a + b}`;
         return { prompt: `In ${place} there are ${a} ${w1} and ${b} ${w2}. What is the ratio of ${w2} to <b>all</b> ${all}?`, type: 'choice', answer, choices: options(answer, [`${a + b} : ${b}`, `${b} : ${a}`, `${a} : ${a + b}`]), params: { kind, a, b },
@@ -104,7 +104,7 @@
       if (kind === 'equiv') return { prompt: `Find the missing number so the ratios are equivalent.${big(`${a} : ${b} = ${given} : ?`)}`, type: 'number', answer: ans, params, hints };
       if (kind === 'recipe') {
         const name = rng.pick(NAMES);
-        const [u, v] = rng.pick([['cups of rice', 'cups of water'], ['scoops of lemonade mix', 'litres of water'], ['cups of flour', 'eggs'], ['spoons of cocoa', 'cups of milk']]);
+        const [u, v] = rng.pick([['cups of rice', 'cups of water'], ['scoops of lemonade mix', 'liters of water'], ['cups of flour', 'eggs'], ['spoons of cocoa', 'cups of milk']]);
         return { prompt: `${name}’s recipe uses ${a} ${u} for every ${b} ${v}. ${name} makes a big batch with ${given} ${askSecond ? u : v}. How many ${askSecond ? v : u} are needed?`, type: 'number', answer: ans, params, hints: [`The ratio is ${a} : ${b}. Find how many times bigger the batch is.`].concat(hints) };
       }
       const [h1, h2] = rng.pick([['Laps', 'Minutes'], ['Tickets', 'Cost ($)'], ['Cups of juice', 'Cups of soda'], ['Packs', 'Stickers']]);
@@ -234,7 +234,7 @@
       if (kind === 'groups') {
         gd = rng.pick([2, 3, 4, 6, 8]); gn = rng.int(1, Math.max(1, gd - 1)); [gn, gd] = M.simp(gn, gd);
         const k = rng.int(2, 12); [tn, td] = M.simp(k * gn, gd);
-        const [thing, u, each, ask] = rng.pick([['yogurt', 'cup', 'Each serving is', 'servings can NAME make'], ['ribbon', 'metre', 'Each bow needs', 'bows can NAME make'], ['juice', 'litre', 'Each glass holds', 'glasses can NAME fill'], ['rope', 'yard', 'Each piece is', 'pieces can NAME cut']]);
+        const [thing, u, each, ask] = rng.pick([['yogurt', 'cup', 'Each serving is', 'servings can NAME make'], ['ribbon', 'meter', 'Each bow needs', 'bows can NAME make'], ['juice', 'liter', 'Each glass holds', 'glasses can NAME fill'], ['rope', 'yard', 'Each piece is', 'pieces can NAME cut']]);
         prompt = `${name} has ${MX(tn, td)} ${u}${tn > td ? 's' : ''} of ${thing}. ${each} ${fr(gn, gd)} ${u}. How many ${ask.replace('NAME', name)}?`;
       } else if (kind === 'speed') {
         [tn, td] = M.simp(rng.int(1, 5), rng.pick([2, 3, 4, 5])); gd = rng.pick([2, 3, 4, 6]); gn = 1;
@@ -242,7 +242,7 @@
       } else if (kind === 'side') {
         const d1 = rng.pick([2, 3, 4, 5, 6, 8]), d2 = rng.pick([2, 3, 4, 5]);
         [tn, td] = M.simp(rng.int(1, d1 - 1), d1); [gn, gd] = M.simp(rng.int(1, d2 - 1), d2);
-        prompt = `A rectangle has an area of ${fr(tn, td)} square metre. Its width is ${fr(gn, gd)} metre. How long is it?`; unit = 'm';
+        prompt = `A rectangle has an area of ${fr(tn, td)} square meter. Its width is ${fr(gn, gd)} meter. How long is it?`; unit = 'm';
       } else {
         const d = rng.pick([2, 3, 4, 5, 8]); [tn, td] = M.simp(rng.int(1, d - 1), d); gn = rng.int(2, 6); gd = 1;
         prompt = `${name} shares ${fr(tn, td)} pound of trail mix equally among ${gn} friends. How many pounds does each friend get?`; unit = 'lb';
@@ -521,7 +521,7 @@
 
   A.skill({
     id: 'g6.distributive-factor', title: 'The distributive property',
-    learn: p(`The <b>distributive property</b> says ${V('a')}(${V('b')} + ${V('c')}) = ${V('a')}${V('b')} + ${V('a')}${V('c')}: multiplying a sum is the same as multiplying each part and adding. It makes mental maths easier: 7 × 46 = 7 × 40 + 7 × 6 = 280 + 42 = 322.`) +
+    learn: p(`The <b>distributive property</b> says ${V('a')}(${V('b')} + ${V('c')}) = ${V('a')}${V('b')} + ${V('a')}${V('c')}: multiplying a sum is the same as multiplying each part and adding. It makes mental math easier: 7 × 46 = 7 × 40 + 7 × 6 = 280 + 42 = 322.`) +
       p('It also works backwards. To write a sum like 36 + 48 as a product, <b>take out the greatest common factor</b>: 36 = 12 × 3 and 48 = 12 × 4, so 36 + 48 = 12(3 + 4).') +
       p('Check your answer by multiplying back out: 12 × 3 + 12 × 4 = 36 + 48 ✓') +
       example('Example', `${big('24 + 60')}The GCF of 24 and 60 is 12. 24 ÷ 12 = 2 and 60 ÷ 12 = 5, so 24 + 60 = <b>12(2 + 5)</b>.`),
@@ -735,7 +735,7 @@
       if (kind === 'write') {
         const c = rng.int(3, 60);
         const [phrase, op, letter] = rng.pick([
-          [`You must be <b>at least</b> ${c} years old to join the club.`, '≥', 'a'], [`A lift can carry <b>at most</b> ${c} people.`, '≤', 'p'],
+          [`You must be <b>at least</b> ${c} years old to join the club.`, '≥', 'a'], [`An elevator can carry <b>at most</b> ${c} people.`, '≤', 'p'],
           [`The temperature stayed <b>above</b> ${c}°F all day.`, '&gt;', 't'], [`There are <b>fewer than</b> ${c} seats left.`, '&lt;', 's'],
           [`Each team can have <b>no more than</b> ${c} players.`, '≤', 'p'], [`The book has <b>more than</b> ${c} pages.`, '&gt;', 'n'],
           [`You need a <b>minimum</b> of ${c} points to win a prize.`, '≥', 'k'], [`The bag weighs <b>less than</b> ${c} pounds.`, '&lt;', 'w'],
@@ -979,8 +979,8 @@
     { what: 'pieces of licorice', whatOne: 'piece of licorice', much: 'licorice', one: 'piece', ones: 'pieces', some: 'Some licorice was' },
     { what: 'loaves of bread', whatOne: 'loaf of bread', much: 'bread', one: 'loaf', ones: 'loaves', some: 'Some bread was' },
     { what: 'pounds of clay', whatOne: 'pound of clay', much: 'clay', one: 'pound', ones: 'pounds', unit: 'lb', some: 'Some clay was' },
-    { what: 'metres of ribbon', whatOne: 'metre of ribbon', much: 'ribbon', one: 'metre', ones: 'metres', unit: 'm', some: 'Some ribbon was' },
-    { what: 'litres of juice', whatOne: 'litre of juice', much: 'juice', one: 'litre', ones: 'litres', unit: 'L', some: 'Some juice was' },
+    { what: 'meters of ribbon', whatOne: 'meter of ribbon', much: 'ribbon', one: 'meter', ones: 'meters', unit: 'm', some: 'Some ribbon was' },
+    { what: 'liters of juice', whatOne: 'liter of juice', much: 'juice', one: 'liter', ones: 'liters', unit: 'L', some: 'Some juice was' },
     { what: 'cups of rice', whatOne: 'cup of rice', much: 'rice', one: 'cup', ones: 'cups', unit: 'cups', some: 'Some rice was' },
   ];
   const SHARERS = [['friends', 'friend'], ['people', 'person'], ['campers', 'camper'], ['teammates', 'teammate'], ['children', 'child']];
@@ -991,7 +991,7 @@
     learn: p(`A fraction is a division. <b>${F(V('a'), V('b'))} means ${V('a')} ÷ ${V('b')}</b>: the top number divided by the bottom number. So when ${V('a')} things are shared equally among ${V('b')} people, each person gets ${F(V('a'), V('b'))} of a thing.`) +
       p(`Picture 3 pizzas shared by 4 friends. Cut every pizza into 4 equal slices. Each friend takes one slice from each pizza: 3 slices of ${F(1, 4)}, which is ${F(3, 4)} of a pizza. So 3 ÷ 4 = ${F(3, 4)}.`) +
       p(`When there are more things than people, each person gets more than one whole. Divide to see how many wholes each person gets, then share what is left over: 7 ÷ 3 is 2 with 1 left over, so each person gets ${MX(7, 3)}.`) +
-      example('Example', `${big('3 campers share 8 litres of juice equally.')}8 ÷ 3 = ${F(8, 3)}. Each camper gets 2 litres, and the 2 litres left over are split into 3 parts, so each camper gets <b>${MX(8, 3)} litres</b>.`),
+      example('Example', `${big('3 campers share 8 liters of juice equally.')}8 ÷ 3 = ${F(8, 3)}. Each camper gets 2 liters, and the 2 liters left over are split into 3 parts, so each camper gets <b>${MX(8, 3)} liters</b>.`),
     make(rng) {
       const kind = rng.pick(['share', 'share', 'share', 'divide', 'which', 'reverse']);
       const c = rng.pick(SHARE_CTX), [who, whoOne] = rng.pick(SHARERS);
@@ -1130,12 +1130,12 @@
     'NAME: How long did it take NAME to walk to school this morning?',
   ];
   const STAT_REWRITE = [
-    [n => `How tall is ${n}?`, n => `How tall are the students in ${n}’s class?`, n => [`How tall is ${n}’s best friend?`, `How tall was ${n} last year?`, `How tall is ${n} in centimetres?`]],
-    [n => `How many pets does ${n} have?`, n => `How many pets do the students in ${n}’s class have?`, n => [`How many pets does ${n}’s neighbour have?`, `How many pets did ${n} have last year?`, `How many dogs does ${n} have?`]],
+    [n => `How tall is ${n}?`, n => `How tall are the students in ${n}’s class?`, n => [`How tall is ${n}’s best friend?`, `How tall was ${n} last year?`, `How tall is ${n} in centimeters?`]],
+    [n => `How many pets does ${n} have?`, n => `How many pets do the students in ${n}’s class have?`, n => [`How many pets does ${n}’s neighbor have?`, `How many pets did ${n} have last year?`, `How many dogs does ${n} have?`]],
     [n => `How many hours did ${n} sleep last night?`, n => `How many hours do the students in ${n}’s grade sleep at night?`, n => [`How many hours did ${n} sleep on Saturday?`, `How many hours did ${n}’s brother sleep last night?`, `What time did ${n} go to bed last night?`]],
     [n => `How long did it take ${n} to get to school today?`, n => `How long does it take the students at ${n}’s school to get there?`, n => [`How long did it take ${n} to get home today?`, `How far is ${n}’s house from the school?`, `What time did ${n} leave for school today?`]],
-    [n => `What size shoe does ${n} wear?`, n => `What shoe sizes do the players on ${n}’s soccer team wear?`, n => [`What size shoe does ${n}’s coach wear?`, `What size shoe did ${n} wear last year?`, `What colour are ${n}’s soccer shoes?`]],
-    [n => `How many books did ${n} read this summer?`, n => `How many books did the students in ${n}’s class read this summer?`, n => [`How many books did ${n} read last summer?`, `How many books are on ${n}’s shelf?`, `How many pages are in ${n}’s favourite book?`]],
+    [n => `What size shoe does ${n} wear?`, n => `What shoe sizes do the players on ${n}’s soccer team wear?`, n => [`What size shoe does ${n}’s coach wear?`, `What size shoe did ${n} wear last year?`, `What color are ${n}’s soccer shoes?`]],
+    [n => `How many books did ${n} read this summer?`, n => `How many books did the students in ${n}’s class read this summer?`, n => [`How many books did ${n} read last summer?`, `How many books are on ${n}’s shelf?`, `How many pages are in ${n}’s favorite book?`]],
   ];
   const oneQ = (s, name) => s.startsWith('NAME: ') ? s.slice(6).replace(/NAME/g, name) : s;
   A.skill({
@@ -1199,7 +1199,7 @@
     ['Which display keeps every data value, so you can read each one exactly?', 'Stem-and-leaf plot', 'A stem-and-leaf plot writes down every value: each leaf is one value.'],
     ['Which display groups numbers into equal intervals and shows how many values fall in each one?', 'Histogram', 'A histogram has one bar for each interval, such as 10–19, and the height shows how many.'],
     ['Which display is drawn from five numbers: the minimum, Q1, the median, Q3 and the maximum?', 'Box plot', 'A box plot is built from the five-number summary: the box runs from Q1 to Q3.'],
-    ['Which display shows how many chose each category, such as each favourite fruit?', 'Bar graph', 'Categories like fruits are not numbers on a scale, so they go in a bar graph with gaps between the bars.'],
+    ['Which display shows how many chose each category, such as each favorite fruit?', 'Bar graph', 'Categories like fruits are not numbers on a scale, so they go in a bar graph with gaps between the bars.'],
   ];
   A.skill({
     id: 'g6.histograms', title: 'Histograms',
