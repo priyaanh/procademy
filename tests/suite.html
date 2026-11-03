@@ -8,7 +8,7 @@
 <body>
 <header class="top"><div class="bar">
   <a class="brand" href="#/"><span class="logo">✦</span><span class="word" data-brand>Procademy</span></a>
-  <nav class="nav"><a href="#/" data-nav="home">Home</a><a href="#/courses" data-nav="courses">Courses</a><a href="#/cpm" data-nav="cpm">CPM</a><a href="#/tutor" data-nav="tutor">✦ Tutor</a><a href="#/progress" data-nav="progress">Progress</a></nav>
+  <nav class="nav"><a href="#/" data-nav="home">Home</a><a href="#/courses" data-nav="courses">Courses</a><a href="#/unlimited" data-nav="unlimited">Practice</a><a href="#/cpm" data-nav="cpm">CPM</a><a href="#/tutor" data-nav="tutor">✦ Tutor</a><a href="#/progress" data-nav="progress">Progress</a></nav>
   <div class="search"><form id="search-form"><input id="search-input" type="search"></form></div>
   <div class="stats" id="stats"></div>
   <a class="avatar-btn" id="avatar-btn" href="#/profile"></a>
@@ -65,6 +65,7 @@
 <script src="../lib/move.js"></script>
 <script src="../lib/learners.js"></script>
 <script src="../lib/whatsnew.js"></script>
+<script src="../lib/unlimited.js"></script>
 <script src="../lib/words.js"></script>
 <script src="../lib/vocab.js"></script>
 <script src="../lib/setup.js"></script>
@@ -197,7 +198,7 @@
     ok(m.querySelectorAll('.unit-card').length === c.units.length && text(m).includes(c.title), `course page ${c.id}: ${c.units.length} units`);
     const u = c.units[0];
     const mu = await go(`#/unit/${c.id}/${u.id}`);
-    ok(mu.querySelectorAll('.skills li').length === u.skills.length + 2 && mu.querySelector(`a[href="#/worksheet/unit/${c.id}/${u.id}"]`), `unit page ${c.id}/${u.id}: ${u.skills.length} skills + test + worksheet`);
+    ok(mu.querySelectorAll('.skills li').length === u.skills.length + 3 && mu.querySelector(`a[href="#/worksheet/unit/${c.id}/${u.id}"]`) && mu.querySelector(`a[href="#/unlimited/unit/${c.id}/${u.id}"]`), `unit page ${c.id}/${u.id}: ${u.skills.length} skills + unlimited + test + worksheet`);
   }
   ok(document.title.includes('Procademy'), 'document title carries the brand');
   // every skill: learn article and a practice question render
@@ -912,7 +913,7 @@
   const pt = S.get().profile.prep.tests[0];
   ok(m.querySelector('.prep-result li.miss') && m.querySelectorAll('.prep-result li.ok').length >= 1 && pt && pt.right === tses.items.length - 1 && S.get().profile.prep.done[S.today()], 'test prep: the result goes lesson by lesson, with practice for the lessons missed, and the day is marked done');
   m = await go('#/');
-  ok(m.querySelector('.prep-home') && /test in 3 days/.test(text(m.querySelector('.prep-home'))) && m.querySelectorAll('.tools .tool').length === 14, 'test prep: Home shows the countdown; Home has the tools');
+  ok(m.querySelector('.prep-home') && /test in 3 days/.test(text(m.querySelector('.prep-home'))) && m.querySelectorAll('.tools .tool').length === 15, 'test prep: Home shows the countdown; Home has the tools');
   S.reset(); S.setProfile({ prep: null, enrolled: [] });
   }
 
@@ -1015,6 +1016,7 @@
   m.querySelector('#pf-grade').value = '7'; m.querySelector('#pf-grade').dispatchEvent(new Event('change'));
   ok(S.get().profile.name === 'Priyaan' && S.get().profile.avatar.emoji === '🦉' && S.get().profile.grade === 7 && /🦉/.test(document.getElementById('avatar-btn').textContent), 'profile: name, grade and avatar are saved, and the avatar shows in the header');
   ok(TUTORPAGE.contextFor({ about: 'general', level: 'auto', style: 'steps', messages: [] }).level === '7th grade', 'profile: the tutor explains at the grade set here');
+  ok(/every school subject/.test(TUTOR.SYSTEM) && /science/.test(TUTOR.SYSTEM) && !/back to math/.test(TUTOR.SYSTEM) && /right for school-age children/.test(TUTOR.SYSTEM), 'tutor: it helps with every subject, kept right for school-age children');
   // computer 1: some progress, then an account
   S.setSkill('math7.add-negatives', { level: 3, tries: 7, right: 7, sets: 1, last: Date.now() });
   ACCOUNT.useBackend(device());
@@ -1151,6 +1153,48 @@
   m.querySelector('#news-x').click(); await tick(10);
   m = await go('#/settings');
   ok(m.querySelector('a[href="#/new"]') && !document.getElementById('news'), 'what’s new: after Got it, it is still in Settings');
+  S.reset();
+  }
+
+  { // unlimited practice: questions without end, saved every 7 answers like a practice set
+  S.reset();
+  m = await go('#/unlimited');
+  ok(/Unlimited practice/.test(text(m.querySelector('h1'))) && m.querySelectorAll('.ul-course').length === A.courses.length + A.cpm.length && m.querySelector('a[href="#/unlimited/all"]') && !m.querySelector('a[href="#/unlimited/mine"]'), 'unlimited: every course and CPM book, and Everything (nothing practiced yet, so no “everything you’ve practiced”)');
+  const ulq = m.querySelector('#ul-q'); ulq.value = 'slope'; ulq.dispatchEvent(new Event('input'));
+  ok(m.querySelectorAll('#ul-found a').length >= 2 && [...m.querySelectorAll('#ul-found a')].every(a => /^#\/unlimited\/skill\//.test(a.getAttribute('href'))), 'unlimited: the search finds skills by name');
+  ok(document.querySelector('[data-nav="unlimited"]').classList.contains('active'), 'unlimited: Practice in the top bar is lit on this page');
+  m = await go('#/unlimited/skill/math7.add-negatives');
+  let us = m.__session;
+  ok(us && us.kind === 'endless' && m.querySelector('.ul-tally') && m.querySelector('#stop') && !m.querySelector('.dots span'), 'unlimited: a running score and Stop, instead of seven dots');
+  for (let k = 0; k < 9; k++) { answerCurrent(m, k !== 7); await tick(); if (k === 7) { answerCurrent(m, true); await tick(); } m.querySelector('#next').click(); await tick(); }
+  us = m.__session;
+  ok(us.items.length === 10 && us.saved === 7 && S.skill('math7.add-negatives').level === 3 && S.skill('math7.add-negatives').sets === 1, 'unlimited: questions keep coming; 7 right in a row are saved as a practice set (Proficient)');
+  ok(/9/.test(text(m.querySelector('.ul-tally'))) && /best 7/.test(text(m.querySelector('.ul-tally'))) && /Question 10/.test(text(m)), 'unlimited: the score counts answers, first-try rights and the best streak');
+  m.querySelector('#stop').click(); await tick(20);
+  ok(m.querySelector('.summary') && /8 \/ 9/.test(text(m.querySelector('.score'))) && /Best streak: 7/.test(text(m)) && us.saved === 9 && S.get().missed.some(x => x.skill === 'math7.add-negatives'), 'unlimited: Stop saves the rest and shows the score; the missed one goes to Review');
+  // a mix never asks the same skill twice in a row, and leaving the page saves what was answered
+  m = await go('#/unlimited/unit/math-7/' + A.whereIs('math7.add-negatives').unit.id);
+  us = m.__session;
+  for (let k = 0; k < 3; k++) { answerCurrent(m, true); await tick(); m.querySelector('#next').click(); await tick(); }
+  ok(us.skills.length > 1 && us.items.every((it, k) => !k || it.skillId !== us.items[k - 1].skillId), 'unlimited: a whole unit, mixed, never the same skill twice in a row');
+  const ulLog = S.get().log.length;
+  m = await go('#/unlimited');
+  ok(us.saved === 3 && S.get().log.length === ulLog + 1 && m.querySelector('a[href="#/unlimited/mine"]'), 'unlimited: leaving the page saves what was answered; now “everything you’ve practiced” is offered');
+  m = await go('#/unlimited/due');
+  ok(/Nothing to practice here yet/.test(text(m)) || m.__session, 'unlimited: an empty pick says so');
+  m = await go('#/skill/math7.add-negatives');
+  ok(m.querySelector('a[href="#/unlimited/skill/math7.add-negatives"]'), 'unlimited: every skill page offers it');
+  // one right answer then Stop is not Familiar; Enter on Stop never moves on
+  S.reset();
+  m = await go('#/unlimited/skill/math7.circles');
+  answerCurrent(m, true); await tick(); m.querySelector('#next').click(); await tick();
+  m.querySelector('#stop').focus(); m.querySelector('#stop').dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })); await tick();
+  ok(m.__session.i === 1 && !m.querySelector('.feedback'), 'unlimited: Enter on Stop doesn’t check or skip a question');
+  m.querySelector('#stop').click(); await tick(20);
+  ok(S.skill('math7.circles').level === 1 && S.skill('math7.circles').tries === 1, 'unlimited: one right answer then Stop counts, but is not enough for Familiar');
+  S.setProfile({ enrolled: ['cpm:cc2', 'math-7'] });
+  const ulSaved = UNLIMITED.pool('saved').skills;
+  ok(ulSaved.length > 50 && ulSaved.length === new Set(ulSaved).size, 'unlimited: saved courses count each skill once');
   S.reset();
   }
 
@@ -1581,7 +1625,7 @@
   ok(m.__data.sets[0].n === 3 && /“x” isn’t a number/.test(text(m)), 'data: something that isn’t a number is left out, and it says so');
 
   m = await go10('#/tools');
-  ok(m.querySelectorAll('.tool').length === 14 && m.querySelector('.tool[href="#/calc"]') && m.querySelector('.tool[href="#/numbers"]') && m.querySelector('.tool[href="#/data"]'), 'tools: every tool on one page');
+  ok(m.querySelectorAll('.tool').length === 15 && m.querySelector('.tool[href="#/unlimited"]') && m.querySelector('.tool[href="#/calc"]') && m.querySelector('.tool[href="#/numbers"]') && m.querySelector('.tool[href="#/data"]'), 'tools: every tool on one page');
   m = await go10('#/skill/g6.gcf-lcm');
   ok(m.querySelector('.hero a[href="#/numbers/12-18"]'), 'tools: the GCF and LCM skill offers the number explorer');
   m = await go10('#/skill/g6.spread');

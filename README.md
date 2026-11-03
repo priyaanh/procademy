@@ -140,7 +140,10 @@ order: drag a card (on a phone, press and hold it, or drag its ⠿), or focus �
 
 **The tutor** (`lib/tutor.js`, `lib/tutor-ui.js`, `lib/tutor-worker.js`). Procademy has no videos, so a free
 AI explains instead: the ✦ Ask button on every page, "Explain it" on every skill and lesson, and "Why is
-that wrong?" after a wrong answer. It needs no account, no key and no sign-up anywhere.
+that wrong?" after a wrong answer. It needs no account, no key and no sign-up anywhere. It helps with
+every subject, not only math: science, reading and writing, history, languages, coding and anything a
+curious student asks, at the learner's grade, kept right for school-age children; with an essay it helps
+the learner write it rather than writing it for them.
 
 - **Cloud first.** Two free cloud services that run the same model (GPT-OSS 20B), LLM7 and Pollinations,
   answer at once while either is free. The cloud tutor sends the question typed and the problem on

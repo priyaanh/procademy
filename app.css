@@ -245,6 +245,25 @@ footer { border-top: 1px solid var(--line); color: var(--muted); font-size: .9re
   .back .back-short { display: inline; }
 }
 .dots { display: flex; gap: 6px; flex-wrap: wrap; }
+/* unlimited practice: a running score in place of the dots, and the page that picks what to practice */
+.ul-tally { display: flex; align-items: center; gap: 6px 14px; flex-wrap: wrap; font-size: .9rem; color: var(--muted); }
+.ul-tally b { color: var(--ink); }
+.unlimited .ul-picks { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr)); gap: 12px; margin: 16px 0; }
+.ul-pick { display: flex; gap: 12px; align-items: flex-start; color: var(--ink); text-decoration: none; }
+.ul-pick:hover { border-color: var(--primary); text-decoration: none; }
+.ul-pick b { display: block; }
+.ul-ic { font-size: 1.5rem; line-height: 1; }
+.ul-find { margin-bottom: 8px; }
+.ul-find input { width: 100%; margin-top: 6px; padding: .6rem .9rem; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--surface); }
+.ul-skills { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 2px; }
+.ul-skills a { display: flex; align-items: center; gap: 8px; padding: .3rem .4rem; border-radius: 8px; color: var(--ink); }
+.ul-skills a:hover { background: var(--surface-2); text-decoration: none; }
+.ul-course + .ul-course { margin-top: 10px; }
+.ul-course summary { cursor: pointer; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ul-unit { border-top: 1px solid var(--line); margin-top: 12px; padding-top: 10px; }
+.ul-unit-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.ul-unit-head h3 { margin: 0; font-size: 1rem; }
+.ul-lessons { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .dots span { width: 22px; height: 10px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line-strong); }
 .dots span.current { border-color: var(--primary); box-shadow: inset 0 0 0 2px var(--primary-soft); }
 .dots span.right { background: var(--ok); border-color: var(--ok); }
