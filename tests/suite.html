@@ -77,6 +77,8 @@
 <script src="../lib/shapes.js"></script>
 <script src="../lib/percent.js"></script>
 <script src="../lib/leap.js"></script>
+<script src="../lib/fractions.js"></script>
+<script src="../lib/integers.js"></script>
 <script>STORE.useMemory(true); /* the suite never touches real data */</script>
 <script src="../lib/app.js"></script>
 <script>
@@ -913,7 +915,7 @@
   const pt = S.get().profile.prep.tests[0];
   ok(m.querySelector('.prep-result li.miss') && m.querySelectorAll('.prep-result li.ok').length >= 1 && pt && pt.right === tses.items.length - 1 && S.get().profile.prep.done[S.today()], 'test prep: the result goes lesson by lesson, with practice for the lessons missed, and the day is marked done');
   m = await go('#/');
-  ok(m.querySelector('.prep-home') && /test in 3 days/.test(text(m.querySelector('.prep-home'))) && m.querySelectorAll('.tools .tool').length === 15, 'test prep: Home shows the countdown; Home has the tools');
+  ok(m.querySelector('.prep-home') && /test in 3 days/.test(text(m.querySelector('.prep-home'))) && m.querySelectorAll('.tools .tool').length === 17, 'test prep: Home shows the countdown; Home has the tools');
   S.reset(); S.setProfile({ prep: null, enrolled: [] });
   }
 
@@ -1625,7 +1627,7 @@
   ok(m.__data.sets[0].n === 3 && /“x” isn’t a number/.test(text(m)), 'data: something that isn’t a number is left out, and it says so');
 
   m = await go10('#/tools');
-  ok(m.querySelectorAll('.tool').length === 15 && m.querySelector('.tool[href="#/unlimited"]') && m.querySelector('.tool[href="#/calc"]') && m.querySelector('.tool[href="#/numbers"]') && m.querySelector('.tool[href="#/data"]'), 'tools: every tool on one page');
+  ok(m.querySelectorAll('.tool').length === 17 && m.querySelector('.tool[href="#/unlimited"]') && m.querySelector('.tool[href="#/calc"]') && m.querySelector('.tool[href="#/numbers"]') && m.querySelector('.tool[href="#/data"]'), 'tools: every tool on one page');
   m = await go10('#/skill/g6.gcf-lcm');
   ok(m.querySelector('.hero a[href="#/numbers/12-18"]'), 'tools: the GCF and LCM skill offers the number explorer');
   m = await go10('#/skill/g6.spread');
@@ -1726,6 +1728,95 @@
   const li = !!m.querySelector('.hero a[href="#/percent/interest"]');
   m = await go10('#/skill/math7.add-negatives');
   ok(lp && li && m.querySelector('.hero a[href="#/leap"]'), 'tools: percent change and simple interest offer the percent tool; adding negatives offers Leap');
+  S.reset();
+  }
+
+  { // the fraction lab
+  const go10 = async h => { location.hash = '#/settings'; await tick(15); return go(h); };
+  S.reset();
+  const fv = (op, a, b) => FRACTIONS.solve(op, [a, b]).hook;
+  ok(fv('add', '3/4', '5/6').answer === '19/12' && fv('add', '3/4', '5/6').mixed === '1 7/12' && fv('add', '3/4', '5/6').lcd === 12 && fv('sub', '2 1/3', '3/4').mixed === '1 7/12' && fv('sub', '2/3', '3/4').answer === '−1/12', 'fractions: adding and subtracting with a common denominator, mixed numbers, and a negative answer');
+  ok(fv('mul', '2/3', '3/4').answer === '1/2' && fv('mul', '2 1/2', '1 1/3').mixed === '3 1/3' && fv('mul', '3', '2/5').answer === '6/5' && FRACTIONS.solve('mul', ['2 1/2', '1 1/3']).work.some(w => w[0] === 'With a generic rectangle' && w[1].length === 6), 'fractions: multiplying, with a generic rectangle for mixed numbers');
+  ok(fv('div', '2 1/2', '3/4').mixed === '3 1/3' && fv('div', '2 1/2', '3/4').groups === 3 && fv('div', '2 1/2', '3/4').rest === '1/3' && fv('div', '1/4', '1/2').answer === '1/2' && /can’t divide by 0/.test(FRACTIONS.solve('div', ['3', '0']).error), 'fractions: dividing counts whole groups and the part of a group left over; dividing by 0 is explained');
+  ok(fv('compare', '5/8', '3/5').cmp === '>' && fv('compare', '5/8', '3/5').diff === '1/40' && fv('compare', '2/4', '1/2').cmp === '=' && fv('compare', '1/3', '2/5').cmp === '<', 'fractions: comparing, by how much, and equivalent fractions');
+  ok(fv('simplify', '18/24').answer === '3/4' && fv('simplify', '18/24').gcf === 6 && fv('simplify', '0.75').answer === '3/4' && /<span class="cx-rep"[^>]*>3<\/span>/.test(FRACTIONS.solve('simplify', ['1/3']).res[1][1]) && /33.*1.*3.*%/.test(FRACTIONS.solve('simplify', ['1/3']).res[2][1].replace(/<[^>]+>/g, ' ')), 'fractions: simplest form with the GCF, decimals turned into fractions, and repeating decimals marked');
+  ok(FRACTIONS.parse('1½').text === '1 1/2' && FRACTIONS.parse(' 3 / 4 ').text === '3/4' && FRACTIONS.parse('2 and 1/3').text === '2 1/3' && FRACTIONS.parse('1/0').error === 'zero' && FRACTIONS.parse('-1/2').error === 'negative' && FRACTIONS.parse('cat').error === 'bad', 'fractions: reads ½, spaces and “and”, and says what is wrong with the rest');
+  m = await go10('#/fractions/add/1-1-2_3-4');
+  ok(m.__fractions.op === 'add' && m.__fractions.answer === '9/4' && m.querySelectorAll('.fr-svg .fr-whole').length >= 4 && /2.*1.*4/.test(text(m.querySelector('.sh-res'))) && m.querySelector('#fr-a').value === '1 1/2', 'fraction page: a link opens a sum of a mixed number and a fraction, drawn as bars');
+  const fb = m.querySelector('#fr-b');
+  fb.value = '2/3'; fb.dispatchEvent(new Event('input', { bubbles: true }));
+  await tick(220);
+  ok(m.__fractions.answer === '13/6' && location.hash === '#/fractions/add/1-1-2_2-3' && S.get().flags.fractions, 'fraction page: typing a new fraction works it out again and updates the link (and the badge flag)');
+  m.querySelector('[data-op="mul"]').click();
+  ok(m.__fractions.op === 'mul' && m.__fractions.answer === '1' && m.querySelector('.fr-reg') && location.hash === '#/fractions/mul/1-1-2_2-3', 'fraction page: switching to multiply keeps the numbers and draws a generic rectangle');
+  m.querySelector('#fr-swap').click();
+  ok(m.querySelector('#fr-a').value === '2/3' && m.__fractions.a === '2/3', 'fraction page: swap');
+  fb.value = '3/0'; fb.dispatchEvent(new Event('input', { bubbles: true }));
+  await tick(220);
+  ok(/0 on the bottom/.test(text(m.querySelector('#fr-out'))) && fb.getAttribute('aria-invalid') === 'true' && !m.querySelector('#fr-fig svg'), 'fraction page: a zero denominator gets a clear message');
+  m = await go10('#/fractions/mul/2-3_3-4');
+  ok(m.querySelectorAll('.fr-cell').length === 12 && m.querySelectorAll('.fr-cell.ab').length === 6, 'fraction page: an area model for 2/3 × 3/4 with 6 of 12 parts in both');
+  m = await go10('#/fractions/div/2-1-2_3-4');
+  ok(m.__fractions.groups === 3 && m.querySelectorAll('.fr-brace').length === 4 && /of a group/.test(m.querySelector('#fr-fig').textContent), 'fraction page: dividing marks each group along the bar');
+  m = await go10('#/fractions/simplify/18-24');
+  ok(m.__fractions.answer === '3/4' && m.querySelector('#fr-fb').hidden && m.querySelector('.fr-guide'), 'fraction page: simplify uses one box and shows both bars ending in the same place');
+  m.querySelector('#fr-new').click();
+  ok(!m.__fractions.error && m.__fractions.op === 'simplify' && m.__fractions.gcf > 1, 'fraction page: Try another gives a fraction that simplifies');
+  m = await go10('#/skill/g5.multiply-fractions');
+  const lf = !!m.querySelector('.hero a[href="#/fractions/mul"]');
+  m = await go10('#/cpm/cc2/1.2.6');
+  const la = !!m.querySelector('.hero a[href="#/fractions/add"]');
+  m = await go10('#/skill/math7.fraction-busters');
+  ok(lf && la && m.querySelector('.hero') && !m.querySelector('.hero a[href^="#/fractions"]'), 'tools: multiplying fractions and CPM 1.2.6 open the fraction lab; Fraction Busters equations don’t');
+  m = await go10('#/search/fraction');
+  const sf = !!m.querySelector('.tool[href="#/fractions"]');
+  m = await go10('#/search/box%20plot');
+  ok(sf && m.querySelector('.tool[href="#/data"]') && !m.querySelector('.tool[href="#/fractions"]'), 'search: finds tools by what they do');
+  S.reset();
+  }
+
+  { // integer tiles
+  const go10 = async h => { location.hash = '#/settings'; await tick(15); return go(h); };
+  S.reset();
+  const iv = (op, a, b) => INTEGERS.solve(op, [a, b]), last = r => r.steps[r.steps.length - 1];
+  const add = iv('add', 5, -3), sub = iv('sub', 3, -5), mul = iv('mul', -3, 2), dv = iv('div', -8, 2);
+  ok(add.answer === 2 && add.steps.length === 5 && add.steps[2].tiles.filter(t => t.mark === 'pair').length === 6 && last(add).pos === 2 && !last(add).neg && /= <b>2<\/b>/.test(last(add).say), 'integers: 5 + (−3) puts the tiles on, circles 3 zero pairs, takes them off and leaves 2');
+  ok(sub.answer === 8 && sub.steps[1].pos === 8 && sub.steps[1].neg === 5 && sub.steps[1].value === 3 && /Add 5 zero pairs/.test(sub.steps[1].say) && last(sub).pos === 8 && sub.same === '3 + 5', 'integers: 3 − (−5) adds 5 zero pairs so there are − tiles to take away, and is the same as 3 + 5');
+  ok(mul.answer === -6 && mul.steps.map(s => s.value).join() === '0,0,0,-6' && mul.steps[2].tiles.filter(t => t.mark === 'take').length === 6 && iv('mul', 3, -4).steps[0].neg === 12, 'integers: −3 × 2 takes 3 groups of 2 away from zero pairs; 3 × (−4) puts 3 groups on');
+  ok(dv.answer === -4 && last(dv).value === -8 && iv('div', -12, -3).answer === 4 && iv('div', 7, -2).answer === -3.5 && iv('div', 7, -2).steps === null && /whole number/.test(iv('div', 7, -2).note) && /divide by 0/.test(iv('div', 5, 0).error), 'integers: division as groups, a quotient that isn’t whole, and dividing by 0');
+  ok(iv('add', 250, -1000).answer === -750 && iv('add', 250, -1000).steps === null && /too many tiles/.test(iv('add', 250, -1000).note) && /Different signs/.test(iv('add', 250, -1000).rule[0]) && /whole numbers/.test(iv('add', 1.5, 2).error), 'integers: numbers too big for tiles still get the answer and the rule; decimals get a clear message');
+  m = await go10('#/integers/sub/3_-5');
+  const mt = () => m.querySelectorAll('#it-mat .it-tile:not(.leave)').length;
+  ok(m.__integers.op === 'sub' && m.__integers.step === 0 && mt() === 3 && m.querySelector('.it-nl') && /3 − \(−5\) = \?/.test(text(m.querySelector('#it-eq'))), 'integers page: a link opens a subtraction with 3 tiles on the mat and a number line');
+  m.querySelector('#it-next').click(); await tick(20);
+  ok(m.__integers.step === 1 && mt() === 13 && m.querySelectorAll('#it-mat .it-pair').length === 5 && /zero pair/.test(text(m.querySelector('#it-say'))), 'integers page: Next adds 5 zero pairs, circled');
+  const isv = m.querySelector('.it-svg');
+  isv.focus(); isv.dispatchEvent(new KeyboardEvent('keydown', { key: 'End', bubbles: true })); await tick(20);
+  ok(m.__integers.step === 3 && m.__integers.value === 8 && /= 8/.test(text(m.querySelector('#it-eq'))) && m.querySelector('#it-next').disabled && S.get().flags.integers, 'integers page: the keyboard steps to the end, where the mat is worth 8');
+  const f1 = m.querySelector('#it-f1');
+  f1.value = '−2'; f1.dispatchEvent(new Event('input', { bubbles: true }));
+  await tick(220);
+  ok(m.__integers.answer === 5 && m.__integers.step === 0 && location.hash === '#/integers/sub/3_-2', 'integers page: typing a new number starts the steps again and updates the link');
+  m.querySelector('[data-flip="0"]').click(); await tick(20);
+  m.querySelector('[data-op="mul"]').click(); await tick(20);
+  ok(m.__integers.op === 'mul' && m.__integers.a === -3 && m.__integers.b === -2 && m.__integers.answer === 6 && location.hash === '#/integers/mul/-3_-2', 'integers page: ± flips a sign, and switching to multiply keeps the numbers');
+  m.querySelector('.it-jump[data-step="2"]').click(); await tick(20);
+  ok(m.__integers.step === 2 && m.querySelectorAll('#it-mat .it-grp.take').length === 3, 'integers page: a step in the list jumps the mat to it (3 groups of −2 marked to take away)');
+  m = await go10('#/integers/div/5_0');
+  ok(/divide by 0/.test(text(m.querySelector('#it-say'))) && m.querySelector('#it-mat').hidden, 'integers page: dividing by 0 explains itself');
+  m = await go10('#/integers/build');
+  const act = a => m.querySelector(`[data-act="${a}"]`).click();
+  act('p'); act('p'); act('n'); act('zp'); await tick(20);
+  ok(m.__integers.value === 1 && m.__integers.pos === 3 && m.__integers.neg === 2 && m.querySelectorAll('#it-mat .it-pair').length === 2 && /Worth 1/.test(text(m.querySelector('#it-val'))), 'integers build: tiles and zero pairs go on the mat, and it shows what they’re worth');
+  act('clear'); act('tn'); await tick(20);
+  ok(m.__integers.neg === 0 && /zero pair first/.test(text(m.querySelector('#it-msg'))), 'integers build: taking off a tile that isn’t there says to add a zero pair first');
+  const gl = m.__integers.goal;
+  for (let i = 0; i < (gl.total + gl.value) / 2; i++) act('p');
+  for (let i = 0; i < (gl.total - gl.value) / 2; i++) act('n');
+  await tick(20);
+  ok(m.__integers.done && m.__integers.solved === 1 && /That’s it/.test(text(m)), 'integers build: making the number with exactly the right number of tiles solves the challenge');
+  m.querySelector('#it-new').click(); await tick(20);
+  ok(!m.__integers.done && m.__integers.pos === 0 && location.hash === '#/integers/build/2', 'integers build: a new challenge clears the mat');
   S.reset();
   }
 
