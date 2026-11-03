@@ -982,11 +982,13 @@
   { // profiles and accounts, with a stand-in for Firebase that behaves like it (two "computers" share it)
   const go3 = async h => { location.hash = '#/settings'; await tick(15); return go(h); };
   // who each sign-in button says you are; like Firebase, one account per email address
-  const server = { users: {}, docs: {}, n: 0, as: { google: { email: 'kid@gmail.com' }, github: { login: 'OctoKid', email: 'octo@example.com' }, facebook: { email: 'kid@gmail.com' } } };
+  const server = { users: {}, docs: {}, n: 0, mails: [], as: { google: { email: 'kid@gmail.com' }, github: { login: 'OctoKid', email: 'octo@example.com' }, facebook: { email: 'kid@gmail.com' } } };
   const device = () => { let cur = null; const err = c => Object.assign(new Error(c), { code: c });
-    return { ready: Promise.resolve(), status: () => server.status || 'ready', providers: server.providers || ['google'], onChange() {}, current: () => cur && { uid: cur.uid, email: cur.email, via: cur.via || null },
-      async signUp(email, pw) { if (Object.values(server.users).some(u => u.email === email)) throw err('auth/email-already-in-use'); const uid = 'u' + (++server.n); server.users[email] = { uid, pw, email, key: email }; cur = server.users[email]; return { uid, email }; },
-      async signIn(email, pw) { const u = server.users[email]; if (!u || u.pw !== pw) throw err('auth/invalid-credential'); cur = u; return { uid: u.uid, email }; },
+    return { ready: Promise.resolve(), status: () => server.status || 'ready', providers: server.providers || ['google'], onChange() {}, current: () => cur && { uid: cur.uid, email: cur.email, via: cur.via || null, verified: !!cur.verified, name: cur.name || '' },
+      async signUp(email, pw, name) { if (Object.values(server.users).some(u => u.email === email)) throw err('auth/email-already-in-use'); const uid = 'u' + (++server.n); server.users[email] = { uid, pw, email, key: email, name, verified: false }; cur = server.users[email]; return { uid, email, verified: false, name }; },
+      async signIn(email, pw) { const u = server.users[email]; if (!u || u.pw !== pw) throw err('auth/invalid-credential'); cur = u; return { uid: u.uid, email, verified: !!u.verified, name: u.name || '' }; },
+      async sendVerification() { if (server.sendFail) throw err(server.sendFail); server.mails.push(cur.email); },
+      async checkVerified() { return !!cur.verified; },
       async social(name) {
         if (server.socialFail) throw err(server.socialFail);
         const who = server.as[name], key = name + ':' + (who.login || who.email || who.id);
@@ -998,7 +1000,7 @@
       },
       async signOut() { cur = null; },
       async load(uid) { if (!cur || cur.uid !== uid) throw err('permission-denied'); return server.docs[uid] ? JSON.parse(JSON.stringify(server.docs[uid])) : null; },
-      async save(uid, data) { if (!cur || cur.uid !== uid) throw err('permission-denied'); server.docs[uid] = JSON.parse(JSON.stringify(data)); },
+      async save(uid, data) { if (!cur || cur.uid !== uid || (!cur.via && !cur.verified && !cur.email.endsWith('@learners.procademy.invalid'))) throw err('permission-denied'); server.docs[uid] = JSON.parse(JSON.stringify(data)); },
       async changePassword(o, n) { if (cur.pw !== o) throw err('auth/invalid-credential'); cur.pw = n; },
       async remove(pw) { if (cur.via ? pw !== null : cur.pw !== pw) throw err('auth/invalid-credential'); delete server.docs[cur.uid]; delete server.users[cur.key]; cur = null; },
       async resetPassword() {} }; };
@@ -1135,6 +1137,44 @@
   ok(ACCOUNT.user() && /Signed in as @facebook with Facebook\./.test(text(m)) && /Facebook will ask you to confirm/.test(m.querySelector('#ac-del-box').textContent), 'facebook: an account with no email (signed up by phone) still works');
   await ACCOUNT.logOut(true);
   server.providers = null;
+  // an account made with an email: one email with a link, and nothing saved online until it is clicked
+  ACCOUNT.useBackend(device()); S.reset(); S.setSkill('math7.circles', { level: 2, tries: 7, right: 5, sets: 1, last: Date.now() });
+  m = await go3('#/profile');
+  fill('#ac-user', 'stargazer'); fill('#ac-pass', 'telescope9'); fill('#ac-pass2', 'telescope9'); fill('#ac-email', 'parent@example.com');
+  m.querySelector('#ac-new').dispatchEvent(new Event('submit', { cancelable: true })); await tick(60);
+  m = document.getElementById('main');
+  const vUser = server.users['parent@example.com'];
+  ok(/Check your email/.test(text(m.querySelector('#account'))) && /parent@example\.com/.test(text(m.querySelector('#account'))) && server.mails.length === 1 && !server.docs[vUser.uid] && ACCOUNT.status().state !== 'saved', 'verify: an account made with an email gets one email, and saves nothing online until it is confirmed');
+  m.querySelector('#ac-check').click(); await tick(30);
+  ok(/Not yet/.test(text(m.querySelector('#account .ac-msg'))) && !server.docs[vUser.uid], 'verify: “I clicked the link” before clicking it says not yet');
+  m.querySelector('#ac-resend').click(); await tick(30);
+  ok(server.mails.length === 2 && /Sent again/.test(text(m.querySelector('#account .ac-msg'))), 'verify: the link can be sent again, when asked');
+  vUser.verified = true;
+  document.dispatchEvent(new Event('visibilitychange')); await tick(80);
+  m = document.getElementById('main');
+  ok(/Signed in as @stargazer \(parent@example\.com\)/.test(text(m)) && server.docs[vUser.uid] && JSON.parse(server.docs[vUser.uid].state).skills['math7.circles'] && server.docs[vUser.uid].username === 'stargazer', 'verify: coming back after clicking the link carries on: the progress is saved online, under the chosen username');
+  await ACCOUNT.logOut(true);
+  // an older account whose email was never confirmed: logging in sends nothing, and waits
+  server.users['old@example.com'] = { uid: 'u' + (++server.n), pw: 'oldpassword1', email: 'old@example.com', key: 'old@example.com', name: 'oldtimer', verified: false };
+  ACCOUNT.useBackend(device());
+  m = await go3('#/profile');
+  m.querySelector('[data-tab="in"]').click(); fill('#ac-id', 'old@example.com'); fill('#ac-pw-in', 'oldpassword1');
+  const mailsBefore = server.mails.length;
+  m.querySelector('#ac-in').dispatchEvent(new Event('submit', { cancelable: true })); await tick(60);
+  m = document.getElementById('main');
+  ok(/when you made your account/.test(text(m.querySelector('#account'))) && server.mails.length === mailsBefore && m.querySelector('#ac-resend'), 'verify: logging in never sends an email; it says to use the link from sign-up, or ask for it again');
+  m.querySelector('#ac-out-w').click(); await tick(40);
+  ok(!ACCOUNT.user() && /Create an account/.test(text(document.getElementById('main'))), 'verify: log out from the waiting screen');
+  // the email can't be sent: the account still waits, and says so
+  server.sendFail = 'auth/too-many-requests';
+  ACCOUNT.useBackend(device());
+  m = await go3('#/profile');
+  fill('#ac-user', 'comet'); fill('#ac-pass', 'nucleus123'); fill('#ac-pass2', 'nucleus123'); fill('#ac-email', 'busy@example.com');
+  m.querySelector('#ac-new').dispatchEvent(new Event('submit', { cancelable: true })); await tick(60);
+  m = document.getElementById('main');
+  ok(/couldn’t be sent just now/.test(text(m.querySelector('#account'))) && m.querySelector('#ac-resend'), 'verify: when the email can’t be sent, it says so and offers to send it again');
+  server.sendFail = null;
+  await ACCOUNT.logOut(true);
   window.PROCADEMY_OFFLINE = { build: 'test' };
   m = await go3('#/profile');
   ok(/not in the offline file/.test(text(m.querySelector('#account'))), 'accounts: the offline file explains that accounts are on the website');

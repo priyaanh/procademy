@@ -41,6 +41,10 @@ owner sets this up once, in about five minutes; learners never visit Firebase.
    `frame-src https://procademy-9d972.firebaseapp.com` to your project's `authDomain`. The Google pop-up
    reports back through a hidden frame from that address, and the policy allows no other frames.
 9. Run `./tests/run.sh`, push, and open **Profile** on the site.
+10. **Name the emails.** An account made with an email gets a link to confirm it, sent by Firebase. So that
+    it says "Procademy" instead of "project-123…": ⚙ **Project settings → General → Public-facing name** →
+    `Procademy` → **Save**. (Optional: **Authentication → Templates → Email address verification** lets you
+    change the wording.)
 
 ## Optional: GitHub and Facebook buttons
 

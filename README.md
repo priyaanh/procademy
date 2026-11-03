@@ -217,7 +217,11 @@ username and a password with no email needed — progress is saved online and co
   learner can read or write ([`firestore.rules`](firestore.rules)). The site's owner turns it on once:
   see [SETUP-ACCOUNTS.md](SETUP-ACCOUNTS.md). Until then the Profile page works on each device only.
 - A username becomes a sign-in address inside the owner's own Firebase project, which never receives
-  mail. An optional email (a parent's is fine) is used instead and allows "forgot my password".
+  mail. An optional email (a parent's is fine) is used instead and allows "forgot my password". An account
+  made with an email gets one email (Firebase's own) with a link to confirm the address, and saves online
+  only once it is clicked; until then progress stays on the device. Logging in never sends an email; the
+  waiting screen offers "Send the link again", and coming back to the tab after clicking carries on by
+  itself. Accounts with only a username are never asked.
 - Changes are saved online a few seconds after they happen and whenever the page is hidden; on opening,
   or coming back to the page, the account's copy is merged in (the higher level of every skill, both
   histories, the earliest badges; settings from whichever copy changed last; an empty copy never wins).
