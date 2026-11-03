@@ -66,6 +66,7 @@
 <script src="../lib/learners.js"></script>
 <script src="../lib/whatsnew.js"></script>
 <script src="../lib/unlimited.js"></script>
+<script src="../lib/topics.js"></script>
 <script src="../lib/words.js"></script>
 <script src="../lib/vocab.js"></script>
 <script src="../lib/setup.js"></script>
@@ -1198,6 +1199,92 @@
   const ulSaved = UNLIMITED.pool('saved').skills;
   ok(ulSaved.length > 50 && ulSaved.length === new Set(ulSaved).size, 'unlimited: saved courses count each skill once');
   S.reset();
+  }
+
+  { // practice any topic: questions from a stand-in for the free AI, double-checked, without end
+  const TUt = TUTOR, realF = TUt.fetch, use0 = TUt.cloud.use.slice(), gen = [], chk = [];
+  const until = async (fn, ms) => { const t = Date.now(); while (Date.now() - t < (ms || 3000)) { if (fn()) return true; await tick(20); } return false; };
+  const stream = text => { const enc = new TextEncoder(), parts = [text.slice(0, 30), text.slice(30)]; return new Response(new ReadableStream({ async start(c) { for (const w of parts) { await tick(2); c.enqueue(enc.encode('data: ' + JSON.stringify({ choices: [{ delta: { content: w } }] }) + '\n\n')); } c.enqueue(enc.encode('data: [DONE]\n\n')); c.close(); } }), { status: 200, headers: { 'Content-Type': 'text/event-stream' } }); };
+  let tpN = 0, tpMode = 'ok';
+  Object.keys(TUt._nextFree).forEach(k => delete TUt._nextFree[k]);
+  TUt.cloud.use = ['llm7'];
+  TUt.fetch = async (url, init) => {
+    const b = JSON.parse(init.body), sys = b.messages[0].content;
+    if (/You write multiple-choice/.test(sys)) {
+      gen.push(b);
+      if (tpMode === 'unsuitable') return stream('{"error": "not suitable"}');
+      const qs = []; for (let k = 0; k < 5; k++) { tpN++; qs.push({ question: `Question number ${tpN}?`, choices: [`Right ${tpN}`, `Wrong ${tpN}a`, `Wrong ${tpN}b`, `Wrong ${tpN}c`], answer: 0, why: `Because of ${tpN}.` }); }
+      return stream('```json\n' + JSON.stringify({ questions: qs }) + '\n```');        // fenced, as the AI often does
+    }
+    chk.push(b);
+    const n = (b.messages[1].content.match(/^\d+\. /gm) || []).length;
+    return stream(JSON.stringify({ answers: Array.from({ length: n }, (_, k) => (k === 2 ? 1 : 0)) }));   // the third disagrees
+  };
+  ok(TOPICS.parse('Sure! ```json {"a": "it\\\'s", "b": [1, 2,],} ```').a === "it's" && TOPICS.valid({ question: 'Which is it?', choices: ['a', 'A', 'b', 'c'], answer: 0 }) === null && TOPICS.valid({ question: 'Which is it?', choices: ['a', 'b', 'c', 'd'], answer: 7 }) === null && TOPICS.valid({ question: 'Which is it?', choices: ['a', 'b', 'c', 'd'], answer: '2' }).answer === 2, 'topics: the AI’s reply is read forgivingly, and a question with repeated choices or no real answer is refused');
+  S.reset(); S.setProfile({ grade: 7 });
+  m = await go('#/unlimited');
+  ok(m.querySelector('#ul-topic') && m.querySelectorAll('#ul-topic .chip-btn').length >= 8 && m.querySelector('#tp-g').value === '7', 'topics: the Practice page has “Practice any topic”, with ideas, at your grade');
+  m.querySelector('#tp-q').value = 'the solar system'; m.querySelector('#ul-topic').dispatchEvent(new Event('submit', { cancelable: true }));
+  await until(() => document.querySelector('#main #choices'));
+  m = document.getElementById('main');
+  ok(location.hash === '#/unlimited/topic/7/the%20solar%20system' && m.querySelectorAll('#choices button').length === 4 && /Question number 1\?/.test(text(m.querySelector('.question'))) && /double-checked/.test(text(m)) && gen.length === 1 && chk.length === 1 && /7th grade/.test(gen[0].messages[0].content) && /Topic: the solar system/.test(gen[0].messages[1].content), 'topics: five questions are written at the grade, double-checked, and the first is shown');
+  const pickT = good => { const b = [...m.querySelectorAll('#choices button')].find(x => good === /Right/.test(x.textContent)); b.click(); };
+  const q0 = (S.get().days[S.today()] || { q: 0 }).q, p0 = S.get().points;
+  pickT(true); await tick(10);
+  ok(m.querySelector('.feedback.good') && /Because of 1\./.test(text(m)) && /1 answered/.test(text(m.querySelector('.ul-tally'))) && (S.get().days[S.today()] || { q: 0 }).q === q0, 'topics: a right answer says why; it counts when you move on');
+  m.querySelector('#next').click(); await tick(10);
+  ok(S.get().days[S.today()].q === q0 + 1 && S.get().points === p0 + 10 && /Question number 2\?/.test(text(m.querySelector('.question'))), 'topics: Next counts it toward today (questions, points), and the next question is there at once');
+  pickT(false); await tick(10);
+  ok(m.querySelector('.feedback.bad') && /The answer is Right 2/.test(text(m)), 'topics: a wrong answer shows the right one');
+  m.querySelector('#tp-flag').click(); await tick(10);
+  ok(/1 right/.test(text(m.querySelector('.ul-tally'))) && /1 answered/.test(text(m.querySelector('.ul-tally'))) && /doesn’t count/.test(text(m)), 'topics: “This looks wrong” takes it out of the score');
+  m.querySelector('#next').click(); await tick(10);
+  ok(S.get().days[S.today()].q === q0 + 1 && /Question number 4\?/.test(text(m.querySelector('.question'))), 'topics: a flagged question never counts; the one the double-check doubted (3) was dropped');
+  pickT(true); await tick(10); m.querySelector('#next').click(); await tick(10);
+  pickT(true); await tick(10); m.querySelector('#next').click();
+  await until(() => gen.length === 2 && chk.length === 2 && /Question number 6\?/.test(text(document.querySelector('#main .question'))));
+  m = document.getElementById('main');
+  ok(gen.length === 2 && /Question number 1\?/.test(gen[1].messages[1].content) && /Question number 6\?/.test(text(m.querySelector('.question'))), 'topics: the next five are written ahead of time, told the earlier questions so none repeat');
+  const logN = S.get().log.length;
+  m.querySelector('#stop').click(); await tick(10);
+  ok(/3 \/ 3/.test(text(m.querySelector('.score'))) && S.get().log.length === logN + 1 && S.get().log[0].kind === 'topic' && S.get().log[0].title === 'the solar system', 'topics: Stop shows the score and puts the topic in the progress log');
+  m = await go('#/unlimited');
+  ok([...m.querySelectorAll('#ul-topic .chip-btn')].some(a => a.textContent.trim() === 'the solar system'), 'topics: your recent topics come back on the Practice page');
+  tpMode = 'unsuitable';
+  m = await go('#/unlimited/topic/7/' + encodeURIComponent('something not for kids'));
+  await until(() => /isn’t a topic/.test(text(document.querySelector('#main'))));
+  ok(/isn’t a topic Procademy can write questions about/.test(text(document.querySelector('#main'))) && !document.querySelector('#main #choices') && !TOPICS.recent().some(x => /not for kids/.test(x.topic)), 'topics: a topic that isn’t for children gets a kind no, and is not kept in your topics');
+  tpMode = 'ok'; const g0 = gen.length;
+  S.setProfile({ tutor: { engine: 'Qwen3-0.6B-q4f16_1-MLC' } });
+  m = await go('#/unlimited/topic/any/volcanoes'); await tick(60);
+  ok(/Use the free cloud AI for this\?/.test(text(m)) && gen.length === g0, 'topics: with the tutor kept on this device, it asks before the topic goes to the cloud');
+  m.querySelector('#tp-ok').click();
+  ok(await until(() => document.querySelector('#main #choices')) && /middle-school/.test(gen[gen.length - 1].messages[0].content), 'topics: once agreed, the questions come (any grade: pitched at middle school)');
+  S.setProfile({ tutor: null });
+  m = await go('#/search/photosynthesis');
+  ok(m.querySelector('.search-topic a[href="#/unlimited/topic/7/photosynthesis"]'), 'topics: search offers to practice anything it finds no skill for');
+  // a wrong mark flagged as wrong gives the streak back; once an answer has counted (the tab was hidden), a flag only notes it
+  m = await go('#/unlimited/topic/7/' + encodeURIComponent('rocks and minerals'));
+  await until(() => document.querySelector('#main #choices')); m = document.getElementById('main');
+  pickT(true); await tick(10); m.querySelector('#next').click(); await tick(10);
+  pickT(false); await tick(10);
+  ok(/0 in a row/.test(text(m.querySelector('.ul-tally'))), 'topics: (a wrong answer ends the streak)');
+  m.querySelector('#tp-flag').click(); await tick(10);
+  ok(/1 in a row/.test(text(m.querySelector('.ul-tally'))) && /Question 2/.test(text(m)), 'topics: flagging a wrong mark gives the streak back');
+  m.querySelector('#next').click(); await tick(10);
+  const qBefore = S.get().days[S.today()].q;
+  pickT(true); await tick(10);
+  window.dispatchEvent(new Event('pagehide')); await tick(10);
+  m.querySelector('#tp-flag').click(); await tick(10);
+  ok(S.get().days[S.today()].q === qBefore + 1 && /Thanks\./.test(text(m)) && !/doesn’t count/.test(text(m)) && S.get().log.filter(e => e.kind === 'topic').every(e => e.right >= 0 && e.right <= e.total), 'topics: once an answer has counted, “This looks wrong” only notes it, and the log never goes below zero');
+  // leaving while questions are being written: the old page never draws over the new one
+  const slow = TUt.fetch; TUt.fetch = async (u, i) => { await tick(300); return slow(u, i); };
+  m = await go('#/unlimited/topic/7/' + encodeURIComponent('volcanoes')); await tick(30);
+  m = await go('#/unlimited'); await tick(800);
+  ok(/Unlimited practice/.test(text(document.querySelector('#main h1'))) && !document.querySelector('#main .tp-wait'), 'topics: leaving while questions are being written leaves the new page alone');
+  TUt.fetch = slow;
+  ok(TOPICS.clip('a'.repeat(79) + '😀😀') === 'a'.repeat(79) + '😀' && TOPICS.href(TOPICS.clip('a'.repeat(79) + '😀😀'), '7"><b>x') === '#/unlimited/topic/any/' + 'a'.repeat(79) + '%F0%9F%98%80', 'topics: a long topic is cut by whole characters, and a grade in a link is only ever a number');
+  TUt.fetch = realF; TUt.cloud.use = use0; S.reset();
   }
 
   { // moving progress to another computer with a link: no account, no file

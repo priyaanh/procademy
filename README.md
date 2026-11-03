@@ -145,6 +145,15 @@ every subject, not only math: science, reading and writing, history, languages, 
 curious student asks, at the learner's grade, kept right for school-age children; with an essay it helps
 the learner write it rather than writing it for them.
 
+**Practice any topic** (`lib/topics.js`, on the Practice page `#/unlimited` and offered by search): the
+learner types a topic and the free cloud AI writes multiple-choice questions five at a time at the learner's
+grade, through `TUTOR.complete()` (the same services and waiting rules as the tutor, never the on-device
+model, and never interrupting the tutor). Each batch is double-checked: the AI answers the questions again
+without the key, and a question whose answers disagree is dropped (in testing this caught keys that were
+simply wrong). The next batch is written while the learner works. "This looks wrong" takes a question out of
+the score. Answers count toward the day's questions, points and streak, never toward skill levels; the topic
+goes into the progress log. A learner whose tutor runs on this device is asked before the topic is sent.
+
 - **Cloud first.** Two free cloud services that run the same model (GPT-OSS 20B), LLM7 and Pollinations,
   answer at once while either is free. The cloud tutor sends the question typed and the problem on
   screen, never a name or progress.

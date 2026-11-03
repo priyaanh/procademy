@@ -264,6 +264,18 @@ footer { border-top: 1px solid var(--line); color: var(--muted); font-size: .9re
 .ul-unit-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
 .ul-unit-head h3 { margin: 0; font-size: 1rem; }
 .ul-lessons { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+/* practice any topic: the card on the Practice page, and the questions */
+.ul-topic { margin-top: 16px; }
+.ul-topic h2 { font-size: 1.15rem; }
+.ul-topic-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.ul-topic-row input { flex: 1 1 220px; min-width: 0; padding: .6rem .9rem; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--surface); }
+.ul-topic-row select { padding: .55rem .6rem; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--surface); }
+.ul-topic-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 10px; }
+.ul-topic-chips .tiny { margin-right: 2px; }
+.tp-ai { font-size: .8rem; }
+.search-topic { display: flex; gap: 12px; align-items: flex-start; margin-top: 16px; }
+.search-topic > span { font-size: 1.3rem; color: var(--primary-ink); }
+.tp-wait { min-height: 120px; display: flex; flex-direction: column; justify-content: center; }
 .dots span { width: 22px; height: 10px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line-strong); }
 .dots span.current { border-color: var(--primary); box-shadow: inset 0 0 0 2px var(--primary-soft); }
 .dots span.right { background: var(--ok); border-color: var(--ok); }
