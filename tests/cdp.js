@@ -13,7 +13,10 @@ const dark = process.argv.includes('--dark');          // emulate prefers-color-
 const CHROME = process.env.CHROME || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const port = 9400 + Math.floor(Math.random() * 400);
 const gpu = /webgpu/i.test(process.env.EXTRA_FLAGS || '');      // the live tutor test needs the real GPU
-const chrome = spawn(CHROME, ['--headless=new'].concat(gpu ? [] : ['--disable-gpu'], ['--no-first-run']).concat([ '--allow-file-access-from-files', '--remote-debugging-port=' + port,
+// a suite that runs past 5 minutes (a busy computer) would otherwise have its timers slowed to once a minute,
+// because headless Chrome treats the page as a background tab
+const NO_THROTTLE = ['--disable-background-timer-throttling', '--disable-backgrounding-occluded-windows', '--disable-renderer-backgrounding', '--disable-features=IntensiveWakeUpThrottling'];
+const chrome = spawn(CHROME, ['--headless=new'].concat(gpu ? [] : ['--disable-gpu'], ['--no-first-run'], NO_THROTTLE).concat([ '--allow-file-access-from-files', '--remote-debugging-port=' + port,
   '--window-size=1280,1000'].concat((process.env.EXTRA_FLAGS || '').split(' ').filter(Boolean), ['about:blank'])), { stdio: 'ignore' });
 let sawError = false;
 

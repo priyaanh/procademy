@@ -810,7 +810,7 @@
   for (let k = 0; k < 12 && !E.isDone(m.__session); k++) { const it = m.__session.items[m.__session.i]; if (!m.querySelector('#next')) { if (it.q.type === 'choice') m.querySelector(`#choices button[data-k="${it.q.answerIndex}"]`).click(); else { const i2 = m.querySelector('#ans'); i2.value = String(it.q.answer); i2.dispatchEvent(new Event('input', { bubbles: true })); } m.querySelector('#check').click(); } m.querySelector('#next').click(); await tick(); }
   ok(m.querySelector('.summary') && (S.get().days[S.today()] || {}).daily === 1 && S.skill('math7.circles').level === 3, 'today\'s practice: finishing marks the day done; it never lowers a level');
   m = await go('#/');
-  ok(/done/.test(text(m.querySelector('.daily-card'))), 'today\'s practice: Home says it is done, and offers another round');
+  ok(/Done/.test(text(m.querySelector('.daily-card'))) && /Practice again/.test(text(m.querySelector('.daily-card'))), 'today\'s practice: Home says it is done, and offers another round');
   m = await go('#/progress');
   ok(/Due for review/.test(text(m)) && /Your mistake patterns/.test(text(m)) && /Sign slips/.test(text(m)), 'progress: what is due, and the learner\'s own mistake patterns with a tip');
   // worksheets
@@ -1194,8 +1194,11 @@
   const wnLost = [];
   for (const h of new Set(WHATSNEW.UPDATES.flatMap(([, items]) => items.map(x => x[0])).filter(h => h.startsWith('#')))) { const p = await go(h); if (/Not here/.test(text(p.querySelector('h1')))) wnLost.push(h); }
   ok(!wnLost.length, 'what’s new: every link opens a page' + (wnLost.length ? ' (not: ' + wnLost.join(' ') + ')' : ''));
-  m = await go('#/');
+  S.setProfile({ welcomed: true }); m = await go('#/');
   ok(m.querySelector('#news a[href="#/new"]'), 'what’s new: Home’s news card links to it');
+  S.setProfile({ welcomed: false }); m = await go('#/settings'); m = await go('#/');
+  ok(m.querySelector('#welcome') && !m.querySelector('#news'), 'what’s new: someone brand new sees the welcome, not a list of updates');
+  S.setProfile({ welcomed: true }); m = await go('#/settings'); m = await go('#/');
   m.querySelector('#news-x').click(); await tick(10);
   m = await go('#/settings');
   ok(m.querySelector('a[href="#/new"]') && !document.getElementById('news'), 'what’s new: after Got it, it is still in Settings');
@@ -1339,6 +1342,58 @@
   TUt.fetch = realF; TUt.cloud.use = use0; S.reset();
   }
 
+  { // every day: a welcome for someone new (any age), today's plan, and streak savers
+  const goHome = async () => { location.hash = '#/settings'; await tick(15); return go('#/'); };      // Home again, drawn afresh
+  S.reset();
+  m = await goHome();
+  ok(m.querySelector('#welcome') && !m.querySelector('.today-card') && m.querySelector('#wl-start').disabled && m.querySelectorAll('#welcome [data-level]').length === 15, 'every day: someone new is welcomed: Kindergarten to 12th grade, or an adult');
+  m.querySelector('[data-level="7"]').click(); m.querySelector('[data-goal="30"]').click();
+  m.querySelector('#wl-start').click(); await tick(60);
+  ok(location.hash === '#/daily' && S.get().profile.grade === 7 && S.get().profile.goal === 30 && S.get().profile.enrolled.join() === 'math-7' && S.get().profile.welcomed && document.getElementById('main').__session, 'every day: two choices, and the first practice starts with the right course saved');
+  m = await goHome();
+  ok(!m.querySelector('#welcome') && m.querySelector('.today-card') && m.querySelectorAll('.today-list li').length === 3 && /Puzzle of the day/.test(text(m.querySelector('.today-card'))) && m.querySelectorAll('.week li').length === 7, 'every day: Home then shows today’s plan: practice, the puzzle of the day and the goal, with the last 7 days');
+  S.reset();
+  m = await goHome();
+  m.querySelector('[data-level="adult-algebra"]').click(); m.querySelector('#wl-start').click(); await tick(40);
+  ok(S.get().profile.adult === true && S.get().profile.grade == null && S.get().profile.enrolled.join() === 'algebra-1' && TUTORPAGE.contextFor({ about: 'general', level: 'auto', style: 'steps', messages: [] }).level === 'An adult learner', 'every day: an adult learner gets an adult course, and the tutor explains for an adult');
+  S.reset();
+  m = await goHome();
+  m.querySelector('#wl-skip').click(); await tick(20);
+  m = document.getElementById('main');
+  ok(!m.querySelector('#welcome') && m.querySelector('.today-card') && /Choose a course/.test(text(m.querySelector('.today-card'))), 'every day: the welcome can be skipped; with no course saved, the plan says to choose one');
+  S.setProfile({ grade: 1, enrolled: ['math-1'] });
+  m = await goHome();
+  ok(/Facts round/.test(text(m.querySelector('.today-card'))) && m.querySelector('.today-card a[href="#/sprint/add"]') && SPRINT.DECKS[0].id === 'add', 'every day: a younger learner’s challenge is a round of addition facts');
+  // a finished plan
+  const leap0 = localStorage.getItem('procademy.leap.v1');
+  S.setProfile({ grade: 7, enrolled: ['math-7'], goal: 20 });
+  S.get().days[S.today()] = { q: 25, right: 20, pts: 0, daily: 1 };
+  localStorage.setItem('procademy.leap.v1', JSON.stringify({ level: 1, stars: {}, daily: { [S.today()]: 2 } }));
+  m = await goHome();
+  ok(m.querySelector('.today-card.all-done') && /You’ve finished today’s plan/.test(text(m)) && m.querySelectorAll('.today-list li.done').length === 3, 'every day: when all three are done, Home says so');
+  if (leap0 == null) localStorage.removeItem('procademy.leap.v1'); else localStorage.setItem('procademy.leap.v1', leap0);
+  // streak savers: 7 days in a row earns one; a missed day is then kept by it
+  S.reset();
+  const dayQ = (k, q) => { S.get().days[S.dayShift(S.today(), k)] = { q, right: q, pts: 0 }; };
+  for (let k = -8; k <= -1; k++) dayQ(k, 5);
+  ok(S.keepStreak().earned === 1 && S.get().savers.n === 1, 'every day: practicing 7 days in a row earns a streak saver');
+  S.reset();
+  for (let k = -9; k <= -2; k++) dayQ(k, 5);
+  S.get().savers.n = 1; S.get().savers.mark = 7;
+  const kept = S.keepStreak();
+  ok(kept.used.length === 1 && S.streak().days === 8 && S.get().savers.n === 0, 'every day: a missed day is kept by a saver, so the streak goes on');
+  S.setProfile({ welcomed: true, grade: 7, enrolled: ['math-7'] });
+  m = await goHome();
+  ok(m.querySelector('.week li.kept') && /8-day streak/.test(text(m.querySelector('.today-card'))), 'every day: the week shows the day the saver kept');
+  S.reset();
+  for (let k = -9; k <= -3; k++) dayQ(k, 5);
+  S.get().savers.n = 1;
+  ok(!S.keepStreak().used.length && S.streak().days === 0, 'every day: two missed days with one saver end the streak');
+  const fact = SPRINT.DECKS.find(d => d.id === 'add').make();
+  ok(/^\d+ \+ \d+$/.test(fact.q) && fact.a <= 20, 'every day: addition facts are sums up to 20');
+  S.reset();
+  }
+
   { // moving progress to another computer with a link: no account, no file
   const go4 = async h => { location.hash = '#/settings'; await tick(15); return go(h); };
   const until = async (f, ms) => { for (let k = 0; k < (ms || 3000) / 25 && !f(); k++) await tick(25); return f(); };
@@ -1428,7 +1483,7 @@
   ok(MOVE.qrButton(document.createElement('div'), 'x'.repeat(3000)).disabled, 'QR: a link too long for a QR code says to email it instead');
   MOVE.qrLib = null;
   // what's new
-  S.setProfile({ seenNews: null });
+  S.setProfile({ seenNews: null, welcomed: true });
   m = await go5('#/');
   ok(m.querySelector('#news') && m.querySelectorAll('#news .chip-btn').length >= 8, 'what’s new: Home lists the new things, with links');
   m.querySelector('#news-x').click(); m = await go5('#/');
@@ -1954,7 +2009,8 @@
   for (let i = 0; i < (gl.total - gl.value) / 2; i++) act('n');
   await tick(20);
   ok(m.__integers.done && m.__integers.solved === 1 && /Correct:/.test(text(m)), 'integers build: making the number with exactly the right number of tiles solves the challenge');
-  m.querySelector('#it-new').click(); await tick(20);
+  m.querySelector('#it-new').click();
+  for (let k = 0; k < 50 && !(location.hash === '#/integers/build/2' && !m.__integers.done); k++) { await tick(20); m = document.getElementById('main'); }      // a busy computer can take a moment
   ok(!m.__integers.done && m.__integers.pos === 0 && location.hash === '#/integers/build/2', 'integers build: a new challenge clears the mat');
   S.reset();
   }

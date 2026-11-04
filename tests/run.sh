@@ -34,7 +34,7 @@ elif ! echo "$csp" | grep -qE "frame-src ('none'|https://[a-z0-9-]+\.firebaseapp
 else echo "  ✓ scripts only from this site and pinned libraries; no inline scripts, eval or plug-ins; frames only for sign-in"; fi
 
 echo "▶ browser suite (tests/suite.html)"
-CHROME="$CHROME" node tests/cdp.js "file://$ROOT/tests/suite.html" 180000 "RESULTS" >"$TMP/suite.out" 2>&1
+CHROME="$CHROME" node tests/cdp.js "file://$ROOT/tests/suite.html" 900000 "RESULTS" >"$TMP/suite.out" 2>&1
 summary=$(grep -oE "RESULTS [0-9]+ failed of [0-9]+" "$TMP/suite.out" | tail -1)
 bad=$(grep -E "^(FAIL|EXCEPTION)" "$TMP/suite.out")
 if [ -n "$bad" ]; then fail=1; echo "  ${summary:-no summary}"; echo "$bad" | sed 's/^/    /' | head -40
