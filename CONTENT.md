@@ -77,19 +77,20 @@ the same answer, and a right choice that is by far the longest option in most qu
 
 ## Tone and symbols
 
-Procademy is a formal website. Everything a learner reads, in lessons, questions, hints, buttons, headings,
-messages and badges, follows these rules.
+Procademy is friendly and modern, like a good teacher: warm, clear and encouraging, and always well written.
+Everything a learner reads, in lessons, questions, hints, buttons, headings, messages and badges, follows
+these rules.
 
-- **No emojis or pictographs**, anywhere: not as decoration, icons, bullets or pictures. Pictures to count
-  or compare are drawn (SVG shapes from the M helpers), never emoji.
-- **Symbols that are allowed**, because they are notation rather than decoration: math symbols
-  (+ − × ÷ = < > ≤ ≥ √ π ° ∞), arrows in math and in navigation ("→" in "fraction → decimal", "← Back"),
-  ✓ and ✗ only where a step is marked correct or incorrect, ✕ only as a close button, ☐ only as the blank in
-  an equation such as 3 + ☐ = 5, and ⌫ on a calculator key.
-- **A formal, respectful tone.** Complete sentences, sentence-case headings, American spelling. Address the
-  learner as "you". Encourage without exclamation marks, slang or jokes: "Correct." rather than "Nice
-  work!"; "Incorrect. Try again, or view a hint." rather than "Not quite!"; "Session complete" rather than
-  "Perfect!".
+- **No emojis or pictographs**, anywhere: not as decoration, icons, bullets or pictures. Icons are the line
+  drawings in `lib/icons.js` (`ICONS.svg(name)`); pictures to count or compare are drawn with `M.items`.
+  `node tests/formal.js` fails on any emoji.
+- **Symbols that are allowed**, because they are notation: math symbols (+ − × ÷ = < > ≤ ≥ √ π ° ∞),
+  arrows in math and navigation ("fraction → decimal", "← Back"), ✓ and ✗ where a step is marked right or
+  wrong, ✕ as a close button, ☐ as the blank in an equation such as 3 + ☐ = 5, and ⌫ on a calculator key.
+- **Warm and encouraging, in plain words.** Complete sentences, sentence-case headings, American spelling,
+  normal contractions ("don’t", "you’re"). Speak to the learner as "you". Encourage without hype: "Correct,
+  well done." and "Not quite. Try again, or take a hint." rather than "AMAZING!!" or "Wrong."; "Nice work"
+  and "Keep practicing" on a summary. No slang, jokes or sarcasm, and exclamation marks only rarely.
 - **Buttons say what they do**, verb first and short: "Start practice", "Check", "Next question", "End
   session", "Download the offline file".
 - **Names are plain descriptions**: a badge is "Seven-day streak", not "Week warrior".

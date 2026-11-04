@@ -227,7 +227,7 @@ footer { border-top: 1px solid var(--line); color: var(--muted); font-size: .9re
 .course-card:hover { text-decoration: none; border-color: var(--course, var(--primary)); box-shadow: 0 6px 20px rgba(20, 24, 40, .1); }
 .course-card .icon { font-size: 1.8rem; line-height: 1; }
 /* a course's or book's short label (K, 7, A1, CC2…) in a badge of its color */
-.icon.mono, .icon-big.mono, .mono-sm { display: inline-grid; place-items: center; min-width: 2.6rem; height: 2.6rem; padding: 0 .45rem; border-radius: 10px; background: var(--surface-2); border: 2px solid var(--course, var(--primary)); color: var(--ink); font-size: 1rem; font-weight: 800; letter-spacing: .02em; line-height: 1; flex: none; }
+.icon.mono, .icon-big.mono, .mono-sm { display: inline-grid; place-items: center; min-width: 2.6rem; height: 2.6rem; padding: 0 .45rem; border-radius: 10px; background: var(--course-deep, #1d4fb8); color: #fff; font-size: 1rem; font-weight: 800; letter-spacing: .02em; line-height: 1; flex: none; }
 .icon-big.mono { min-width: 3.4rem; height: 3.4rem; font-size: 1.25rem; border-radius: 12px; }
 .mono-sm { min-width: 2rem; height: 1.6rem; font-size: .72rem; border-radius: 7px; padding: 0 .35rem; }
 .icon.mono:empty, .icon-big.mono:empty, .mono-sm:empty { display: none; }
@@ -794,6 +794,18 @@ body.sorting-cards { user-select: none; -webkit-user-select: none; cursor: grabb
 .tools .tool:hover { border-color: var(--primary); text-decoration: none; }
 .tools .tool b { display: block; }
 .tool-icon { font-size: 1.6rem; line-height: 1; }
+/* icons (lib/icons.js): a tool's icon sits on a soft tile of the tool's own hue */
+.ic { display: block; flex: none; }
+.tool-ic { --h: 215; flex: none; display: grid; place-items: center; width: 42px; height: 42px; border-radius: 12px; background: hsl(var(--h) 85% 94%); color: hsl(var(--h) 60% 34%); }
+:root[data-theme="dark"] .tool-ic { background: hsl(var(--h) 30% 22%); color: hsl(var(--h) 70% 78%); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .tool-ic { background: hsl(var(--h) 30% 22%); color: hsl(var(--h) 70% 78%); } }
+.tile.has-ic { position: relative; }
+.tile-ic { position: absolute; top: 12px; right: 12px; opacity: .9; }
+.ic-flame { color: #d9480f; } .ic-star { color: var(--lvl3); } .ic-medal { color: #b7791f; }
+:root[data-theme="dark"] .ic-flame { color: #ff8a4c; } :root[data-theme="dark"] .ic-medal { color: #f0b429; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .ic-flame { color: #ff8a4c; } :root:not([data-theme="light"]) .ic-medal { color: #f0b429; } }
+.feedback > .ic { margin-top: 1px; }
+.tutor-fab .ic { width: 18px; height: 18px; }
 
 /* goals and badges (lib/badges.js) */
 .goal-tile { display: flex; align-items: center; gap: 12px; font: inherit; text-align: left; cursor: pointer; color: var(--ink); }
@@ -812,7 +824,9 @@ body.sorting-cards { user-select: none; -webkit-user-select: none; cursor: grabb
 .badge:not(.got) { background: transparent; border: 1px dashed var(--line-strong); }
 .badge:not(.got) .badge-icon { opacity: .45; }
 .badge-icon { color: var(--muted); }
-.badge.got .badge-icon { color: var(--primary-ink); }
+.badge.got .badge-icon { color: #b7791f; }
+:root[data-theme="dark"] .badge.got .badge-icon { color: #f0b429; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .badge.got .badge-icon { color: #f0b429; } }
 .badge-icon { font-size: 1.9rem; line-height: 1.2; }
 
 /* challenge a friend (lib/challenge.js) */
