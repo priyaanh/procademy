@@ -41,7 +41,7 @@
   const evalFac = (f, t) => f.lead * (f.x ? t : 1) * f.lins.reduce((s, [pp, q]) => s * (pp * t + q), 1) * (f.quad ? peval(f.quad, t) : 1);
 
   A.course({
-    id: 'int-3', title: 'Integrated Math 3', subject: 'High school', grade: 11, icon: '🔺', hue: 20,
+    id: 'int-3', title: 'Integrated Math 3', subject: 'High school', grade: 11, icon: 'IM3', hue: 20,
     blurb: 'Polynomials, rational expressions, logarithms, trigonometric functions, non-right triangles, series, the normal distribution, and solids.',
     units: [
       { id: 'polynomials', title: 'Polynomials', blurb: 'Factoring, dividing, the remainder theorem, and reading a graph from its zeros.', skills: ['int3.poly-factor', 'int3.poly-division', 'int3.poly-graphs'] },
@@ -440,7 +440,7 @@
   A.skill({
     id: 'int3.exp-log-equations', title: 'Solving exponential and logarithmic equations',
     learn: p(`<b>If both sides can be written as powers of the same base, set the exponents equal.</b> 3<sup>2${X} − 1</sup> = 243 = 3<sup>5</sup> gives 2${X} − 1 = 5, so ${X} = 3.`) +
-      p(`<b>To solve a log equation, rewrite it in exponential form:</b> ${LOG(V('b'))} (stuff) = ${V('k')} means stuff = ${M.sup(V('b'), V('k'))}. Then check that the stuff inside the log is positive.`) +
+      p(`<b>To solve a log equation, rewrite it in exponential form:</b> ${LOG(V('b'))} (expression) = ${V('k')} means expression = ${M.sup(V('b'), V('k'))}. Then check that the expression inside the log is positive.`) +
       p(`When the bases do not match, isolate the power and take a logarithm of both sides: ${M.sup(V('b'), X)} = ${V('c')} gives ${X} = ${fr(`log ${V('c')}`, `log ${V('b')}`)}. With base ${V('e')}, use the natural log: ${M.sup(V('e'), V('k') + X)} = ${V('c')} gives ${X} = ${fr(`ln ${V('c')}`, V('k'))}.`) +
       example('Example', `${big(`5 · ${M.sup('2', X)} = 60`)}Divide by 5: 2<sup>${X}</sup> = 12. Then ${X} = ${fr('log 12', 'log 2')} ≈ <b>3.58</b>.`),
     make(rng) {

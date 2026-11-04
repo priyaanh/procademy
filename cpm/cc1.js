@@ -6,7 +6,7 @@
 ACADEMY.cpmBook({
   id: 'cc1',
   title: 'Core Connections, Course 1', short: 'Course 1',
-  band: 'Middle school', grade: 6, icon: '🟩', hue: 165,
+  band: 'Middle school', grade: 6, icon: 'CC1', hue: 165,
   homework: 'https://homework.cpm.org/category/CC/textbook/cc1',
   sources: [
     'https://web.archive.org/web/20230329095713/https://cpm.org/core-connections-table-of-contents/',

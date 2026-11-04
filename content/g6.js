@@ -22,7 +22,7 @@
   const MX = (n, d) => M.mixed(n, d);
 
   A.course({
-    id: 'math-6', title: '6th grade math', subject: 'Middle school', grade: 6, icon: '⚖️', hue: 165,
+    id: 'math-6', title: '6th grade math', subject: 'Middle school', grade: 6, icon: '6', hue: 165,
     blurb: 'Ratios, rates and percents, dividing fractions, decimals, negative numbers, expressions and equations, area and volume, and statistics.',
     units: [
       { id: 'ratios', title: 'Ratios', blurb: 'Comparing two amounts, and keeping the comparison the same as they grow.', skills: ['g6.ratio-language', 'g6.ratio-tables'] },
@@ -47,18 +47,19 @@
     learn: p('A <b>ratio</b> compares two amounts. If a fruit bowl has 3 apples and 5 bananas, the ratio of apples to bananas is <b>3 : 5</b>, said “3 to 5”. You can also write it as “3 for every 5”.') +
       p('<b>Order matters.</b> The ratio of bananas to apples is 5 : 3, not 3 : 5. The first thing named goes first.') +
       p('A ratio can also compare a part to the <b>whole</b>. There are 3 + 5 = 8 pieces of fruit, so the ratio of apples to all the fruit is 3 : 8.') +
-      example('Example', `${big('🐱🐱🐶🐶🐶🐶🐶')}The ratio of dogs to cats is <b>5 : 2</b>. The ratio of cats to all the animals is <b>2 : 7</b>.`),
+      example('Example', `${M.items([[2, 'circle', 'orange'], [5, 'square', 'blue']], { per: 0, size: 28 })}The ratio of squares to circles is <b>5 : 2</b>. The ratio of circles to all the shapes is <b>2 : 7</b>.`),
     make(rng) {
       const kind = rng.pick(['pic', 'pic', 'words', 'whole']);
       let a = rng.int(2, 9), b = rng.int(2, 9);
       if (a === b) b = a === 9 ? 8 : a + 1;
       if (kind === 'pic') {
         a = Math.min(a, 7); b = Math.min(b, 7); if (a === b) b = a - 1;
-        const [e1, w1, e2, w2] = rng.pick([['🍎', 'apples', '🍌', 'bananas'], ['🐱', 'cats', '🐶', 'dogs'], ['⭐', 'stars', '🌙', 'moons'], ['🔵', 'circles', '🟥', 'squares'], ['🚗', 'cars', '🚲', 'bikes']]);
+        const [s1, c1, s2, c2] = rng.pick([['circle', 'red', 'square', 'blue'], ['star', 'orange', 'heart', 'purple'], ['triangle', 'green', 'circle', 'blue'], ['square', 'purple', 'star', 'green'], ['heart', 'red', 'triangle', 'orange']]);
+        const [e1, w1, e2, w2] = [`${c1} ${s1}`, `${s1}s`, `${c2} ${s2}`, `${s2}s`];
         const flip = rng.bool();
         const [x, y, xw, yw, xe, ye] = flip ? [b, a, w2, w1, e2, e1] : [a, b, w1, w2, e1, e2];
         const answer = `${x} : ${y}`;
-        return { prompt: `What is the ratio of <b>${xw}</b> to <b>${yw}</b>?${big(e1.repeat(a) + ' ' + e2.repeat(b))}`, type: 'choice', answer, choices: options(answer, [`${y} : ${x}`, `${x} : ${a + b}`, `${y} : ${a + b}`]), params: { kind, xe, ye },
+        return { prompt: `What is the ratio of <b>${xw}</b> to <b>${yw}</b>?${M.items([[a, s1, c1], [b, s2, c2]], { per: 0, size: 28 })}`, type: 'choice', answer, choices: options(answer, [`${y} : ${x}`, `${x} : ${a + b}`, `${y} : ${a + b}`]), params: { kind, xe, ye },
           hints: [`Count each kind: there are ${a} ${w1} and ${b} ${w2}.`, `The ${xw} are named first, so their number goes first.`, `The ratio of ${xw} to ${yw} is <b>${answer}</b>.`] };
       }
       const [w1, w2, place, all] = rng.pick([['hamsters', 'rabbits', 'a pet store', 'the animals'], ['red marbles', 'green marbles', 'a bag', 'the marbles'], ['violins', 'cellos', 'an orchestra', 'the instruments'], ['oak trees', 'pine trees', 'a park', 'the trees'], ['pencils', 'pens', 'a pencil case', 'the pens and pencils']]);
@@ -74,7 +75,7 @@
     verify(q) {
       const [x, y] = q.answer.split(':').map(s => Number(s.trim()));
       const pr = q.params;
-      if (pr.kind === 'pic') { const count = e => q.prompt.split(e).length - 1; return x === count(pr.xe) && y === count(pr.ye); }
+      if (pr.kind === 'pic') { const count = e => M.countItems(q.prompt, e); return x === count(pr.xe) && y === count(pr.ye); }
       if (pr.kind === 'whole') return x === pr.b && y - x === pr.a;
       return x === pr.b && y === pr.a;
     },
@@ -151,7 +152,7 @@
       const o1 = `The ${n1}-pack`, o2 = `The ${n2}-pack`;
       const answer = c1 < c2 ? o1 : o2;
       return { prompt: `A ${n1}-pack of ${item} costs ${M.money(t1)}. A ${n2}-pack costs ${M.money(t2)}. Which is the better buy?`, type: 'choice', answer, choices: [o1, o2, 'They cost the same each'], keepOrder: true, params: { kind, n1, n2, t1, t2 },
-        hints: [`Find the unit price of each pack.`, `${M.money(t1)} ÷ ${n1} = ${M.money(c1 / 100)} each, and ${M.money(t2)} ÷ ${n2} = ${M.money(c2 / 100)} each.`, `The lower unit price wins: <b>${answer.toLowerCase()}</b>.`] };
+        hints: [`Find the unit price of each pack.`, `${M.money(t1)} ÷ ${n1} = ${M.money(c1 / 100)} each, and ${M.money(t2)} ÷ ${n2} = ${M.money(c2 / 100)} each.`, `The lower unit price is the better buy: <b>${answer.toLowerCase()}</b>.`] };
     },
     verify(q) {
       const pr = q.params;
@@ -197,7 +198,7 @@
     id: 'g6.divide-fractions', title: 'Dividing fractions by fractions',
     learn: p(`Dividing asks “how many of these fit into that?”. ${F(3, 4)} ÷ ${F(1, 8)} asks how many eighths fit into three quarters. The answer is 6.`) +
       p('<b>To divide by a fraction, multiply by its reciprocal.</b> The reciprocal is the fraction flipped upside down: the reciprocal of ' + F(2, 5) + ' is ' + F(5, 2, { raw: true }) + '. A whole number like 3 is ' + F(3, 1, { raw: true }) + ', so its reciprocal is ' + F(1, 3) + '. Change a mixed number to an improper fraction first.') +
-      p('Remember: <b>keep</b> the first fraction, <b>change</b> ÷ to ×, <b>flip</b> the second fraction. Then simplify.') +
+      p('In short: <b>keep</b> the first fraction, <b>change</b> ÷ to ×, <b>flip</b> the second fraction. Then simplify.') +
       example('Example', `${big(`${F(2, 3)} ÷ ${F(4, 5)}`)}Keep, change, flip: ${F(2, 3)} × ${F(5, 4, { raw: true })} = ${F(10, 12, { raw: true })} = <b>${F(5, 6)}</b>.`),
     make(rng) {
       const kind = rng.pick(['ff', 'ff', 'wf', 'fw', 'mixed']);
@@ -272,7 +273,7 @@
   A.skill({
     id: 'g6.long-division', title: 'Multi-digit division',
     learn: p('Long division breaks a big division into small steps, working from the left. At each step: <b>divide, multiply, subtract, bring down</b> the next digit, and repeat.') +
-      p('Estimate first so you know about how big the answer should be. 1,512 ÷ 36 is close to 1,500 ÷ 40, which is a bit less than 40.') +
+      p('Estimate first so you know about how big the answer should be. 1,512 ÷ 36 is close to 1,500 ÷ 40, which is slightly less than 40.') +
       p('If something is left at the end, that is the <b>remainder</b>. In a story, think about what it means: if 10 children are left without a seat on the bus, you need <b>one more bus</b>.') +
       example('Example', `${big('1,512 ÷ 36')}151 ÷ 36 = 4 remainder 7. Bring down the 2 to make 72. 72 ÷ 36 = 2 remainder 0. The answer is <b>42</b>.`),
     make(rng) {
@@ -1391,7 +1392,7 @@
   A.skill({
     id: 'g6.logic-puzzles', title: 'Logic puzzles',
     learn: p('In a logic puzzle, every person gets a different item, and the clues tell you what is <b>not</b> true as well as what is. A <b>grid</b> keeps track of it all: names down the side, items across the top.') +
-      p('Put an <b>✕</b> in a box for each “not” clue. Every row and every column ends up with exactly <b>one ✓</b>, so <b>when a row or a column has only one empty box left, that box must be the ✓</b>. Then cross out the rest of that row and column, and look again.') +
+      p('Put an <b>✗</b> in a box for each “not” clue. Every row and every column ends up with exactly <b>one ✓</b>, so <b>when a row or a column has only one empty box left, that box must be the ✓</b>. Then cross out the rest of that row and column, and look again.') +
       p('Keep going until every row has its ✓. Check your answer against every clue before you finish.') +
       example('Example', `<p><b>Ana, Ben and Chloe each have a different pet: a cat, a dog and a fish.</b></p>Clues: Ana does not have the dog. Ben has neither the dog nor the cat. Ben’s row now has only the fish box left, so Ben has the fish. The dog column has only Chloe’s box left, so Chloe has the dog, and <b>Ana has the cat</b>.`),
     make(rng) {
@@ -1421,7 +1422,7 @@
         const answer = names[target.p], last = say(target).replace(t.pos(names[target.p], items[target.i]), t.pos(`<b>${answer}</b>`, items[target.i]));
         return { prompt: `${t.intro(M.list(names), M.list(items.map(t.art)))}<ul>${rng.shuffle(clues).map(c => `<li>${text(c)}</li>`).join('')}</ul><b>${t.ask(items[target.i])}</b>`, type: 'choice', answer, choices: names.slice(),
           params: { k, clues, ask: target.i, names },
-          hints: [`Draw a grid with the names down the side and the ${t.what} across the top. Put an ✕ in a box for every “not” or “neither” clue${clues.some(c => c.t === 'pos') ? ', and a ✓ for the clue that says who has what' : ''}.`,
+          hints: [`Draw a grid with the names down the side and the ${t.what} across the top. Put an ✗ in a box for every “not” or “neither” clue${clues.some(c => c.t === 'pos') ? ', and a ✓ for the clue that says who has what' : ''}.`,
             `Each row and each column gets exactly one ✓, so look for a row or column with only one empty box. ${upTo.map(say).join(' ')}`.trim(), last] };
       }
     },

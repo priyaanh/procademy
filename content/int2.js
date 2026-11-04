@@ -65,7 +65,7 @@
   }
 
   A.course({
-    id: 'int-2', title: 'Integrated Math 2', subject: 'High school', grade: 10, icon: '🧩', hue: 330,
+    id: 'int-2', title: 'Integrated Math 2', subject: 'High school', grade: 10, icon: 'IM2', hue: 330,
     blurb: 'Factoring and quadratics, radicals and complex numbers, similar and right triangles with trigonometry, circles, and probability.',
     units: [
       { id: 'factoring', title: 'Factoring', blurb: 'Pulling out common factors, factoring trinomials, and the difference of squares.', skills: ['int2.gcf-factoring', 'int2.factor-trinomials-a1', 'int2.factor-trinomials-a', 'int2.difference-of-squares'] },

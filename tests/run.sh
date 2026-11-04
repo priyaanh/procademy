@@ -1,5 +1,5 @@
 #!/bin/bash
-# Runs every check: the page loads without console errors, the browser suite passes, the content passes,
+# Runs every check: the page loads without console errors, the browser suite passes, the content passes, no emojis,
 # and it rebuilds procademy-offline.html (the one-file build) and checks it with no internet.
 #   ./tests/run.sh            everything
 #   SEEDS=1500 ./tests/run.sh more seeds per skill in the content check
@@ -50,6 +50,10 @@ else echo "  ✓ $(echo "$sw" | awk '{print $5}') pages: no script errors, no le
 
 echo "▶ content (node tests/content.js)"
 if out=$(node tests/content.js 2>&1); then echo "  ✓ $(echo "$out" | tail -1)"; else fail=1; echo "$out" | tail -25 | sed 's/^/    /'; fi
+
+echo "▶ formal (node tests/formal.js)"
+if node tests/formal.js >"$TMP/formal.out" 2>&1; then echo "  ✓ $(tail -1 "$TMP/formal.out" | sed 's/^PASS: //')"
+else fail=1; head -12 "$TMP/formal.out" | sed 's/^/  /'; fi
 
 echo "▶ CPM books (node tests/cpm.js)"
 if out=$(node tests/cpm.js 2>&1); then echo "$out" | grep -E "^[a-z0-9]+: " | sed 's/^/  /'; echo "  ✓ $(echo "$out" | tail -1)"; else fail=1; echo "$out" | tail -25 | sed 's/^/    /'; fi

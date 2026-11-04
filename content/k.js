@@ -1,5 +1,5 @@
 /* Kindergarten math. Counting and place value, addition and subtraction within 10, measurement, and
-   shapes. Written for five-year-olds: very short sentences, emoji pictures, and small answers. */
+   shapes. Written for five-year-olds: very short sentences, drawn pictures, and small answers. */
 'use strict';
 (function () {
   const A = window.ACADEMY, M = window.M;
@@ -8,20 +8,20 @@
   const p = (s) => `<p>${s}</p>`;
   const example = (title, body) => `<div class="example"><div class="ex-title">${title}</div>${body}</div>`;
   const big = s => `<div class="big">${s}</div>`;
-  /** an emoji picture; verify() reads it back out of the prompt */
-  const pic = (s, left) => `<div class="big pic"${left ? ' style="text-align:left"' : ''}>${s}</div>`;
-  const picOf = prompt => { const m = /<div class="big pic"[^>]*>([\s\S]*?)<\/div>/.exec(prompt); return m ? m[1] : ''; };
-  const countIn = (str, e) => Array.from(str).filter(c => c === e).length;
-  /** k copies of an emoji, in rows of five */
-  const rows = (e, k, per) => { per = per || 5; const out = []; for (let i = 0; i < k; i += per) out.push(Array(Math.min(per, k - i)).fill(e).join(' ')); return out.join('<br>'); };
-  const line = (e, k) => Array(k).fill(e).join(' ');
   const countUp = (from, to) => { const out = []; for (let i = from; i <= to; i++) out.push(i); return out.join(', '); };
 
-  // single-code-point emoji only, so that counting them back is exact
-  const THINGS = [['🍎', 'apples'], ['🍌', 'bananas'], ['🐟', 'fish'], ['🐞', 'ladybugs'], ['🚗', 'cars'], ['⭐', 'stars'], ['🐸', 'frogs'], ['🍪', 'cookies'], ['🐤', 'chicks'], ['🌸', 'flowers'], ['🍓', 'berries'], ['🐢', 'turtles']];
+  // pictures are drawn shapes (M.items), named in words: "red circles"; verify() counts them with M.countItems
+  const SHAPES = ['circle', 'square', 'triangle', 'star', 'heart'];
+  const COLORS = ['red', 'blue', 'green', 'orange', 'purple'];
+  const look = rng => [rng.pick(SHAPES), rng.pick(COLORS)];
+  const many = (k, sh) => k === 1 ? sh : sh + 's';
+  const cap = s => s[0].toUpperCase() + s.slice(1);
+  // things in story problems, singular and plural
+  const THINGS = [['apple', 'apples'], ['banana', 'bananas'], ['fish', 'fish'], ['ladybug', 'ladybugs'], ['car', 'cars'], ['star', 'stars'], ['frog', 'frogs'], ['cookie', 'cookies'], ['chick', 'chicks'], ['flower', 'flowers'], ['berry', 'berries'], ['turtle', 'turtles']];
+  const howMany = (k, t) => `${k} ${k === 1 ? t[0] : t[1]}`;
 
   A.course({
-    id: 'math-k', title: 'Kindergarten math', subject: 'Elementary', grade: 0, icon: '🧸', hue: 40,
+    id: 'math-k', title: 'Kindergarten math', subject: 'Elementary', grade: 0, icon: 'K', hue: 40,
     blurb: 'Counting to 100, comparing groups, adding and taking away within 10, teen numbers, longer and heavier, and shapes.',
     units: [
       { id: 'counting', title: 'Counting and place value', blurb: 'Count things, count to 100, compare, and meet the teen numbers.', skills: ['k.count-objects', 'k.count-to-100', 'k.compare-groups', 'k.compare-numbers', 'k.teen-numbers'] },
@@ -37,18 +37,19 @@
     learn: p('To count, <b>touch each thing one time</b> and say one number for it.') +
       p('The <b>last number you say</b> tells how many there are.') +
       p('Count row by row. Each full row has 5.') +
-      example('Example', `${big('🍎 🍎 🍎 🍎 🍎<br>🍎 🍎')}Count: 1, 2, 3, 4, 5, 6, 7. There are <b>7</b> apples.`),
+      example('Example', `${M.items(7, 'circle', 'red')}Count: 1, 2, 3, 4, 5, 6, 7. There are <b>7</b> circles.`),
     make(rng) {
-      const [e, name] = rng.pick(THINGS);
+      const [sh, col] = look(rng);
       const k = rng.pick([rng.int(1, 10), rng.int(1, 10), rng.int(11, 20)]);
+      const name = `${col} ${sh}s`;
       const full = Math.floor(k / 5), rest = k % 5;
       const hints = ['Touch each one. Say one number for each.'];
       if (k > 5) hints.push(`Each full row has 5. There ${full === 1 ? 'is 1 full row' : `are ${full} full rows`}${rest ? `, and ${rest} more` : ''}.`);
       hints.push(`Count them all: ${k <= 10 ? countUp(1, k) : `5, 10${k >= 15 ? ', 15' : ''}${k === 20 ? ', 20' : ''}${rest ? ', then ' + countUp(full * 5 + 1, k) : ''}`}.`);
-      hints.push(`There are <b>${k}</b> ${name}.`);
-      return { prompt: `How many ${name}?${pic(rows(e, k))}`, type: 'number', answer: k, hints, params: { e, k } };
+      hints.push(k === 1 ? `There is <b>1</b> ${col} ${sh}.` : `There are <b>${k}</b> ${name}.`);
+      return { prompt: `How many ${name}?${M.items(k, sh, col)}`, type: 'number', answer: k, hints, params: { sh, col, k } };
     },
-    verify(q) { return countIn(picOf(q.prompt), q.params.e) === q.answer; },
+    verify(q) { return M.countItems(q.prompt, `${q.params.col} ${q.params.sh}`) === q.answer; },
   });
 
   A.skill({
@@ -95,23 +96,23 @@
     learn: p('Line up two groups. Match one from the top with one from the bottom.') +
       p('The group with some left over has <b>more</b>. The other group has <b>fewer</b>. If none are left over, they are the <b>same</b>.') +
       p('You can also count each group. The bigger number is more.') +
-      example('Example', `${pic('🍎 🍎 🍎 🍎<br>🍌 🍌', true)}4 apples. 2 bananas. There are <b>more apples</b>. There are <b>fewer bananas</b>.`),
+      example('Example', `${M.items([[4, 'circle', 'red'], [2, 'square', 'blue']], { rows: true, per: 0 })}4 red circles. 2 blue squares. There are <b>more red circles</b>. There are <b>fewer blue squares</b>.`),
     make(rng) {
-      const [[e1, n1], [e2, n2]] = rng.sample(THINGS, 2);
+      const [s1, s2] = rng.sample(SHAPES, 2), [k1, k2] = rng.sample(COLORS, 2);
+      const n1 = `${k1} ${s1}s`, n2 = `${k2} ${s2}s`;
       const a = rng.int(1, 10);
       let b = rng.chance(0.2) ? a : rng.int(1, 10);
       const ask = rng.pick(['more', 'fewer']);
-      const c1 = `${e1} ${n1}`, c2 = `${e2} ${n2}`, same = 'Same number';
+      const c1 = cap(n1), c2 = cap(n2), same = 'Same number';
       const answer = a === b ? same : (ask === 'more') === (a > b) ? c1 : c2;
       const last = a === b ? `${a} and ${b} are the same. So it is the <b>${same.toLowerCase()}</b>.` :
         `${Math.max(a, b)} is more than ${Math.min(a, b)}. So the answer is <b>${answer}</b>.`;
-      return { prompt: `Which group has ${ask}?${pic(line(e1, a) + '<br>' + line(e2, b), true)}`, type: 'choice', choices: [c1, c2, same], answer, keepOrder: true,
-        params: { e1, e2, ask, c1, c2 },
+      return { prompt: `Which group has ${ask}?${M.items([[a, s1, k1], [b, s2, k2]], { rows: true, per: 0 })}`, type: 'choice', choices: [c1, c2, same], answer, keepOrder: true,
+        params: { it1: `${k1} ${s1}`, it2: `${k2} ${s2}`, ask, c1, c2 },
         hints: [`Count the ${n1}: ${a}.`, `Count the ${n2}: ${b}.`, last] };
     },
     verify(q) {
-      const lines = picOf(q.prompt).split('<br>');
-      const a = countIn(lines[0], q.params.e1), b = countIn(lines[1], q.params.e2);
+      const a = M.countItems(q.prompt, q.params.it1), b = M.countItems(q.prompt, q.params.it2);
       if (a === b) return q.answer === 'Same number';
       const wantFirst = q.params.ask === 'more' ? a > b : a < b;
       return q.answer === (wantFirst ? q.params.c1 : q.params.c2);
@@ -122,7 +123,7 @@
     id: 'k.compare-numbers', title: 'Compare numbers to 10',
     learn: p('When we count, <b>numbers get bigger</b>. A number that comes later is <b>more</b>.') +
       p('8 comes after 5, so 8 is more than 5. And 5 is less than 8.') +
-      p('Not sure? Count up from 0 and see which number you say first.') +
+      p('If you are not sure, count up from 0 and see which number you say first.') +
       example('Example', `${big('3 &nbsp; 7 &nbsp; 5')}Which is the greatest? Count: 1, 2, 3, 4, 5, 6, 7. We say 7 last. <b>7</b> is the greatest.`),
     make(rng) {
       const kind = rng.pick(['greatest', 'least', 'more-less']);
@@ -151,12 +152,12 @@
     learn: p('The numbers 11 to 19 are <b>10 and some more</b>.') +
       p('14 is 10 and 4 more. The 1 in 14 stands for the ten. The 4 tells the ones.') +
       p('So 10 and 7 more is 17. And 19 is 10 and 9 more.') +
-      example('Example', `${big('🔵 🔵 🔵 🔵 🔵 🔵 🔵 🔵 🔵 🔵<br>🔵 🔵 🔵')}That is 10 and 3 more. 10 and 3 make <b>13</b>.`),
+      example('Example', `${M.items([[10, 'circle', 'blue'], [3, 'circle', 'blue']], { rows: true, per: 0 })}That is 10 and 3 more. 10 and 3 make <b>13</b>.`),
     make(rng) {
       const kind = rng.pick(['picture', 'make', 'ones', 'which']);
       const ones = rng.int(1, 9), n = 10 + ones;
       if (kind === 'picture') {
-        return { prompt: `The top row has 10. How many in all?${pic(line('🔵', 10) + '<br>' + line('🔵', ones), true)}`, type: 'number', answer: n, params: { kind, ones },
+        return { prompt: `The top row has 10. How many in all?${M.items([[10, 'circle', 'blue'], [ones, 'circle', 'blue']], { rows: true, per: 0 })}`, type: 'number', answer: n, params: { kind, ones },
           hints: ['The top row is 10.', `The bottom row has ${ones}. Count on from 10: ${countUp(11, n)}.`, `10 and ${ones} more is <b>${n}</b>.`] };
       }
       if (kind === 'make') {
@@ -174,7 +175,7 @@
     },
     verify(q) {
       const pr = q.params;
-      if (pr.kind === 'picture') return countIn(picOf(q.prompt), '🔵') === q.answer;
+      if (pr.kind === 'picture') return M.countItems(q.prompt, 'blue circle') === q.answer;
       if (pr.kind === 'make') return q.answer === Number('1' + pr.ones);
       if (pr.kind === 'ones') return 10 + q.answer === pr.n;
       return 10 + Number(q.answer.split(' ').pop()) === pr.n;
@@ -187,79 +188,78 @@
     learn: p('<b>Adding means putting groups together.</b> The plus sign + means "and more."') +
       p('To add, count the first group. Then <b>keep counting</b> the second group.') +
       p('You can use your fingers, or draw dots.') +
-      example('Example', `${big('🐟 🐟 🐟 + 🐟 🐟')}Count 3. Keep counting: 4, 5. So 3 + 2 = <b>5</b>.`),
+      example('Example', `${M.items([[3, 'star', 'orange'], [2, 'star', 'orange']], { sep: '+' })}Count 3. Keep counting: 4, 5. So 3 + 2 = <b>5</b>.`),
     make(rng) {
       const kind = rng.pick(['picture', 'number', 'number', 'story']);
       const a = rng.int(kind === 'picture' ? 1 : 0, 5 + rng.int(0, 4)), b = rng.int(kind === 'picture' ? 1 : 0, 10 - a);
       const s = a + b;
       const hints = [`Start with ${a}.`, b === 0 ? 'Adding 0 adds nothing.' : `Keep counting ${b} more: ${countUp(a + 1, s)}.`, `${a} + ${b} = <b>${s}</b>.`];
       if (kind === 'picture') {
-        const [e] = rng.pick(THINGS);
-        return { prompt: `How many in all?${pic(`${line(e, a)} &nbsp;+&nbsp; ${line(e, b)}`)}`, type: 'number', answer: s, hints, params: { kind, e, a, b } };
+        const [sh, col] = look(rng);
+        return { prompt: `How many ${sh}s in all?${M.items([[a, sh, col], [b, sh, col]], { sep: '+', per: 0 })}`, type: 'number', answer: s, hints, params: { kind, sh, col, a, b } };
       }
       if (kind === 'story') {
-        const [e, name] = rng.pick(THINGS), who = rng.pick(NAMES);
-        return { prompt: `${who} has ${a} ${e}. ${who} gets ${b} more. How many ${name} now?`, type: 'number', answer: s, hints, params: { kind, a, b } };
+        const t = rng.pick(THINGS), who = rng.pick(NAMES);
+        return { prompt: `${who} has ${howMany(a, t)}. ${who} gets ${b} more. How many ${t[1]} does ${who} have now?`, type: 'number', answer: s, hints, params: { kind, a, b } };
       }
       return { prompt: `Add.${big(`${a} + ${b} = ?`)}`, type: 'number', answer: s, hints, params: { kind, a, b } };
     },
     verify(q) {
       const pr = q.params;
-      if (pr.kind === 'picture') return countIn(picOf(q.prompt), pr.e) === q.answer;
+      if (pr.kind === 'picture') return M.countItems(q.prompt, `${pr.col} ${pr.sh}`) === q.answer;
       let k = 0; for (let i = 0; i < pr.a; i++) k++; for (let i = 0; i < pr.b; i++) k++;
       return k === q.answer && q.answer <= 10;
     },
   });
 
-  const GO = [['🐦', 'fly away'], ['🐸', 'hop away'], ['🎈', 'pop'], ['🐟', 'swim away'], ['🐞', 'crawl away'], ['🐤', 'run away']];
   A.skill({
     id: 'k.sub-within-10', title: 'Subtract within 10',
     learn: p('<b>Subtracting means taking away.</b> The minus sign − means "take away."') +
       p('Start with the whole group. Take some away. <b>Count what is left.</b>') +
       p('You can also count back. 6 − 2: say 5, 4. The answer is 4.') +
-      example('Example', `${big('🎈 🎈 🎈 🎈 🎈')}5 balloons. 2 pop. Count back: 4, 3. There are <b>3</b> left. 5 − 2 = 3.`),
+      example('Example', `${M.items(5, 'circle', 'purple', { out: 2 })}5 circles. Take away 2. Count back: 4, 3. There are <b>3</b> left. 5 − 2 = 3.`),
     make(rng) {
       const kind = rng.pick(['picture', 'number', 'number', 'story']);
       const a = rng.int(kind === 'number' ? 1 : 2, 10), b = rng.int(kind === 'number' ? 0 : 1, kind === 'number' ? a : a - 1);
       const d = a - b;
       const hints = [`Start with ${a}.`, b === 0 ? 'Taking away 0 takes nothing.' : `Take away ${b}. Count back: ${countUp(d, a - 1).split(', ').reverse().join(', ')}.`, `${a} − ${b} = <b>${d}</b>.`];
       if (kind === 'picture') {
-        const [e, verb] = rng.pick(GO);
-        return { prompt: `${b} ${verb}. How many are left?${pic(rows(e, a))}`, type: 'number', answer: d, hints, params: { kind, e, b } };
+        const [sh, col] = look(rng);
+        return { prompt: `Take away ${b} ${many(b, sh)}. How many are left?${M.items(a, sh, col)}`, type: 'number', answer: d, hints, params: { kind, sh, col, b } };
       }
       if (kind === 'story') {
-        const [e, name] = rng.pick(THINGS.filter(t => t[0] === '🍎' || t[0] === '🍪' || t[0] === '🍓' || t[0] === '🍌')), who = rng.pick(NAMES);
-        return { prompt: `${who} has ${a} ${e}. ${who} eats ${b}. How many ${name} are left?`, type: 'number', answer: d, hints, params: { kind, a, b } };
+        const t = rng.pick(THINGS.filter(t => ['apple', 'cookie', 'berry', 'banana'].includes(t[0]))), who = rng.pick(NAMES);
+        return { prompt: `${who} has ${howMany(a, t)}. ${who} eats ${b}. How many ${t[1]} are left?`, type: 'number', answer: d, hints, params: { kind, a, b } };
       }
       return { prompt: `Subtract.${big(`${a} − ${b} = ?`)}`, type: 'number', answer: d, hints, params: { kind, a, b } };
     },
     verify(q) {
       const pr = q.params;
-      const a = pr.kind === 'picture' ? countIn(picOf(q.prompt), pr.e) : pr.a;
+      const a = pr.kind === 'picture' ? M.countItems(q.prompt, `${pr.col} ${pr.sh}`) : pr.a;
       return q.answer + pr.b === a && q.answer >= 0;
     },
   });
 
+  /** a ten frame: two rows of 5 spots, the first `a` of them holding a dot */
+  const tenFrame = a => M.items([[a, 'circle', 'blue'], [10 - a, 'circle', 'blue', { hollow: true }]], { flow: true, frame: true, size: 36, label: `a ten frame with ${a} dots and ${10 - a} empty spots` });
   A.skill({
     id: 'k.make-10', title: 'Make 10',
     learn: p('A <b>ten frame</b> has 10 spots: two rows of 5.') +
       p('To find how many more make 10, <b>count the empty spots</b>.') +
       p('Pairs that make 10: 1 and 9, 2 and 8, 3 and 7, 4 and 6, 5 and 5.') +
-      example('Example', `${big('● ● ● ● ●<br>● ● ○ ○ ○')}7 spots are full. 3 are empty. 7 and <b>3</b> make 10.`),
+      example('Example', `${tenFrame(7)}7 spots are full. 3 are empty. 7 and <b>3</b> make 10.`),
     make(rng) {
       const kind = rng.pick(['frame', 'frame', 'number']);
       const a = rng.int(1, 9), need = 10 - a;
       if (kind === 'frame') {
-        const spots = Array(10).fill('○').fill('●', 0, a);
-        const frame = spots.slice(0, 5).join(' ') + '<br>' + spots.slice(5).join(' ');
-        return { prompt: `How many more dots make 10?${pic(frame)}`, type: 'number', answer: need, params: { kind, a },
-          hints: [`There are ${a} dots.`, `Count the empty spots ○: ${countUp(1, need)}.`, `${a} and <b>${need}</b> make 10.`] };
+        return { prompt: `How many more dots make 10?${tenFrame(a)}`, type: 'number', answer: need, params: { kind, a },
+          hints: [`There are ${a} dots.`, `Count the empty spots: ${countUp(1, need)}.`, `${a} and <b>${need}</b> make 10.`] };
       }
       return { prompt: `What number makes 10?${big(`${a} + __ = 10`)}`, type: 'number', answer: need, params: { kind, a },
         hints: [`Start at ${a}.`, `Count up to 10: ${countUp(a + 1, 10)}. That is ${need} numbers.`, `${a} + <b>${need}</b> = 10.`] };
     },
     verify(q) {
-      if (q.params.kind === 'frame') return countIn(picOf(q.prompt), '○') === q.answer && countIn(picOf(q.prompt), '●') + q.answer === 10;
+      if (q.params.kind === 'frame') return M.countItems(q.prompt, 'empty circle') === q.answer && M.countItems(q.prompt, 'blue circle') + q.answer === 10;
       return q.params.a + q.answer === 10;
     },
   });
@@ -269,13 +269,13 @@
     learn: p('A number can be <b>broken into two parts</b>.') +
       p('5 can be 4 and 1. It can be 3 and 2. It can be 5 and 0. <b>The parts always add back to the whole.</b>') +
       p('To find a missing part, start with the part you know and count up to the whole.') +
-      example('Example', `${big('🔴 🔴 🔴 🔵 🔵 🔵 🔵')}7 balls. 3 are red. Count the blue: 4. So 7 is 3 and <b>4</b>.`),
+      example('Example', `${M.items([[3, 'circle', 'red'], [4, 'circle', 'blue']])}7 circles. 3 are red. Count the blue circles: 4. So 7 is 3 and <b>4</b>.`),
     make(rng) {
       const kind = rng.pick(['picture', 'missing', 'pair']);
       const n = rng.int(kind === 'pair' ? 3 : 2, 10), a = rng.int(kind === 'missing' ? 0 : 1, kind === 'missing' ? n : n - 1), b = n - a;
       if (kind === 'picture') {
-        return { prompt: `There are ${n} balls. ${a} ${a === 1 ? 'is' : 'are'} red. How many are blue?${pic(line('🔴', a) + ' &nbsp; ' + line('🔵', b))}`, type: 'number', answer: b, params: { kind, n, a },
-          hints: ['Count only the blue balls 🔵.', `Or start at ${a} and count up to ${n}: ${countUp(a + 1, n)}.`, `${n} is ${a} and <b>${b}</b>.`] };
+        return { prompt: `There are ${n} circles. ${a} ${a === 1 ? 'is' : 'are'} red. How many are blue?${M.items([[a, 'circle', 'red'], [b, 'circle', 'blue']])}`, type: 'number', answer: b, params: { kind, n, a },
+          hints: ['Count only the blue circles.', `Or start at ${a} and count up to ${n}: ${countUp(a + 1, n)}.`, `${n} is ${a} and <b>${b}</b>.`] };
       }
       if (kind === 'missing') {
         return { prompt: `Find the missing part.${big(`${n} = ${a} + __`)}`, type: 'number', answer: b, params: { kind, n, a },
@@ -289,32 +289,34 @@
     verify(q) {
       const pr = q.params;
       if (pr.kind === 'pair') { const [x, y] = q.answer.split(' and ').map(Number); return x + y === pr.n; }
-      if (pr.kind === 'picture') return countIn(picOf(q.prompt), '🔵') === q.answer && countIn(picOf(q.prompt), '🔴') === pr.a;
+      if (pr.kind === 'picture') return M.countItems(q.prompt, 'blue circle') === q.answer && M.countItems(q.prompt, 'red circle') === pr.a;
       return pr.a + q.answer === pr.n;
     },
   });
 
   /* ---------- Unit 3: Measurement and data ---------- */
-  const TALL = [['🐜', 'ant', 0], ['🐭', 'mouse', 1], ['🐱', 'cat', 2], ['🧒', 'child', 4], ['🐴', 'horse', 6], ['🦒', 'giraffe', 8]];
-  const LONG = [['🐜', 'ant', 0], ['🥄', 'spoon', 2], ['🥖', 'loaf of bread', 3], ['🐊', 'crocodile', 5], ['🚌', 'bus', 7], ['🚂', 'train', 9]];
-  const HEAVY = [['🍃', 'leaf', 0], ['🍓', 'berry', 1], ['🍎', 'apple', 2], ['🍉', 'watermelon', 4], ['🐶', 'dog', 5], ['🐄', 'cow', 7], ['🐘', 'elephant', 9]];
+  // [name, size]: the sizes only keep the three choices clearly apart
+  const TALL = [['ant', 0], ['mouse', 1], ['cat', 2], ['child', 4], ['horse', 6], ['giraffe', 8]];
+  const LONG = [['ant', 0], ['spoon', 2], ['loaf of bread', 3], ['crocodile', 5], ['bus', 7], ['train', 9]];
+  const HEAVY = [['leaf', 0], ['berry', 1], ['apple', 2], ['watermelon', 4], ['dog', 5], ['cow', 7], ['elephant', 9]];
   /** three things with clear gaps between their sizes, and the one that is biggest or smallest */
   function pickThree(rng, list, most) {
     let three;
-    do { three = rng.sample(list, 3); } while (three.some((t, i) => three.some((u, j) => i !== j && Math.abs(t[2] - u[2]) < 2)));
-    const best = three.reduce((m, t) => (most ? t[2] > m[2] : t[2] < m[2]) ? t : m);
+    do { three = rng.sample(list, 3); } while (three.some((t, i) => three.some((u, j) => i !== j && Math.abs(t[1] - u[1]) < 2)));
+    const best = three.reduce((m, t) => (most ? t[1] > m[1] : t[1] < m[1]) ? t : m);
     return { three, best };
   }
-  const label = t => `${t[0]} ${t[1]}`;
+  const label = t => t[0];
   const an = w => (/^[aeiou]/.test(w) ? 'an ' : 'a ') + w;
 
-  const TRAINS = [['🟩', 'Green'], ['🟦', 'Blue'], ['🟥', 'Red'], ['🟨', 'Yellow']];
+  const TRAINS = [['green', 'Green'], ['blue', 'Blue'], ['red', 'Red'], ['purple', 'Purple']];
+  const trains = (c1, a, c2, b) => M.items([[a, 'square', c1], [b, 'square', c2]], { rows: true, per: 0 });
   A.skill({
     id: 'k.compare-length', title: 'Compare length and height',
     learn: p('<b>Longer</b> means it goes farther from end to end. <b>Shorter</b> means it does not go as far.') +
       p('<b>Taller</b> means it goes up higher. To compare, line up the ends. Then look at the other end.') +
       p('A bus is longer than a spoon. A giraffe is taller than a cat.') +
-      example('Example', `${pic('🟩 🟩 🟩 🟩 🟩<br>🟦 🟦 🟦', true)}The trains start at the same place. The green train goes farther. The <b>green train is longer</b>.`),
+      example('Example', `${trains('green', 5, 'blue', 3)}The trains start at the same place. The green train goes farther. The <b>green train is longer</b>.`),
     make(rng) {
       const kind = rng.pick(['trains', 'trains', 'tall', 'long']);
       if (kind === 'trains') {
@@ -323,24 +325,24 @@
         const ask = rng.pick(['longer', 'shorter']);
         const o1 = `${c1} train`, o2 = `${c2} train`, same = 'Same length';
         const answer = a === b ? same : (ask === 'longer') === (a > b) ? o1 : o2;
-        return { prompt: `Which train is ${ask}?${pic(line(e1, a) + '<br>' + line(e2, b), true)}`, type: 'choice', choices: [o1, o2, same], answer, keepOrder: true, params: { kind, e1, e2, ask, o1, o2 },
+        return { prompt: `Which train is ${ask}?${trains(e1, a, e2, b)}`, type: 'choice', choices: [o1, o2, same], answer, keepOrder: true, params: { kind, e1, e2, ask, o1, o2 },
           hints: ['Both trains start at the same place. Look at where they end.', `The ${c1.toLowerCase()} train has ${a} cars. The ${c2.toLowerCase()} train has ${b} cars.`, a === b ? `They end at the same place. They are the <b>same length</b>.` : `So the answer is the <b>${answer.toLowerCase()}</b>.`] };
       }
       const most = rng.bool();
       const list = kind === 'tall' ? TALL : LONG;
       const { three, best } = pickThree(rng, list, most);
       const word = kind === 'tall' ? (most ? 'tallest' : 'shortest') : (most ? 'longest' : 'shortest');
-      return { prompt: `Which one is the ${word}?${big(three.map(t => t[0]).join(' &nbsp; '))}`, type: 'choice', choices: three.map(label), answer: label(best), params: { kind, most, names: three.map(t => t[1]) },
-        hints: [`Think about each one: ${M.list(three.map(t => an(t[1])))}.`, kind === 'tall' ? `Picture them standing side by side. Which goes ${most ? 'up the highest' : 'up the least'}?` : `Picture them lying side by side. Which goes ${most ? 'the farthest' : 'the least far'}?`, `The <b>${label(best)}</b> is the ${word}.`] };
+      return { prompt: `Which one is the ${word}?`, type: 'choice', choices: three.map(label), answer: label(best), params: { kind, most, names: three.map(t => t[0]) },
+        hints: [`Think about each one: ${M.list(three.map(t => an(t[0])))}.`, kind === 'tall' ? `Picture them standing side by side. Which goes ${most ? 'up the highest' : 'up the least'}?` : `Picture them lying side by side. Which goes ${most ? 'the farthest' : 'the least far'}?`, `The <b>${label(best)}</b> is the ${word}.`] };
     },
     verify(q) {
       const pr = q.params;
       if (pr.kind === 'trains') {
-        const [l1, l2] = picOf(q.prompt).split('<br>'); const a = countIn(l1, pr.e1), b = countIn(l2, pr.e2);
+        const a = M.countItems(q.prompt, `${pr.e1} square`), b = M.countItems(q.prompt, `${pr.e2} square`);
         return q.answer === (a === b ? 'Same length' : (pr.ask === 'longer' ? a > b : a < b) ? pr.o1 : pr.o2);
       }
       const order = (pr.kind === 'tall' ? ['ant', 'mouse', 'cat', 'child', 'horse', 'giraffe'] : ['ant', 'spoon', 'loaf of bread', 'crocodile', 'bus', 'train']).filter(x => pr.names.includes(x));
-      return q.answer.endsWith(' ' + (pr.most ? order[order.length - 1] : order[0]));
+      return q.answer === (pr.most ? order[order.length - 1] : order[0]);
     },
   });
 
@@ -349,7 +351,7 @@
     learn: p('<b>Heavier</b> means it weighs more. It is hard to lift. <b>Lighter</b> means it weighs less. It is easy to lift.') +
       p('On a seesaw, <b>the heavier side goes down</b>. The lighter side goes up. If they weigh the same, it stays level.') +
       p('A cow is heavier than an apple. A leaf is lighter than a dog.') +
-      example('Example', `${big('🐘 &nbsp; 🍎')}Which is heavier? An elephant is very hard to lift. The <b>elephant</b> is heavier.`),
+      example('Example', `${big('an elephant or an apple')}Which is heavier? An elephant is very hard to lift. The <b>elephant</b> is heavier.`),
     make(rng) {
       const kind = rng.pick(['things', 'things', 'seesaw']);
       if (kind === 'seesaw') {
@@ -365,8 +367,8 @@
       const most = rng.bool();
       const { three, best } = pickThree(rng, HEAVY, most);
       const word = most ? 'heaviest' : 'lightest';
-      return { prompt: `Which one is the ${word}?${big(three.map(t => t[0]).join(' &nbsp; '))}`, type: 'choice', choices: three.map(label), answer: label(best), params: { kind, most, names: three.map(t => t[1]) },
-        hints: [`Think about lifting each one: ${M.list(three.map(t => an(t[1])))}.`, most ? 'Which one is the hardest to lift?' : 'Which one is the easiest to lift?', `The <b>${label(best)}</b> is the ${word}.`] };
+      return { prompt: `Which one is the ${word}?`, type: 'choice', choices: three.map(label), answer: label(best), params: { kind, most, names: three.map(t => t[0]) },
+        hints: [`Think about lifting each one: ${M.list(three.map(t => an(t[0])))}.`, most ? 'Which one is the hardest to lift?' : 'Which one is the easiest to lift?', `The <b>${label(best)}</b> is the ${word}.`] };
     },
     verify(q) {
       const pr = q.params;
@@ -376,7 +378,7 @@
         return q.answer === (pr.ask === 'heavier' ? heavy : light);
       }
       const order = ['leaf', 'berry', 'apple', 'watermelon', 'dog', 'cow', 'elephant'].filter(x => pr.names.includes(x));
-      return q.answer.endsWith(' ' + (pr.most ? order[order.length - 1] : order[0]));
+      return q.answer === (pr.most ? order[order.length - 1] : order[0]);
     },
   });
 
@@ -485,16 +487,16 @@
     if (/<ellipse/.test(html)) return 'cylinder';
     return /L 80 /.test(html) ? 'cone' : '?';
   }
-  const OBJECTS = [['⚽', 'A ball', 'sphere'], ['🏀', 'A ball', 'sphere'], ['🌍', 'A globe', 'sphere'], ['🎲', 'A number cube', 'cube'], ['🧊', 'An ice cube', 'cube'], ['🥫', 'A can', 'cylinder'], ['🥁', 'A drum', 'cylinder'], ['🔋', 'A battery', 'cylinder'], ['🍦', 'An ice cream cone', 'cone']];
-  const SOLID_OF_EMOJI = { '⚽': 'sphere', '🏀': 'sphere', '🌍': 'sphere', '🎲': 'cube', '🧊': 'cube', '🥫': 'cylinder', '🥁': 'cylinder', '🔋': 'cylinder', '🍦': 'cone' };
+  const OBJECTS = [['A ball', 'sphere'], ['A marble', 'sphere'], ['A globe', 'sphere'], ['A number cube', 'cube'], ['An ice cube', 'cube'], ['A can', 'cylinder'], ['A drum', 'cylinder'], ['A battery', 'cylinder'], ['An ice cream cone', 'cone']];
+  const SOLID_OF_OBJECT = { 'A ball': 'sphere', 'A marble': 'sphere', 'A globe': 'sphere', 'A number cube': 'cube', 'An ice cube': 'cube', 'A can': 'cylinder', 'A drum': 'cylinder', 'A battery': 'cylinder', 'An ice cream cone': 'cone' };
   const TWIN = { circle: 'sphere', square: 'cube', triangle: 'cone', rectangle: 'cylinder' };
 
   A.skill({
     id: 'k.solid-shapes', title: 'Name solid shapes',
     learn: p('Flat shapes lie flat on paper. <b>Solid shapes</b> are not flat. You can hold them in your hand.') +
-      p('A <b>sphere</b> is round like a ball. A <b>cube</b> is like a box with square sides, like a number cube 🎲. A <b>cylinder</b> is like a can. A <b>cone</b> is like an ice cream cone: round at the bottom, with a point on top.') +
+      p('A <b>sphere</b> is round like a ball. A <b>cube</b> is like a box with square sides, like a number cube. A <b>cylinder</b> is like a can. A <b>cone</b> is like an ice cream cone: round at the bottom, with a point on top.') +
       p('A circle is flat. A sphere is solid. A square is flat. A cube is solid.') +
-      example('Example', `${big('🥫')}A can is round on the top and bottom, with straight sides. It is a <b>cylinder</b>.`),
+      example('Example', `${drawSolid({ int: () => 100 }, 'cylinder')}A can has this shape. It is round on the top and bottom, with straight sides. It is a <b>cylinder</b>.`),
     make(rng) {
       const kind = rng.pick(['picture', 'picture', 'object', 'flat']);
       if (kind === 'flat') {
@@ -505,8 +507,8 @@
           hints: ['Flat shapes: circle, square, triangle, rectangle.', 'Solid shapes: sphere, cube, cone, cylinder.', `The <b>${answer}</b> is ${askFlat ? 'flat' : 'solid'}.`] };
       }
       if (kind === 'object') {
-        const [e, what, name] = rng.pick(OBJECTS);
-        return { prompt: `${what} is shaped like which solid?${big(e)}`, type: 'choice', choices: SOLIDS.slice(), answer: name, keepOrder: true, params: { kind, e },
+        const [what, name] = rng.pick(OBJECTS);
+        return { prompt: `${what} is shaped like which solid?`, type: 'choice', choices: SOLIDS.slice(), answer: name, keepOrder: true, params: { kind, what },
           hints: ['Is it round all over? Does it have a point? Flat square sides? Round ends?', { sphere: 'It is round all over, like a ball.', cube: 'It has flat square sides, like a box.', cylinder: 'It has round flat ends and goes straight up.', cone: 'It is round at one end and has a point at the other.' }[name], `It is a <b>${name}</b>.`] };
       }
       const name = rng.pick(SOLIDS);
@@ -516,39 +518,44 @@
     verify(q) {
       const pr = q.params;
       if (pr.kind === 'flat') return ['circle', 'square', 'triangle', 'rectangle'].includes(q.answer) === pr.askFlat;
-      if (pr.kind === 'object') return SOLID_OF_EMOJI[pr.e] === q.answer;
+      if (pr.kind === 'object') return SOLID_OF_OBJECT[pr.what] === q.answer;
       return solidOf(q.prompt) === q.answer;
     },
   });
 
-  const CRITTERS = [['🐦', 'bird'], ['🐱', 'cat'], ['🐶', 'dog'], ['🐞', 'ladybug'], ['🐝', 'bee'], ['🐸', 'frog'], ['🐢', 'turtle'], ['🦆', 'duck']];
-  const PLACES = [['🌳', 'tree'], ['📦', 'box'], ['🏠', 'house'], ['🚗', 'car'], ['🌻', 'flower'], ['🍄', 'mushroom']];
+  /** k different shapes, each with its own color: [shape, color, name] */
+  const things = (rng, k) => { const sh = rng.sample(SHAPES, k), col = rng.sample(COLORS, k); return sh.map((s, i) => [s, col[i], `${col[i]} ${s}`]); };
+  const one = t => [1, t[0], t[1]];
+  const SPOT = { size: 44 };
   A.skill({
     id: 'k.position-words', title: 'Position words',
     learn: p('Position words tell <b>where</b> something is.') +
       p('<b>Above</b> means higher up. <b>Below</b> means lower down. <b>Next to</b> means right beside it. <b>Between</b> means in the middle of two things.') +
       p('Look at the picture. Find the first thing. Then see where the other thing is.') +
-      example('Example', `${big('🐦<br>🌳')}The bird is higher up than the tree. The bird is <b>above</b> the tree.`),
+      example('Example', `${M.items([[1, 'circle', 'red'], [1, 'square', 'green']], { rows: true, size: 44, label: 'Top: red circle. Bottom: green square.' })}The red circle is higher up than the green square. The circle is <b>above</b> the square.`),
     make(rng) {
       const kind = rng.pick(['pair', 'pair', 'between', 'column']);
       if (kind === 'pair') {
-        const c = rng.pick(CRITTERS), pl = rng.pick(PLACES);
+        const [c, pl] = things(rng, 2);
         const where = rng.pick(['above', 'below', 'next to']);
         const grid = where === 'next to' ? [[c, 0, 0], [pl, 0, 1]] : where === 'above' ? [[c, 0, 0], [pl, 1, 0]] : [[pl, 0, 0], [c, 1, 0]];
         if (where === 'next to' && rng.bool()) { grid[0][2] = 1; grid[1][2] = 0; }
-        const picture = where === 'next to' ? grid.slice().sort((x, y) => x[2] - y[2]).map(g => g[0][0]).join(' ') : grid.map(g => g[0][0]).join('<br>');
-        return { prompt: `The ${c[1]} is ___ the ${pl[1]}.${big(picture)}`, type: 'choice', choices: ['above', 'below', 'next to'], answer: where, keepOrder: true, params: { kind, grid: grid.map(g => [g[0][1], g[1], g[2]]), who: c[1], ref: pl[1] },
-          hints: [`Find the ${pl[1]} ${pl[0]}.`, where === 'next to' ? `The ${c[1]} is on the same line, right beside it.` : `Is the ${c[1]} ${c[0]} higher up or lower down?`, `The ${c[1]} is <b>${where}</b> the ${pl[1]}.`] };
+        const order = where === 'next to' ? grid.slice().sort((x, y) => x[2] - y[2]).map(g => g[0]) : grid.map(g => g[0]);
+        const picture = M.items(order.map(one), Object.assign({ rows: where !== 'next to', label: where === 'next to' ? `Left: ${order[0][2]}. Right: ${order[1][2]}.` : `Top: ${order[0][2]}. Bottom: ${order[1][2]}.` }, SPOT));
+        return { prompt: `The ${c[2]} is ___ the ${pl[2]}.${picture}`, type: 'choice', choices: ['above', 'below', 'next to'], answer: where, keepOrder: true, params: { kind, grid: grid.map(g => [g[0][2], g[1], g[2]]), who: c[2], ref: pl[2] },
+          hints: [`Find the ${pl[2]}.`, where === 'next to' ? `The ${c[2]} is on the same line, right beside it.` : `Is the ${c[2]} higher up or lower down?`, `The ${c[2]} is <b>${where}</b> the ${pl[2]}.`] };
       }
-      const three = rng.sample(CRITTERS, 3);
+      const three = things(rng, 3), names = three.map(t => t[2]);
       if (kind === 'between') {
-        return { prompt: `Which one is between the ${three[0][1]} and the ${three[2][1]}?${big(three.map(t => t[0]).join(' &nbsp; '))}`, type: 'choice', choices: three.map(label), answer: label(three[1]), params: { kind, row: three.map(t => t[1]) },
-          hints: [`Find the ${three[0][1]} and the ${three[2][1]}.`, 'Between means in the middle.', `The <b>${label(three[1])}</b> is between them.`] };
+        const picture = M.items(three.map(one), Object.assign({ label: `From left to right: ${names.join(', ')}.` }, SPOT));
+        return { prompt: `Which one is between the ${names[0]} and the ${names[2]}?${picture}`, type: 'choice', choices: names.slice(), answer: names[1], params: { kind, row: names },
+          hints: [`Find the ${names[0]} and the ${names[2]}.`, 'Between means in the middle.', `The <b>${names[1]}</b> is between them.`] };
       }
       const up = rng.bool();               // ask what is above the middle one, or below it
-      const ans = up ? three[0] : three[2];
-      return { prompt: `What is ${up ? 'above' : 'below'} the ${three[1][1]}?${big(three.map(t => t[0]).join('<br>'))}`, type: 'choice', choices: three.map(label), answer: label(ans), params: { kind, col: three.map(t => t[1]), up },
-        hints: [`Find the ${three[1][1]} ${three[1][0]}. It is in the middle.`, up ? 'Above means higher up. Look up.' : 'Below means lower down. Look down.', `The <b>${label(ans)}</b> is ${up ? 'above' : 'below'} the ${three[1][1]}.`] };
+      const ans = up ? names[0] : names[2];
+      const picture = M.items(three.map(one), Object.assign({ rows: true, label: `From top to bottom: ${names.join(', ')}.` }, SPOT));
+      return { prompt: `What is ${up ? 'above' : 'below'} the ${names[1]}?${picture}`, type: 'choice', choices: names.slice(), answer: ans, params: { kind, col: names, up },
+        hints: [`Find the ${names[1]}. It is in the middle.`, up ? 'Above means higher up. Look up.' : 'Below means lower down. Look down.', `The <b>${ans}</b> is ${up ? 'above' : 'below'} the ${names[1]}.`] };
     },
     verify(q) {
       const pr = q.params;
@@ -557,9 +564,9 @@
         const want = a[1] === b[1] ? (Math.abs(a[2] - b[2]) === 1 ? 'next to' : '?') : a[1] < b[1] ? 'above' : 'below';
         return q.answer === want;
       }
-      if (pr.kind === 'between') return q.answer.endsWith(' ' + pr.row[1]) && pr.row.length === 3;
+      if (pr.kind === 'between') return q.answer === pr.row[1] && pr.row.length === 3;
       const mid = pr.col.indexOf(pr.col[1]);
-      return q.answer.endsWith(' ' + pr.col[pr.up ? mid - 1 : mid + 1]);
+      return q.answer === pr.col[pr.up ? mid - 1 : mid + 1];
     },
   });
 

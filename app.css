@@ -62,7 +62,7 @@ pre.code { font-family: var(--mono); font-size: .92em; background: var(--surface
 .top .bar { max-width: 1180px; margin: 0 auto; padding: 0 16px; min-height: 60px; display: flex; align-items: center; gap: 14px; }
 .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.15rem; color: var(--ink); letter-spacing: -.01em; white-space: nowrap; }
 .brand:hover { text-decoration: none; }
-.brand .logo { width: 30px; height: 30px; border-radius: 9px; background: linear-gradient(135deg, var(--lvl3), var(--primary)); display: grid; place-items: center; color: #fff; font-size: 17px; }
+.brand .logo { width: 30px; height: 30px; border-radius: 9px; background: linear-gradient(135deg, var(--lvl3), var(--primary)); display: grid; place-items: center; color: #fff; font-size: 17px; font-weight: 800; }
 .nav { display: flex; align-items: center; gap: 4px; }
 .nav a { padding: .45rem .7rem; border-radius: 8px; color: var(--ink); font-weight: 600; }
 .nav a:hover { background: var(--surface-2); text-decoration: none; }
@@ -186,7 +186,7 @@ footer { border-top: 1px solid var(--line); color: var(--muted); font-size: .9re
 .lvl-2 { --c: var(--lvl2); --p: 50%; border-color: var(--lvl2); }
 .lvl-3 { --c: var(--lvl3); --p: 80%; border-color: var(--lvl3); }
 .lvl-4 { --c: var(--lvl4); --p: 100%; border-color: var(--lvl4); }
-.lvl-4::after { content: "★"; position: absolute; inset: 0; display: grid; place-items: center; color: #fff; font-size: 12px; line-height: 1; }
+.lvl-4::after { content: "✓"; position: absolute; inset: 0; display: grid; place-items: center; color: #fff; font-size: 12px; line-height: 1; }
 .lvl.big { width: 26px; height: 32px; }
 .lvl.big.lvl-4::after { font-size: 17px; }
 .legend { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: .9rem; color: var(--muted); }
@@ -226,6 +226,12 @@ footer { border-top: 1px solid var(--line); color: var(--muted); font-size: .9re
 .course-card { display: flex; flex-direction: column; gap: 10px; padding: 18px 20px; border-top: 5px solid var(--course, var(--primary)); color: var(--ink); }
 .course-card:hover { text-decoration: none; border-color: var(--course, var(--primary)); box-shadow: 0 6px 20px rgba(20, 24, 40, .1); }
 .course-card .icon { font-size: 1.8rem; line-height: 1; }
+/* a course's or book's short label (K, 7, A1, CC2…) in a badge of its color */
+.icon.mono, .icon-big.mono, .mono-sm { display: inline-grid; place-items: center; min-width: 2.6rem; height: 2.6rem; padding: 0 .45rem; border-radius: 10px; background: var(--course, var(--primary)); filter: brightness(.82); color: #fff; font-size: 1rem; font-weight: 800; letter-spacing: .02em; line-height: 1; flex: none; }
+.icon-big.mono { min-width: 3.4rem; height: 3.4rem; font-size: 1.25rem; border-radius: 12px; }
+.mono-sm { min-width: 2rem; height: 1.6rem; font-size: .72rem; border-radius: 7px; padding: 0 .35rem; }
+.icon.mono:empty, .icon-big.mono:empty, .mono-sm:empty { display: none; }
+.test-mark { flex: none; width: 18px; height: 18px; border-radius: 4px; border: 2px solid var(--line-strong); }
 .course-card h3 { margin: 0; }
 .course-card p { color: var(--muted); font-size: .92rem; margin: 0; flex: 1; }
 .tiles { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
@@ -803,6 +809,8 @@ body.sorting-cards { user-select: none; -webkit-user-select: none; cursor: grabb
 .badges { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
 .badge { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 2px; padding: 12px 8px; border-radius: 12px; background: var(--surface-2); opacity: .55; filter: grayscale(1); }
 .badge.got { opacity: 1; filter: none; background: var(--primary-soft); }
+.badge-icon { color: var(--muted); }
+.badge.got .badge-icon { color: var(--primary-ink); }
 .badge-icon { font-size: 1.9rem; line-height: 1.2; }
 
 /* challenge a friend (lib/challenge.js) */
@@ -840,6 +848,7 @@ body.sorting-cards { user-select: none; -webkit-user-select: none; cursor: grabb
 /* profiles and accounts (lib/account.js) */
 .avatar { --av: 215; display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: hsl(var(--av) 85% 88%); color: hsl(var(--av) 70% 25%); font-size: 1.15rem; font-weight: 800; line-height: 1; flex: none; }
 .avatar.big { width: 84px; height: 84px; font-size: 2.6rem; }
+.avatar svg { display: block; }
 :root[data-theme="dark"] .avatar { background: hsl(var(--av) 45% 30%); color: hsl(var(--av) 90% 88%); }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .avatar { background: hsl(var(--av) 45% 30%); color: hsl(var(--av) 90% 88%); } }
 .avatar-btn { position: relative; display: inline-flex; border-radius: 50%; text-decoration: none; }
@@ -927,9 +936,9 @@ body.sorting-cards { user-select: none; -webkit-user-select: none; cursor: grabb
 .wn-list li { display: flex; gap: 12px; align-items: flex-start; }
 .wn-list a { font-weight: 600; }
 .wn-icon { flex: none; width: 2.1rem; height: 2.1rem; display: grid; place-items: center; border-radius: var(--radius-s); background: var(--surface-2); font-size: 1.15rem; }
-/* dark mode: some emoji icons (➗ ✖️) are drawn in black, so they sit on a light chip */
-:root[data-theme="dark"] .course-card .icon, :root[data-theme="dark"] .sprint-icon, :root[data-theme="dark"] .icon-big { background: rgba(255, 255, 255, .88); border-radius: 10px; padding: 3px 6px; align-self: flex-start; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .course-card .icon, :root:not([data-theme="light"]) .sprint-icon, :root:not([data-theme="light"]) .icon-big { background: rgba(255, 255, 255, .88); border-radius: 10px; padding: 3px 6px; align-self: flex-start; } }
+/* dark mode: some older icons are drawn in black, so they sit on a light chip */
+:root[data-theme="dark"] .course-card .icon:not(.mono), :root[data-theme="dark"] .sprint-icon, :root[data-theme="dark"] .icon-big:not(.mono) { background: rgba(255, 255, 255, .88); border-radius: 10px; padding: 3px 6px; align-self: flex-start; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .course-card .icon:not(.mono), :root:not([data-theme="light"]) .sprint-icon, :root:not([data-theme="light"]) .icon-big:not(.mono) { background: rgba(255, 255, 255, .88); border-radius: 10px; padding: 3px 6px; align-self: flex-start; } }
 .calc > .card { margin: 0; }
 
 /* math words (lib/words.js, lib/vocab.js) */

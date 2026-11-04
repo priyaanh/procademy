@@ -39,7 +39,7 @@
   }
 
   A.course({
-    id: 'int-1', title: 'Integrated Math 1', subject: 'High school', grade: 9, icon: '📈', hue: 190,
+    id: 'int-1', title: 'Integrated Math 1', subject: 'High school', grade: 9, icon: 'IM1', hue: 190,
     blurb: 'Functions, linear and exponential models, equations, inequalities and systems, one-variable statistics, and transformations and congruence.',
     units: [
       { id: 'functions', title: 'Functions', blurb: 'What a function is, evaluating one, and its domain and range.', skills: ['int1.evaluate-functions', 'int1.domain-range', 'int1.function-or-not'] },

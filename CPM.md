@@ -10,7 +10,7 @@ every lesson links to CPM's homework help for the real problems.
 ACADEMY.cpmBook({
   id: 'int2',                                   // cc1 | cc2 | cc3 | int1 | int2 | int3
   title: 'Core Connections Integrated II', short: 'Integrated II',
-  band: 'High school', grade: 10, icon: '🧩', hue: 330,
+  band: 'High school', grade: 10, icon: 'CCII', hue: 330,
   homework: 'https://homework.cpm.org/category/CCI_CT/textbook/int2',
   sources: ['https://…'],                       // where the chapter and lesson titles came from
   chapters: [

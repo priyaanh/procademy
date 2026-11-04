@@ -22,15 +22,17 @@
 
   /* ---------- pictures ---------- */
   const BOX = 'display:inline-block;border:2px solid var(--line-strong);border-radius:12px;padding:2px 8px;margin:4px;line-height:1.3';
-  const groupsPic = (g, k, e) => `<div class="big">${Array.from({ length: g }, () => `<span style="${BOX}">${e.repeat(k)}</span>`).join(' ')}</div>`;
-  const arrayPic = (r, c, e) => `<div class="big" style="line-height:1.25;letter-spacing:4px">${Array.from({ length: r }, () => `<div>${e.repeat(c)}</div>`).join('')}</div>`;
+  /** g boxes with k drawn shapes in each; verify() counts the shapes with M.countItems */
+  const groupsPic = (g, k, t) => `<div class="big">${Array.from({ length: g }, () => `<span style="${BOX}">${M.items(k, t.sh, t.col, { per: k <= 3 ? k : Math.ceil(k / 2), size: 26, inline: true })}</span>`).join(' ')}</div>`;
+  const arrayPic = (r, c, t) => M.items(r * c, t.sh, t.col, { per: c, label: `an array of ${t.item}: ${r} rows with ${c} in each row` });
+  const drawn = t => `${t.col} ${t.sh}`;
 
   A.course({
-    id: 'math-3', title: '3rd grade math', subject: 'Elementary', grade: 3, icon: '✖️', hue: 55,
+    id: 'math-3', title: '3rd grade math', subject: 'Elementary', grade: 3, icon: '3', hue: 55,
     blurb: 'Multiplication and division facts, adding and subtracting within 1,000, fractions, area and perimeter, time, measurement, and graphs.',
     units: [
       { id: 'intro-mult', title: 'Intro to multiplication', blurb: 'Equal groups and arrays.', skills: ['g3.equal-groups', 'g3.arrays'] },
-      { id: 'mult-1digit', title: '1-digit multiplication', blurb: 'The times tables, and tricks that make them easier.', skills: ['g3.mult-facts', 'g3.mult-properties'] },
+      { id: 'mult-1digit', title: '1-digit multiplication', blurb: 'The times tables, and strategies that make them easier.', skills: ['g3.mult-facts', 'g3.mult-properties'] },
       { id: 'add-sub', title: 'Addition, subtraction, and estimation', blurb: 'Rounding, and adding and subtracting 3-digit numbers.', skills: ['g3.rounding', 'g3.add-sub-1000'] },
       { id: 'intro-div', title: 'Intro to division', blurb: 'Sharing equally, division facts, and word problems.', skills: ['g3.div-facts', 'g3.mult-div-word-problems'] },
       { id: 'fractions', title: 'Understand fractions', blurb: 'Equal parts of a whole, and fractions on a number line.', skills: ['g3.unit-fractions', 'g3.fractions-number-line'] },
@@ -43,15 +45,15 @@
 
   /* ---------- Unit 1: Intro to multiplication ---------- */
   const THINGS = [
-    { e: '🍎', box: 'bag', boxes: 'bags', item: 'apples' }, { e: '🍪', box: 'plate', boxes: 'plates', item: 'cookies' },
-    { e: '🌸', box: 'vase', boxes: 'vases', item: 'flowers' }, { e: '🐟', box: 'tank', boxes: 'tanks', item: 'fish' },
-    { e: '⭐', box: 'card', boxes: 'cards', item: 'stars' }, { e: '⚽', box: 'net', boxes: 'nets', item: 'balls' },
+    { sh: 'circle', col: 'red', box: 'bag', boxes: 'bags', item: 'apples' }, { sh: 'square', col: 'orange', box: 'plate', boxes: 'plates', item: 'cookies' },
+    { sh: 'heart', col: 'purple', box: 'vase', boxes: 'vases', item: 'flowers' }, { sh: 'triangle', col: 'blue', box: 'tank', boxes: 'tanks', item: 'fish' },
+    { sh: 'star', col: 'green', box: 'card', boxes: 'cards', item: 'stars' }, { sh: 'circle', col: 'blue', box: 'net', boxes: 'nets', item: 'balls' },
   ];
   A.skill({
     id: 'g3.equal-groups', title: 'Equal groups',
     learn: p('When every group has the <b>same number</b> of things, we call them <b>equal groups</b>.') +
       p('You can find the total by adding the same number again and again. Multiplication is a fast way to do that. <b>3 × 4</b> means <b>3 groups of 4</b>. The first number tells how many groups. The second number tells how many are in each group.') +
-      example('Example', `${groupsPic(3, 4, '🍎')}There are 3 bags with 4 apples in each. 4 + 4 + 4 = 12, so <b>3 × 4 = 12</b>.`),
+      example('Example', `${groupsPic(3, 4, THINGS[0])}There are 3 groups with 4 circles in each. 4 + 4 + 4 = 12, so <b>3 × 4 = 12</b>.`),
     make(rng) {
       const kind = rng.pick(['count', 'expr', 'story']);
       const t = rng.pick(THINGS);
@@ -60,28 +62,28 @@
       const adds = Array(g).fill(k).join(' + ');
       if (kind === 'expr') {
         const answer = `${g} × ${k}`;
-        return { prompt: `Which multiplication matches the picture?${groupsPic(g, k, t.e)}`, type: 'choice', answer, choices: [answer, `${g} + ${k}`, `${g} × ${k + 1}`, `${g + 1} × ${k}`], params: { kind, g, k, e: t.e },
+        return { prompt: `Which multiplication matches the picture?${groupsPic(g, k, t)}`, type: 'choice', answer, choices: [answer, `${g} + ${k}`, `${g} × ${k + 1}`, `${g + 1} × ${k}`], params: { kind, g, k, e: drawn(t) },
           hints: [`Count the groups. There are ${g} groups.`, `Count how many are in one group. There are ${k}.`, `${g} groups of ${k} is <b>${answer}</b>.`] };
       }
       const hints = [`There are ${g} groups, and each group has ${k}.`, `Add ${k} again and again: ${adds}.`, `${g} × ${k} = <b>${g * k}</b>.`];
-      if (kind === 'count') return { prompt: `How many ${t.item} are there in all?${groupsPic(g, k, t.e)}`, type: 'number', answer: g * k, params: { kind, g, k, e: t.e }, hints };
+      if (kind === 'count') return { prompt: `How many ${t.sh}s are there in all?${groupsPic(g, k, t)}`, type: 'number', answer: g * k, params: { kind, g, k, e: drawn(t) }, hints };
       const name = rng.pick(NAMES);
       return { prompt: `${name} has ${g} ${t.boxes}. Each ${t.box} has ${k} ${t.item}. How many ${t.item} does ${name} have in all?`, type: 'number', answer: g * k, params: { kind, g, k }, hints };
     },
     verify(q) {
       const { kind, g, k, e } = q.params;
-      if (kind === 'count') return q.answer === countOf(q.prompt, e);
-      if (kind === 'expr') { const [a, b] = A.stripTags(q.answer).split('×').map(Number); return a === g && b === k && countOf(q.prompt, e) === a * b; }
+      if (kind === 'count') return q.answer === M.countItems(q.prompt, e);
+      if (kind === 'expr') { const [a, b] = A.stripTags(q.answer).split('×').map(Number); return a === g && b === k && M.countItems(q.prompt, e) === a * b; }
       let s = 0; for (let i = 0; i < g; i++) s += k; return q.answer === s;
     },
   });
 
-  const ROWS = [{ e: '🔵', item: 'dots' }, { e: '⭐', item: 'stars' }, { e: '🟩', item: 'squares' }, { e: '🌷', item: 'tulips' }];
+  const ROWS = [{ sh: 'circle', col: 'blue', item: 'dots' }, { sh: 'star', col: 'orange', item: 'stars' }, { sh: 'square', col: 'green', item: 'squares' }, { sh: 'heart', col: 'purple', item: 'hearts' }];
   A.skill({
     id: 'g3.arrays', title: 'Multiplication with arrays',
     learn: p('An <b>array</b> is things lined up in <b>rows</b> and <b>columns</b>. Rows go across. Columns go up and down.') +
       p('Every row has the same number of things, so an array is equal groups. <b>Number of rows × number in each row = total.</b> You can also count columns × number in each column. You get the same total.') +
-      example('Example', `${arrayPic(2, 5, '🔵')}There are 2 rows with 5 dots in each row. 5 + 5 = 10, so <b>2 × 5 = 10</b>.`),
+      example('Example', `${arrayPic(2, 5, ROWS[0])}There are 2 rows with 5 dots in each row. 5 + 5 = 10, so <b>2 × 5 = 10</b>.`),
     make(rng) {
       const kind = rng.pick(['count', 'count', 'expr', 'story']);
       const t = rng.pick(ROWS);
@@ -89,18 +91,18 @@
       if (r === 2 && c === 2) c = 4;
       if (kind === 'expr') {
         const answer = `${r} × ${c}`;
-        return { prompt: `Which multiplication matches this array? (rows × number in each row)${arrayPic(r, c, t.e)}`, type: 'choice', answer, choices: [answer, `${r} + ${c}`, `${r} × ${c + 1}`, `${r - 1} × ${c}`], params: { kind, r, c, e: t.e },
+        return { prompt: `Which multiplication matches this array? (rows × number in each row)${arrayPic(r, c, t)}`, type: 'choice', answer, choices: [answer, `${r} + ${c}`, `${r} × ${c + 1}`, `${r - 1} × ${c}`], params: { kind, r, c, e: drawn(t) },
           hints: [`Count the rows going across. There are ${r} rows.`, `Count how many are in one row. There are ${c}.`, `${r} rows of ${c} is <b>${answer}</b>.`] };
       }
       const hints = [`There are ${r} rows, and each row has ${c}.`, `Skip-count by ${c}s, once for each row: ${Array.from({ length: r }, (_, i) => c * (i + 1)).join(', ')}.`, `${r} × ${c} = <b>${r * c}</b>.`];
-      if (kind === 'count') return { prompt: `How many ${t.item} are in this array?${arrayPic(r, c, t.e)}`, type: 'number', answer: r * c, params: { kind, r, c, e: t.e }, hints };
+      if (kind === 'count') return { prompt: `How many ${t.item} are in this array?${arrayPic(r, c, t)}`, type: 'number', answer: r * c, params: { kind, r, c, e: drawn(t) }, hints };
       const name = rng.pick(NAMES), what = rng.pick([['chairs', 'set out chairs'], ['cupcakes', 'lined up cupcakes'], ['carrots', 'planted carrots'], ['stickers', 'put stickers']]);
       return { prompt: `${name} ${what[1]} in ${r} rows. There are ${c} ${what[0]} in each row. How many ${what[0]} are there in all?`, type: 'number', answer: r * c, params: { kind, r, c }, hints };
     },
     verify(q) {
       const { kind, r, c, e } = q.params;
-      if (kind === 'count') return q.answer === countOf(q.prompt, e);
-      if (kind === 'expr') { const [a, b] = A.stripTags(q.answer).split('×').map(Number); return a === r && b === c && countOf(q.prompt, e) === a * b; }
+      if (kind === 'count') return q.answer === M.countItems(q.prompt, e);
+      if (kind === 'expr') { const [a, b] = A.stripTags(q.answer).split('×').map(Number); return a === r && b === c && M.countItems(q.prompt, e) === a * b; }
       let s = 0; for (let i = 0; i < c; i++) s += r; return q.answer === s;
     },
   });
@@ -240,7 +242,8 @@
       if (kind === 'related') return { prompt: `${b} × ${qt} = ${a}. Use this to divide.${big(`${a} ÷ ${b} = ?`)}`, type: 'number', answer: qt, params: { a, b },
         hints: [`${a} ÷ ${b} asks: ${b} times what is ${a}?`, `You already know ${b} × ${qt} = ${a}.`, `So ${a} ÷ ${b} = <b>${qt}</b>.`] };
       const t = rng.pick(THINGS.slice(0, 2));
-      return { prompt: `There are ${a} ${t.item}. Put them in ${b} ${t.boxes} with the same number on each. How many ${t.item} go on each ${t.box}?${qt <= 6 && b <= 6 ? `<div class="big">${t.e.repeat(a)}</div>` : ''}`, type: 'number', answer: qt, params: { a, b }, hints };
+      const on = t.box === 'plate' ? 'on' : 'in';
+      return { prompt: `There are ${a} ${t.item}. Put them in ${b} ${t.boxes} with the same number ${on} each. How many ${t.item} go ${on} each ${t.box}?${qt <= 6 && b <= 6 ? M.items(a, t.sh, t.col, { per: 10, size: 26 }) : ''}`, type: 'number', answer: qt, params: { a, b }, hints };
     },
     verify(q) { let { a, b } = q.params, k = 0; while (a > 0) { a -= b; k++; } return a === 0 && q.answer === k; },
   });
@@ -718,15 +721,15 @@
     counts.forEach((c, i) => {
       const x = r2(20 + i * gap);
       s += `<line x1="${x}" y1="154" x2="${x}" y2="166" class="stroke"/><text x="${x}" y="184" text-anchor="middle" font-size="14">${lo + i}</text>`;
-      for (let j = 0; j < c; j++) s += `<text x="${x}" y="${145 - j * 22}" text-anchor="middle" font-size="20" font-weight="700" data-x="${lo + i}">✕</text>`;
+      for (let j = 0; j < c; j++) { const y = 138 - j * 22; s += `<path d="M ${x - 6} ${y - 6} L ${x + 6} ${y + 6} M ${x + 6} ${y - 6} L ${x - 6} ${y + 6}" class="stroke" style="stroke-width:2.5;stroke-linecap:round" data-x="${lo + i}"/>`; }
     });
     return `<svg class="figure" viewBox="0 0 320 192" width="320" height="192" role="img" aria-label="a line plot">${s}</svg>`;
   }
   A.skill({
     id: 'g3.graphs', title: 'Bar graphs and line plots',
     learn: p('A <b>bar graph</b> uses bars to show how many are in each group. <b>Read the number at the top of the bar by looking across to the scale.</b> The scale may count by 2s or 5s, so check it first.') +
-      p('A <b>line plot</b> puts an ✕ above a number line for every piece of data. <b>Count the ✕s above a number</b> to see how many times it happened. To compare, find each amount and subtract. To find a total, add.') +
-      example('Example', `${plotPic(0, [1, 3, 2, 1])}Three ✕s are above 1, so 3 students have 1 pet. Altogether 1 + 3 + 2 + 1 = <b>7 students</b> answered.`),
+      p('A <b>line plot</b> puts an X above a number line for every piece of data. <b>Count the X marks above a number</b> to see how many times it happened. To compare, find each amount and subtract. To find a total, add.') +
+      example('Example', `${plotPic(0, [1, 3, 2, 1])}Three X marks are above 1, so 3 students have 1 pet. Altogether 1 + 3 + 2 + 1 = <b>7 students</b> answered.`),
     make(rng) {
       const kind = rng.pick(['bar-read', 'bar-more', 'bar-total', 'plot-at', 'plot-total', 'plot-more']);
       if (kind.startsWith('bar')) {
@@ -752,12 +755,12 @@
       const what = v => t.lo === 3 ? `pencils are ${v} inches long` : t.unit === 'books' ? `students read ${v} ${v === 1 ? 'book' : 'books'}` : `students have ${v} ${v === 1 ? 'pet' : 'pets'}`;
       const each = t.lo === 3 ? 'pencil' : 'student';
       if (kind === 'plot-at') return { prompt: `How many ${what(vi)}?${pic}`, type: 'number', answer: counts[i], params: { kind, v: vi },
-        hints: [`Find ${vi} on the number line.`, `Count the ✕s above ${vi}.`, `There ${counts[i] === 1 ? 'is' : 'are'} <b>${counts[i]}</b>.`] };
-      if (kind === 'plot-total') return { prompt: `Each ✕ is one ${each}. How many ${each}s are shown in all?${pic}`, type: 'number', answer: total, params: { kind },
-        hints: [`Count the ✕s above each number: ${counts.join(', ')}.`, `Add them: ${counts.join(' + ')}.`, `There are <b>${total}</b> in all.`] };
+        hints: [`Find ${vi} on the number line.`, `Count the X marks above ${vi}.`, `There ${counts[i] === 1 ? 'is' : 'are'} <b>${counts[i]}</b>.`] };
+      if (kind === 'plot-total') return { prompt: `Each X is one ${each}. How many ${each}s are shown in all?${pic}`, type: 'number', answer: total, params: { kind },
+        hints: [`Count the X marks above each number: ${counts.join(', ')}.`, `Add them: ${counts.join(' + ')}.`, `There are <b>${total}</b> in all.`] };
       const hi = counts[i] >= counts[j] ? i : j, lo2 = hi === i ? j : i;
       return { prompt: `How many more ${what(t.lo + hi)} than ${t.lo === 3 ? `are ${t.lo + lo2} inches long` : `${t.unit === 'books' ? 'read' : 'have'} ${t.lo + lo2}`}?${pic}`, type: 'number', answer: counts[hi] - counts[lo2], params: { kind, a: t.lo + hi, b: t.lo + lo2 },
-        hints: [`Count the ✕s above ${t.lo + hi}: ${counts[hi]}. Count the ✕s above ${t.lo + lo2}: ${counts[lo2]}.`, `Subtract: ${counts[hi]} − ${counts[lo2]}.`, `The answer is <b>${counts[hi] - counts[lo2]}</b>.`] };
+        hints: [`Count the X marks above ${t.lo + hi}: ${counts[hi]}. Count the X marks above ${t.lo + lo2}: ${counts[lo2]}.`, `Subtract: ${counts[hi]} − ${counts[lo2]}.`, `The answer is <b>${counts[hi] - counts[lo2]}</b>.`] };
     },
     verify(q) {
       const pr = q.params;

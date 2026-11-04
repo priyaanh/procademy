@@ -9,8 +9,9 @@
   const p = (s) => `<p>${s}</p>`;
   const example = (title, body) => `<div class="example"><div class="ex-title">${title}</div>${body}</div>`;
   const big = s => `<div class="big">${s}</div>`;
-  /** k copies of an emoji, in groups of five so they are easy to count */
-  const pics = (e, k) => { const out = []; for (let i = 0; i < k; i += 5) out.push(e.repeat(Math.min(5, k - i))); return out.join(' '); };
+  /** a row of k drawn shapes (in groups of five, so they are easy to count) for a picture graph */
+  const pics = (k, sh, col) => M.items(k, sh, col, { per: 0, size: 24, inline: true });
+  const LOOKS = [['circle', 'red'], ['square', 'blue'], ['triangle', 'green'], ['star', 'orange'], ['heart', 'purple']];
   const svg = (w, h, body, label) => `<svg class="figure" viewBox="0 0 ${w} ${h}" width="${w}" role="img" aria-label="${label}">${body}</svg>`;
 
   /** base-ten blocks: t rods of ten and o single cubes */
@@ -30,7 +31,7 @@
   }
 
   A.course({
-    id: 'math-1', title: '1st grade math', subject: 'Elementary', grade: 1, icon: '🍎', hue: 0,
+    id: 'math-1', title: '1st grade math', subject: 'Elementary', grade: 1, icon: '1', hue: 0,
     blurb: 'Tens and ones, adding and taking away within 20, adding tens, measuring, telling time, picture graphs, and shapes.',
     units: [
       { id: 'place-value', title: 'Place value', blurb: 'Counting to 120, tens and ones, and comparing numbers.', skills: ['g1.count-120', 'g1.tens-ones', 'g1.compare-two-digit'] },
@@ -128,7 +129,7 @@
   A.skill({
     id: 'g1.add-within-20', title: 'Add within 20',
     learn: p('To add, we put two groups together and find how many in all. You can count on from the bigger number: for 9 + 3, say "9 … 10, 11, 12".') +
-      p('A good trick is to <b>make a ten</b>. For 8 + 5, take 2 from the 5 to make 8 into 10. Then 10 + 3 = 13. Adding to 10 is easy!') +
+      p('A useful strategy is to <b>make a ten</b>. For 8 + 5, take 2 from the 5 to make 8 into 10. Then 10 + 3 = 13. Adding to 10 is simple.') +
       example('Example', `${big('7 + 6 = ?')}7 needs 3 more to make 10. 6 is 3 and 3. So 7 + 3 = 10, and 10 + 3 = <b>13</b>.`),
     make(rng) {
       const kind = rng.pick(['make-ten', 'make-ten', 'pictures', 'doubles']);
@@ -137,14 +138,14 @@
       else if (kind === 'doubles') { a = rng.int(2, 10); b = a + rng.pick([0, 0, 1]); }
       else { a = rng.int(5, 9); b = rng.int(11 - a, 9); if (rng.bool()) [a, b] = [b, a]; }
       const ans = a + b, hi = Math.max(a, b), lo = Math.min(a, b);
-      const fruit = rng.pick(['🍎', '🍓', '🍊', '⭐']);
+      const [sh, col] = rng.pick([['circle', 'red'], ['heart', 'purple'], ['circle', 'orange'], ['star', 'orange']]);
       const hints = [];
-      if (kind === 'pictures') hints.push(`Count all the pictures. Start at ${hi} and count on ${lo} more.`);
+      if (kind === 'pictures') hints.push(`Count all the ${sh}s. Start at ${hi} and count on ${lo} more.`);
       else if (kind === 'doubles') hints.push(a === b ? `This is a double: ${a} and ${a}.` : `This is a double plus 1: ${lo} + ${lo} = ${N(2 * lo)}, then 1 more.`);
       else if (hi + lo > 10) hints.push(`Make a ten. ${hi} needs ${10 - hi} more to make 10. Break ${lo} into ${10 - hi} and ${lo - (10 - hi)}.`, `${hi} + ${10 - hi} = 10. Then 10 + ${lo - (10 - hi)} = ${N(ans)}.`);
       else hints.push(`${hi} and ${lo} make 10.`);
       hints.push(`${a} + ${b} = <b>${N(ans)}</b>.`);
-      const pic = kind === 'pictures' ? `<div class="big">${pics(fruit, a)} &nbsp;+&nbsp; ${pics(fruit, b)}</div>` : '';
+      const pic = kind === 'pictures' ? M.items([[a, sh, col], [b, sh, col]], { sep: '+', per: 0 }) : '';
       return { prompt: `Add.${pic}${big(`${a} + ${b} = ?`)}`, type: 'number', answer: ans, hints, params: { a, b } };
     },
     verify(q) { let n = q.params.a; for (let i = 0; i < q.params.b; i++) n++; return q.answer === n; },
@@ -153,7 +154,7 @@
   A.skill({
     id: 'g1.sub-within-20', title: 'Subtract within 20',
     learn: p('To subtract, we take some away and find how many are left. You can count back: for 12 − 3, say "12 … 11, 10, 9".') +
-      p('Another trick is to <b>go back to ten</b>. For 15 − 7, take 5 away to get to 10, then take 2 more: 10 − 2 = 8. You can also <b>think of adding</b>: 7 + 8 = 15, so 15 − 7 = 8.') +
+      p('Another strategy is to <b>go back to ten</b>. For 15 − 7, take 5 away to get to 10, then take 2 more: 10 − 2 = 8. You can also <b>think of adding</b>: 7 + 8 = 15, so 15 − 7 = 8.') +
       example('Example', `${big('13 − 5 = ?')}Take 3 to get to 10. Then take 2 more. 10 − 2 = <b>8</b>.`),
     make(rng) {
       const kind = rng.pick(['through-ten', 'through-ten', 'pictures', 'small']);
@@ -167,7 +168,7 @@
       else if (kind === 'pictures') hints.push(`There are ${a} in all. Cross out ${b} of them and count the rest.`);
       else hints.push(`Only the ones change. ${O(a % 10)} take away ${O(b)} is ${O(a % 10 - b)}, and the ten stays.`);
       hints.push(`Check by adding: ${b} + ${ans} = ${a}.`, `${a} − ${b} = <b>${N(ans)}</b>.`);
-      const pic = kind === 'pictures' ? big('🐟'.repeat(ans) + '<s>' + '🐟'.repeat(b) + '</s>') : '';
+      const pic = kind === 'pictures' ? M.items(a, 'circle', 'blue', { out: b, per: 0 }) : '';
       return { prompt: `Subtract.${pic}${big(`${a} − ${b} = ?`)}`, type: 'number', answer: ans, hints, params: { a, b } };
     },
     verify(q) { return q.answer + q.params.b === q.params.a && q.answer >= 0; },
@@ -345,7 +346,7 @@
     },
   });
 
-  const OBJECTS = [['pencil', '✏️'], ['crayon', '🖍️'], ['paintbrush', '🖌️'], ['caterpillar', '🐛'], ['spoon', '🥄']];
+  const OBJECTS = ['pencil', 'crayon', 'paintbrush', 'caterpillar', 'spoon'];
   function measured(rows) {     // rows of [label, length]; each drawn as a bar with cubes underneath
     let body = '';
     rows.forEach(([label, len], i) => {
@@ -364,11 +365,11 @@
     make(rng) {
       const kind = rng.pick(['count', 'count', 'longer']);
       if (kind === 'count') {
-        const [name] = rng.pick(OBJECTS), len = rng.int(2, 10);
+        const name = rng.pick(OBJECTS), len = rng.int(2, 10);
         return { prompt: `How many cubes long is the ${name}?${measured([[name, len]])}`, type: 'number', answer: len, unit: 'cubes', params: { kind },
           hints: ['Count the cubes under it, one at a time, from left to right.', `There are ${len} cubes.`, `The ${name} is <b>${len}</b> cubes long.`] };
       }
-      const [o1, o2] = rng.sample(OBJECTS, 2).map(o => o[0]);
+      const [o1, o2] = rng.sample(OBJECTS, 2);
       const a = rng.int(5, 10), b = rng.int(2, a - 1);
       return { prompt: `How many cubes <b>longer</b> is the ${o1} than the ${o2}?${measured([[o1, a], [o2, b]])}`, type: 'number', answer: a - b, unit: 'cubes', params: { kind, a, b },
         hints: [`Count the cubes under each one. The ${o1} is ${a} cubes long. The ${o2} is ${b} cubes long.`, `Find the difference: ${a} − ${b}.`, `The ${o1} is <b>${a - b}</b> cubes longer.`] };
@@ -428,11 +429,11 @@
 
   const b_ = x => `<b>${x}</b>`;
   const GRAPHS = [
-    { title: 'Favorite fruit', head: 'Fruit', items: [['apple', '🍎'], ['banana', '🍌'], ['grapes', '🍇'], ['orange', '🍊'], ['strawberry', '🍓']],
+    { title: 'Favorite fruit', head: 'Fruit', items: [['apple'], ['banana'], ['grapes'], ['orange'], ['strawberry']],
       count: a => `How many children picked ${b_(a)}?`, more: (a, c) => `How many more children picked ${b_(a)} than ${b_(c)}?`, all: (a, c) => `How many children picked ${b_(a)} or ${b_(c)}?` },
-    { title: 'Pets in our class', head: 'Pet', items: [['dogs', '🐶'], ['cats', '🐱'], ['fish', '🐟'], ['birds', '🐦'], ['bunnies', '🐰']],
+    { title: 'Pets in our class', head: 'Pet', items: [['dogs'], ['cats'], ['fish'], ['birds'], ['bunnies']],
       count: a => `How many ${b_(a)} are there?`, more: (a, c) => `How many more ${b_(a)} are there than ${b_(c)}?`, all: (a, c) => `How many ${b_(a)} and ${b_(c)} are there in all?` },
-    { title: 'Weather this month', head: 'Weather', items: [['sunny', '☀️'], ['rainy', '🌧️'], ['cloudy', '☁️'], ['snowy', '❄️']],
+    { title: 'Weather this month', head: 'Weather', items: [['sunny'], ['rainy'], ['cloudy'], ['snowy']],
       count: a => `How many days were ${b_(a)}?`, more: (a, c) => `How many more days were ${b_(a)} than ${b_(c)}?`, all: (a, c) => `How many days were ${b_(a)} or ${b_(c)}?` },
   ];
   function tally(n) {
@@ -448,11 +449,11 @@
     id: 'g1.read-graphs', title: 'Picture graphs and tally charts',
     learn: p('A <b>picture graph</b> uses one picture for each thing. Count the pictures in a row to see how many. A <b>tally chart</b> uses one line for each thing. Four lines with one line across them make a group of <b>5</b>.') +
       p('We can use a graph to answer questions. Which has the most? Count each row. How many more? Subtract the smaller row from the bigger one. How many in all? Add the rows.') +
-      example('Example', `${M.table(['Pet', 'Number'], [['🐶 dog', '🐶🐶🐶🐶🐶 🐶'], ['🐱 cat', '🐱🐱🐱🐱']])}There are 6 dogs and 4 cats. How many more dogs than cats? 6 − 4 = <b>2</b>.`),
+      example('Example', `${M.table(['Pet', 'Number'], [['dog', pics(6, 'circle', 'red')], ['cat', pics(4, 'square', 'blue')]])}There are 6 dogs and 4 cats. How many more dogs than cats? 6 − 4 = <b>2</b>.`),
     make(rng) {
       const g = rng.pick(GRAPHS), style = rng.pick(['picture', 'tally']);
       const items = rng.sample(g.items, 3), counts = rng.sample([1, 2, 3, 4, 5, 6, 7, 8], 3);
-      const rows = items.map(([name, e], i) => [`${e} ${name}`, style === 'picture' ? pics(e, counts[i]) : tally(counts[i])]);
+      const rows = items.map(([name], i) => [name, style === 'picture' ? pics(counts[i], ...LOOKS[i]) : tally(counts[i])]);
       const graph = `<div><b>${g.title}</b></div>${M.table([g.head, style === 'picture' ? 'Number' : 'Tally'], rows)}`;
       const kind = rng.pick(['count', 'more', 'all', 'most']);
       let [i, j] = rng.sample([0, 1, 2], 2);

@@ -57,7 +57,7 @@
   const popcount = m => { let c = 0; while (m) { c += m & 1; m >>= 1; } return c; };
 
   A.course({
-    id: 'precalculus', title: 'Precalculus', subject: 'High school', grade: 12, icon: '∫', hue: 345,
+    id: 'precalculus', title: 'Precalculus', subject: 'High school', grade: 12, icon: 'PC', hue: 345,
     blurb: 'Composite and inverse functions, trigonometry, complex numbers, rational functions, conic sections, vectors, matrices, probability and combinatorics, and series.',
     units: [
       { id: 'composite-inverse', title: 'Composite and inverse functions', blurb: 'Feeding one function into another, and running a function backwards.', skills: ['pre.composite-functions', 'pre.inverse-functions'] },

@@ -9,7 +9,7 @@
 ACADEMY.cpmBook({
   id: 'int2',
   title: 'Core Connections Integrated II', short: 'Integrated II',
-  band: 'High school', grade: 10, icon: '🧩', hue: 330,
+  band: 'High school', grade: 10, icon: 'CCII', hue: 330,
   homework: 'https://homework.cpm.org/category/CCI_CT/textbook/int2',
   sources: [
     'https://mathleaks.com/study/core-connections-integrated-ii-2015',
@@ -285,7 +285,7 @@ ACADEMY.cpmBook({
         topic: 'Finding the average rate of change over an interval, such as the average speed of a thrown ball.',
         skills: ['alg1.rate-of-change', 'int2.quadratic-models'] },
       { id: '9.3.2', title: 'Comparing the Growth of Functions',
-        topic: 'Comparing how linear, quadratic and exponential functions grow, and seeing that exponential growth wins in the end.',
+        topic: 'Comparing how linear, quadratic and exponential functions grow, and seeing that exponential growth eventually overtakes the others.',
         skills: ['alg2.choose-model', 'math8.linear-nonlinear'] },
       { id: '9.3.3', title: 'Piecewise-Defined Functions',
         topic: 'Writing, graphing and evaluating functions built from different rules on different parts of the domain.',

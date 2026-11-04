@@ -3,7 +3,7 @@
 ACADEMY.cpmBook({
   id: 'cc3',
   title: 'Core Connections, Course 3', short: 'Course 3',
-  band: 'Middle school', grade: 8, icon: '🟪', hue: 265,
+  band: 'Middle school', grade: 8, icon: 'CC3', hue: 265,
   homework: 'https://homework.cpm.org/category/CC/textbook/cc3',
   sources: [
     'https://mathleaks.com/study/core-connections-course-3',

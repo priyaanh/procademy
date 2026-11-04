@@ -3,7 +3,7 @@
 ACADEMY.cpmBook({
   id: 'cc2',
   title: 'Core Connections, Course 2', short: 'Course 2',
-  band: 'Middle school', grade: 7, icon: '🟦', hue: 215,
+  band: 'Middle school', grade: 7, icon: 'CC2', hue: 215,
   homework: 'https://homework.cpm.org/category/CC/textbook/cc2',
   sources: [
     'http://pdfs.cpm.org/standards/CCSS/CC2%20Text%20to%20CCSS%20Standards%20Grade%207.pdf',
@@ -159,7 +159,7 @@ ACADEMY.cpmBook({
         topic: 'Playing probability games and judging whether each is fair by comparing every player’s chance of winning.',
         skills: ['math7.simple-probability'] },
       { id: '5.2.2', title: 'Computer Simulations of Probability',
-        topic: 'Running simulations to collect lots of trials, and comparing the experimental results with the theoretical chance.',
+        topic: 'Running simulations to collect many trials, and comparing the experimental results with the theoretical chance.',
         skills: ['math7.experimental-probability', 'math7.simple-probability'] },
       { id: '5.2.3', title: 'Compound Independent Events',
         topic: 'Finding the probability that two independent events both happen, such as a coin flip and a spin.',

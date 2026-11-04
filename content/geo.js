@@ -65,7 +65,7 @@
   }
 
   A.course({
-    id: 'geometry', title: 'Geometry', subject: 'High school', grade: 10, icon: '📐', hue: 290,
+    id: 'geometry', title: 'Geometry', subject: 'High school', grade: 10, icon: 'Geo', hue: 290,
     blurb: 'Transformations, congruence and similarity, right-triangle trigonometry, coordinate geometry, circles, and the volume and surface area of solids.',
     units: [
       { id: 'transformations', title: 'Performing transformations', blurb: 'Translations, reflections, rotations and dilations on the coordinate plane.', skills: ['geo.translations', 'geo.reflections', 'geo.rotations', 'geo.dilations'] },
@@ -549,7 +549,7 @@
   A.skill({
     id: 'geo.triangle-proportionality', title: 'Triangle proportionality theorem',
     learn: p(`<b>Triangle proportionality theorem</b>: if a line parallel to one side of a triangle crosses the other two sides, it divides them in the same ratio. With ${V('DE')} ∥ ${V('BC')} in △${V('ABC')}, <b>${F(V('AD'), V('DB'))} = ${F(V('AE'), V('EC'))}</b>.`) +
-      p(`The small triangle △${V('ADE')} is similar to △${V('ABC')} (they share ∠${V('A')}, and the parallel lines make corresponding angles equal), so the parallel segments compare like whole sides: ${F(V('DE'), V('BC'))} = ${F(V('AD'), V('AB'))}. Careful: that uses the whole side ${V('AB')}, not the piece ${V('DB')}.`) +
+      p(`The small triangle △${V('ADE')} is similar to △${V('ABC')} (they share ∠${V('A')}, and the parallel lines make corresponding angles equal), so the parallel segments compare like whole sides: ${F(V('DE'), V('BC'))} = ${F(V('AD'), V('AB'))}. Note that this uses the whole side ${V('AB')}, not the piece ${V('DB')}.`) +
       p('Set up the proportion, cross-multiply, and solve.') +
       example('Example', `${big(`${V('AD')} = 4, ${V('DB')} = 6, ${V('AE')} = 6, ${V('EC')} = ?`)}${F(4, 6, { raw: true })} = ${F(6, V('EC'))}, so 4 · ${V('EC')} = 36 and ${V('EC')} = <b>9</b>.`),
     make(rng) {

@@ -20,7 +20,7 @@
   const addUp = (a, b) => { let s = 0; for (let i = 0; i < b; i++) s += a; return s; };
 
   A.course({
-    id: 'math-4', title: '4th grade math', subject: 'Elementary', grade: 4, icon: '🧮', hue: 85,
+    id: 'math-4', title: '4th grade math', subject: 'Elementary', grade: 4, icon: '4', hue: 85,
     blurb: 'Place value to a million, multiplying and dividing bigger numbers, factors, fractions and decimals, angles and shapes, area, perimeter and units.',
     units: [
       { id: 'place-value', title: 'Place value, rounding, and adding', blurb: 'Big numbers up to a million: what each digit is worth, rounding, adding and subtracting.', skills: ['g4.place-value', 'g4.round-whole', 'g4.add-sub-multi-digit'] },
@@ -147,7 +147,7 @@
   /* ---------- Unit 2: Multiplication and division ---------- */
   A.skill({
     id: 'g4.multiply-1-digit', title: 'Multiply by 1-digit numbers',
-    learn: p('A big multiplication is a lot of small ones. <b>Break the bigger number into its places</b>, multiply each part, then add the parts together.') +
+    learn: p('A large multiplication is made of many small ones. <b>Break the bigger number into its places</b>, multiply each part, then add the parts together.') +
       p('For 3 × 254, think 254 = 200 + 50 + 4. Then 3 × 200 = 600, 3 × 50 = 150 and 3 × 4 = 12. Add: 600 + 150 + 12 = 762.') +
       p('Knowing your times tables makes every step quick: 3 × 50 is just 3 × 5 with a 0 on the end.') +
       example('Example', `${big('6 × 1,427')}6 × 1,000 = 6,000. 6 × 400 = 2,400. 6 × 20 = 120. 6 × 7 = 42. Add them: <b>8,562</b>.`),
@@ -173,7 +173,7 @@
     id: 'g4.multiply-2-digit', title: 'Multiply 2-digit numbers',
     learn: p('To multiply two 2-digit numbers, <b>split one of them into tens and ones</b>. Multiply the other number by each part, then add.') +
       p('An area model helps: draw a rectangle, cut one side into tens and ones, and find the area of each piece. For 34 × 27, split 27 into 20 + 7. Then 34 × 20 = 680 and 34 × 7 = 238, and 680 + 238 = 918.') +
-      p('Multiplying by tens is easy: <b>multiply the digits, then put the zeros back</b>. 40 × 60: 4 × 6 = 24, and there are two zeros, so 2,400.') +
+      p('To multiply by tens, <b>multiply the digits, then put the zeros back</b>. 40 × 60: 4 × 6 = 24, and there are two zeros, so 2,400.') +
       example('Example', `${big('52 × 18')}Split 18 into 10 + 8. 52 × 10 = 520 and 52 × 8 = 416. Add: 520 + 416 = <b>936</b>.`),
     make(rng) {
       const kind = rng.pick(['plain', 'plain', 'tens', 'word']), name = rng.pick(NAMES);
@@ -363,7 +363,7 @@
     id: 'g4.compare-fractions', title: 'Compare fractions',
     learn: p('When two fractions have the <b>same denominator</b>, the one with the bigger top is bigger: the slices are the same size, so more slices is more.') +
       p('When the denominators are different, <b>rewrite both fractions with the same denominator first</b>. Find a number that both denominators go into, and make equivalent fractions.') +
-      p('Another trick is to compare with a benchmark like ' + F(1, 2) + '. If one fraction is less than a half and the other is more, you know which is bigger right away.') +
+      p('Another strategy is to compare with a benchmark like ' + F(1, 2) + '. If one fraction is less than a half and the other is more, you know which is bigger right away.') +
       example('Example', `${big(`${F(2, 3)} &nbsp;?&nbsp; ${F(3, 4)}`)}Use twelfths: ${F(2, 3)} = ${R(8, 12)} and ${F(3, 4)} = ${R(9, 12)}. 8 is less than 9, so ${F(2, 3)} <b>&lt;</b> ${F(3, 4)}.`),
     make(rng) {
       const d1 = rng.pick(DENS); let d2 = rng.pick(DENS);
@@ -396,7 +396,7 @@
     id: 'g4.add-sub-fractions', title: 'Add and subtract fractions with like denominators',
     learn: p('When fractions have the <b>same denominator</b>, the slices are all the same size. So you can just count slices.') +
       p('<b>Add or subtract the numerators (tops). Keep the denominator (bottom) the same.</b> ' + `${R(2, 8)} + ${R(3, 8)} = ${R(5, 8)}: two eighths plus three eighths is five eighths.`) +
-      p('A common mistake is to add the bottoms too. ' + `${R(2, 8)} + ${R(3, 8)} is not ${R(5, 16)}, because the slices did not get smaller!`) +
+      p('A common mistake is to add the bottoms too. ' + `${R(2, 8)} + ${R(3, 8)} is not ${R(5, 16)}, because the slices did not get smaller.`) +
       example('Example', `${big(`${R(7, 10)} − ${R(4, 10)}`)}Subtract the tops: 7 − 4 = 3. Keep the tenths. The answer is <b>${R(3, 10)}</b>.`),
     make(rng) {
       const kind = rng.pick(['add', 'sub', 'add', 'word', 'split']), name = rng.pick(NAMES);
@@ -549,7 +549,7 @@
     id: 'g4.compare-decimals', title: 'Compare decimals',
     learn: p('To compare decimals, <b>line up the decimal points and compare place by place from the left</b>: wholes first, then tenths, then hundredths.') +
       p('It helps to give both numbers the same number of places. Adding a 0 at the end of a decimal does not change it: 0.5 = 0.50. Now it is easy to see that 0.50 is more than 0.45.') +
-      p('Watch out: more digits does not mean bigger! 0.45 has more digits than 0.5, but 0.5 is bigger, because 5 tenths beats 4 tenths.') +
+      p('Be careful: more digits does not mean bigger. 0.45 has more digits than 0.5, but 0.5 is bigger, because 5 tenths is more than 4 tenths.') +
       example('Example', `${big('0.6 &nbsp;?&nbsp; 0.58')}Write 0.6 as 0.60. Compare tenths: 6 is more than 5. So 0.6 <b>&gt;</b> 0.58.`),
     make(rng) {
       const kind = rng.pick(['sign', 'sign', 'sign', 'most', 'least']);
@@ -759,7 +759,7 @@
   A.skill({
     id: 'g4.unit-conversion', title: 'Convert units of measurement',
     learn: p('Big units are made of many small units. 1 meter is 100 centimeters, 1 kilometer is 1,000 meters, 1 kilogram is 1,000 grams, 1 liter is 1,000 milliliters, 1 hour is 60 minutes, 1 foot is 12 inches, 1 yard is 3 feet and 1 pound is 16 ounces.') +
-      p('<b>To change a big unit into a small unit, multiply.</b> You need lots of small units to make the same amount, so the number gets bigger.') +
+      p('<b>To change a big unit into a small unit, multiply.</b> You need many small units to make the same amount, so the number gets bigger.') +
       p('For an amount like 3 feet 5 inches, change the feet into inches first, then add the extra inches.') +
       example('Example', `${big('4 hours 15 minutes = ? minutes')}1 hour is 60 minutes, so 4 hours is 4 × 60 = 240 minutes. Add the 15: 240 + 15 = <b>255 minutes</b>.`),
     make(rng) {

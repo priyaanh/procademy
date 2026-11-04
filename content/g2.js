@@ -16,7 +16,7 @@
   };
 
   A.course({
-    id: 'math-2', title: '2nd grade math', subject: 'Elementary', grade: 2, icon: '🔢', hue: 25,
+    id: 'math-2', title: '2nd grade math', subject: 'Elementary', grade: 2, icon: '2', hue: 25,
     blurb: 'Adding and subtracting up to 1,000, place value, money and time, measuring length, graphs, even and odd numbers, arrays, and halves, thirds and fourths.',
     units: [
       { id: 'within-20', title: 'Add and subtract within 20', blurb: 'Fast facts to 20, and even and odd numbers.', skills: ['g2.add-sub-20', 'g2.even-odd'] },
@@ -33,7 +33,7 @@
   /* ---------- Unit 1: Add and subtract within 20 ---------- */
   A.skill({
     id: 'g2.add-sub-20', title: 'Add and subtract within 20',
-    learn: p('You can add and subtract small numbers fast with a few tricks. One great trick is to <b>make a ten</b>. Ten is easy to add to!') +
+    learn: p('You can add and subtract small numbers quickly with a few strategies. One useful strategy is to <b>make a ten</b>, because adding to 10 is simple.') +
       p('To add 8 + 5, take 2 from the 5 to fill up the 8. Now you have 10 + 3, which is 13.') +
       p('To subtract, <b>think of the addition fact</b>. For 14 − 6, ask: 6 plus what makes 14? 6 + 8 = 14, so 14 − 6 = 8.') +
       example('Example', `${big('9 + 6 = ?')}Take 1 from the 6 to make 9 into 10. Now it is 10 + 5 = <b>15</b>.`),
@@ -70,7 +70,7 @@
     learn: p('A number is <b>even</b> if you can put the things into pairs with none left over. A number is <b>odd</b> if one is left over.') +
       p('Here is a quick way to tell: <b>look at the ones digit</b>. If it is 0, 2, 4, 6 or 8, the number is even. If it is 1, 3, 5, 7 or 9, the number is odd.') +
       p('An even number is also two equal numbers added together, like 6 = 3 + 3.') +
-      example('Example', `Is 7 even or odd? ${big('🍎🍎 🍎🍎 🍎🍎 🍎')}Make pairs: 3 pairs and 1 left over. So 7 is <b>odd</b>.`),
+      example('Example', `Is 7 even or odd? ${M.items(7, 'circle', 'red', { per: 2, label: '7 red circles in pairs: 3 pairs and 1 left over' })}Make pairs: 3 pairs and 1 left over. So 7 is <b>odd</b>.`),
     make(rng) {
       const kind = rng.pick(['even', 'odd', 'double']);
       if (kind === 'double') {
@@ -288,7 +288,7 @@
   A.skill({
     id: 'g2.add-sub-1000', title: 'Add and subtract within 1,000',
     learn: p('Big numbers work just like two-digit numbers. Line up the places, then <b>add or subtract the ones, then the tens, then the hundreds</b>. Regroup when you need to.') +
-      p('Adding or taking away 10 or 100 is easy: only one digit changes. 10 more than 352 is 362. 100 less than 352 is 252.') +
+      p('Adding or taking away 10 or 100 is simpler: only one digit changes. 10 more than 352 is 362. 100 less than 352 is 252.') +
       example('Example', `${big('365 + 248')}Ones: 5 + 8 = 13, write 3 and carry 1. Tens: 6 + 4 + 1 = 11, write 1 and carry 1. Hundreds: 3 + 2 + 1 = 6. The answer is <b>613</b>.`),
     make(rng) {
       const kind = rng.pick(['add', 'sub', 'tens']);
@@ -471,11 +471,14 @@
 
   /* ---------- Unit 7: Data ---------- */
   const TOPICS = [
-    { title: 'Favorite fruit', cats: [['🍎', 'Apples'], ['🍌', 'Bananas'], ['🍇', 'Grapes'], ['🍓', 'Berries'], ['🍊', 'Oranges']] },
-    { title: 'Class pets', cats: [['🐶', 'Dogs'], ['🐱', 'Cats'], ['🐟', 'Fish'], ['🐰', 'Rabbits'], ['🐢', 'Turtles']] },
-    { title: 'Weather this month', cats: [['☀️', 'Sunny'], ['☁️', 'Cloudy'], ['🌧️', 'Rainy'], ['❄️', 'Snowy'], ['💨', 'Windy']] },
-    { title: 'Favorite ball game', cats: [['⚽', 'Soccer'], ['🏀', 'Basketball'], ['🎾', 'Tennis'], ['🏈', 'Football'], ['⚾', 'Baseball']] },
+    { title: 'Favorite fruit', cats: [['circle', 'Apples'], ['square', 'Bananas'], ['triangle', 'Grapes'], ['star', 'Berries'], ['heart', 'Oranges']] },
+    { title: 'Class pets', cats: [['circle', 'Dogs'], ['square', 'Cats'], ['triangle', 'Fish'], ['star', 'Rabbits'], ['heart', 'Turtles']] },
+    { title: 'Weather this month', cats: [['circle', 'Sunny'], ['square', 'Cloudy'], ['triangle', 'Rainy'], ['star', 'Snowy'], ['heart', 'Windy']] },
+    { title: 'Favorite ball game', cats: [['circle', 'Soccer'], ['square', 'Basketball'], ['triangle', 'Tennis'], ['star', 'Football'], ['heart', 'Baseball']] },
   ];
+  // each row of a picture graph gets its own drawn shape and color; one shape stands for 1
+  const ROW_COLOR = { circle: 'red', square: 'blue', triangle: 'green', star: 'orange', heart: 'purple' };
+  const graphRow = (k, sh) => M.items(k, sh, ROW_COLOR[sh], { per: 0, size: 24, inline: true });
   /** one question about a small data set; shared by picture graphs and bar graphs */
   function dataQuestion(rng, names, counts, read) {
     const kind = rng.pick(['how-many', 'more', 'total', 'most']);
@@ -504,12 +507,12 @@
     id: 'g2.picture-graphs', title: 'Picture graphs',
     learn: p('A <b>picture graph</b> uses pictures to show how many. In our graphs, <b>each picture stands for 1</b>.') +
       p('To read it, find the row you want and count the pictures. To compare two rows, count both and subtract. To find a total, add.') +
-      example('Example', `${M.table(['Pet', 'Votes'], [['Dogs', '🐶🐶🐶🐶🐶'], ['Cats', '🐱🐱🐱']])}How many more votes for dogs than cats? Dogs 5, cats 3. 5 − 3 = <b>2</b>.`),
+      example('Example', `${M.table(['Pet', 'Votes'], [['Dogs', graphRow(5, 'circle')], ['Cats', graphRow(3, 'square')]])}How many more votes for dogs than cats? Dogs 5, cats 3. 5 − 3 = <b>2</b>.`),
     make(rng) {
       const topic = rng.pick(TOPICS), cats = rng.sample(topic.cats, rng.int(3, 4));
       const counts = rng.sample([1, 2, 3, 4, 5, 6, 7, 8, 9], cats.length);
       const names = cats.map(c => c[1]);
-      const graph = M.table([topic.title, 'Count'], cats.map((c, i) => [c[1], c[0].repeat(counts[i])]));
+      const graph = M.table([topic.title, 'Count'], cats.map((c, i) => [c[1], graphRow(counts[i], c[0])]));
       const d = dataQuestion(rng, names, counts, k => `Count the pictures in the ${names[k]} row: ${counts[k]}.`);
       return Object.assign({ prompt: `Look at the picture graph. Each picture stands for 1.${graph}${d.q}` }, d);
     },
@@ -606,22 +609,22 @@
     },
   });
 
-  const ARRAY_EMOJI = ['🍪', '⭐', '🌸', '🍓', '🐞', '🧁', '🍩', '🌟'];
+  const ARRAY_LOOKS = [['circle', 'red'], ['star', 'orange'], ['heart', 'purple'], ['square', 'blue'], ['triangle', 'green'], ['circle', 'purple'], ['square', 'orange'], ['star', 'blue']];
   A.skill({
     id: 'g2.arrays', title: 'Arrays: rows and columns',
     learn: p('An <b>array</b> is a set of things in equal rows. <b>Rows</b> go across, and <b>columns</b> go up and down.') +
       p('To find how many in all, <b>add the same number once for each row</b>. 3 rows of 4 is 4 + 4 + 4 = 12.') +
       p('A rectangle cut into rows and columns of same-size squares is an array too.') +
-      example('Example', `${big('⭐⭐⭐⭐⭐<br>⭐⭐⭐⭐⭐')}2 rows with 5 in each row: 5 + 5 = <b>10</b> stars.`),
+      example('Example', `${M.items(10, 'star', 'orange', { per: 5 })}2 rows with 5 in each row: 5 + 5 = <b>10</b> stars.`),
     make(rng) {
       const kind = rng.pick(['count', 'count', 'sentence', 'squares']);
-      const r = rng.int(kind === 'sentence' ? 3 : 2, 5), c = rng.int(2, 5), e = rng.pick(ARRAY_EMOJI);
-      const rowsTxt = Array.from({ length: r }, () => e.repeat(c)).join('<br>');
+      const r = rng.int(kind === 'sentence' ? 3 : 2, 5), c = rng.int(2, 5), [sh, col] = rng.pick(ARRAY_LOOKS);
+      const rowsTxt = M.items(r * c, sh, col, { per: c, label: `an array of ${col} ${sh}s: ${r} rows of ${c}` });
       const sum = Array(r).fill(c).join(' + ');
       if (kind === 'sentence') {
         const answer = sum;
         const cands = [Array(r - 1).fill(c).join(' + '), Array(r + 1).fill(c).join(' + '), `${r} + ${c}`, Array(r).fill(c + 1).join(' + ')];
-        return { prompt: `Which addition adds the <b>rows</b> of this array?${big(rowsTxt)}`, type: 'choice', answer, choices: [answer].concat(distinct(answer, cands, 3)), params: { kind, r, c },
+        return { prompt: `Which addition adds the <b>rows</b> of this array?${rowsTxt}`, type: 'choice', answer, choices: [answer].concat(distinct(answer, cands, 3)), params: { kind, r, c },
           hints: [`Count the rows: ${r}.`, `Count how many are in each row: ${c}.`, `Add ${c} once for each of the ${r} rows: <b>${answer}</b>.`] };
       }
       if (kind === 'squares') {
@@ -631,7 +634,7 @@
         return { prompt: `This rectangle is cut into same-size squares. How many squares are there?${svg}`, type: 'number', answer: r * c, params: { kind, r, c },
           hints: [`Count the rows: ${r}. Count the squares in one row: ${c}.`, `Add one row at a time: ${sum}.`, `There are <b>${r * c}</b> squares.`] };
       }
-      return { prompt: `How many ${e} are there in all?${big(rowsTxt)}`, type: 'number', answer: r * c, params: { kind, r, c },
+      return { prompt: `How many ${sh}s are there in all?${rowsTxt}`, type: 'number', answer: r * c, params: { kind, r, c },
         hints: [`There are ${r} rows with ${c} in each row.`, `Add the rows: ${sum}.`, `${sum} = <b>${r * c}</b>.`] };
     },
     verify(q) {

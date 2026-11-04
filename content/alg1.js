@@ -70,7 +70,7 @@
   }
 
   A.course({
-    id: 'algebra-1', title: 'Algebra 1', subject: 'High school', grade: 9, icon: '𝑥', hue: 245,
+    id: 'algebra-1', title: 'Algebra 1', subject: 'High school', grade: 9, icon: 'A1', hue: 245,
     blurb: 'Equations and inequalities, linear functions and systems, functions and sequences, exponents and exponential growth, and quadratics.',
     units: [
       { id: 'foundations', title: 'Algebra foundations', blurb: 'Tidying expressions: combining like terms and distributing.', skills: ['alg1.combine-like-terms', 'alg1.distribute'] },
@@ -334,7 +334,7 @@
   A.skill({
     id: 'alg1.compound-inequalities', title: 'Compound inequalities',
     learn: p(`A <b>compound inequality</b> joins two conditions. With <b>and</b>, a number must satisfy both, so the solution is the overlap, often written as one three-part statement like −2 &lt; ${X} ≤ 5. With <b>or</b>, a number needs to satisfy only one, as in ${X} &lt; −1 or ${X} &gt; 4.`) +
-      p(`Solve a three-part inequality by doing the same step to <b>all three parts</b>. As always, multiplying or dividing by a negative number <b>flips every sign</b>; afterwards, rewrite the statement with the smaller number on the left.`) +
+      p(`Solve a three-part inequality by doing the same step to <b>all three parts</b>. As always, multiplying or dividing by a negative number <b>flips every sign</b>; afterward, rewrite the statement with the smaller number on the left.`) +
       p('For an "or" inequality, solve each half on its own and keep the word "or" between the answers.') +
       example('Example', `${big(`−7 &lt; −2${X} + 1 ≤ 9`)}Subtract 1 from all three parts: −8 &lt; −2${X} ≤ 8. Divide by −2 and flip both signs: 4 &gt; ${X} ≥ −4. Smaller number first: <b>−4 ≤ ${X} &lt; 4</b>.`),
     make(rng) {

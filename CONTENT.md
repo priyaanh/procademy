@@ -13,7 +13,7 @@ Check a file while writing it with `node tests/content.js content/<file>.js`; it
 ACADEMY.course({
   id: 'math-7', title: '7th grade math',
   subject: 'Middle school', grade: 7,      // subject: Elementary (K–5) | Middle school (6–8) | High school; grade 0 = K … 12
-  icon: '➗', hue: 215,                     // one emoji; a hue 0–360 for the course colour
+  icon: '7', hue: 215,                      // a short label (K, 7, A1, Geo…) shown in a badge; a hue 0–360 for the course color
   blurb: 'One sentence saying what the course covers.',
   units: [
     { id: 'negatives', title: 'Negative numbers', blurb: 'One line.', skills: ['math7.add-negatives', 'math7.sub-negatives'] },
@@ -75,10 +75,29 @@ twice, options that read the same, an answer that does not check as correct thro
 `undefined`/`NaN` leaking into the text, fewer than 8 distinct prompts in 300 seeds, every seed giving
 the same answer, and a right choice that is by far the longest option in most questions.
 
+## Tone and symbols
+
+Procademy is a formal website. Everything a learner reads, in lessons, questions, hints, buttons, headings,
+messages and badges, follows these rules.
+
+- **No emojis or pictographs**, anywhere: not as decoration, icons, bullets or pictures. Pictures to count
+  or compare are drawn (SVG shapes from the M helpers), never emoji.
+- **Symbols that are allowed**, because they are notation rather than decoration: math symbols
+  (+ − × ÷ = < > ≤ ≥ √ π ° ∞), arrows in math and in navigation ("→" in "fraction → decimal", "← Back"),
+  ✓ and ✗ only where a step is marked correct or incorrect, ✕ only as a close button, ☐ only as the blank in
+  an equation such as 3 + ☐ = 5, and ⌫ on a calculator key.
+- **A formal, respectful tone.** Complete sentences, sentence-case headings, American spelling. Address the
+  learner as "you". Encourage without exclamation marks, slang or jokes: "Correct." rather than "Nice
+  work!"; "Incorrect. Try again, or view a hint." rather than "Not quite!"; "Session complete" rather than
+  "Perfect!".
+- **Buttons say what they do**, verb first and short: "Start practice", "Check", "Next question", "End
+  session", "Download the offline file".
+- **Names are plain descriptions**: a badge is "Seven-day streak", not "Week warrior".
+
 ## Rules of thumb
 
-- **Write for the grade.** Kindergarten to 2nd grade: very short sentences, small numbers, pictures made of
-  emoji (🍎🍎🍎) or inline SVG, mostly `choice` or small `number` answers. Older grades can read more.
+- **Write for the grade.** Kindergarten to 2nd grade: very short sentences, small numbers, pictures drawn with
+  `M.items` (never emoji), mostly `choice` or small `number` answers. Older grades can read more.
 
 - **Distractors are real mistakes**: a sign error, a forgotten flip of the inequality, the wrong operation.
   Keep all options the same shape and length, so the right one does not stand out.
@@ -107,3 +126,15 @@ the same answer, and a right choice that is by far the longest option in most qu
 `M.eq(l, r)` · `M.money(x)` · `M.pct(x)` · `M.pt(x, y)` · `M.deg(x)` · `M.units(x, 'cm')` ·
 `M.table(headers, rows)` · `M.ordinal(n)` · `M.list(items)` · `M.plural(k, 'cat')` · `M.code(s)` inline code ·
 `M.pre(s)` code block · `M.esc(s)` escape text.
+
+**Pictures to count, compare or group** (never emoji): `M.items(n, shape, color, opts)` draws `n` simple shapes
+as inline SVG in rows of 5, with `role="img"`, an `aria-label` such as "7 red stars" and a matching `<desc>`.
+Shapes: `circle`, `square`, `triangle`, `star`, `heart`, `diamond` (`M.items.shapes`); colors: `red`, `blue`,
+`green`, `orange`, `purple` (`M.items.colors`, the site's chart colors, so they read in light and dark mode).
+Several groups: `M.items([[3, 'circle', 'red'], [4, 'square', 'blue']], opts)`; a group can add
+`{ hollow: true }` for empty outlines. Options: `per` (shapes per row; `0` = one line), `size` (cell px, default
+32), `out` (cross out the last k, for taking away), `rows` (each group on its own left-aligned row, for
+comparing), `flow` (all groups in one grid, as in a ten frame), `frame` (a box round each cell), `sep: '+'`
+(between groups side by side), `inline` (inside text or a table cell), `label` (the aria-label). Name the
+shapes in words in the question ("How many red circles?"). In `verify()`, `M.countItems(html, 'red circle')`
+counts the drawn shapes (`'empty circle'` for hollow ones, `'red circle crossed'` for crossed-out ones).

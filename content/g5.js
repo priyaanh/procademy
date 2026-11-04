@@ -23,7 +23,7 @@
   const lcm = (a, b) => a * b / M.gcd(a, b);
 
   A.course({
-    id: 'math-5', title: '5th grade math', subject: 'Elementary', grade: 5, icon: '📏', hue: 120,
+    id: 'math-5', title: '5th grade math', subject: 'Elementary', grade: 5, icon: '5', hue: 120,
     blurb: 'Decimals and fractions with all four operations, long multiplication and division, powers of ten, volume, the coordinate plane, patterns, measurement, and shapes.',
     units: [
       { id: 'decimals', title: 'Decimal place value, adding and subtracting', blurb: 'What each digit is worth, comparing and rounding, and adding and subtracting decimals.', skills: ['g5.decimal-place-value', 'g5.compare-round-decimals', 'g5.add-sub-decimals'] },
@@ -100,7 +100,7 @@
   A.skill({
     id: 'g5.compare-round-decimals', title: 'Comparing and rounding decimals',
     learn: p('<b>To compare decimals, line up the decimal points and compare digit by digit from the left.</b> The first place where the digits differ decides which number is bigger. Adding zeros to the end helps: 0.6 is the same as 0.60, and 0.60 is more than 0.57.') +
-      p('A longer decimal is not always bigger! 0.6 has fewer digits than 0.57, but 6 tenths is more than 5 tenths.') +
+      p('A longer decimal is not always bigger. 0.6 has fewer digits than 0.57, but 6 tenths is more than 5 tenths.') +
       p('<b>To round, find the place you are rounding to and look at the digit just to its right.</b> If that digit is 5 or more, round up. If it is less than 5, keep the digit and drop everything after it.') +
       example('Example', `${big('Round 7.468 to the nearest tenth.')}The tenths digit is 4. The digit to its right is 6, which is 5 or more, so the 4 goes up to 5. The answer is <b>7.5</b>.`),
     make(rng) {
@@ -577,7 +577,7 @@
   A.skill({
     id: 'g5.coordinate-plane', title: 'Points on the coordinate plane',
     learn: p('The <b>coordinate plane</b> has a flat number line called the <b>x-axis</b> and an upright one called the <b>y-axis</b>. They meet at the <b>origin</b>, (0, 0).') +
-      p('A point is named by an <b>ordered pair</b> (x, y). <b>The first number says how far to go right; the second says how far to go up.</b> Order matters: (2, 5) and (5, 2) are different points. A handy way to remember: walk along the hall before you climb the stairs.') +
+      p('A point is named by an <b>ordered pair</b> (x, y). <b>The first number says how far to go right; the second says how far to go up.</b> Order matters: (2, 5) and (5, 2) are different points. One way to remember the order: walk along the hall before you climb the stairs.') +
       example('Example', `${big('Plot (4, 7)')}Start at the origin. Go 4 units right along the x-axis, then 7 units up. That is the point <b>(4, 7)</b>.`),
     make(rng) {
       const kind = rng.pick(['read', 'read', 'which', 'move', 'distance']);
@@ -600,7 +600,7 @@
         }
         const choices = ['A', 'B', 'C', 'D'].map(l => `Point ${l}`);
         return { prompt: `Which point is at <b>${ptText(tx, ty)}</b>?${pic}`, type: 'choice', choices, keepOrder: true, answer: `Point ${target.label}`, params: { kind, points, x: tx, y: ty },
-          hints: [`Go ${tx} units right from the origin along the x-axis.`, `Then go ${ty} units up. (Going ${ty} right and ${tx} up lands on a different point!)`, `You land on <b>point ${target.label}</b>.`] };
+          hints: [`Go ${tx} units right from the origin along the x-axis.`, `Then go ${ty} units up. (Going ${ty} right and ${tx} up lands on a different point.)`, `You land on <b>point ${target.label}</b>.`] };
       }
       if (kind === 'move') {
         let dx = rng.nz(-5, 5), dy = rng.nz(-5, 5);
@@ -780,7 +780,7 @@
     counts.forEach((c, i) => {
       const x = pad + i * gap;
       body += `<line x1="${x}" y1="${axis - 5}" x2="${x}" y2="${axis + 5}" class="stroke"/><text x="${x}" y="${axis + 20}" text-anchor="middle" font-size="13">${mixText(start + i, den)}</text>`;
-      for (let j = 0; j < c; j++) body += `<text x="${x}" y="${axis - 9 - j * 17}" text-anchor="middle" font-size="15" font-weight="700">✕</text>`;
+      for (let j = 0; j < c; j++) { const y = axis - 14 - j * 17; body += `<path d="M ${x - 5} ${y - 5} L ${x + 5} ${y + 5} M ${x + 5} ${y - 5} L ${x - 5} ${y + 5}" class="stroke" style="stroke-width:2.2;stroke-linecap:round"/>`; }
     });
     return svg(W, H, body, 'line plot');
   }
@@ -793,8 +793,8 @@
 
   A.skill({
     id: 'g5.line-plots', title: 'Line plots with fractions',
-    learn: p(`A <b>line plot</b> shows data on a number line. <b>Each ✕ stands for one item</b>, placed above its measurement. Three ✕ marks above ${F(3, 4)} means three items measured ${F(3, 4)}.`) +
-      p('To find a total, multiply each value by how many ✕ marks it has and add the results. To compare the biggest and smallest, subtract the value furthest left from the value furthest right.') +
+    learn: p(`A <b>line plot</b> shows data on a number line. <b>Each X stands for one item</b>, placed above its measurement. Three X marks above ${F(3, 4)} mean that three items measured ${F(3, 4)}.`) +
+      p('To find a total, multiply each value by how many X marks it has and add the results. To compare the biggest and smallest, subtract the value furthest left from the value furthest right.') +
       example('Example', `${big(`3 pencils at ${F(1, 2)} inch`)}Their total length is 3 × ${F(1, 2)} = <b>${F(3, 2)} = 1${`<span class="mixed">${F(1, 2)}</span>`} inches</b>.`),
     make(rng) {
       const den = rng.pick([2, 4, 4, 8, 8]), n = rng.int(4, 6), start = rng.int(1, den + 1);
@@ -806,20 +806,20 @@
       if (kind === 'more') {
         const i = rng.int(0, n - 2), ans = counts.slice(i + 1).reduce((s, c) => s + c, 0);
         return { prompt: `How many ${ctx.things} are ${ctx.more} ${val(i)} ${ctx.units}?${pic}`, type: 'number', answer: ans, params: { kind, start, den, counts, i },
-          hints: [`Look only at the ✕ marks to the right of ${val(i)}. Do not count the ones above ${val(i)} itself.`, `Add them up: ${counts.slice(i + 1).join(' + ')} = <b>${ans}</b>.`] };
+          hints: [`Look only at the X marks to the right of ${val(i)}. Do not count the ones above ${val(i)} itself.`, `Add them up: ${counts.slice(i + 1).join(' + ')} = <b>${ans}</b>.`] };
       }
       if (kind === 'diff') {
         return { prompt: `${ctx.diff}${pic}`, type: 'number', answer: (n - 1) / den, answerText: mixText(n - 1, den), unit: ctx.u, params: { kind, start, den, counts },
-          hints: [`The smallest value with a ✕ is ${val(0)} and the largest is ${val(n - 1)}.`, `Subtract: ${fx(start + n - 1, den)} − ${fx(start, den)} = ${fx(n - 1, den)}.`, `The difference is <b>${M.mixed(n - 1, den)} ${ctx.units}</b>.`] };
+          hints: [`The smallest value with an X is ${val(0)} and the largest is ${val(n - 1)}.`, `Subtract: ${fx(start + n - 1, den)} − ${fx(start, den)} = ${fx(n - 1, den)}.`, `The difference is <b>${M.mixed(n - 1, den)} ${ctx.units}</b>.`] };
       }
       if (kind === 'at') {
         const opts = counts.map((c, i) => i).filter(i => counts[i] >= 2), i = opts.length ? rng.pick(opts) : 0, c = counts[i];
         return { prompt: `What is the total of all the ${ctx.at} ${val(i)} ${ctx.units}?${pic}`, type: 'number', answer: c * (start + i) / den, answerText: mixText(c * (start + i), den), unit: ctx.u, params: { kind, start, den, counts, i },
-          hints: [`There ${c === 1 ? 'is 1 ✕' : `are ${c} ✕ marks`} above ${val(i)}.`, `Multiply: ${c} × ${fx(start + i, den)} = ${fx(c * (start + i), den)}.`, `The total is <b>${showFrac(c * (start + i), den)} ${ctx.units}</b>.`] };
+          hints: [`There ${c === 1 ? 'is 1 X' : `are ${c} X marks`} above ${val(i)}.`, `Multiply: ${c} × ${fx(start + i, den)} = ${fx(c * (start + i), den)}.`, `The total is <b>${showFrac(c * (start + i), den)} ${ctx.units}</b>.`] };
       }
       const num = counts.reduce((s, c, i) => s + c * (start + i), 0);
       return { prompt: `What is the total of all the ${ctx.things} together, in ${ctx.units}?${pic}`, type: 'number', answer: num / den, answerText: mixText(num, den), unit: ctx.u, params: { kind, start, den, counts },
-        hints: [`For each value, multiply it by the number of ✕ marks above it. Count everything in ${pieces}.`, `In ${pieces}: ${counts.map((c, i) => `${c} × ${start + i}`).join(' + ')} = ${num}, so the total is ${fx(num, den)}.`, `The total is <b>${showFrac(num, den)} ${ctx.units}</b>.`] };
+        hints: [`For each value, multiply it by the number of X marks above it. Count everything in ${pieces}.`, `In ${pieces}: ${counts.map((c, i) => `${c} × ${start + i}`).join(' + ')} = ${num}, so the total is ${fx(num, den)}.`, `The total is <b>${showFrac(num, den)} ${ctx.units}</b>.`] };
     },
     verify(q) {
       const { kind, start, den, counts, i } = q.params, data = [];

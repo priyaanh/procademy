@@ -76,7 +76,7 @@
   }
 
   A.course({
-    id: 'algebra-2', title: 'Algebra 2', subject: 'High school', grade: 11, icon: '∿', hue: 310,
+    id: 'algebra-2', title: 'Algebra 2', subject: 'High school', grade: 11, icon: 'A2', hue: 310,
     blurb: 'Polynomials and complex numbers, radicals, exponentials and logarithms, transformations, equations, trigonometry and modeling.',
     units: [
       { id: 'poly-arithmetic', title: 'Polynomial arithmetic', blurb: 'Adding, subtracting and multiplying polynomials.', skills: ['alg2.add-sub-polynomials', 'alg2.multiply-polynomials'] },
@@ -463,7 +463,7 @@
     id: 'alg2.end-behavior', title: 'End behavior of polynomials',
     learn: p(`Far from the origin, the <b>leading term</b> (the term with the highest power) is so much bigger than the others that it alone decides where the graph goes.`) +
       p(`<b>Even degree: both ends go the same way, up if the leading coefficient is positive and down if it is negative. Odd degree: the ends go opposite ways, rising to the right if the leading coefficient is positive and falling to the right if it is negative.</b>`) +
-      p(`The leading term is not always written first. In factored form, multiply the leading parts of the factors: in (3 − ${X})(${X} + 1)², the leading term is (−${X})(${X}²) = −${X}³. Watch out for factors written backwards like 3 − ${X}.`) +
+      p(`The leading term is not always written first. In factored form, multiply the leading parts of the factors: in (3 − ${X})(${X} + 1)², the leading term is (−${X})(${X}²) = −${X}³. Take care with factors written in reverse order, such as 3 − ${X}.`) +
       example('Example', `${big(`${fx('f', X)} = 4 + 2${X} − 3${X}⁴`)}Leading term −3${X}⁴: even degree, negative coefficient, so both ends go down. <b>As ${X} → −∞, ${fx('f', X)} → −∞; as ${X} → ∞, ${fx('f', X)} → −∞.</b>`),
     make(rng) {
       if (rng.chance(0.4)) {

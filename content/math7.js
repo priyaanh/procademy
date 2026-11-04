@@ -10,7 +10,7 @@
   const big = s => `<div class="big">${s}</div>`;
 
   A.course({
-    id: 'math-7', title: '7th grade math', subject: 'Middle school', grade: 7, icon: '➗', hue: 215,
+    id: 'math-7', title: '7th grade math', subject: 'Middle school', grade: 7, icon: '7', hue: 215,
     blurb: 'Negative numbers, fractions and percents, rates and proportions, expressions and equations, geometry, statistics and probability.',
     units: [
       { id: 'negatives-add', title: 'Negative numbers: addition and subtraction', blurb: 'Adding and subtracting on both sides of zero.', skills: ['math7.add-negatives', 'math7.sub-negatives', 'math7.abs-distance'] },
@@ -488,7 +488,7 @@
       const scale = rng.pick([2, 3, 4, 5, 8, 10, 20, 25, 50]);
       const draw = rng.pick([2, 2.5, 3, 3.5, 4, 4.5, 5, 6, 7.5, 8, 9, 12]);
       const real = M.round(draw * scale, 3);
-      if (kind === 'to-real') return { prompt: `A map uses a scale of 1 cm : ${scale} km. Two towns are ${N(draw)} cm apart on the map. How far apart are they really?`, type: 'number', answer: real, unit: 'km', params: { kind, scale, draw, real }, hints: [`Each centimeter stands for ${scale} km, so multiply the map distance by ${scale}.`, `${N(draw)} × ${scale} = <b>${N(real)} km</b>.`] };
+      if (kind === 'to-real') return { prompt: `A map uses a scale of 1 cm : ${scale} km. Two towns are ${N(draw)} cm apart on the map. How far apart are they in real life?`, type: 'number', answer: real, unit: 'km', params: { kind, scale, draw, real }, hints: [`Each centimeter stands for ${scale} km, so multiply the map distance by ${scale}.`, `${N(draw)} × ${scale} = <b>${N(real)} km</b>.`] };
       if (kind === 'to-drawing') return { prompt: `A floor plan uses a scale of 1 cm : ${scale} m. A room is ${N(real)} m long. How long is it on the plan?`, type: 'number', answer: draw, unit: 'cm', params: { kind, scale, draw, real }, hints: [`Going from real life to the drawing, divide by the scale.`, `${N(real)} ÷ ${scale} = <b>${N(draw)} cm</b>.`] };
       const k = rng.pick([1.5, 2, 2.5, 3, 4]), s = rng.int(2, 9), other = rng.int(2, 9);
       return { prompt: `A triangle with sides ${s} cm and ${other} cm is enlarged so that the ${s} cm side becomes ${N(s * k)} cm. How long does the ${other} cm side become?`, type: 'number', answer: M.round(other * k, 3), unit: 'cm', params: { kind, s, k, other }, hints: [`Find the scale factor: new ÷ original = ${N(s * k)} ÷ ${s} = ${N(k)}.`, `Every side is multiplied by ${N(k)}: ${other} × ${N(k)} = <b>${N(M.round(other * k, 3))} cm</b>.`] };
@@ -1596,7 +1596,7 @@
         if (kind === 'pyramid') {
           const s = 2 * rng.int(2, 10);
           return { prompt: `A square pyramid has a base ${s} cm on each side. It is sliced parallel to the base, exactly halfway up. How long is each side of the square cross section?${solidSvg('spyr')}`, type: 'number', answer: s / 2, unit: 'cm', params: { kind, s },
-            hints: ['A slice parallel to the base of a pyramid is a smaller copy of the base.', 'Halfway up, the sloping faces have come halfway in from the edges towards the top point, so every length of the slice is half the base’s.', `${s} ÷ 2 = <b>${s / 2} cm</b>.`] };
+            hints: ['A slice parallel to the base of a pyramid is a smaller copy of the base.', 'Halfway up, the sloping faces have come halfway in from the edges toward the top point, so every length of the slice is half the base’s.', `${s} ÷ 2 = <b>${s / 2} cm</b>.`] };
         }
         const dims = kind === 'cube' ? (() => { const e = rng.int(2, 12); return [e, e, e]; })() : rng.sample([2, 3, 4, 5, 6, 7, 8, 9, 10, 12], 3);
         const [l, w, h] = dims, cut = rng.pick(['base', 'front', 'side']);

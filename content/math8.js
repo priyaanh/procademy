@@ -38,7 +38,7 @@
   };
 
   A.course({
-    id: 'math-8', title: '8th grade math', subject: 'Middle school', grade: 8, icon: '📊', hue: 265,
+    id: 'math-8', title: '8th grade math', subject: 'Middle school', grade: 8, icon: '8', hue: 265,
     blurb: 'Exponents and scientific notation, equations with the unknown on both sides, slope and linear functions, systems of equations, the Pythagorean theorem, volume, transformations, and two-way tables.',
     units: [
       { id: 'numbers', title: 'Numbers and operations', blurb: 'Exponent rules, negative exponents, scientific notation, square and cube roots.', skills: ['math8.exponent-properties', 'math8.negative-exponents', 'math8.scientific-notation', 'math8.roots'] },
@@ -97,7 +97,7 @@
   A.skill({
     id: 'math8.negative-exponents', title: 'Negative exponents',
     learn: p(`A negative exponent means “one over”: <b>${S(X, '−n')} = ${fracH('1', S(X, 'n'))}</b>. So ${S(2, '−3')} = ${F(1, 8)} and ${S(10, '−2')} = ${F(1, 100, { raw: true })} = 0.01. The result is small, but it is still positive.`) +
-      p(`Why? The quotient rule says ${S(2, 2)} ÷ ${S(2, 5)} = ${S(2, '−3')}, and working it out directly gives 4 ÷ 32 = ${F(1, 8)}. For a fraction, flipping it makes the exponent positive: (${F(2, 3)})${S('', '−2')} = (${F(3, 2)})${S('', 2)} = ${F(9, 4)}.`) +
+      p(`Here is why. The quotient rule says ${S(2, 2)} ÷ ${S(2, 5)} = ${S(2, '−3')}, and working it out directly gives 4 ÷ 32 = ${F(1, 8)}. For a fraction, flipping it makes the exponent positive: (${F(2, 3)})${S('', '−2')} = (${F(3, 2)})${S('', 2)} = ${F(9, 4)}.`) +
       example('Example', `${big(S(5, '−2'))}${S(5, '−2')} = 1 ÷ ${S(5, 2)} = 1 ÷ 25 = <b>${F(1, 25)}</b>, which is 0.04.`),
     make(rng) {
       const kind = rng.pick(['plain', 'plain', 'ten', 'frac', 'product']);

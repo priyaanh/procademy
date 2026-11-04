@@ -237,7 +237,7 @@
     root.querySelector('#next').click(); await tick();
   }
   ok(text(root.querySelector('.summary .score')) === '7 / 7' && S.skill('math7.percent-of').level === 3 && text(root).includes('Proficient'), 'player: summary shows 7 / 7 and the level-up');
-  ok(text(document.getElementById('stats')).includes('⚡'), 'player: the header stats refresh after a set');
+  ok(/pts/.test(text(document.getElementById('stats'))), 'player: the header stats refresh after a set');
   // wrong, retry, hints, give up
   V.practice(root, 'math7.unit-rate');
   answerCurrent(root, false); await tick();
@@ -457,7 +457,7 @@
   // a wrong answer offers "Why is that wrong?", which sends the learner's answer
   answerCurrent(m, false); await tick();
   const why = m.querySelector('#feedback .tutor-ask');
-  ok(why && /Why is that wrong/.test(text(why)) && UI.getContext().studentAnswer, 'tutor: a wrong answer offers "Why is that wrong?" with the learner’s answer in context');
+  ok(why && /Ask why this is incorrect/.test(text(why)) && UI.getContext().studentAnswer, 'tutor: a wrong answer offers "Why is that wrong?" with the learner’s answer in context');
   const n0 = cloudCalls.length; why.click();
   for (let k = 0; k < 60 && (TU.busy() || cloudCalls.length === n0); k++) await tick(20);
   const wrongReq = cloudCalls[cloudCalls.length - 1].body.messages;
@@ -688,7 +688,7 @@
   ok(lastBot().querySelector('figure.pic img') && picCalls.length === 2 && /safe=true/.test(picCalls[0]) && /castle%20on%20a%20hill/.test(picCalls[0]), 'pictures: when the service is full it waits and tries again by itself; safe mode is always on');
   const nPic = picCalls.length;
   submitP('draw a picture of a gun'); await tick(40);
-  ok(picCalls.length === nPic && /can’t make that picture/.test(text(lastBot())), 'pictures: requests not right for school are refused before anything is sent');
+  ok(picCalls.length === nPic && /cannot create that picture/.test(text(lastBot())), 'pictures: requests not right for school are refused before anything is sent');
   ok(PICTURES.wants('graph y = x') === null && PICTURES.wants('draw a triangle with sides 3, 4 and 5') === null && PICTURES.wants('draw me a dog')?.prompt === 'a dog', 'pictures: math drawings stay with Procademy’s exact drawings');
   PICTURES.fetch = (...a) => fetch(...a); PICTURES._reset();
   // files: only pictures, PDFs and text, judged by their bytes; nothing in them can run
@@ -794,7 +794,7 @@
   const plan = E.dailyPlan();
   ok(plan.due.length === 2 && plan.fresh.length >= 1 && plan.total >= 3, `today's practice: due skills plus new ones from the saved course (${plan.due.length} due, ${plan.fresh.length} new)`);
   m = await goFresh('#/');
-  ok(m.querySelector('.daily-card a[href="#/daily"]') && /2 skills to keep fresh/.test(text(m.querySelector('.daily-card'))), 'today\'s practice: Home shows it, with what is in it (' + text(m.querySelector('.daily-card')) + ')');
+  ok(m.querySelector('.daily-card a[href="#/daily"]') && /2 skills to review/.test(text(m.querySelector('.daily-card'))), 'today\'s practice: Home shows it, with what is in it (' + text(m.querySelector('.daily-card')) + ')');
   m = await goFresh('#/daily');
   ses = m.__session;
   ok(ses && ses.kind === 'daily' && ses.items.some(it => it.why === 'review') && ses.items.some(it => it.why === 'new') && m.querySelector('.why-review, .why-new'), 'today\'s practice: a mix, each question saying why it is there');
@@ -809,9 +809,9 @@
   for (let k = 0; k < 12 && !E.isDone(m.__session); k++) { const it = m.__session.items[m.__session.i]; if (!m.querySelector('#next')) { if (it.q.type === 'choice') m.querySelector(`#choices button[data-k="${it.q.answerIndex}"]`).click(); else { const i2 = m.querySelector('#ans'); i2.value = String(it.q.answer); i2.dispatchEvent(new Event('input', { bubbles: true })); } m.querySelector('#check').click(); } m.querySelector('#next').click(); await tick(); }
   ok(m.querySelector('.summary') && (S.get().days[S.today()] || {}).daily === 1 && S.skill('math7.circles').level === 3, 'today\'s practice: finishing marks the day done; it never lowers a level');
   m = await go('#/');
-  ok(/done/.test(text(m.querySelector('.daily-card'))), 'today\'s practice: Home says it is done, and offers another round');
+  ok(/complete/.test(text(m.querySelector('.daily-card'))), 'today\'s practice: Home says it is done, and offers another round');
   m = await go('#/progress');
-  ok(/Keep fresh/.test(text(m)) && /Your mistake patterns/.test(text(m)) && /Sign slips/.test(text(m)), 'progress: what is due, and the learner\'s own mistake patterns with a tip');
+  ok(/Due for review/.test(text(m)) && /Your mistake patterns/.test(text(m)) && /Sign slips/.test(text(m)), 'progress: what is due, and the learner\'s own mistake patterns with a tip');
   // worksheets
   m = await go('#/worksheet/skill/math7.add-negatives');
   ok(m.querySelectorAll('.ws-q').length === 12 && m.querySelectorAll('.ws-key .ws-answers li').length === 12 && /Name/.test(text(m.querySelector('.ws-head'))), 'worksheet: 12 questions, a name line and an answer key');
@@ -934,7 +934,7 @@
   const got = S.get().badges;
   ok(got.first && got.perfect && got.proficient && /badge/i.test(text(document.querySelector('.toast'))), 'badges: a perfect first set earns First steps, Perfect set and Proficient, announced once');
   m = await go2('#/');
-  ok(/7 \/ 20/.test(text(m.querySelector('#goal-tile'))) && /🏅 3/.test(text(m.querySelector('.badge-tile'))), 'goals: Home shows today against the daily goal, and the badges');
+  ok(/7 \/ 20/.test(text(m.querySelector('#goal-tile'))) && /3 badges earned/i.test(text(m.querySelector('.badge-tile'))), 'goals: Home shows today against the daily goal, and the badges');
   m.querySelector('#goal-tile').click(); m.querySelector('[data-goal="10"]').click(); await tick(10);
   m = document.getElementById('main');
   ok(S.get().profile.goal === 10 && /7 \/ 10/.test(text(m.querySelector('#goal-tile'))), 'goals: the goal can be changed from the ring');
@@ -953,17 +953,17 @@
   ok(c && c.k === 'p' && c.id === 'math7.add-negatives' && c.score === 7 && c.name === 'Sam' && S.get().flags.challenge, 'challenge: the link holds the skill, the seed, the score and (if ticked) the name');
   const code2 = DRAW.encode(JSON.stringify({ k: 'p', id: 'math7.add-negatives', seed: seedP, score: 6, total: 7, name: 'Sam' }));
   m = await go2('#/vs/' + code2);
-  ok(/Sam challenges you/.test(text(m)) && /6 \/ 7/.test(text(m)), 'challenge: a friend opening it sees who, what and the score to beat');
+  ok(/Sam has sent you a challenge/.test(text(m)) && /6 \/ 7/.test(text(m)), 'challenge: a friend opening it sees who, what and the score to beat');
   m.querySelector('#vs-go').click(); await tick(20);
   ok(m.__session.items.map(it => it.q.prompt).join('|') === promptsP, 'challenge: the friend gets exactly the same questions');
   await playAll(m, [0, 1]);
-  ok(/Sam wins/.test(text(m.querySelector('.vs-result'))) && /Challenge Sam back/.test(text(m)), 'challenge: the result says who won, and offers a challenge back');
+  ok(/Sam has the higher score/.test(text(m.querySelector('.vs-result'))) && /Challenge Sam back/.test(text(m)), 'challenge: the result says who won, and offers a challenge back');
   m = await go2('#/vs/' + DRAW.encode(JSON.stringify({ k: 'p', id: '<img src=x onerror=alert(1)>', seed: 'x', score: 1, total: 7 })));
-  ok(/doesn’t work/.test(text(m)) && !m.querySelector('img'), 'challenge: a link with a made-up skill is refused');
+  ok(/does not work/.test(text(m)) && !m.querySelector('img'), 'challenge: a link with a made-up skill is refused');
   m = await go2('#/vs/' + DRAW.encode(JSON.stringify({ k: 'p', id: 'math7.add-negatives', seed: 'ab1', score: 3, total: 7, name: '<b>Hi</b><script>x<\/script>' })));
   ok(!m.querySelector('.vs-card b b') && !m.querySelector('script') && /Hi/.test(text(m.querySelector('h1'))), 'challenge: a name in a link is shown as plain text');
   m = await go2('#/vs/not-a-real-code');
-  ok(/doesn’t work/.test(text(m)), 'challenge: a broken link says so');
+  ok(/does not work/.test(text(m)), 'challenge: a broken link says so');
   // a sprint challenge is the same round for both
   const sCode = DRAW.encode(JSON.stringify({ k: 's', id: 'times', secs: 30, seed: 'test7', score: 12, name: 'Ana' }));
   const firstFour = async () => { m = await go2('#/vs/' + sCode); m.querySelector('#vs-go').click(); await tick(20); const rd = m.__sprint, seen = []; for (let k = 0; k < 4; k++) { seen.push(rd.cur.q); const i = m.querySelector('#sp-in'); i.value = String(rd.cur.a); i.dispatchEvent(new Event('input')); await tick(170); } rd.finish(); return seen.join('|'); };
@@ -974,7 +974,7 @@
   const rp = m.__report;
   ok(rp && rp.q >= 14 && rp.ups.some(u => u.id === 'math7.add-negatives' && u.to === 3) && /Sam/.test(text(m.querySelector('.report h1'))) && m.querySelectorAll('.rp-bars > div').length === 7, 'report: the week on one page: questions, skills levelled up, a bar a day');
   m.querySelector('#rp-copy').click(); await tick(10);
-  ok(/Procademy progress report for Sam/.test(REPORT._lastText) && /Leveled up/.test(REPORT._lastText) && /right first try/.test(REPORT._lastText), 'report: it copies as text for a message');
+  ok(/Procademy progress report for Sam/.test(REPORT._lastText) && /Leveled up/.test(REPORT._lastText) && /correct on the first try/.test(REPORT._lastText), 'report: it copies as text for a message');
   m.querySelector('#rp-days').value = '30'; m.querySelector('#rp-days').dispatchEvent(new Event('change'));
   ok(m.querySelectorAll('.rp-bars > div').length === 30, 'report: or the last 30 days');
   S.reset(); S.setProfile({ enrolled: [] });
@@ -1015,12 +1015,12 @@
   // without accounts switched on, the profile still works on this device
   ACCOUNT.useBackend(null); S.reset();
   m = await go3('#/profile');
-  ok(/aren’t switched on/.test(text(m.querySelector('#account'))) && m.querySelectorAll('.av-opt').length >= 20, 'profile: with accounts off it explains, and the profile still works on this device');
+  ok(/aren’t switched on/.test(text(m.querySelector('#account'))) && m.querySelectorAll('.av-hue').length >= 8 && !m.querySelector('.av-opt'), 'profile: with accounts off it explains, and the profile still works on this device');
   m.querySelector('#pf-name').value = 'Priyaan'; m.querySelector('#pf-name').dispatchEvent(new Event('input'));
-  m.querySelector('[data-emoji="🦉"]').click(); await tick(10);
+  m.querySelector('[data-hue="140"]').click(); await tick(10);
   m = document.getElementById('main');
   m.querySelector('#pf-grade').value = '7'; m.querySelector('#pf-grade').dispatchEvent(new Event('change'));
-  ok(S.get().profile.name === 'Priyaan' && S.get().profile.avatar.emoji === '🦉' && S.get().profile.grade === 7 && /🦉/.test(document.getElementById('avatar-btn').textContent), 'profile: name, grade and avatar are saved, and the avatar shows in the header');
+  ok(S.get().profile.name === 'Priyaan' && S.get().profile.avatar.hue === 140 && S.get().profile.grade === 7 && document.getElementById('avatar-btn').textContent.trim() === 'P', 'profile: name, grade and avatar color are saved, and the initial shows in the header');
   ok(TUTORPAGE.contextFor({ about: 'general', level: 'auto', style: 'steps', messages: [] }).level === '7th grade', 'profile: the tutor explains at the grade set here');
   ok(/every school subject/.test(TUTOR.SYSTEM) && /science/.test(TUTOR.SYSTEM) && !/back to math/.test(TUTOR.SYSTEM) && /right for school-age children/.test(TUTOR.SYSTEM), 'tutor: it helps with every subject, kept right for school-age children');
   // computer 1: some progress, then an account
@@ -1147,7 +1147,7 @@
   const vUser = server.users['parent@example.com'];
   ok(/Check your email/.test(text(m.querySelector('#account'))) && /parent@example\.com/.test(text(m.querySelector('#account'))) && server.mails.length === 1 && !server.docs[vUser.uid] && ACCOUNT.status().state !== 'saved', 'verify: an account made with an email gets one email, and saves nothing online until it is confirmed');
   m.querySelector('#ac-check').click(); await tick(30);
-  ok(/Not yet/.test(text(m.querySelector('#account .ac-msg'))) && !server.docs[vUser.uid], 'verify: “I clicked the link” before clicking it says not yet');
+  ok(/not been confirmed yet/.test(text(m.querySelector('#account .ac-msg'))) && !server.docs[vUser.uid], 'verify: “I clicked the link” before clicking it says not yet');
   m.querySelector('#ac-resend').click(); await tick(30);
   ok(server.mails.length === 2 && /Sent again/.test(text(m.querySelector('#account .ac-msg'))), 'verify: the link can be sent again, when asked');
   vUser.verified = true;
@@ -1215,7 +1215,7 @@
   ok(us.items.length === 10 && us.saved === 7 && S.skill('math7.add-negatives').level === 3 && S.skill('math7.add-negatives').sets === 1, 'unlimited: questions keep coming; 7 right in a row are saved as a practice set (Proficient)');
   ok(/9/.test(text(m.querySelector('.ul-tally'))) && /best 7/.test(text(m.querySelector('.ul-tally'))) && /Question 10/.test(text(m)), 'unlimited: the score counts answers, first-try rights and the best streak');
   m.querySelector('#stop').click(); await tick(20);
-  ok(m.querySelector('.summary') && /8 \/ 9/.test(text(m.querySelector('.score'))) && /Best streak: 7/.test(text(m)) && us.saved === 9 && S.get().missed.some(x => x.skill === 'math7.add-negatives'), 'unlimited: Stop saves the rest and shows the score; the missed one goes to Review');
+  ok(m.querySelector('.summary') && /8 \/ 9/.test(text(m.querySelector('.score'))) && /Longest streak: 7/.test(text(m)) && us.saved === 9 && S.get().missed.some(x => x.skill === 'math7.add-negatives'), 'unlimited: Stop saves the rest and shows the score; the missed one goes to Review');
   // a mix never asks the same skill twice in a row, and leaving the page saves what was answered
   m = await go('#/unlimited/unit/math-7/' + A.whereIs('math7.add-negatives').unit.id);
   us = m.__session;
@@ -1373,8 +1373,8 @@
   let refused = false; try { await MOVE.unpack(bomb); } catch (e) { refused = /too big/.test(e.message); }
   ok(refused && bomb.length < 30000, 'move: a short link built to unpack into something huge is refused');
   m = await go4('#/move/zAAAA');
-  await until(() => /doesn’t work/.test(text(m)));
-  ok(/doesn’t work/.test(text(m)), 'move: a broken or cut-short link says so');
+  await until(() => /does not work/.test(text(m)));
+  ok(/does not work/.test(text(m)), 'move: a broken or cut-short link says so');
   m = await go4('#/settings');
   ok(m.querySelector('#mv-make'), 'move: Settings offers it too');
   S.reset(); localStorage.removeItem('procademy.sprints.v1');
@@ -1399,7 +1399,7 @@
   ok(LEARNERS.count() === 2 && S.get().profile.name === 'Asha' && !Object.keys(S.get().skills).length && !localStorage.getItem('procademy.chats.v1') && /Asha/.test(text(m.querySelector('.learner.on'))), 'learners: a new learner starts fresh, with their own tutor chats');
   S.setSkill('math7.circles', { level: 2, tries: 7, right: 5, sets: 1, last: Date.now() });
   m = await go5('#/');
-  ok(/Not you\? Switch/.test(text(m.querySelector('h1'))), 'learners: Home offers a switch when there is more than one');
+  ok(/Switch learner/.test(text(m.querySelector('h1'))), 'learners: Home offers a switch when there is more than one');
   m = await go5('#/profile');
   [...m.querySelectorAll('[data-learner]')].find(b => /Priyaan/.test(text(b))).click(); await until(() => S.get().profile.name === 'Priyaan'); await tick(20);
   ok(S.get().profile.name === 'Priyaan' && S.skill('math7.add-negatives').level === 3 && !S.get().skills['math7.circles'] && /Big brother chat/.test(localStorage.getItem('procademy.chats.v1') || ''), 'learners: switching back brings back that learner’s own progress and chats');
@@ -1623,7 +1623,7 @@
   ok(S.get().badges.tiles, 'tiles: solving one earns Tile mover');
   m = await go9('#/tiles/eq/' + DRAW.encode('x - 2 = -x + 4'));
   tapT(0, 'xp'); tapT(1, 'xn');
-  ok(/aren’t a legal pair/.test(text(m.querySelector('#tl-msg'))) && T.line(m.__tiles.mat) === 'x − 2 = −x + 4', 'tiles: an x and a −x on different sides are not a legal pair');
+  ok(/are not a legal pair/.test(text(m.querySelector('#tl-msg'))) && T.line(m.__tiles.mat) === 'x − 2 = −x + 4', 'tiles: an x and a −x on different sides are not a legal pair');
   m.querySelector('[data-add="xp"]').click(); tapT(1, 'xp'); tapT(1, 'xn');
   m.querySelector('[data-add="up"]').click(); m.querySelector('[data-add="up"]').click(); tapT(0, 'up'); tapT(0, 'un'); tapT(0, 'up'); tapT(0, 'un');
   ok(T.line(m.__tiles.mat) === '2x = 6' && m.querySelector('#tl-split'), 'tiles: adding to both sides and removing zero pairs gets x alone');
@@ -1642,7 +1642,7 @@
   m.querySelector('[data-ans="depends"]').click();
   ok(m.__tiles.answered.right && m.querySelector('#tl-at-in'), 'tiles: “It depends on x” is right here; then: where are they equal?');
   m.querySelector('#tl-at-in').value = '2'; m.querySelector('#tl-at-go').click();
-  ok(/equal when x = 2/.test(text(m)) && /bigger x, Mat A is less/.test(text(m)), 'tiles: equal at x = 2, and which is greater on each side of it');
+  ok(/equal when x = 2/.test(text(m)) && /larger values of x, Mat A is less/.test(text(m)), 'tiles: equal at x = 2, and which is greater on each side of it');
   S.reset();
   }
 
@@ -1672,7 +1672,7 @@
   const wsel = m.querySelector('#ch-watch'); wsel.value = '1'; wsel.dispatchEvent(new Event('change', { bubbles: true }));
   m.querySelector('#ch-guess').value = '12'; m.querySelector('#ch-go').click();
   st = m.__chance;
-  ok(st.n === 101 && st.predicted && st.predicted.guess === 12 && /You guessed 12/.test(text(m)) && /100 × 1\/8/.test(text(m)), 'chance: predict, then run 100 and compare with the theory');
+  ok(st.n === 101 && st.predicted && st.predicted.guess === 12 && /You predicted 12/.test(text(m)) && /100 × 1\/8/.test(text(m)), 'chance: predict, then run 100 and compare with the theory');
   m = await go10('#/chance/bag');
   let r3 = 0; for (let k = 0; k < 4000; k++) if (CHANCE.trial('bag', [['R', 3], ['B', 1]], CHANCE.rand).i === 0) r3++;
   ok(m.querySelectorAll('.ch-marble').length === 10 && r3 > 2850 && r3 < 3150, `chance: a bag of marbles; 3 red and 1 blue gives red about 3/4 of the time (${r3} of 4,000)`);
@@ -1699,7 +1699,7 @@
   ok(C('1/3 + 1/4').answer.text === '= 7/12' && C('2/3 ÷ 4/9').answer.text === '= 3/2' && C('1/2 + 2/3 × 3/4').answer.text === '= 1', 'calc: fractions stay exact, and a typed fraction stays together (2/3 ÷ 4/9 = 3/2)');
   ok(C('0.1 + 0.2').answer.text === '= 0.3' && C('15% of 80').answer.text === '= 12' && C('2^-3').answer.text === '= 1/8' && C('3x4').answer.text === '= 12' && C('1,000 × 3').answer.text === '= 3,000', 'calc: decimals, percent of, negative powers, x for times, commas in big numbers');
   ok(C('sin(30)').answer.text === '= 1/2' && C('sin(π ÷ 2)', { deg: false }).answer.text === '= 1' && C('√2 × √2').answer.text === '= 2' && /^≈ 3\.4641/.test(C('√12').answer.text) && C('√(9/4)').answer.text === '= 3/2', 'calc: trig in degrees and radians, roots, and a decimal that is really a whole number');
-  ok(/divide by zero/.test(C('1/0').error) && /missing/.test(C('3 +').error) && /don’t know/.test(C('hello').error) && /isn’t defined/.test(C('tan(90)').error) && C('(2 + 3').answer.text === '= 5', 'calc: clear messages for mistakes, and a missing ) is closed for you');
+  ok(/divide by zero/.test(C('1/0').error) && /missing/.test(C('3 +').error) && /does not recognize/.test(C('hello').error) && /is not defined/.test(C('tan(90)').error) && C('(2 + 3').answer.text === '= 5', 'calc: clear messages for mistakes, and a missing ) is closed for you');
   const s29 = C('2 + 3 × (4 − 1)²');
   ok(s29.answer.text === '= 29' && s29.steps.length === 5 && /Common denominator 12: 4\/12 \+ 3\/12 = 7\/12/.test(C('1/3 + 1/4').steps[1].notes.join(' ')) && /reciprocal, 9\/4/.test(C('2/3 ÷ 4/9').steps[1].notes.join(' ')), 'calc: the order of operations one level at a time, with how each fraction step was done');
   const f7 = C('1/7').answer.forms.map(f => f[0]), f53 = C('5/3').answer.forms;
@@ -1761,7 +1761,7 @@
   ok(m.__data.sets.length === 1 && m.__data.sets[0].outliers.join() === '450' && m.querySelector('.dt-outlier'), 'data: an outlier is found by the 1.5 × IQR rule and drawn on its own');
   m.querySelector('#dt-a').value = '3, 5, x, 7'; m.querySelector('#dt-a').dispatchEvent(new Event('input', { bubbles: true }));
   await tick(260);
-  ok(m.__data.sets[0].n === 3 && /“x” isn’t a number/.test(text(m)), 'data: something that isn’t a number is left out, and it says so');
+  ok(m.__data.sets[0].n === 3 && /“x” is not a number/.test(text(m)), 'data: something that isn’t a number is left out, and it says so');
 
   m = await go10('#/tools');
   ok(m.querySelectorAll('.tool').length === 17 && m.querySelector('.tool[href="#/unlimited"]') && m.querySelector('.tool[href="#/calc"]') && m.querySelector('.tool[href="#/numbers"]') && m.querySelector('.tool[href="#/data"]'), 'tools: every tool on one page');
@@ -1788,7 +1788,7 @@
   ok(/^72π/.test(sv('cyl', [3, 8]).res[0][1]) && /^66π/.test(sv('cyl', [3, 8]).res[1][1]) && /^24π/.test(sv('cone', [3, 4]).res[1][1]) && /^36π/.test(sv('sphere', [3]).res[0][1]) && /<span class="frac"><span class="num">32<\/span><span class="den">3<\/span><\/span>π/.test(sv('sphere', [2]).res[0][1]), 'shapes: cylinders, cones and spheres exactly (32/3 π stays a fraction)');
   const t345 = sv('sides', [3, 4, 5]).hook, t567 = sv('sides', [5, 6, 7]).hook;
   ok(t345.triangle && t345.byAngles === 'right' && Math.abs(t345.angles[2] - 90) < 1e-9 && t567.byAngles === 'acute' && t567.bySides === 'scalene' && sv('sides', [2, 2, 2]).hook.bySides === 'equilateral' && sv('sides', [3, 4, 8]).hook.triangle === false && sv('sides', [3, 4, 7]).hook.triangle === false, 'shapes: the triangle builder sorts triangles by sides and angles, and 3, 4, 8 (or 3, 4, 7) can’t be one');
-  ok(sv('angle', [50]).hook.complement === 40 && sv('angle', [50]).hook.supplement === 130 && sv('angle', [120]).hook.type === 'obtuse' && sv('angle', [90]).hook.type === 'right' && /between 0° and 360°/.test(sv('angle', [400]).error) && /smaller/.test(sv('frame', [5, 5, 6, 2]).error) && /bigger than 0/.test(sv('rect', [0, 3]).error), 'shapes: angle pairs, and clear messages for numbers that don’t work');
+  ok(sv('angle', [50]).hook.complement === 40 && sv('angle', [50]).hook.supplement === 130 && sv('angle', [120]).hook.type === 'obtuse' && sv('angle', [90]).hook.type === 'right' && /between 0° and 360°/.test(sv('angle', [400]).error) && /smaller/.test(sv('frame', [5, 5, 6, 2]).error) && /greater than 0/.test(sv('rect', [0, 3]).error), 'shapes: angle pairs, and clear messages for numbers that don’t work');
   m = await go10('#/shapes/box/5_3_4_cm');
   ok(m.__shapes.kind === 'box' && m.__shapes.volume === 60 && m.__shapes.unit === 'cm' && m.querySelectorAll('.sh-net').length === 6 && /60 cm³/.test(text(m)) && m.querySelectorAll('.sh-faces tbody tr').length === 3 && m.querySelector('.sh-hid'), 'shapes page: a link opens a prism in centimetres, drawn with hidden edges, with its net and a table of faces');
   const sl = m.querySelector('#sh-f0');
@@ -1846,7 +1846,7 @@
   localStorage.setItem(LEAP.KEY, JSON.stringify({ level: 30, stars: {}, daily: {} }));
   m = await go10('#/leap/' + lv);
   m.querySelector(`[data-card="${ci}"]`).click();
-  ok(ci >= 0 && m.__leap.mistakes === 1 && /Splash/.test(text(m.querySelector('#lp-status'))), 'leap: landing in a hole is a splash');
+  ok(ci >= 0 && m.__leap.mistakes === 1 && /landed in the hole/.test(text(m.querySelector('#lp-status'))), 'leap: landing in a hole is a splash');
   await tick(1000);
   ok(m.__leap.used === 0 && m.__leap.pos === m.__leap.start, 'leap: after a splash the frog climbs back out');
   m = await go10('#/leap/daily');
@@ -1874,7 +1874,7 @@
   const fv = (op, a, b) => FRACTIONS.solve(op, [a, b]).hook;
   ok(fv('add', '3/4', '5/6').answer === '19/12' && fv('add', '3/4', '5/6').mixed === '1 7/12' && fv('add', '3/4', '5/6').lcd === 12 && fv('sub', '2 1/3', '3/4').mixed === '1 7/12' && fv('sub', '2/3', '3/4').answer === '−1/12', 'fractions: adding and subtracting with a common denominator, mixed numbers, and a negative answer');
   ok(fv('mul', '2/3', '3/4').answer === '1/2' && fv('mul', '2 1/2', '1 1/3').mixed === '3 1/3' && fv('mul', '3', '2/5').answer === '6/5' && FRACTIONS.solve('mul', ['2 1/2', '1 1/3']).work.some(w => w[0] === 'With a generic rectangle' && w[1].length === 6), 'fractions: multiplying, with a generic rectangle for mixed numbers');
-  ok(fv('div', '2 1/2', '3/4').mixed === '3 1/3' && fv('div', '2 1/2', '3/4').groups === 3 && fv('div', '2 1/2', '3/4').rest === '1/3' && fv('div', '1/4', '1/2').answer === '1/2' && /can’t divide by 0/.test(FRACTIONS.solve('div', ['3', '0']).error), 'fractions: dividing counts whole groups and the part of a group left over; dividing by 0 is explained');
+  ok(fv('div', '2 1/2', '3/4').mixed === '3 1/3' && fv('div', '2 1/2', '3/4').groups === 3 && fv('div', '2 1/2', '3/4').rest === '1/3' && fv('div', '1/4', '1/2').answer === '1/2' && /cannot divide by 0/.test(FRACTIONS.solve('div', ['3', '0']).error), 'fractions: dividing counts whole groups and the part of a group left over; dividing by 0 is explained');
   ok(fv('compare', '5/8', '3/5').cmp === '>' && fv('compare', '5/8', '3/5').diff === '1/40' && fv('compare', '2/4', '1/2').cmp === '=' && fv('compare', '1/3', '2/5').cmp === '<', 'fractions: comparing, by how much, and equivalent fractions');
   ok(fv('simplify', '18/24').answer === '3/4' && fv('simplify', '18/24').gcf === 6 && fv('simplify', '0.75').answer === '3/4' && /<span class="cx-rep"[^>]*>3<\/span>/.test(FRACTIONS.solve('simplify', ['1/3']).res[1][1]) && /33.*1.*3.*%/.test(FRACTIONS.solve('simplify', ['1/3']).res[2][1].replace(/<[^>]+>/g, ' ')), 'fractions: simplest form with the GCF, decimals turned into fractions, and repeating decimals marked');
   ok(FRACTIONS.parse('1½').text === '1 1/2' && FRACTIONS.parse(' 3 / 4 ').text === '3/4' && FRACTIONS.parse('2 and 1/3').text === '2 1/3' && FRACTIONS.parse('1/0').error === 'zero' && FRACTIONS.parse('-1/2').error === 'negative' && FRACTIONS.parse('cat').error === 'bad', 'fractions: reads ½, spaces and “and”, and says what is wrong with the rest');
@@ -1944,14 +1944,14 @@
   m = await go10('#/integers/build');
   const act = a => m.querySelector(`[data-act="${a}"]`).click();
   act('p'); act('p'); act('n'); act('zp'); await tick(20);
-  ok(m.__integers.value === 1 && m.__integers.pos === 3 && m.__integers.neg === 2 && m.querySelectorAll('#it-mat .it-pair').length === 2 && /Worth 1/.test(text(m.querySelector('#it-val'))), 'integers build: tiles and zero pairs go on the mat, and it shows what they’re worth');
+  ok(m.__integers.value === 1 && m.__integers.pos === 3 && m.__integers.neg === 2 && m.querySelectorAll('#it-mat .it-pair').length === 2 && /Value: 1/.test(text(m.querySelector('#it-val'))), 'integers build: tiles and zero pairs go on the mat, and it shows what they’re worth');
   act('clear'); act('tn'); await tick(20);
   ok(m.__integers.neg === 0 && /zero pair first/.test(text(m.querySelector('#it-msg'))), 'integers build: taking off a tile that isn’t there says to add a zero pair first');
   const gl = m.__integers.goal;
   for (let i = 0; i < (gl.total + gl.value) / 2; i++) act('p');
   for (let i = 0; i < (gl.total - gl.value) / 2; i++) act('n');
   await tick(20);
-  ok(m.__integers.done && m.__integers.solved === 1 && /That’s it/.test(text(m)), 'integers build: making the number with exactly the right number of tiles solves the challenge');
+  ok(m.__integers.done && m.__integers.solved === 1 && /Correct:/.test(text(m)), 'integers build: making the number with exactly the right number of tiles solves the challenge');
   m.querySelector('#it-new').click(); await tick(20);
   ok(!m.__integers.done && m.__integers.pos === 0 && location.hash === '#/integers/build/2', 'integers build: a new challenge clears the mat');
   S.reset();
