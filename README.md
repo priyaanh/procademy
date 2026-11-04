@@ -146,13 +146,16 @@ curious student asks, at the learner's grade, kept right for school-age children
 the learner write it rather than writing it for them.
 
 **Practice any topic** (`lib/topics.js`, on the Practice page `#/unlimited` and offered by search): the
-learner types a topic and the free cloud AI writes multiple-choice questions five at a time at the learner's
-grade, through `TUTOR.complete()` (the same services and waiting rules as the tutor, never the on-device
-model, and never interrupting the tutor). Each batch is double-checked: the AI answers the questions again
-without the key, and a question whose answers disagree is dropped (in testing this caught keys that were
-simply wrong). The next batch is written while the learner works. "This looks wrong" takes a question out of
-the score. Answers count toward the day's questions, points and streak, never toward skill levels; the topic
-goes into the progress log. A learner whose tutor runs on this device is asked before the topic is sent.
+learner types a topic and multiple-choice questions follow without end, at the learner's grade, and without
+waiting. The twelve suggested topics start with questions written and checked by hand (`lib/topicbank.js`),
+so they begin at once with no AI request. Any other topic is written by the free AI through
+`TUTOR.complete()`, and each question is shown as soon as it has streamed in; when the free cloud services
+would make the learner wait, unlimited mode's model on this device writes them instead. The next questions
+are written while the learner works. A second check runs in the background only when a service is free: the
+AI answers the questions again without the key, and a question whose answers disagree is dropped before it
+is shown. "Report a problem" takes a question out of the score. Answers count toward the day's questions,
+points and streak, never toward skill levels; the topic goes into the progress log. A learner whose tutor
+runs on this device is asked before a topic is sent to the cloud.
 
 - **Cloud first.** Two free cloud services that run the same model (GPT-OSS 20B), LLM7 and Pollinations,
   answer at once while either is free. The cloud tutor sends the question typed and the problem on
