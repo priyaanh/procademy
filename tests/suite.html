@@ -1015,13 +1015,14 @@
   // without accounts switched on, the profile still works on this device
   ACCOUNT.useBackend(null); S.reset();
   m = await go3('#/profile');
-  ok(/aren’t switched on/.test(text(m.querySelector('#account'))) && m.querySelectorAll('.av-hue').length >= 8 && !m.querySelector('.av-opt'), 'profile: with accounts off it explains, and the profile still works on this device');
+  ok(/are not switched on/.test(text(m.querySelector('#account'))) && m.querySelectorAll('.av-hue').length >= 8 && !m.querySelector('.av-opt'), 'profile: with accounts off it explains, and the profile still works on this device');
   m.querySelector('#pf-name').value = 'Priyaan'; m.querySelector('#pf-name').dispatchEvent(new Event('input'));
   m.querySelector('[data-hue="140"]').click(); await tick(10);
   m = document.getElementById('main');
   m.querySelector('#pf-grade').value = '7'; m.querySelector('#pf-grade').dispatchEvent(new Event('change'));
   ok(S.get().profile.name === 'Priyaan' && S.get().profile.avatar.hue === 140 && S.get().profile.grade === 7 && document.getElementById('avatar-btn').textContent.trim() === 'P', 'profile: name, grade and avatar color are saved, and the initial shows in the header');
   ok(TUTORPAGE.contextFor({ about: 'general', level: 'auto', style: 'steps', messages: [] }).level === '7th grade', 'profile: the tutor explains at the grade set here');
+  ok(TUTOR.clean('### 1️⃣ Choose a thesis 🎉 ✓ checked → next') === '### 1. Choose a thesis ✓ checked → next' && /formal, clear and respectful tone/.test(TUTOR.SYSTEM) && /no emojis/i.test(TUTOR.SYSTEM.replace('Do not use emojis', 'no emojis')), 'tutor: replies are formal, with emojis removed (numbered ones become 1.) and notation kept');
   ok(/every school subject/.test(TUTOR.SYSTEM) && /science/.test(TUTOR.SYSTEM) && !/back to math/.test(TUTOR.SYSTEM) && /right for school-age children/.test(TUTOR.SYSTEM), 'tutor: it helps with every subject, kept right for school-age children');
   // computer 1: some progress, then an account
   S.setSkill('math7.add-negatives', { level: 3, tries: 7, right: 7, sets: 1, last: Date.now() });
@@ -1052,7 +1053,7 @@
   m.querySelector('[data-tab="in"]').click();
   fill('#ac-id', 'priyaan'); fill('#ac-pw-in', 'wrongpass1');
   m.querySelector('#ac-in').dispatchEvent(new Event('submit', { cancelable: true })); await tick(40);
-  ok(/don’t match/.test(text(m.querySelector('#ac-in .ac-msg'))) && !ACCOUNT.user(), 'accounts: a wrong password is refused');
+  ok(/do not match/.test(text(m.querySelector('#ac-in .ac-msg'))) && !ACCOUNT.user(), 'accounts: a wrong password is refused');
   fill('#ac-pw-in', 'mathrocks1');
   m.querySelector('#ac-in').dispatchEvent(new Event('submit', { cancelable: true })); await tick(80);
   ok(ACCOUNT.user() && S.skill('math7.add-negatives').level === 3 && S.skill('math7.circles').level === 2 && S.get().profile.name === 'Priyaan', 'accounts: logging in on another computer brings all the progress and the profile');
@@ -1090,7 +1091,7 @@
   ok(!ACCOUNT.user() && /still loading/.test(text(m.querySelector('#ac-g .ac-msg'))) && !server.users['google:kid@gmail.com'], 'google: a click before sign-in has loaded asks to press again, instead of a pop-up the browser would block');
   server.status = 'failed';
   m.querySelector('#ac-google').click(); await tick(40);
-  ok(!ACCOUNT.user() && /can’t be reached/.test(text(m.querySelector('#ac-g .ac-msg'))), 'google: when sign-in can’t load, it says so plainly');
+  ok(!ACCOUNT.user() && /cannot be reached/.test(text(m.querySelector('#ac-g .ac-msg'))), 'google: when sign-in can’t load, it says so plainly');
   server.status = null;
   server.socialFail = 'auth/popup-closed-by-user';
   m.querySelector('#ac-google').click(); await tick(40);
@@ -1173,7 +1174,7 @@
   fill('#ac-user', 'comet'); fill('#ac-pass', 'nucleus123'); fill('#ac-pass2', 'nucleus123'); fill('#ac-email', 'busy@example.com');
   m.querySelector('#ac-new').dispatchEvent(new Event('submit', { cancelable: true })); await tick(60);
   m = document.getElementById('main');
-  ok(/couldn’t be sent just now/.test(text(m.querySelector('#account'))) && m.querySelector('#ac-resend'), 'verify: when the email can’t be sent, it says so and offers to send it again');
+  ok(/could not be sent just now/.test(text(m.querySelector('#account'))) && m.querySelector('#ac-resend'), 'verify: when the email can’t be sent, it says so and offers to send it again');
   server.sendFail = null;
   await ACCOUNT.logOut(true);
   window.PROCADEMY_OFFLINE = { build: 'test' };
@@ -1187,7 +1188,7 @@
   S.reset();
   m = await go('#/new');
   const wnDays = [...m.querySelectorAll('.whatsnew time')].map(t => t.getAttribute('datetime'));
-  ok(/What’s new/.test(text(m.querySelector('h1'))) && wnDays.length >= 8 && wnDays.every((d, i) => !i || d < wnDays[i - 1]) && m.querySelectorAll('.wn-list li').length >= 30, 'what’s new: every update, newest first');
+  ok(/Updates/.test(text(m.querySelector('h1'))) && wnDays.length >= 8 && wnDays.every((d, i) => !i || d < wnDays[i - 1]) && m.querySelectorAll('.wn-list li').length >= 30, 'what’s new: every update, newest first');
   ok([...m.querySelectorAll('.wn-list a')].some(a => /\/privacy\.html$/.test(a.href)), 'what’s new: the privacy page is linked on the website');
   const wnLost = [];
   for (const h of new Set(WHATSNEW.UPDATES.flatMap(([, items]) => items.map(x => x[0])).filter(h => h.startsWith('#')))) { const p = await go(h); if (/Not here/.test(text(p.querySelector('h1')))) wnLost.push(h); }
@@ -1406,7 +1407,7 @@
   m = document.getElementById('main');
   [...m.querySelectorAll('[data-learner]')].find(b => /Asha/.test(text(b))).click(); await tick(20);
   m.querySelector('#ln-unlock-pin').value = '9999'; m.querySelector('#ln-unlock').dispatchEvent(new Event('submit', { cancelable: true })); await tick(60);
-  ok(S.get().profile.name === 'Priyaan' && /isn’t right/.test(text(m.querySelector('#ln-more .ac-msg'))), 'learners: a wrong PIN does not switch');
+  ok(S.get().profile.name === 'Priyaan' && /is not right/.test(text(m.querySelector('#ln-more .ac-msg'))), 'learners: a wrong PIN does not switch');
   m.querySelector('#ln-unlock-pin').value = '1234'; m.querySelector('#ln-unlock').dispatchEvent(new Event('submit', { cancelable: true })); await until(() => S.get().profile.name === 'Asha');
   ok(S.get().profile.name === 'Asha' && S.skill('math7.circles').level === 2, 'learners: the right PIN switches');
   const ashaId = LEARNERS.active();
