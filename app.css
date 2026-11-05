@@ -131,6 +131,31 @@ pre.code { font-family: var(--mono); font-size: .92em; background: var(--surface
   .hero .btn-row > .btn, .cpm-now .btn-row > .btn { flex: 1 1 100%; }
   .hero { padding: 22px 18px; }
 }
+/* phones: the main pages in a bar along the bottom, in reach of a thumb, and More for the rest (lib/app.js); the
+   header keeps the logo, the search box and the profile */
+.tabbar, .more-sheet, .more-backdrop { display: none; }
+@media (max-width: 700px) {
+  .top .nav, .top .iconbtn, .top .stats { display: none; }
+  .top .bar { flex-wrap: nowrap; }
+  .search { order: 0; flex: 1 1 0; min-width: 0; }
+  body { padding-bottom: calc(66px + env(safe-area-inset-bottom, 0px)); }
+  .tabbar { display: grid; grid-template-columns: repeat(5, 1fr); position: fixed; left: 0; right: 0; bottom: 0; z-index: 42; background: var(--surface); border-top: 1px solid var(--line); padding: 4px 4px calc(4px + env(safe-area-inset-bottom, 0px)); }
+  .tabbar a, .tabbar button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 54px; padding: 4px 0; border: 0; border-radius: 12px; background: none; color: var(--muted); font: inherit; font-size: .74rem; font-weight: 600; cursor: pointer; }
+  .tabbar a:hover { text-decoration: none; color: var(--ink); }
+  .tab-ic { display: grid; place-items: center; width: 52px; height: 30px; border-radius: 999px; transition: background-color .15s; }
+  .tabbar .active, .tabbar button[aria-expanded="true"] { color: var(--primary-ink); }
+  .tabbar .active .tab-ic, .tabbar button[aria-expanded="true"] .tab-ic { background: var(--primary-soft); }
+  .more-backdrop:not([hidden]) { display: block; position: fixed; inset: 0; z-index: 41; background: rgba(15, 23, 42, .4); }
+  .more-sheet:not([hidden]) { display: grid; gap: 2px; position: fixed; left: 8px; right: 8px; bottom: calc(70px + env(safe-area-inset-bottom, 0px)); z-index: 43; padding: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 16px 40px rgba(15, 23, 42, .25); }
+  .more-sheet a { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 12px; color: var(--ink); }
+  .more-sheet a:hover { text-decoration: none; background: var(--surface-2); }
+  .more-sheet a.active { background: var(--primary-soft); }
+  .more-sheet b { display: block; font-weight: 600; }
+  .more-sheet small { display: block; color: var(--muted); font-size: .82rem; }
+  .more-ic { flex: none; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; background: var(--surface-2); color: var(--primary-ink); }
+  body .tutor-fab { bottom: calc(78px + env(safe-area-inset-bottom, 0px)); }
+  body .toast { bottom: calc(86px + env(safe-area-inset-bottom, 0px)); }
+}
 
 /* ---------- layout ---------- */
 main { flex: 1; width: 100%; max-width: 1180px; margin: 0 auto; padding: 24px 16px 48px; container: page / inline-size; }

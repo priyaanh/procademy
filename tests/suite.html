@@ -1371,6 +1371,18 @@
   TUt.fetch = realF; TUt.cloud.use = use0; S.reset();
   }
 
+  { // phones: the main pages in a tab bar along the bottom, and More for the rest (shown by app.css below 700 px)
+  const tb = document.querySelector('.tabbar'), moreB = document.getElementById('tab-more'), sheet = document.getElementById('more-sheet');
+  m = await go('#/unlimited');
+  ok(tb && [...tb.querySelectorAll('a')].map(a => text(a)).join(',') === 'Home,Practice,Courses,Tutor' && tb.querySelector('a.active[data-nav="unlimited"][aria-current="page"]'), 'tab bar: Home, Practice, Courses and Tutor, with the current page marked');
+  moreB.click(); await tick(10);
+  ok(!sheet.hidden && moreB.getAttribute('aria-expanded') === 'true' && [...sheet.querySelectorAll('a')].map(a => a.getAttribute('href')).join(' ') === '#/cpm #/tools #/progress #/profile #/settings #/new', 'tab bar: More opens CPM books, Tools, Progress, Profile, Settings and Updates');
+  sheet.querySelector('a[href="#/tools"]').click(); await tick(60);
+  ok(location.hash === '#/tools' && sheet.hidden && moreB.classList.contains('active') && !tb.querySelector('a.active'), 'tab bar: a page chosen from More opens, More closes, and More is marked as where you are');
+  moreB.click(); await tick(10); document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await tick(10);
+  ok(sheet.hidden && moreB.getAttribute('aria-expanded') === 'false', 'tab bar: Escape closes More');
+  }
+
   { // the search box: it grows when selected, shows results as you type, and the arrow keys and Enter pick one
   S.reset(); S.setProfile({ grade: 7, welcomed: true, seenNews: 'n10' });
   try { localStorage.removeItem('procademy.searches.v1'); } catch (e) {}
