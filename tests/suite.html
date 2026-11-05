@@ -328,6 +328,8 @@
       { n: 2, title: 'Circles', lessons: [{ id: '2.1.1', title: 'Circle Measures', topic: 'Area and circumference of circles using 3.14.', skills: ['math7.circles'] }] }] });
   let m = await go('#/cpm');
   ok(text(m).includes('Test Book') && m.querySelector('.course-card'), 'cpm: the books page lists a book');
+  const stacks = [...m.querySelectorAll('#cpm-books .icon.mono.stack')];
+  ok(ACADEMY.cpm.filter(b => /^(CC|INT)\d$/.test(b.icon)).length === 6 && stacks.length >= 6 && new Set(stacks.map(x => x.offsetWidth + 'x' + x.offsetHeight)).size === 1 && stacks.every(x => /^(CC|INT)\d$/.test(text(x).replace(/\s/g, ''))), 'cpm: every book badge is the same size, its series over its number (CC 2, INT 1)');
   const find = m.querySelector('#cpm-find'); find.value = 'circumference'; find.dispatchEvent(new Event('input'));
   ok([...m.querySelectorAll('#cpm-results li[data-lesson]')].some(li => text(li).includes('Circle Measures')) && m.querySelector('#cpm-books').hidden, 'cpm: searching across books finds the lesson by topic');
   m = await go('#/cpm/zz');
@@ -2011,7 +2013,7 @@
   ok(m.__integers.done && m.__integers.solved === 1 && /Correct:/.test(text(m)), 'integers build: making the number with exactly the right number of tiles solves the challenge');
   m.querySelector('#it-new').click();
   for (let k = 0; k < 50 && !(location.hash === '#/integers/build/2' && !m.__integers.done); k++) { await tick(20); m = document.getElementById('main'); }      // a busy computer can take a moment
-  ok(!m.__integers.done && m.__integers.pos === 0 && location.hash === '#/integers/build/2', 'integers build: a new challenge clears the mat');
+  ok(!m.__integers.done && m.__integers.pos === 0 && location.hash === '#/integers/build/2', 'integers build: a new challenge clears the mat' + (m.__integers.done || location.hash !== '#/integers/build/2' ? ` (now ${location.hash} ${JSON.stringify(m.__integers)})` : ''));
   S.reset();
   }
 

@@ -6,7 +6,7 @@
 ACADEMY.cpmBook({
   id: 'int3',
   title: 'Core Connections Integrated III', short: 'Integrated III',
-  band: 'High school', grade: 11, icon: 'CCIII', hue: 20,
+  band: 'High school', grade: 11, icon: 'INT3', hue: 20,
   homework: 'https://homework.cpm.org/category/CCI_CT/textbook/int3',
   sources: [
     'https://mathleaks.com/study/core-connections-integrated-iii-2015',

@@ -9,7 +9,7 @@
 ACADEMY.cpmBook({
   id: 'int2',
   title: 'Core Connections Integrated II', short: 'Integrated II',
-  band: 'High school', grade: 10, icon: 'CCII', hue: 330,
+  band: 'High school', grade: 10, icon: 'INT2', hue: 330,
   homework: 'https://homework.cpm.org/category/CCI_CT/textbook/int2',
   sources: [
     'https://mathleaks.com/study/core-connections-integrated-ii-2015',

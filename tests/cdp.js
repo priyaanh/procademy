@@ -14,8 +14,9 @@ const CHROME = process.env.CHROME || '/Applications/Google Chrome.app/Contents/M
 const port = 9400 + Math.floor(Math.random() * 400);
 const gpu = /webgpu/i.test(process.env.EXTRA_FLAGS || '');      // the live tutor test needs the real GPU
 // a suite that runs past 5 minutes (a busy computer) would otherwise have its timers slowed to once a minute,
-// because headless Chrome treats the page as a background tab
-const NO_THROTTLE = ['--disable-background-timer-throttling', '--disable-backgrounding-occluded-windows', '--disable-renderer-backgrounding', '--disable-features=IntensiveWakeUpThrottling'];
+// because headless Chrome treats the page as a background tab; and the suite changes the address hundreds of times
+// in seconds, which Chrome would start quietly ignoring (flooding protection)
+const NO_THROTTLE = ['--disable-background-timer-throttling', '--disable-backgrounding-occluded-windows', '--disable-renderer-backgrounding', '--disable-features=IntensiveWakeUpThrottling', '--disable-ipc-flooding-protection'];
 const chrome = spawn(CHROME, ['--headless=new'].concat(gpu ? [] : ['--disable-gpu'], ['--no-first-run'], NO_THROTTLE).concat([ '--allow-file-access-from-files', '--remote-debugging-port=' + port,
   '--window-size=1280,1000'].concat((process.env.EXTRA_FLAGS || '').split(' ').filter(Boolean), ['about:blank'])), { stdio: 'ignore' });
 let sawError = false;

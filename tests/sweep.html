@@ -110,13 +110,15 @@
   routes.push('#/daily', '#/graph', '#/graph/' + DRAW.encode('y = a(x - h)^2 + k\na = 1\nh = 2\nk = -3\nx^2 + y^2 < 16\ntriangle A(1,1) B(4,1) C(1,3)'));
   A.courses.forEach(c => c.units.forEach(u => routes.push('#/worksheet/unit/' + c.id + '/' + u.id)));
   A.cpm.forEach(b => b.chapters.slice(0, 2).forEach(ch => ch.lessons.slice(0, 2).forEach(l => { if (l.skills.some(id => A.skills[id])) routes.push('#/worksheet/lesson/' + b.id + '/' + encodeURIComponent(l.id)); })));
+  // wait for the page to change (a fixed pause reads the previous page on a busy computer); a repeated route has no change to wait for
+  const arrive = h => new Promise(res => { const t = setTimeout(res, 1000); addEventListener('hashchange', () => { clearTimeout(t); res(); }, { once: true }); location.hash = h; });
   const problems = { error: [], text: [], wide: [] };
   for (const r of routes) {
     errors = [];
-    location.hash = r; await tick(5);
+    await arrive(r); await tick(5);
     const t = main.innerText || '';
     if (errors.length) problems.error.push(r + ' :: ' + errors[0]);
-    const bad = t.match(/\bundefined\b|\bNaN\b|\[object Object\]|Something went wrong/);
+    const bad = t.replace(/\b(is|are|be|and) undefined\b/g, '').match(/\bundefined\b|\bNaN\b|\[object Object\]|Something went wrong/);      // “tangent is undefined” is math
     if (bad) problems.text.push(r + ' :: ' + bad[0] + ' :: ' + t.slice(Math.max(0, t.indexOf(bad[0]) - 60), t.indexOf(bad[0]) + 40).replace(/\s+/g, ' '));
     const vw = document.documentElement.clientWidth;
     if (document.documentElement.scrollWidth > vw + 1) {
@@ -126,7 +128,7 @@
     }
   }
   console.log('ROUTES ' + routes.length + ' at ' + document.documentElement.clientWidth + 'px wide');
-  for (const k of Object.keys(problems)) { console.log('PROBLEM ' + k + ' ' + problems[k].length); problems[k].slice(0, 12).forEach(p => console.log('  ' + k + ': ' + p)); }
+  for (const k of Object.keys(problems)) { console.log('PROBLEM ' + k + ' ' + problems[k].length); problems[k].slice(0, +(new URLSearchParams(location.search).get('show') || 12)).forEach(p => console.log('  ' + k + ': ' + p)); }
   const failed = Object.values(problems).reduce((a, l) => a + l.length, 0);
   console.log(`RESULTS ${failed} failed of ${routes.length}`);
 })();
