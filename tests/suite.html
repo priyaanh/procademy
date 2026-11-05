@@ -83,6 +83,8 @@
 <script src="../lib/fractions.js"></script>
 <script src="../lib/integers.js"></script>
 <script>STORE.useMemory(true); /* the suite never touches real data */</script>
+<script src="../lib/placement.js"></script>
+<script src="../lib/install.js"></script>
 <script src="../lib/quicksearch.js"></script>
 <script src="../lib/app.js"></script>
 <script>
@@ -1290,8 +1292,8 @@
   ok(/^Correct, well done\./.test(text(m.querySelector('#feedback'))) && text(m.querySelector('#feedback')).includes(bankQ[3]) && !m.querySelector('#tp-flag') && /Answered 1/.test(text(m.querySelector('.ul-tally'))), 'topics: a right answer says Correct, well done, and why');
   // any other topic: the first question shows while the rest are still being written
   tpGap = 120;
-  m = await go('#/unlimited/topic/7/volcanoes');
-  ok(/Getting questions ready on volcanoes/.test(text(m)) && !/busy/i.test(text(m)), 'topics: while the first questions are written it says so plainly, never that the AI is busy');
+  m = await go('#/unlimited/topic/7/lighthouses');
+  ok(/Getting questions ready on lighthouses/.test(text(m)) && !/busy/i.test(text(m)), 'topics: while the first questions are written it says so plainly, never that the AI is busy');
   await until(() => document.querySelector('#main #choices'));
   m = document.getElementById('main');
   ok(m.querySelector('#choices') && streaming && /Question number 1\?/.test(text(m.querySelector('.question'))) && /Written by AI/.test(text(m)) && /Write 5 questions/.test(gen[gen.length - 1].messages[1].content) && /7th grade/.test(gen[gen.length - 1].messages[0].content) && /friendly tone/.test(gen[gen.length - 1].messages[0].content) && /No emojis/.test(gen[gen.length - 1].messages[0].content), 'topics: the first question appears as soon as it is written, while the rest are still coming');
@@ -1344,13 +1346,16 @@
   ok(m.querySelector('.search-topic a[href="#/unlimited/topic/7/photosynthesis"]') && !EMOJI.test(text(m.querySelector('.search-topic'))), 'topics: search offers to practice anything it finds no skill for');
   ok(TOPICS.clip('a'.repeat(79) + '😀😀') === 'a'.repeat(79) + '😀' && TOPICS.href(TOPICS.clip('a'.repeat(79) + '😀😀'), '7"><b>x') === '#/unlimited/topic/any/' + 'a'.repeat(79) + '%F0%9F%98%80', 'topics: a long topic is cut by whole characters, and a grade in a link is only ever a number');
   // questions written for a topic are kept on this device: going back starts at once, before the AI says a word
-  const keptV = TOPICS.savedFor('volcanoes', 7);
+  const keptV = TOPICS.savedFor('lighthouses', 7);
   ok(keptV.length >= 4 && !keptV.some(q => q.question === 'Question number 2?' || q.question === 'Question number 3?'), 'topics: questions written for a topic are kept on this device, without the reported one or the one the check doubted');
   tpGap = 400; const g2 = gen.length;
-  m = await go('#/unlimited/topic/7/volcanoes');
+  m = await go('#/unlimited/topic/7/lighthouses');
   ok(m.querySelector('#choices') && keptV.some(q => q.question === text(m.querySelector('.question p'))) && /Written by AI/.test(text(m)), 'topics: going back to a topic starts at once with the questions kept for it');
   m = await go('#/unlimited'); tpGap = 5;
-  ok(TOPICS.bankFor('The planets') === TOPIC_BANK['solar system'] && TOPICS.bankFor('the water cycle for kids') === TOPIC_BANK['water cycle'] && TOPICS.bankFor('Spanish') === TOPIC_BANK['spanish greetings'] && !TOPICS.bankFor('volcanoes'), 'topics: another name for a suggested topic, or a topic that contains one, starts at once with reviewed questions');
+  ok(TOPICS.bankFor('The planets') === TOPIC_BANK['solar system'] && TOPICS.bankFor('the water cycle for kids') === TOPIC_BANK['water cycle'] && TOPICS.bankFor('Spanish') === TOPIC_BANK['spanish greetings'] && !TOPICS.bankFor('lighthouses') && !TOPICS.bankFor('solar cells') && !TOPICS.bankFor('weather in Spanish'), 'topics: another name for a suggested topic, or one with words like “for kids” around it, starts at once with reviewed questions; a different topic that only shares a word doesn’t');
+  ok(TOPICS.MORE.every(([, list]) => list.every(t => TOPICS.bankFor(t))) && TOPICS.MORE.reduce((n, [, list]) => n + list.length, 0) === 20 && TOPICS.bankFor('WW2') === TOPIC_BANK['world war ii'] && TOPICS.bankFor('5th grade volcanoes') === TOPIC_BANK.volcanoes && TOPICS.bankFor('Phases of the Moon') === TOPIC_BANK.moon && TOPICS.bankFor('Newton’s laws') === TOPIC_BANK['forces and motion'], 'topics: twenty more topics have reviewed questions, found by their other names too (WW2, phases of the Moon, Newton’s laws)');
+  m = await go('#/settings'); m = await go('#/unlimited');
+  ok(m.querySelectorAll('.ul-more-topics .chip-btn').length === 20, 'topics: the Practice page lists them under More topics, ready right away');
   // practice questions ask the service that starts writing sooner; a used-up daily allowance is waited out, and said
   const urls = [], fetchQ = TUt.fetch;
   Object.keys(TUt._nextFree).forEach(k => delete TUt._nextFree[k]);
@@ -1384,7 +1389,7 @@
   }
 
   { // the search box: it grows when selected, shows results as you type, and the arrow keys and Enter pick one
-  S.reset(); S.setProfile({ grade: 7, welcomed: true, seenNews: 'n10' });
+  S.reset(); S.setProfile({ grade: 7, welcomed: true, seenNews: 'n11' });
   try { localStorage.removeItem('procademy.searches.v1'); } catch (e) {}
   m = await go('#/courses');
   const si = document.getElementById('search-input'), topBar = document.querySelector('header.top'), qp = document.getElementById('qs-panel');
@@ -1408,10 +1413,71 @@
   TUTOR.fetch = async () => new Response('data: [DONE]\n\n', { headers: { 'Content-Type': 'text/event-stream' } });
   const submitTopic = async t => { const pg = await go('#/unlimited'); pg.querySelector('#tp-q').value = t; pg.querySelector('#ul-topic').dispatchEvent(new Event('submit', { cancelable: true })); await tick(40); return location.hash; };
   ok(await submitTopic('slope') === '#/unlimited/find/slope', 'topics: a math topic typed in Practice any topic starts Procademy’s own questions at once');
-  ok(await submitTopic('volcanoes') === '#/unlimited/topic/7/volcanoes', 'topics: any other topic goes to questions written by the AI');
+  ok(await submitTopic('lighthouses') === '#/unlimited/topic/7/lighthouses', 'topics: any other topic goes to questions written by the AI');
   m = await go('#/unlimited'); await tick(40);
   TUTOR.fetch = realT; Object.keys(TUTOR._nextFree).forEach(k => delete TUTOR._nextFree[k]);
   try { localStorage.removeItem('procademy.searches.v1'); localStorage.removeItem('procademy.topicq.v1'); } catch (e) {}
+  S.reset();
+  }
+
+  { // find your starting point: one question from the end of each unit; the first unit missed is where practice starts
+  const goPl = async h => { location.hash = '#/settings'; await tick(15); return go(h); };
+  S.reset(); S.setProfile({ grade: 7, welcomed: true, seenNews: 'n11' }); S.enroll('math-7', true);
+  const c7 = A.courseById('math-7'), plan = E.placementPlan(c7);
+  ok(plan.length === c7.units.length && plan.every((x, k) => x.unitId === c7.units[k].id && x.skillId === c7.units[k].skills.filter(id => A.skills[id]).slice(-1)[0]), 'placement: one question per unit, in order, from the end of each unit');
+  ok(E.placementPlan({ id: 'big', units: Array.from({ length: 30 }, (_, k) => ({ id: 'u' + k, skills: ['math7.add-negatives'] })) }).length === 15, 'placement: a course with many units is checked with at most 15 questions, spread evenly');
+  m = await goPl('#/course/math-7');
+  ok(/New to this course\?/.test(text(m.querySelector('.place-call'))) && m.querySelector('.place-call a[href="#/placement/math-7"]'), 'placement: the course page offers to find the starting point');
+  S.setSkill(plan[7].skillId, { level: 3, tries: 7, right: 7 });
+  const missed0 = S.get().missed.length;
+  const fp = drive(E.start('placement', { courseId: 'math-7' }), (it, k) => (k === 5 || k === 7 || k === 9 ? 'skip' : 'right'));
+  const pl = S.get().profile.placed['math-7'];
+  ok(fp.placed && pl.start === c7.units[5].id && pl.known.length === 9 && !pl.known.includes(c7.units[5].id) && S.get().missed.length === missed0, 'placement: the first unit missed is the start; units answered right are known; a guess isn’t added to the mistakes to review');
+  ok(S.skill(plan[0].skillId).level === 2 && S.skill(plan[5].skillId).level === 1 && S.skill(plan[7].skillId).level === 3 && !S.skill(plan[5].skillId).due, 'placement: a skill answered right becomes Familiar, a missed one Attempted with nothing to review, and nothing is ever lowered');
+  const fresh = E.dailyPlan().fresh;
+  ok(fresh.length && A.whereIs(fresh[0]).unit.id === c7.units[5].id && E.courseOrder(c7)[0] === c7.units[5].skills.filter(id => A.skills[id])[0], 'placement: today’s practice and Continue start at that unit');
+  m = await goPl('#/course/math-7');
+  ok(/Your starting point: Unit 6/.test(text(m.querySelector('.place-call'))) && m.querySelector('.place-call a[href="#/placement/math-7"]'), 'placement: the course page shows the starting point, with Check again');
+  // the page: an intro, then the questions, then the result
+  S.reset(); S.setProfile({ grade: 7, welcomed: true, seenNews: 'n11' });
+  m = await goPl('#/placement/math-7');
+  ok(new RegExp(`${plan.length} questions, one from each unit`).test(text(m)) && /I don’t know/.test(text(m)) && /Nothing you’ve already earned can go down/.test(text(m)), 'placement: the intro says how many questions, that “I don’t know” is fine, and that nothing goes down');
+  m.querySelector('#pl-go').click(); await tick(10);
+  ok(m.__session && m.__session.kind === 'placement' && !m.__session.hints && m.querySelector('#giveup'), 'placement: the questions have no hints, and “I don’t know”');
+  for (let k = 0; k < 40 && m.__session && !E.isDone(m.__session); k++) { if (!m.querySelector('#next')) { m.querySelector('#giveup').click(); await tick(); } m.querySelector('#next').click(); await tick(); }
+  ok(/Let’s start at the beginning/.test(text(m)) && m.querySelectorAll('.place-units li').length === plan.length && m.querySelector('.place-units li.here') && m.querySelector('a[href="#/daily"]') && S.get().profile.placed['math-7'].start === c7.units[0].id, 'placement: not knowing any unit yet starts at Unit 1, kindly, with today’s practice one tap away');
+  // the welcome offers it first
+  S.reset();
+  m = await goPl('#/');
+  ok(m.querySelector('#wl-place').disabled, 'welcome: finding the starting point waits for “who is learning”');
+  m.querySelector('[data-level="7"]').click(); m.querySelector('#wl-place').click(); await tick(60);
+  ok(location.hash === '#/placement/math-7' && S.get().profile.grade === 7 && S.get().profile.enrolled.includes('math-7'), 'welcome: Find my starting point saves the choices and opens the check for that course');
+  S.reset();
+  }
+
+  { // get the app: an Install button where the browser offers one; the taps for Safari; never once installed
+  const goIn = async h => { location.hash = '#/settings'; await tick(15); return go(h); };
+  try { localStorage.removeItem('procademy.install.v1'); } catch (e) {}
+  S.reset(); S.setProfile({ grade: 7, welcomed: true, seenNews: 'n11' });
+  m = await goIn('#/');
+  ok(!m.querySelector('#install-home'), 'app: Home doesn’t offer it before the browser can install');
+  let prompted = 0, choice = 'accepted';
+  const fake = () => ({ prompt() { prompted++; }, userChoice: Promise.resolve({ outcome: choice }) });
+  INSTALL._setPrompt(fake());
+  m = await goIn('#/');
+  ok(!m.querySelector('#install-home'), 'app: … or before a learner has practiced on two different days');
+  S.get().days[S.dayShift(S.today(), -1)] = { q: 5, right: 4, pts: 0 }; S.get().days[S.today()] = { q: 3, right: 3, pts: 0 };
+  m = await goIn('#/');
+  ok(m.querySelector('#install-home [data-install-act="go"]') && /Get the Procademy app/.test(text(m.querySelector('#install-home'))), 'app: then Home offers to install, with an Install button');
+  m.querySelector('#install-home [data-install-act="later"]').click(); await tick(10);
+  ok(!m.querySelector('#install-home'), 'app: Not now puts it away');
+  m = await goIn('#/settings');
+  ok(m.querySelector('#install-settings [data-install-act="go"]'), 'app: Settings always has it');
+  m.querySelector('#install-settings [data-install-act="go"]').click(); await tick(20);
+  ok(prompted === 1 && /installed on this device/.test(text(m.querySelector('[data-install="settings"]'))) && INSTALL.installed(), 'app: Install opens the browser’s own prompt, and once accepted says it’s installed');
+  try { localStorage.removeItem('procademy.install.v1'); } catch (e) {}
+  INSTALL._setPrompt(null); m = await goIn('#/settings');
+  ok(!m.querySelector('#install-settings [data-install-act]') && /Add to Home Screen/.test(text(m.querySelector('[data-install="settings"]'))), 'app: where the browser can’t install, Settings says how');
   S.reset();
   }
 

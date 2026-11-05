@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <!-- Security: scripts only from this site and the pinned libraries on jsDelivr, never inline; no plug-ins, no frames.
      The AI services, the picture service and the model downloads are reached with fetch (connect-src). -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://www.gstatic.com https://apis.google.com 'wasm-unsafe-eval'; worker-src 'self' blob:; connect-src 'self' https:; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; media-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-src https://procademy-9d972.firebaseapp.com">
@@ -12,7 +12,10 @@
 <meta name="theme-color" content="#1865f2">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="Procademy">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <script src="lib/boot.js"></script>
 <link rel="stylesheet" href="app.css">
 </head>
@@ -114,6 +117,8 @@
 <script src="lib/leap.js"></script>
 <script src="lib/fractions.js"></script>
 <script src="lib/integers.js"></script>
+<script src="lib/placement.js"></script>
+<script src="lib/install.js"></script>
 <script src="lib/quicksearch.js"></script>
 <script src="lib/app.js"></script>
 </body>
