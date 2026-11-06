@@ -1484,6 +1484,28 @@ body.sorting-cards { user-select: none; -webkit-user-select: none; cursor: grabb
 .today-what .pbar { display: block; margin-top: 6px; }
 .today-list .btn { flex: none; }
 @container page (max-width: 480px) { main .today-list li { flex-wrap: wrap; } main .today-what { flex-basis: calc(100% - 52px); } main .today-list .btn { margin-left: 52px; } }
+/* Balance, the seesaw puzzle (lib/balance.js) */
+.bl-page { max-width: 760px; margin: 0 auto; display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); }
+.bl-svg { display: block; width: 100%; height: auto; max-height: 230px; }
+.bl-beam { transform-box: view-box; transform-origin: 200px 137px; transition: transform .45s cubic-bezier(.3, 1.4, .5, 1); }
+.bl-bar { fill: var(--ink); }
+.bl-pivot { fill: var(--muted); }
+.bl-tick { stroke: var(--line-strong); stroke-width: 2; }
+.bl-num { fill: var(--muted); font-size: 13px; font-weight: 700; }
+.bl-fixed rect { fill: var(--surface-2); stroke: var(--line-strong); stroke-width: 2; }
+.bl-card rect { fill: var(--primary); }
+.bl-fixed text, .bl-card text { font-size: 14px; font-weight: 800; fill: var(--ink); }
+.bl-card text { fill: #fff; }
+.bl-pegs { display: grid; gap: 4px; margin-top: 4px; }
+.bl-peg { min-height: 40px; border-radius: 10px; border: 2px dashed var(--line-strong); background: var(--surface); color: var(--muted); font: inherit; font-weight: 700; cursor: pointer; padding: 0; }
+.bl-peg:not([disabled]):not(.on):not(.fixed) { border-color: var(--primary); color: var(--primary-ink); background: var(--primary-soft); }
+.bl-peg.on { border-style: solid; border-color: var(--primary); background: var(--primary); color: #fff; }
+.bl-peg.fixed { border-style: solid; background: var(--surface-2); color: var(--ink); cursor: default; }
+.bl-mid { display: grid; place-items: center; color: var(--muted); }
+.bl-sums { margin: 12px 0 4px; font-size: .95rem; }
+.bl-cards { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+.bl-chip { min-width: 52px; min-height: 48px; border-radius: 12px; border: 2px solid var(--primary); background: var(--surface); color: var(--primary-ink); font: inherit; font-size: 1.2rem; font-weight: 800; cursor: pointer; }
+.bl-chip.sel { background: var(--primary); color: #fff; box-shadow: 0 0 0 3px var(--primary-soft); }
 /* the weekly goal in today's plan, and the week in review */
 .week-goal { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
 .week-goal .pbar { flex: 1 1 120px; max-width: 220px; }

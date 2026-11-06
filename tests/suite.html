@@ -80,6 +80,7 @@
 <script src="../lib/shapes.js"></script>
 <script src="../lib/percent.js"></script>
 <script src="../lib/leap.js"></script>
+<script src="../lib/balance.js"></script>
 <script src="../lib/fractions.js"></script>
 <script src="../lib/integers.js"></script>
 <script>STORE.useMemory(true); /* the suite never touches real data */</script>
@@ -942,7 +943,7 @@
   const pt = S.get().profile.prep.tests[0];
   ok(m.querySelector('.prep-result li.miss') && m.querySelectorAll('.prep-result li.ok').length >= 1 && pt && pt.right === tses.items.length - 1 && S.get().profile.prep.done[S.today()], 'test prep: the result goes lesson by lesson, with practice for the lessons missed, and the day is marked done');
   m = await go('#/');
-  ok(m.querySelector('.prep-home') && /test in 3 days/.test(text(m.querySelector('.prep-home'))) && m.querySelectorAll('.tools .tool').length === 17, 'test prep: Home shows the countdown; Home has the tools');
+  ok(m.querySelector('.prep-home') && /test in 3 days/.test(text(m.querySelector('.prep-home'))) && m.querySelectorAll('.tools .tool').length === 18, 'test prep: Home shows the countdown; Home has the tools');
   S.reset(); S.setProfile({ prep: null, enrolled: [] });
   }
 
@@ -1501,6 +1502,25 @@
   S.reset();
   }
 
+  { // Balance: a seesaw puzzle, and the puzzle of the day takes turns with Leap
+  const goB = async h => { location.hash = '#/settings'; await tick(15); return go(h); };
+  try { localStorage.removeItem(BALANCE.KEY); } catch (e) {}
+  ok([1, 5, 12, 25, 40].every(n => { const pz = BALANCE.make(n), used = new Set(), m = new Map(); pz.solution.forEach(x => { const i = pz.cards.findIndex((w, k) => w === x.w && !used.has(k)); used.add(i); m.set(x.p, i); }); return BALANCE.sums(pz, m).net === 0 && BALANCE.sums(pz, new Map()).net !== 0 && pz.solution.every(x => !pz.fixed.some(f => f.p === x.p)); }) && JSON.stringify(BALANCE.make(7)) === JSON.stringify(BALANCE.make(7)), 'balance: every level has a solution, starts off balance, and is the same for everyone');
+  m = await goB('#/balance/1');
+  const bb = m.__balance, chip = m.querySelector('.bl-chip');
+  ok(bb && bb.cards.length === 1 && chip && m.querySelectorAll('.bl-peg[data-peg]:not([disabled])').length === 0, 'balance: pegs wait until a weight card is chosen');
+  chip.click(); await tick(5);
+  const wrongPeg = [...m.querySelectorAll('.bl-peg[data-peg]:not([disabled])')].find(p => Number(p.dataset.peg) !== bb.solution[0].p && Number(p.dataset.peg) * bb.solution[0].p < 0);
+  wrongPeg.click(); await tick(5);
+  ok(/heavier by/.test(text(m.querySelector('#bl-status'))) && !m.__balance.won, 'balance: all cards placed but not level says which side is heavier, and by how much');
+  m.querySelector(`.bl-peg[data-peg="${wrongPeg.dataset.peg}"]`).click(); await tick(5);
+  m.querySelector('.bl-chip').click(); await tick(5); m.querySelector(`.bl-peg[data-peg="${bb.solution[0].p}"]`).click(); await tick(5);
+  ok(m.__balance.won && /Balanced/.test(text(m.querySelector('#bl-status'))) && /2 of 3 stars/.test(text(m.querySelector('#bl-status'))) && JSON.parse(localStorage.getItem(BALANCE.KEY)).level === 2, 'balance: a level beam wins, with stars, and opens the next level');
+  m = await goB('#/tools');
+  ok(m.querySelector('a[href="#/balance"]'), 'balance: it is listed with the tools');
+  try { localStorage.removeItem(BALANCE.KEY); } catch (e) {}
+  }
+
   { // find your starting point: one question from the end of each unit; the first unit missed is where practice starts
   const goPl = async h => { location.hash = '#/settings'; await tick(15); return go(h); };
   S.reset(); S.setProfile({ grade: 7, welcomed: true, seenNews: 'n11' }); S.enroll('math-7', true);
@@ -1589,8 +1609,11 @@
   S.setProfile({ grade: 7, enrolled: ['math-7'], goal: 20 });
   S.get().days[S.today()] = { q: 25, right: 20, pts: 0, daily: 1 };
   localStorage.setItem('procademy.leap.v1', JSON.stringify({ level: 1, stars: {}, daily: { [S.today()]: 2 } }));
+  const bal0 = localStorage.getItem(BALANCE.KEY);
+  localStorage.setItem(BALANCE.KEY, JSON.stringify({ level: 1, stars: {}, daily: { [S.today()]: 3 } }));      // the puzzle of the day takes turns: either one counts
   m = await goHome();
   ok(m.querySelector('.today-card.all-done') && /You’ve finished today’s plan/.test(text(m)) && m.querySelectorAll('.today-list li.done').length === 3, 'every day: when all three are done, Home says so');
+  if (bal0 == null) localStorage.removeItem(BALANCE.KEY); else localStorage.setItem(BALANCE.KEY, bal0);
   if (leap0 == null) localStorage.removeItem('procademy.leap.v1'); else localStorage.setItem('procademy.leap.v1', leap0);
   // streak savers: 7 days in a row earns one; a missed day is then kept by it
   S.reset();
@@ -2041,7 +2064,7 @@
   ok(m.__data.sets[0].n === 3 && /“x” isn’t a number/.test(text(m)), 'data: something that isn’t a number is left out, and it says so');
 
   m = await go10('#/tools');
-  ok(m.querySelectorAll('.tool').length === 17 && m.querySelector('.tool[href="#/unlimited"]') && m.querySelector('.tool[href="#/calc"]') && m.querySelector('.tool[href="#/numbers"]') && m.querySelector('.tool[href="#/data"]'), 'tools: every tool on one page');
+  ok(m.querySelectorAll('.tool').length === 18 && m.querySelector('.tool[href="#/unlimited"]') && m.querySelector('.tool[href="#/calc"]') && m.querySelector('.tool[href="#/numbers"]') && m.querySelector('.tool[href="#/data"]'), 'tools: every tool on one page');
   m = await go10('#/skill/g6.gcf-lcm');
   ok(m.querySelector('.hero a[href="#/numbers/12-18"]'), 'tools: the GCF and LCM skill offers the number explorer');
   m = await go10('#/skill/g6.spread');

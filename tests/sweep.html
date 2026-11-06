@@ -78,6 +78,7 @@
 <script src="../lib/shapes.js"></script>
 <script src="../lib/percent.js"></script>
 <script src="../lib/leap.js"></script>
+<script src="../lib/balance.js"></script>
 <script src="../lib/fractions.js"></script>
 <script src="../lib/integers.js"></script>
 <script>STORE.useMemory(true); /* the suite never touches real data */</script>
@@ -106,7 +107,7 @@
   Object.keys(SHAPES.KINDS).forEach(k => routes.push('#/shapes/' + k));
   routes.push('#/shapes', '#/shapes/box/12_10_8_cm', '#/shapes/sides/3_4_8', '#/shapes/sides/2_2_2', '#/shapes/angle/250', '#/shapes/tri/9_4_140_ft', '#/shapes/cyl/0.5_1000', '#/shapes/frame/5_5_6_2');
   Object.keys(PERCENT.MODES).forEach(k => routes.push('#/percent/' + k));
-  routes.push('#/percent', '#/percent/interest/250000_7.5_40', '#/percent/of/250_1234.5', '#/percent/change/80_20', '#/percent/bill/1234.56_20_9.5_7', '#/leap', '#/leap/daily', '#/leap/25');
+  routes.push('#/percent', '#/percent/interest/250000_7.5_40', '#/percent/of/250_1234.5', '#/percent/change/80_20', '#/percent/bill/1234.56_20_9.5_7', '#/leap', '#/leap/daily', '#/leap/25', '#/balance', '#/balance/daily', '#/balance/30');
   Object.keys(FRACTIONS.OPS).forEach(k => routes.push('#/fractions/' + k));
   routes.push('#/fractions', '#/fractions/add/999-1000_1-999', '#/fractions/sub/1-8_7-8', '#/fractions/mul/1000_1000', '#/fractions/mul/7-13_11-12', '#/fractions/div/12_1-8', '#/fractions/div/0_1-2', '#/fractions/div/1-1000_1000', '#/fractions/compare/3-1-2_3.5', '#/fractions/simplify/0-5', '#/fractions/simplify/1-7', '#/fractions/add/bad_1-0');
   Object.keys(INTEGERS.OPS).forEach(k => routes.push('#/integers/' + k));
