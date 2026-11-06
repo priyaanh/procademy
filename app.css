@@ -1537,6 +1537,11 @@ body.sorting-cards { user-select: none; -webkit-user-select: none; cursor: grabb
 .my-notes textarea { width: 100%; padding: .6rem .75rem; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--surface); color: var(--ink); font: inherit; resize: vertical; }
 .notes-list { display: grid; gap: 10px; }
 .note-text { margin: 8px 0 0; white-space: pre-wrap; }
+/* shown in index.html until the scripts arrive (a slow connection's first visit) */
+.boot-wait { display: flex; align-items: center; justify-content: center; gap: 12px; min-height: 40vh; color: var(--muted); font-weight: 600; }
+.boot-dot { width: 18px; height: 18px; border-radius: 50%; border: 3px solid var(--primary-soft); border-top-color: var(--primary); animation: boot-spin .8s linear infinite; }
+@keyframes boot-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .boot-dot { animation: none; } }
 /* the skill map on a course page: a row per unit, a square per skill */
 .skill-map { margin-top: 16px; }
 .sm-units { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 6px; }

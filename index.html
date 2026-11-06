@@ -10,6 +10,80 @@
 <title>Procademy</title>
 <meta name="description" content="Math for every grade, one skill at a time: Kindergarten to Precalculus, with hints and mastery levels. Works offline, saves on this device, with a free AI tutor.">
 <meta name="theme-color" content="#1865f2">
+<!-- preload:start -->
+<link rel="preload" as="script" href="lib/rng.js">
+<link rel="preload" as="script" href="lib/math.js">
+<link rel="preload" as="script" href="lib/content.js">
+<link rel="preload" as="script" href="lib/store.js">
+<link rel="preload" as="script" href="lib/engine.js">
+<link rel="preload" as="script" href="content/k.js">
+<link rel="preload" as="script" href="content/g1.js">
+<link rel="preload" as="script" href="content/g2.js">
+<link rel="preload" as="script" href="content/g3.js">
+<link rel="preload" as="script" href="content/g4.js">
+<link rel="preload" as="script" href="content/g5.js">
+<link rel="preload" as="script" href="content/g6.js">
+<link rel="preload" as="script" href="content/math7.js">
+<link rel="preload" as="script" href="content/math8.js">
+<link rel="preload" as="script" href="content/alg1.js">
+<link rel="preload" as="script" href="content/geo.js">
+<link rel="preload" as="script" href="content/alg2.js">
+<link rel="preload" as="script" href="content/precalc.js">
+<link rel="preload" as="script" href="content/int1.js">
+<link rel="preload" as="script" href="content/int2.js">
+<link rel="preload" as="script" href="content/int3.js">
+<link rel="preload" as="script" href="cpm/cc1.js">
+<link rel="preload" as="script" href="cpm/cc2.js">
+<link rel="preload" as="script" href="cpm/cc3.js">
+<link rel="preload" as="script" href="cpm/int1.js">
+<link rel="preload" as="script" href="cpm/int2.js">
+<link rel="preload" as="script" href="cpm/int3.js">
+<link rel="preload" as="script" href="lib/firebase-config.js">
+<link rel="preload" as="script" href="lib/tutor.js">
+<link rel="preload" as="script" href="lib/draw.js">
+<link rel="preload" as="script" href="lib/pictures.js">
+<link rel="preload" as="script" href="lib/files.js">
+<link rel="preload" as="script" href="lib/coach.js">
+<link rel="preload" as="script" href="lib/tutor-ui.js">
+<link rel="preload" as="script" href="lib/icons.js">
+<link rel="preload" as="script" href="lib/views.js">
+<link rel="preload" as="script" href="lib/cpm-views.js">
+<link rel="preload" as="script" href="lib/tutor-page.js">
+<link rel="preload" as="script" href="lib/worksheet.js">
+<link rel="preload" as="script" href="lib/calc.js">
+<link rel="preload" as="script" href="lib/steps.js">
+<link rel="preload" as="script" href="lib/sprint.js">
+<link rel="preload" as="script" href="lib/prep.js">
+<link rel="preload" as="script" href="lib/badges.js">
+<link rel="preload" as="script" href="lib/challenge.js">
+<link rel="preload" as="script" href="lib/report.js">
+<link rel="preload" as="script" href="lib/account.js">
+<link rel="preload" as="script" href="lib/move.js">
+<link rel="preload" as="script" href="lib/learners.js">
+<link rel="preload" as="script" href="lib/whatsnew.js">
+<link rel="preload" as="script" href="lib/unlimited.js">
+<link rel="preload" as="script" href="lib/topicbank.js">
+<link rel="preload" as="script" href="lib/topics.js">
+<link rel="preload" as="script" href="lib/words.js">
+<link rel="preload" as="script" href="lib/vocab.js">
+<link rel="preload" as="script" href="lib/setup.js">
+<link rel="preload" as="script" href="lib/tiles.js">
+<link rel="preload" as="script" href="lib/chance.js">
+<link rel="preload" as="script" href="lib/calculator.js">
+<link rel="preload" as="script" href="lib/numbers.js">
+<link rel="preload" as="script" href="lib/data.js">
+<link rel="preload" as="script" href="lib/shapes.js">
+<link rel="preload" as="script" href="lib/percent.js">
+<link rel="preload" as="script" href="lib/leap.js">
+<link rel="preload" as="script" href="lib/balance.js">
+<link rel="preload" as="script" href="lib/fractions.js">
+<link rel="preload" as="script" href="lib/integers.js">
+<link rel="preload" as="script" href="lib/placement.js">
+<link rel="preload" as="script" href="lib/install.js">
+<link rel="preload" as="script" href="lib/family.js">
+<link rel="preload" as="script" href="lib/quicksearch.js">
+<link rel="preload" as="script" href="lib/app.js">
+<!-- preload:end -->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -44,7 +118,7 @@
     <a class="iconbtn" href="#/settings" aria-label="Settings" title="Settings"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.6 7.6 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.4 7.4 0 0 0 1.7 1l.4 2.6h4l.4-2.6a7.4 7.4 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg></a>
   </div>
 </header>
-<main id="main" tabindex="-1"></main>
+<main id="main" tabindex="-1"><div class="boot-wait" role="status"><span class="boot-dot" aria-hidden="true"></span>Loading Procademy…</div></main>
 <footer><span data-brand>Procademy</span> saves your progress on this device, and also online if you <a href="#/profile">create an account</a>. Only what you send to the AI service leaves this device. <a href="#/new">Updates</a></footer>
 <noscript><p style="padding:20px">This site needs JavaScript to run.</p></noscript>
 

@@ -58,6 +58,9 @@ else fail=1; head -12 "$TMP/formal.out" | sed 's/^/  /'; fi
 echo "▶ CPM books (node tests/cpm.js)"
 if out=$(node tests/cpm.js 2>&1); then echo "$out" | grep -E "^[a-z0-9]+: " | sed 's/^/  /'; echo "  ✓ $(echo "$out" | tail -1)"; else fail=1; echo "$out" | tail -25 | sed 's/^/    /'; fi
 
+echo "▶ preload list (node tools/preload.js --check)"
+if out=$(node tools/preload.js --check 2>&1); then echo "  ✓ $out, so a first visit downloads them together"; else fail=1; echo "  ✗ $out"; fi
+
 echo "▶ offline (tools/build-offline.js, then tests/offline.js)"
 if out=$(node tools/build-offline.js 2>&1); then echo "  ✓ built $out"; else fail=1; echo "$out" | sed 's/^/    /'; fi
 if out=$(CHROME="$CHROME" node tests/offline.js 2>&1); then echo "  ✓ $(echo "$out" | grep -oE 'RESULTS .*' | sed 's/RESULTS 0 failed of //') checks: the one-file build works from disk with the network cut off, and the website still opens once its server is gone"

@@ -43,7 +43,8 @@ const css = read('app.css');
 if (/<\/style/i.test(css)) throw new Error('app.css contains </style');
 html = html.replace('<link rel="stylesheet" href="app.css">', `<style>\n${css}\n</style>`)
   .replace(/<link rel="icon" href="icon.svg" type="image\/svg\+xml">/, `<link rel="icon" href="data:image/svg+xml;base64,${Buffer.from(read('icon.svg')).toString('base64')}" type="image/svg+xml">`)
-  .replace(/<link rel="manifest"[^>]*>\n?/, '').replace(/<link rel="apple-touch-icon"[^>]*>\n?/, '');
+  .replace(/<link rel="manifest"[^>]*>\n?/, '').replace(/<link rel="apple-touch-icon"[^>]*>\n?/, '')
+  .replace(/<!-- preload:start -->[\s\S]*?<!-- preload:end -->\n?/, '');                 // everything is already in the file
 
 // the policy: the same as the site's, plus exactly these inline scripts
 const before = html;
