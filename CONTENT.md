@@ -22,7 +22,7 @@ ACADEMY.course({
 ```
 
 Skill ids are `<prefix>.<kebab-name>`; one prefix per course: `k.`, `g1.` … `g6.`, `math7.`, `math8.`,
-`alg1.`, `geo.`, `alg2.`, `pre.`, `int1.`, `int2.`, `int3.`. Every skill belongs to exactly one unit, and a unit has at least two skills.
+`alg1.`, `geo.`, `alg2.`, `pre.`, `calc.`, `int1.`, `int2.`, `int3.`. Every skill belongs to exactly one unit, and a unit has at least two skills.
 
 ## A skill
 

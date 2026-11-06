@@ -33,6 +33,7 @@
 <script src="../content/geo.js"></script>
 <script src="../content/alg2.js"></script>
 <script src="../content/precalc.js"></script>
+<script src="../content/calc.js"></script>
 <script src="../content/int1.js"></script>
 <script src="../content/int2.js"></script>
 <script src="../content/int3.js"></script>
@@ -88,6 +89,7 @@
 <script src="../lib/install.js"></script>
 <script src="../lib/family.js"></script>
 <script src="../lib/quicksearch.js"></script>
+<script src="../lib/lang.js"></script>
 <script src="../lib/app.js"></script>
 <script>
 (async function () {
@@ -1409,7 +1411,7 @@
   }
 
   { // the search box: it grows when selected, shows results as you type, and the arrow keys and Enter pick one
-  S.reset(); S.setProfile({ grade: 7, welcomed: true, seenNews: 'n11' });
+  S.reset(); S.setProfile({ grade: 7, welcomed: true, seenNews: 'n12' });
   try { localStorage.removeItem('procademy.searches.v1'); } catch (e) {}
   m = await go('#/courses');
   const si = document.getElementById('search-input'), topBar = document.querySelector('header.top'), qp = document.getElementById('qs-panel');
@@ -1442,7 +1444,7 @@
 
   { // the skill map, my notes, and review by kind of mistake
   const goX = async h => { location.hash = '#/settings'; await tick(15); return go(h); };
-  S.reset(); S.setProfile({ grade: 7, welcomed: true, seenNews: 'n11' });
+  S.reset(); S.setProfile({ grade: 7, welcomed: true, seenNews: 'n12' });
   const c7m = A.courseById('math-7'), ids7 = c7m.units.flatMap(u => u.skills.filter(id => A.skills[id]));
   S.setSkill(ids7[0], { level: 4 }); S.setSkill(ids7[1], { level: 2 });
   m = await goX('#/course/math-7');
@@ -1465,7 +1467,7 @@
 
   { // a weekly goal and the week in review; challenge a friend from Home; family and class
   const goW = async h => { location.hash = '#/settings'; await tick(15); return go(h); };
-  S.reset(); S.setProfile({ grade: 7, welcomed: true, seenNews: 'n11', enrolled: ['math-7'] });
+  S.reset(); S.setProfile({ grade: 7, welcomed: true, seenNews: 'n12', enrolled: ['math-7'] });
   try { localStorage.removeItem('procademy.vs.v1'); localStorage.removeItem('procademy.family.v1'); } catch (e) {}
   const t0 = S.today(), mon = S.dayShift(t0, -((new Date(t0 + 'T12:00').getDay() + 6) % 7));
   [-7, -6, -5, -4, -2].forEach(k => { S.get().days[S.dayShift(mon, k)] = { q: 10, right: 8, pts: 0 }; });
@@ -1521,9 +1523,26 @@
   try { localStorage.removeItem(BALANCE.KEY); } catch (e) {}
   }
 
+  { // menus and buttons in Spanish or Hindi; lessons, questions and notes stay as written
+  const goL = async h => { location.hash = '#/settings'; await tick(15); return go(h); };
+  S.reset(); S.setProfile({ grade: 7, welcomed: true, seenNews: 'n12', enrolled: ['math-7'] });
+  ok(LANG.tr('Home', 'es') === 'Inicio' && LANG.tr('Home', 'hi') === 'होम' && LANG.tr('Unit 3', 'es') === 'Unidad 3' && LANG.tr('This week: 2 of 5 days', 'hi') === 'इस सप्ताह: 5 में से 2 दिन' && LANG.tr('Adding negative numbers', 'es') === null, 'language: interface words and phrases with numbers are translated; anything else is left alone');
+  S.setNote('math7.add-negatives', 'Start');
+  S.setProfile({ lang: 'es' }); LANG.set('es');
+  m = await goL('#/skill/math7.add-negatives'); await tick(20);
+  ok(document.querySelector('.tabbar a[data-nav="home"]').textContent.trim() === 'Inicio' && document.getElementById('tab-more').textContent.trim() === 'Más' && /Aprender|Práctica/.test(text(m)), 'language: Spanish menus, tab bar and buttons');
+  ok(m.querySelector('#note').value === 'Start' && /Adding negative numbers/.test(text(m.querySelector('h1'))) && m.querySelector('.learn') && !m.querySelector('.learn [lang="es"]'), 'language: the lesson, its title and a learner’s own note stay exactly as written');
+  m = await goL('#/practice/math7.add-negatives');
+  ok(m.querySelector('#check') && m.querySelector('#check').textContent.trim() === 'Comprobar' && m.querySelector('#check').getAttribute('lang') === 'es', 'language: the player’s buttons, marked with their language for screen readers');
+  S.setProfile({ lang: 'hi' }); LANG.set('hi');
+  m = await goL('#/');
+  ok(/आज/.test(text(m.querySelector('.today-card h2'))), 'language: Hindi works the same way');
+  S.setProfile({ lang: 'en' }); LANG.set('en'); S.reset();
+  }
+
   { // find your starting point: one question from the end of each unit; the first unit missed is where practice starts
   const goPl = async h => { location.hash = '#/settings'; await tick(15); return go(h); };
-  S.reset(); S.setProfile({ grade: 7, welcomed: true, seenNews: 'n11' }); S.enroll('math-7', true);
+  S.reset(); S.setProfile({ grade: 7, welcomed: true, seenNews: 'n12' }); S.enroll('math-7', true);
   const c7 = A.courseById('math-7'), plan = E.placementPlan(c7);
   ok(plan.length === c7.units.length && plan.every((x, k) => x.unitId === c7.units[k].id && x.skillId === c7.units[k].skills.filter(id => A.skills[id]).slice(-1)[0]), 'placement: one question per unit, in order, from the end of each unit');
   ok(E.placementPlan({ id: 'big', units: Array.from({ length: 30 }, (_, k) => ({ id: 'u' + k, skills: ['math7.add-negatives'] })) }).length === 15, 'placement: a course with many units is checked with at most 15 questions, spread evenly');
@@ -1540,7 +1559,7 @@
   m = await goPl('#/course/math-7');
   ok(/Your starting point: Unit 6/.test(text(m.querySelector('.place-call'))) && m.querySelector('.place-call a[href="#/placement/math-7"]'), 'placement: the course page shows the starting point, with Check again');
   // the page: an intro, then the questions, then the result
-  S.reset(); S.setProfile({ grade: 7, welcomed: true, seenNews: 'n11' });
+  S.reset(); S.setProfile({ grade: 7, welcomed: true, seenNews: 'n12' });
   m = await goPl('#/placement/math-7');
   ok(new RegExp(`${plan.length} questions, one from each unit`).test(text(m)) && /I don’t know/.test(text(m)) && /Nothing you’ve already earned can go down/.test(text(m)), 'placement: the intro says how many questions, that “I don’t know” is fine, and that nothing goes down');
   m.querySelector('#pl-go').click(); await tick(10);
@@ -1559,7 +1578,7 @@
   { // get the app: an Install button where the browser offers one; the taps for Safari; never once installed
   const goIn = async h => { location.hash = '#/settings'; await tick(15); return go(h); };
   try { localStorage.removeItem('procademy.install.v1'); } catch (e) {}
-  S.reset(); S.setProfile({ grade: 7, welcomed: true, seenNews: 'n11' });
+  S.reset(); S.setProfile({ grade: 7, welcomed: true, seenNews: 'n12' });
   m = await goIn('#/');
   ok(!m.querySelector('#install-home'), 'app: Home doesn’t offer it before the browser can install');
   let prompted = 0, choice = 'accepted';
