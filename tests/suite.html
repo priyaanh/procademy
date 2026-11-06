@@ -150,6 +150,19 @@
   ok(S.skill('math7.add-negatives').level === 1 && S.skill('math7.abs-distance').level === 2, 'unit test: misses step down, never below Attempted');
   f = drive(E.start('unit-test', { courseId: 'math-7', unitId: 'negatives-add', seed: 'u3' }), () => 'wrong');
   ok(S.skill('math7.add-negatives').level === 1, 'unit test: Attempted stays Attempted');
+  // mastered skills get a spot check (two at most); a miss is asked again at the end, and only two misses lower it
+  S.reset();
+  const u8 = A.unitById('math-8', A.courseById('math-8').units.find(u => u.skills.filter(id => A.skills[id]).length >= 4).id), u8ids = u8.skills.filter(id => A.skills[id]);
+  u8ids.slice(1).forEach(id => S.setSkill(id, { level: 4 }));
+  s = E.start('unit-test', { courseId: 'math-8', unitId: u8.id, seed: 'u4' });
+  ok(s.items.length === 3 && s.items.some(it => it.skillId === u8ids[0]), 'unit test: skills already Mastered get a spot check of two, so the test is about what’s still being learned');
+  S.reset(); S.setSkill('math7.add-negatives', { level: 3 }); S.setSkill('math7.sub-negatives', { level: 3 });
+  s = E.start('unit-test', { courseId: 'math-7', unitId: 'negatives-add', seed: 'u5' });
+  s.items.forEach((it, k) => { const r = it.skillId === 'math7.add-negatives' ? E.answer(s, wrongFor(it.q)) : E.answer(s, it.q.type === 'choice' ? it.q.answerIndex : it.q.answer); if (k < s.items.length - 1) E.next(s); });
+  const added = E.followUps(s), secondQ = s.items[s.items.length - 1];
+  ok(added === 1 && secondQ.skillId === 'math7.add-negatives' && secondQ.why === 'again' && E.followUps(s) === 0, 'unit test: a missed skill gets one more question at the end, once');
+  E.next(s); E.answer(s, secondQ.q.type === 'choice' ? secondQ.q.answerIndex : secondQ.q.answer); E.next(s); E.finish(s);
+  ok(S.skill('math7.add-negatives').level === 3 && S.skill('math7.sub-negatives').level === 4, 'unit test: right on the second chance keeps the level; right the first time goes up');
   // course and mastery challenge
   S.reset();
   s = E.start('course-challenge', { courseId: 'math-7', seed: 'c1' });
@@ -264,8 +277,13 @@
   ok(!root.querySelector('#hint') && root.querySelectorAll('.dots span').length === 3, 'player: unit test has no hint button');
   answerCurrent(root, false); await tick();
   ok(root.querySelector('.feedback.bad') && root.querySelector('#next') && !root.querySelector('#check') && root.querySelector('details'), 'player: in a test a wrong answer reveals the answer and the steps');
-  for (let i = 0; i < 3; i++) { root.querySelector('#next').click(); await tick(); if (i < 2) { answerCurrent(root, true); await tick(); } }
-  ok(root.querySelector('.summary') && text(root.querySelector('.summary .score')) === '2 / 3', 'player: unit test summary 2 / 3');
+  const missSid = root.__session.items[0].skillId, missLv = S.skill(missSid).level;
+  for (let i = 0; i < 2; i++) { root.querySelector('#next').click(); await tick(); answerCurrent(root, true); await tick(); }
+  ok(root.__session.items.length === 4 && /Next question/.test(text(root.querySelector('#next'))), 'player: a unit test adds a second-chance question for a skill missed');
+  root.querySelector('#next').click(); await tick();
+  ok(/Second chance/.test(text(root)) && root.__session.items[3].skillId === missSid && root.__session.items[3].q.prompt !== root.__session.items[0].q.prompt, 'player: the second chance is a new question on the same skill');
+  answerCurrent(root, true); await tick(); root.querySelector('#next').click(); await tick();
+  ok(root.querySelector('.summary') && text(root.querySelector('.summary .score')) === '3 / 4' && S.skill(missSid).level === Math.max(1, missLv), 'player: unit test summary 3 / 4; right on the second chance, the skill keeps its level');
   // keyboard: Enter checks and advances
   V.practice(root, 'math7.add-negatives');
   { const sess = root.__session, q = sess.items[0].q; const el = root.querySelector('#ans'); el.value = String(q.answer); el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })); await tick(); }
@@ -1353,9 +1371,9 @@
   ok(m.querySelector('#choices') && keptV.some(q => q.question === text(m.querySelector('.question p'))) && /Written by AI/.test(text(m)), 'topics: going back to a topic starts at once with the questions kept for it');
   m = await go('#/unlimited'); tpGap = 5;
   ok(TOPICS.bankFor('The planets') === TOPIC_BANK['solar system'] && TOPICS.bankFor('the water cycle for kids') === TOPIC_BANK['water cycle'] && TOPICS.bankFor('Spanish') === TOPIC_BANK['spanish greetings'] && !TOPICS.bankFor('lighthouses') && !TOPICS.bankFor('solar cells') && !TOPICS.bankFor('weather in Spanish'), 'topics: another name for a suggested topic, or one with words like “for kids” around it, starts at once with reviewed questions; a different topic that only shares a word doesn’t');
-  ok(TOPICS.MORE.every(([, list]) => list.every(t => TOPICS.bankFor(t))) && TOPICS.MORE.reduce((n, [, list]) => n + list.length, 0) === 20 && TOPICS.bankFor('WW2') === TOPIC_BANK['world war ii'] && TOPICS.bankFor('5th grade volcanoes') === TOPIC_BANK.volcanoes && TOPICS.bankFor('Phases of the Moon') === TOPIC_BANK.moon && TOPICS.bankFor('Newton’s laws') === TOPIC_BANK['forces and motion'], 'topics: twenty more topics have reviewed questions, found by their other names too (WW2, phases of the Moon, Newton’s laws)');
+  ok(TOPICS.MORE.every(([, list]) => list.every(t => TOPICS.bankFor(t))) && TOPICS.MORE.reduce((n, [, list]) => n + list.length, 0) === 32 && TOPICS.bankFor('WW2') === TOPIC_BANK['world war ii'] && TOPICS.bankFor('5th grade volcanoes') === TOPIC_BANK.volcanoes && TOPICS.bankFor('Phases of the Moon') === TOPIC_BANK.moon && TOPICS.bankFor('Newton’s laws') === TOPIC_BANK['forces and motion'], 'topics: thirty-two more topics have reviewed questions, found by their other names too (WW2, phases of the Moon, Newton’s laws)');
   m = await go('#/settings'); m = await go('#/unlimited');
-  ok(m.querySelectorAll('.ul-more-topics .chip-btn').length === 20, 'topics: the Practice page lists them under More topics, ready right away');
+  ok(m.querySelectorAll('.ul-more-topics .chip-btn').length === 32, 'topics: the Practice page lists them under More topics, ready right away');
   // practice questions ask the service that starts writing sooner; a used-up daily allowance is waited out, and said
   const urls = [], fetchQ = TUt.fetch;
   Object.keys(TUt._nextFree).forEach(k => delete TUt._nextFree[k]);
@@ -1381,7 +1399,7 @@
   m = await go('#/unlimited');
   ok(tb && [...tb.querySelectorAll('a')].map(a => text(a)).join(',') === 'Home,Practice,Courses,Tutor' && tb.querySelector('a.active[data-nav="unlimited"][aria-current="page"]'), 'tab bar: Home, Practice, Courses and Tutor, with the current page marked');
   moreB.click(); await tick(10);
-  ok(!sheet.hidden && moreB.getAttribute('aria-expanded') === 'true' && [...sheet.querySelectorAll('a')].map(a => a.getAttribute('href')).join(' ') === '#/cpm #/tools #/progress #/profile #/settings #/new', 'tab bar: More opens CPM books, Tools, Progress, Profile, Settings and Updates');
+  ok(!sheet.hidden && moreB.getAttribute('aria-expanded') === 'true' && [...sheet.querySelectorAll('a')].map(a => a.getAttribute('href')).join(' ') === '#/cpm #/tools #/progress #/notes #/profile #/settings #/new', 'tab bar: More opens CPM books, Tools, Progress, My notes, Profile, Settings and Updates');
   sheet.querySelector('a[href="#/tools"]').click(); await tick(60);
   ok(location.hash === '#/tools' && sheet.hidden && moreB.classList.contains('active') && !tb.querySelector('a.active'), 'tab bar: a page chosen from More opens, More closes, and More is marked as where you are');
   moreB.click(); await tick(10); document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await tick(10);
@@ -1417,6 +1435,29 @@
   m = await go('#/unlimited'); await tick(40);
   TUTOR.fetch = realT; Object.keys(TUTOR._nextFree).forEach(k => delete TUTOR._nextFree[k]);
   try { localStorage.removeItem('procademy.searches.v1'); localStorage.removeItem('procademy.topicq.v1'); } catch (e) {}
+  S.reset();
+  }
+
+  { // the skill map, my notes, and review by kind of mistake
+  const goX = async h => { location.hash = '#/settings'; await tick(15); return go(h); };
+  S.reset(); S.setProfile({ grade: 7, welcomed: true, seenNews: 'n11' });
+  const c7m = A.courseById('math-7'), ids7 = c7m.units.flatMap(u => u.skills.filter(id => A.skills[id]));
+  S.setSkill(ids7[0], { level: 4 }); S.setSkill(ids7[1], { level: 2 });
+  m = await goX('#/course/math-7');
+  const cells = [...m.querySelectorAll('.skill-map .sm-cell')];
+  ok(cells.length === ids7.length && cells[0].classList.contains('l4') && cells[1].classList.contains('l2') && m.querySelector('.sm-cell.next') === cells[1] && /Mastered/.test(cells[0].getAttribute('aria-label')) && /next to learn/.test(cells[1].getAttribute('aria-label')), 'skill map: a square per skill in its level’s color, the next one ringed, each one labeled');
+  m = await goX('#/skill/' + encodeURIComponent(ids7[1]));
+  const ta = m.querySelector('#note'); ta.value = 'Same signs: add and keep the sign.'; ta.dispatchEvent(new Event('input')); await tick(500);
+  ok(S.note(ids7[1]) === 'Same signs: add and keep the sign.' && /Saved/.test(text(m.querySelector('#note-saved'))), 'notes: a note on a lesson is saved as you type');
+  m = await goX('#/notes');
+  ok(m.querySelectorAll('.note-item').length === 1 && /Same signs/.test(text(m)) && m.querySelector(`.note-item a[href="#/skill/${encodeURIComponent(ids7[1])}"]`), 'notes: My notes lists each note with its skill');
+  const merged = ACCOUNT.merge({ notes: { a: { text: 'new', t: 2 } } }, { notes: { a: { text: 'old', t: 1 }, b: { text: 'only there', t: 1 } } });
+  ok(merged.notes.a.text === 'new' && merged.notes.b.text === 'only there', 'notes: across computers the newer note wins, and none is lost');
+  S.addMissed(ids7[0], 's1', 'sign'); S.addMissed(ids7[0], 's2', 'sign'); S.addMissed(ids7[2], 's3');
+  m = await goX('#/review');
+  ok(/Sign slips/.test(text(m)) && m.querySelector('[data-rv="slip:sign"]') && m.querySelectorAll('[data-rv^="skill:"]').length === 2, 'review: mistakes are grouped by kind of slip and by skill');
+  m.querySelector('[data-rv="slip:sign"]').click(); await tick(10);
+  ok(m.__session && m.__session.kind === 'review' && m.__session.items.length === 2 && m.__session.items.every(it => it.skillId === ids7[0]), 'review: practicing one kind of slip asks just those questions');
   S.reset();
   }
 

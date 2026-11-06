@@ -1484,6 +1484,28 @@ body.sorting-cards { user-select: none; -webkit-user-select: none; cursor: grabb
 .today-what .pbar { display: block; margin-top: 6px; }
 .today-list .btn { flex: none; }
 @container page (max-width: 480px) { main .today-list li { flex-wrap: wrap; } main .today-what { flex-basis: calc(100% - 52px); } main .today-list .btn { margin-left: 52px; } }
+/* review, grouped by kind of mistake and by skill */
+.rv-groups { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.rv-group { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 10px 12px; border-radius: 12px; background: var(--surface-2); }
+.rv-text { flex: 1 1 220px; min-width: 0; display: grid; gap: 2px; }
+/* my notes: on each skill page, and all together (#/notes) */
+.my-notes textarea { width: 100%; padding: .6rem .75rem; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--surface); color: var(--ink); font: inherit; resize: vertical; }
+.notes-list { display: grid; gap: 10px; }
+.note-text { margin: 8px 0 0; white-space: pre-wrap; }
+/* the skill map on a course page: a row per unit, a square per skill */
+.skill-map { margin-top: 16px; }
+.sm-units { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 6px; }
+.sm-units li { display: grid; grid-template-columns: minmax(0, 16rem) minmax(0, 1fr); gap: 4px 12px; align-items: center; padding: 6px 8px; border-radius: 10px; }
+.sm-units li.start { background: var(--primary-soft); }
+.sm-unit { display: flex; align-items: center; gap: 8px; color: var(--ink); min-width: 0; font-size: .92rem; }
+.sm-unit .n { flex: none; width: 1.6rem; height: 1.6rem; border-radius: 6px; display: grid; place-items: center; background: var(--surface-2); font-weight: 700; font-size: .8rem; color: var(--muted); }
+.sm-unit .t { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sm-cells { display: flex; flex-wrap: wrap; gap: 5px; }
+.sm-cell { width: 24px; height: 24px; border-radius: 6px; background: var(--lvl0); border: 2px solid transparent; }
+.sm-cell.l1 { background: var(--lvl1); } .sm-cell.l2 { background: var(--lvl2); } .sm-cell.l3 { background: var(--lvl3); } .sm-cell.l4 { background: var(--lvl4); }
+.sm-cell.next { border-color: var(--ink); box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--primary); }
+.sm-cell:hover { transform: scale(1.12); }
+@container page (max-width: 560px) { main .sm-units li { grid-template-columns: minmax(0, 1fr); } }
 /* get the app (lib/install.js) */
 .install-card { display: flex; gap: 14px; align-items: flex-start; margin: 16px 0; }
 .install-icon { flex: none; border-radius: 12px; }

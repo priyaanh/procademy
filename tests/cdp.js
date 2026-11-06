@@ -49,7 +49,9 @@ const freePort = () => new Promise((res, rej) => { const srv = require('net').cr
     if (msg.method === 'Runtime.exceptionThrown') {
       sawError = true;
       const d = msg.params.exceptionDetails;
-      console.log('EXCEPTION ' + ((d.exception && d.exception.description) || d.text));
+      const what = (d.exception && d.exception.description) || d.text;
+      console.log('EXCEPTION ' + what);
+      if (/^SyntaxError/.test(what)) done();            // the page's script never ran: waiting for it would only time out
     }
   };
   const { targetId } = await send('Target.createTarget', { url: 'about:blank' });
