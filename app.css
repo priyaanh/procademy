@@ -1484,6 +1484,29 @@ body.sorting-cards { user-select: none; -webkit-user-select: none; cursor: grabb
 .today-what .pbar { display: block; margin-top: 6px; }
 .today-list .btn { flex: none; }
 @container page (max-width: 480px) { main .today-list li { flex-wrap: wrap; } main .today-what { flex-basis: calc(100% - 52px); } main .today-list .btn { margin-left: 52px; } }
+/* the weekly goal in today's plan, and the week in review */
+.week-goal { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+.week-goal .pbar { flex: 1 1 120px; max-width: 220px; }
+.recap { margin: 16px 0; border-left: 5px solid var(--ok); }
+.recap-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.recap-stats div { display: grid; padding: 10px; border-radius: 12px; background: var(--surface-2); text-align: center; }
+.recap-stats b { font-size: 1.4rem; }
+.recap-stats span { font-size: .78rem; color: var(--muted); }
+@container page (max-width: 480px) { main .recap-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+/* challenge a friend, on Home */
+.vs-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.vs-list li { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; background: var(--surface-2); font-size: .92rem; }
+.vs-list li .ic { flex: none; color: var(--muted); }
+.vs-list li.win .ic { color: var(--ok); }
+.vs-list li.lose .ic { color: var(--primary-ink); }
+/* family and class (lib/family.js) */
+.fam-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr)); gap: 12px; }
+.fam-card h3 { font-size: 1.1rem; }
+.fam-stats { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.fam-stats span { padding: 4px 10px; border-radius: 999px; background: var(--surface-2); font-size: .85rem; }
+.fam-courses { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 6px; }
+.fam-courses li { display: grid; grid-template-columns: minmax(0, 1fr) 90px 3em; gap: 8px; align-items: center; font-size: .9rem; }
+.share-progress { margin-top: 16px; }
 /* review, grouped by kind of mistake and by skill */
 .rv-groups { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .rv-group { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 10px 12px; border-radius: 12px; background: var(--surface-2); }

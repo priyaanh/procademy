@@ -85,6 +85,7 @@
 <script>STORE.useMemory(true); /* the suite never touches real data */</script>
 <script src="../lib/placement.js"></script>
 <script src="../lib/install.js"></script>
+<script src="../lib/family.js"></script>
 <script src="../lib/quicksearch.js"></script>
 <script src="../lib/app.js"></script>
 <script>
@@ -1399,7 +1400,7 @@
   m = await go('#/unlimited');
   ok(tb && [...tb.querySelectorAll('a')].map(a => text(a)).join(',') === 'Home,Practice,Courses,Tutor' && tb.querySelector('a.active[data-nav="unlimited"][aria-current="page"]'), 'tab bar: Home, Practice, Courses and Tutor, with the current page marked');
   moreB.click(); await tick(10);
-  ok(!sheet.hidden && moreB.getAttribute('aria-expanded') === 'true' && [...sheet.querySelectorAll('a')].map(a => a.getAttribute('href')).join(' ') === '#/cpm #/tools #/progress #/notes #/profile #/settings #/new', 'tab bar: More opens CPM books, Tools, Progress, My notes, Profile, Settings and Updates');
+  ok(!sheet.hidden && moreB.getAttribute('aria-expanded') === 'true' && [...sheet.querySelectorAll('a')].map(a => a.getAttribute('href')).join(' ') === '#/cpm #/tools #/progress #/notes #/family #/profile #/settings #/new', 'tab bar: More opens CPM books, Tools, Progress, My notes, Family and class, Profile, Settings and Updates');
   sheet.querySelector('a[href="#/tools"]').click(); await tick(60);
   ok(location.hash === '#/tools' && sheet.hidden && moreB.classList.contains('active') && !tb.querySelector('a.active'), 'tab bar: a page chosen from More opens, More closes, and More is marked as where you are');
   moreB.click(); await tick(10); document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await tick(10);
@@ -1458,6 +1459,45 @@
   ok(/Sign slips/.test(text(m)) && m.querySelector('[data-rv="slip:sign"]') && m.querySelectorAll('[data-rv^="skill:"]').length === 2, 'review: mistakes are grouped by kind of slip and by skill');
   m.querySelector('[data-rv="slip:sign"]').click(); await tick(10);
   ok(m.__session && m.__session.kind === 'review' && m.__session.items.length === 2 && m.__session.items.every(it => it.skillId === ids7[0]), 'review: practicing one kind of slip asks just those questions');
+  S.reset();
+  }
+
+  { // a weekly goal and the week in review; challenge a friend from Home; family and class
+  const goW = async h => { location.hash = '#/settings'; await tick(15); return go(h); };
+  S.reset(); S.setProfile({ grade: 7, welcomed: true, seenNews: 'n11', enrolled: ['math-7'] });
+  try { localStorage.removeItem('procademy.vs.v1'); localStorage.removeItem('procademy.family.v1'); } catch (e) {}
+  const t0 = S.today(), mon = S.dayShift(t0, -((new Date(t0 + 'T12:00').getDay() + 6) % 7));
+  [-7, -6, -5, -4, -2].forEach(k => { S.get().days[S.dayShift(mon, k)] = { q: 10, right: 8, pts: 0 }; });
+  S.get().days[t0] = { q: 4, right: 4, pts: 0 };
+  m = await goW('#/');
+  ok(/This week: 1 of 5 days/.test(text(m.querySelector('.week-goal'))), 'week: today’s plan shows the days practiced this week toward the weekly goal');
+  ok(m.querySelector('#recap') && /5\s*of 7 days/.test(text(m.querySelector('#recap'))) && /50\s*questions/.test(text(m.querySelector('#recap'))) && /reached your goal of 5 days/.test(text(m.querySelector('#recap'))), 'week: a new week starts with last week in review');
+  m.querySelector('#recap-x').click(); await tick(10);
+  m = await goW('#/');
+  ok(!m.querySelector('#recap') && S.get().profile.recapSeen === mon, 'week: Got it puts the review away until next week');
+  m = await goW('#/settings'); const wg = m.querySelector('#week-goal'); wg.value = '3'; wg.dispatchEvent(new Event('change')); await tick(10);
+  m = await goW('#/');
+  ok(S.get().profile.weekGoal === 3 && /of 3 days/.test(text(m.querySelector('.week-goal'))), 'week: the weekly goal can be changed in Settings');
+  ok(m.querySelector('.vs-home a[href="#/sprint/times"]') && !m.querySelector('.vs-list'), 'challenges: Home offers to challenge a friend once a learner has practiced');
+  CHALLENGE.remember({ dir: 'got', who: 'Sam', what: 'Speed sprint', mine: '31', theirs: '27', result: 'win' });
+  m = await goW('#/');
+  ok(/You 31, Sam 27: you’re ahead/.test(text(m.querySelector('.vs-list'))), 'challenges: Home shows the latest challenges and who is ahead');
+  // family and class: a progress link adds a learner; an older link never replaces a newer one
+  S.setProfile({ name: 'Priyaan' });
+  const famUrl = FAMILY.link(), famCode = famUrl.split('#/family/add/')[1], fsum = FAMILY.read(famCode);
+  ok(fsum && fsum.name === 'Priyaan' && fsum.grade === 7 && fsum.week.q === 4 && fsum.courses[0].id === 'math-7' && fsum.next.length && Object.keys(JSON.parse(DRAW.decode(famCode))).sort().join() === 'counts,courses,grade,id,last,name,next,slips,streak,t,v,week', 'family: a progress link carries a short, checked summary and nothing more');
+  ok(!FAMILY.read(DRAW.encode(JSON.stringify(Object.assign({}, fsum, { courses: [{ id: 'nope', pct: 50 }], week: { days: 9, q: 1, right: 0 } })))), 'family: a link with impossible numbers is refused');
+  m = await goW('#/family/add/' + famCode);
+  ok(/Add Priyaan’s progress\?/.test(text(m)), 'family: opening a progress link asks before adding');
+  m.querySelector('#fam-add').click(); await tick(60);
+  m = document.getElementById('main');
+  ok(location.hash === '#/family' && FAMILY.shared().length === 1 && m.querySelectorAll('.fam-card').length >= 2 && /Shared with you/.test(text(m)), 'family: the page shows learners on this device and those who shared a link');
+  ok(!FAMILY.add(Object.assign({}, fsum, { t: fsum.t - 1000 })) && FAMILY.shared().length === 1, 'family: an older link doesn’t replace a newer one');
+  m.querySelector('[data-fam-del]').click(); await tick(10);
+  ok(!FAMILY.shared().length, 'family: Remove takes a learner off');
+  m = await goW('#/report');
+  ok(m.querySelector('#fam-copy'), 'family: the report offers a progress link for a parent or teacher');
+  try { localStorage.removeItem('procademy.vs.v1'); localStorage.removeItem('procademy.family.v1'); } catch (e) {}
   S.reset();
   }
 
