@@ -220,7 +220,8 @@
   }
   for (const c of A.courses) {
     const m = await go('#/course/' + c.id);
-    ok(m.querySelectorAll('.unit-card').length === c.units.length && text(m).includes(c.title), `course page ${c.id}: ${c.units.length} units`);
+    const mapUnits = c.units.filter(u => u.skills.some(id => A.skills[id]));
+    ok(m.querySelectorAll('.sm-unit').length === mapUnits.length && mapUnits.every(u => m.querySelector(`.sm-unit[href="#/unit/${c.id}/${u.id}"]`)) && !m.querySelector('.unit-card') && text(m).includes(c.title), `course page ${c.id}: the skill map opens each of its ${mapUnits.length} units`);
     const u = c.units[0];
     const mu = await go(`#/unit/${c.id}/${u.id}`);
     ok(mu.querySelectorAll('.skills li').length === u.skills.length + 3 && mu.querySelector(`a[href="#/worksheet/unit/${c.id}/${u.id}"]`) && mu.querySelector(`a[href="#/unlimited/unit/${c.id}/${u.id}"]`), `unit page ${c.id}/${u.id}: ${u.skills.length} skills + unlimited + test + worksheet`);
@@ -945,7 +946,7 @@
   const pt = S.get().profile.prep.tests[0];
   ok(m.querySelector('.prep-result li.miss') && m.querySelectorAll('.prep-result li.ok').length >= 1 && pt && pt.right === tses.items.length - 1 && S.get().profile.prep.done[S.today()], 'test prep: the result goes lesson by lesson, with practice for the lessons missed, and the day is marked done');
   m = await go('#/');
-  ok(m.querySelector('.prep-home') && /test in 3 days/.test(text(m.querySelector('.prep-home'))) && m.querySelectorAll('.tools .tool').length === 6 && /All 18 tools/.test(text(m)), 'test prep: Home shows the countdown; Home has a few tools and a link to all of them');
+  ok(m.querySelector('.prep-home') && /test in 3 days/.test(text(m.querySelector('.prep-home'))), 'test prep: Home shows the countdown');
   S.reset(); S.setProfile({ prep: null, enrolled: [] });
   }
 
@@ -1403,7 +1404,7 @@
   m = await go('#/unlimited');
   ok(tb && [...tb.querySelectorAll('a')].map(a => text(a)).join(',') === 'Home,Practice,Courses,Tutor' && tb.querySelector('a.active[data-nav="unlimited"][aria-current="page"]'), 'tab bar: Home, Practice, Courses and Tutor, with the current page marked');
   moreB.click(); await tick(10);
-  ok(!sheet.hidden && moreB.getAttribute('aria-expanded') === 'true' && [...sheet.querySelectorAll('a')].map(a => a.getAttribute('href')).join(' ') === '#/cpm #/tools #/progress #/notes #/family #/profile #/settings #/new', 'tab bar: More opens CPM books, Tools, Progress, My notes, Family and class, Profile, Settings and Updates');
+  ok(!sheet.hidden && moreB.getAttribute('aria-expanded') === 'true' && [...sheet.querySelectorAll('a')].map(a => a.getAttribute('href')).join(' ') === '#/cpm #/tools #/progress #/family #/profile #/settings', 'tab bar: More opens CPM books, Tools, Progress, Family and class, Profile and Settings');
   sheet.querySelector('a[href="#/tools"]').click(); await tick(60);
   ok(location.hash === '#/tools' && sheet.hidden && moreB.classList.contains('active') && !tb.querySelector('a.active'), 'tab bar: a page chosen from More opens, More closes, and More is marked as where you are');
   moreB.click(); await tick(10); document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await tick(10);
@@ -1482,10 +1483,12 @@
   m = await goW('#/settings'); const wg = m.querySelector('#week-goal'); wg.value = '3'; wg.dispatchEvent(new Event('change')); await tick(10);
   m = await goW('#/');
   ok(S.get().profile.weekGoal === 3 && /of 3 days/.test(text(m.querySelector('.week-goal'))), 'week: the weekly goal can be changed in Settings');
-  ok(m.querySelector('.vs-home a[href="#/sprint/times"]') && !m.querySelector('.vs-list'), 'challenges: Home offers to challenge a friend once a learner has practiced');
+  ok(!m.querySelector('.vs-home') && !m.querySelector('.tools .tool'), 'home: no challenge card or tools row (they’re on Progress and Tools)');
+  m = await goW('#/progress');
+  ok(m.querySelector('.vs-home a[href="#/sprint/times"]') && !m.querySelector('.vs-list'), 'challenges: Progress offers to challenge a friend once a learner has practiced');
   CHALLENGE.remember({ dir: 'got', who: 'Sam', what: 'Speed sprint', mine: '31', theirs: '27', result: 'win' });
-  m = await goW('#/');
-  ok(/You 31, Sam 27: you’re ahead/.test(text(m.querySelector('.vs-list'))), 'challenges: Home shows the latest challenges and who is ahead');
+  m = await goW('#/progress');
+  ok(/You 31, Sam 27: you’re ahead/.test(text(m.querySelector('.vs-list'))) && m.querySelector('a[href="#/notes"]') && m.querySelector('a[href="#/family"]'), 'challenges: Progress shows the latest challenges and who is ahead, next to My notes and Family and class');
   // family and class: a progress link adds a learner; an older link never replaces a newer one
   S.setProfile({ name: 'Priyaan' });
   const famUrl = FAMILY.link(), famCode = famUrl.split('#/family/add/')[1], fsum = FAMILY.read(famCode);
@@ -1531,7 +1534,7 @@
   S.setNote('math7.add-negatives', 'Start');
   S.setProfile({ lang: 'es' }); LANG.set('es');
   m = await goL('#/skill/math7.add-negatives'); await tick(20);
-  ok(document.querySelector('.tabbar a[data-nav="home"]').textContent.trim() === 'Inicio' && document.getElementById('tab-more').textContent.trim() === 'Más' && /Aprender|Práctica/.test(text(m)), 'language: Spanish menus, tab bar and buttons');
+  ok(document.querySelector('.tabbar a[data-nav="home"]').textContent.trim() === 'Inicio' && document.getElementById('tab-more').textContent.trim() === 'Más' && /Practicar · 7 preguntas/.test(text(m)) && /Más formas de practicar/.test(text(m)), 'language: Spanish menus, tab bar and buttons');
   ok(m.querySelector('#note').value === 'Start' && /Adding negative numbers/.test(text(m.querySelector('h1'))) && m.querySelector('.learn') && !m.querySelector('.learn [lang="es"]'), 'language: the lesson, its title and a learner’s own note stay exactly as written');
   m = await goL('#/practice/math7.add-negatives');
   ok(m.querySelector('#check') && m.querySelector('#check').textContent.trim() === 'Comprobar' && m.querySelector('#check').getAttribute('lang') === 'es', 'language: the player’s buttons, marked with their language for screen readers');
@@ -1630,7 +1633,7 @@
   m.querySelector('#wl-start').click(); await tick(60);
   ok(location.hash === '#/daily' && S.get().profile.grade === 7 && S.get().profile.goal === 30 && S.get().profile.enrolled.join() === 'math-7' && S.get().profile.welcomed && document.getElementById('main').__session, 'every day: two choices, and the first practice starts with the right course saved');
   m = await goHome();
-  ok(!m.querySelector('#welcome') && m.querySelector('.today-card') && m.querySelectorAll('.today-list li').length === 3 && /Puzzle of the day/.test(text(m.querySelector('.today-card'))) && m.querySelectorAll('.week li').length === 7, 'every day: Home then shows today’s plan: practice, the puzzle of the day and the goal, with the last 7 days');
+  ok(!m.querySelector('#welcome') && m.querySelector('.today-card') && m.querySelectorAll('.today-list li').length === 2 && /Puzzle of the day/.test(text(m.querySelector('.today-card'))) && m.querySelector('#goal-tile') && m.querySelectorAll('.week li').length === 7, 'every day: Home then shows today’s plan: practice and the puzzle of the day, the goal ring below, with the last 7 days');
   S.reset();
   m = await goHome();
   m.querySelector('[data-level="adult-algebra"]').click(); m.querySelector('#wl-start').click(); await tick(40);
@@ -1651,7 +1654,7 @@
   const bal0 = localStorage.getItem(BALANCE.KEY);
   localStorage.setItem(BALANCE.KEY, JSON.stringify({ level: 1, stars: {}, daily: { [S.today()]: 3 } }));      // the puzzle of the day takes turns: either one counts
   m = await goHome();
-  ok(m.querySelector('.today-card.all-done') && /You’ve finished today’s plan/.test(text(m)) && m.querySelectorAll('.today-list li.done').length === 3, 'every day: when all three are done, Home says so');
+  ok(m.querySelector('.today-card.all-done') && /You’ve finished today’s plan/.test(text(m)) && m.querySelectorAll('.today-list li.done').length === 2, 'every day: when all three are done (with the goal), Home says so');
   if (bal0 == null) localStorage.removeItem(BALANCE.KEY); else localStorage.setItem(BALANCE.KEY, bal0);
   if (leap0 == null) localStorage.removeItem('procademy.leap.v1'); else localStorage.setItem('procademy.leap.v1', leap0);
   // streak savers: 7 days in a row earns one; a missed day is then kept by it

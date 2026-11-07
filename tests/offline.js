@@ -49,7 +49,7 @@ async function browser(extraFlags) {
   await b.go(file + '#/courses');
   ok(await b.js(`return document.querySelectorAll('main .course-card').length >= 16`), 'offline file: every course is there');
   await b.go(file + '#/course/math-7');
-  ok(await b.js(`return document.querySelectorAll('main .unit-card').length >= 10`), 'offline file: a course page with its units');
+  ok(await b.js(`return document.querySelectorAll('main .sm-unit').length >= 10`), 'offline file: a course page with its units');
   await b.go(file + '#/cpm/cc2');
   ok(await b.js(`return /Core Connections, Course 2/.test(document.querySelector('main').textContent)`), 'offline file: the CPM books');
   await b.go(file + '#/practice/math7.add-negatives');
@@ -88,7 +88,7 @@ async function browser(extraFlags) {
   ok(saved >= 40, `website: the offline helper keeps a copy of the site (${saved} files)`);
   server.kill(); await wait(400);
   await w.go(`http://127.0.0.1:${port}/?again#/course/math-7`);
-  ok(await w.js(`return document.querySelectorAll('main .unit-card').length >= 10 && /7th grade math/.test(document.querySelector('main h1').textContent)`), 'website: with the server gone it still opens and works');
+  ok(await w.js(`return document.querySelectorAll('main .sm-unit').length >= 10 && /7th grade math/.test(document.querySelector('main h1').textContent)`), 'website: with the server gone it still opens and works');
   w.close();
 
   console.log(`RESULTS ${fail} failed of ${pass + fail}`);
