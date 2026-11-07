@@ -78,7 +78,10 @@ async function browser(extraFlags) {
 
   /* 2. the website, kept by the offline helper, then opened with the server gone */
   const port = 8900 + Math.floor(Math.random() * 90);
-  let server = spawn('python3', ['-m', 'http.server', String(port), '--bind', '127.0.0.1'], { cwd: ROOT, stdio: 'ignore' });
+  // Python's plain server queues only 5 connections, so on a busy computer a page with 75 scripts sometimes lost one;
+  // a longer queue and kept-alive connections make the test about the site, not the test server
+  const serve = `import http.server as h; h.ThreadingHTTPServer.request_queue_size = 256; h.test(HandlerClass=h.SimpleHTTPRequestHandler, ServerClass=h.ThreadingHTTPServer, protocol='HTTP/1.1', port=${port}, bind='127.0.0.1')`;
+  let server = spawn('python3', ['-c', serve], { cwd: ROOT, stdio: 'ignore' });
   for (let i = 0; i < 50; i++) { try { await fetch(`http://127.0.0.1:${port}/index.html`); break; } catch (e) { await wait(100); } }
   const w = await browser();
   await w.go(`http://127.0.0.1:${port}/index.html#/`);
