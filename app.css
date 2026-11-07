@@ -100,6 +100,8 @@ pre.code { font-family: var(--mono); font-size: .92em; background: var(--surface
   .top.qs-open .qs-cancel { display: inline-flex; flex: none; }
   .top.qs-open .qs-panel { position: static; flex-basis: 100%; max-height: none; border: 0; box-shadow: none; padding: 4px 0; }
   body.qs-lock { overflow: hidden; }
+  .top.qs-open { z-index: 60; }
+  body.qs-lock .tabbar, body.qs-lock .tutor-fab { display: none; }              /* nothing over the full-screen search */
   .top .bar { flex-wrap: wrap; padding: 8px 12px; gap: 6px; }
   .search { order: 3; flex-basis: 100%; }
   .search form { max-width: none; }
@@ -463,6 +465,7 @@ details.chapter[open] > summary::before { transform: rotate(90deg); }
   background: var(--primary); color: var(--on-primary); font-weight: 700; box-shadow: 0 4px 14px rgba(20, 24, 40, .22); min-height: 48px; }
 .tutor-fab:hover { filter: brightness(1.08); }
 body.tutor-open .tutor-fab { display: none; }
+body:has(#ask-tutor) .tutor-fab { display: none; }                 /* a page with its own Ask the tutor button needs no second one */
 @media (min-width: 701px) {
   body.tutor-open:not(.tutor-overlay) main { width: auto; max-width: none; margin-right: calc(var(--tutor-w, 420px) + 30px); margin-left: 0; padding-left: 24px; }
   body.tutor-open:not(.tutor-overlay) footer { margin-right: calc(var(--tutor-w, 420px) + 30px); }
@@ -590,6 +593,8 @@ body.on-ai-page footer { display: none; }
 
 /* ---------- progress ---------- */
 .heat { display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, 12px); grid-auto-columns: 12px; justify-content: start; gap: 3px; overflow-x: auto; padding-bottom: 6px; }
+.all-courses { margin-top: 10px; }
+.all-courses > summary { cursor: pointer; font-weight: 600; color: var(--primary-ink); }
 .heat span { width: 12px; height: 12px; border-radius: 3px; background: var(--surface-2); border: 1px solid var(--line); }
 .heat .h1 { background: #bfe3ca; border-color: transparent; } .heat .h2 { background: #7fcf9c; border-color: transparent; } .heat .h3 { background: #3cb371; border-color: transparent; } .heat .h4 { background: #1a7f49; border-color: transparent; }
 .bars { display: flex; align-items: flex-end; gap: 8px; height: 110px; padding-top: 10px; }
@@ -1557,6 +1562,7 @@ body.sorting-cards { user-select: none; -webkit-user-select: none; cursor: grabb
 .sm-cell:hover { transform: scale(1.12); }
 @container page (max-width: 560px) { main .sm-units li { grid-template-columns: minmax(0, 1fr); } }
 /* get the app (lib/install.js) */
+.install-slot:not(:empty) + .card, .card + .install-slot > .card { margin-top: 16px; }      /* the slot's wrapper mustn't break the space between cards */
 .install-card { display: flex; gap: 14px; align-items: flex-start; margin: 16px 0; }
 .install-icon { flex: none; border-radius: 12px; }
 .install-text { flex: 1; min-width: 0; }

@@ -945,7 +945,7 @@
   const pt = S.get().profile.prep.tests[0];
   ok(m.querySelector('.prep-result li.miss') && m.querySelectorAll('.prep-result li.ok').length >= 1 && pt && pt.right === tses.items.length - 1 && S.get().profile.prep.done[S.today()], 'test prep: the result goes lesson by lesson, with practice for the lessons missed, and the day is marked done');
   m = await go('#/');
-  ok(m.querySelector('.prep-home') && /test in 3 days/.test(text(m.querySelector('.prep-home'))) && m.querySelectorAll('.tools .tool').length === 18, 'test prep: Home shows the countdown; Home has the tools');
+  ok(m.querySelector('.prep-home') && /test in 3 days/.test(text(m.querySelector('.prep-home'))) && m.querySelectorAll('.tools .tool').length === 6 && /All 18 tools/.test(text(m)), 'test prep: Home shows the countdown; Home has a few tools and a link to all of them');
   S.reset(); S.setProfile({ prep: null, enrolled: [] });
   }
 
@@ -1434,7 +1434,8 @@
   const realT = TUTOR.fetch;
   TUTOR.fetch = async () => new Response('data: [DONE]\n\n', { headers: { 'Content-Type': 'text/event-stream' } });
   const submitTopic = async t => { const pg = await go('#/unlimited'); pg.querySelector('#tp-q').value = t; pg.querySelector('#ul-topic').dispatchEvent(new Event('submit', { cancelable: true })); await tick(40); return location.hash; };
-  ok(await submitTopic('slope') === '#/unlimited/find/slope', 'topics: a math topic typed in Practice any topic starts Procademy’s own questions at once');
+  ok(await submitTopic('slope') === '#/unlimited/find/slope/7' && await submitTopic('GCF') === '#/unlimited/find/GCF/7', 'topics: a math topic typed in Practice any topic (a glossary name counts) starts Procademy’s own questions at once, at the grade chosen');
+  ok(await submitTopic('cats') === '#/unlimited/topic/7/cats' && await submitTopic('reading') === '#/unlimited/topic/7/reading' && !VIEWS.mathTopic('money').length && !VIEWS.mathTopic('art').length && VIEWS.mathTopic('fractions for kids').length > 3, 'topics: a word inside a math word isn’t math (cats, art), a topic with reviewed questions stays one (money), and filler words are ignored');
   ok(await submitTopic('lighthouses') === '#/unlimited/topic/7/lighthouses', 'topics: any other topic goes to questions written by the AI');
   m = await go('#/unlimited'); await tick(40);
   TUTOR.fetch = realT; Object.keys(TUTOR._nextFree).forEach(k => delete TUTOR._nextFree[k]);
@@ -1538,6 +1539,25 @@
   m = await goL('#/');
   ok(/आज/.test(text(m.querySelector('.today-card h2'))), 'language: Hindi works the same way');
   S.setProfile({ lang: 'en' }); LANG.set('en'); S.reset();
+  }
+
+  { // fixes from review: deletions that sync, links that name built-ins, the More sheet, a won puzzle's hint
+  const goF = async h => { location.hash = '#/settings'; await tick(15); return go(h); };
+  S.reset();
+  S.setNote('math7.add-negatives', 'Remember the signs'); S.setNote('math7.add-negatives', '');
+  const mergedN = ACCOUNT.merge(S.get(), { notes: { 'math7.add-negatives': { text: 'Remember the signs', t: 1 } } });
+  ok(mergedN.notes['math7.add-negatives'].text === '' && S.note('math7.add-negatives') === '', 'notes: a deleted note stays deleted when another computer still has the old one');
+  ok(!CHALLENGE.read(DRAW.encode(JSON.stringify({ k: 'p', id: 'constructor', seed: 'a1', score: 1, total: 7 }))) && !A.skills.constructor && !A.courseById('__proto__') && !A.whereIs('toString'), 'links: an id like “constructor” isn’t mistaken for a skill or course');
+  m = await goF('#/settings');
+  document.getElementById('tab-more').click(); await tick(5);
+  document.querySelector('#more-sheet a[href="#/settings"]').click(); await tick(20);
+  ok(document.getElementById('more-sheet').hidden, 'tab bar: More closes even when the page chosen is the one already open');
+  try { localStorage.removeItem(BALANCE.KEY); } catch (e) {}
+  m = await goF('#/balance/1');
+  const bw = m.__balance; m.querySelector('.bl-chip').click(); await tick(5); m.querySelector(`.bl-peg[data-peg="${bw.solution[0].p}"]`).click(); await tick(5);
+  ok(m.__balance.won && m.querySelector('#bl-hint').disabled && /Balanced/.test(text(m.querySelector('#bl-status'))), 'balance: once level, Show a hint is off and the win stays on screen');
+  try { localStorage.removeItem(BALANCE.KEY); } catch (e) {}
+  S.reset();
   }
 
   { // find your starting point: one question from the end of each unit; the first unit missed is where practice starts
@@ -1888,7 +1908,7 @@
   S.logEvent({ kind: 'setup', right: 3, total: 5, pts: 0 }); BADGES.check(true);
   ok(S.get().badges.storyteller, 'word problems: 5 equations right first time earns Story solver');
   m = await go8('#/');
-  ok(m.querySelector('.tool[href="#/setup"]'), 'word problems: on Home’s tools');
+  m = await go('#/tools'); ok(m.querySelector('.tool[href="#/setup"]'), 'word problems: listed with the tools');
   S.reset();
   }
 

@@ -1,6 +1,6 @@
 # Procademy
 
-Math for every grade, Kindergarten to Precalculus: a Khan Academy-style practice site in one folder,
+Math for every grade, Kindergarten to Calculus: a Khan Academy-style practice site in one folder,
 with no build step. Open `index.html` in a browser,
 or visit the GitHub Pages site. Everything is saved in the browser; nothing is sent anywhere.
 
