@@ -1075,6 +1075,11 @@
   ACCOUNT.useBackend(device());
   m = await go3('#/profile');
   const fill = (sel, v) => { const el = m.querySelector(sel); el.value = v; };
+  S.setProfile({ grade: null }); m = await go3('#/profile');
+  fill('#ac-user', 'priyaan'); fill('#ac-pass', 'mathrocks1'); fill('#ac-pass2', 'mathrocks1');
+  m.querySelector('#ac-new').dispatchEvent(new Event('submit', { cancelable: true })); await tick(20);
+  ok(m.querySelector('#ac-grade') && /Choose your grade/.test(text(m.querySelector('#ac-new .ac-msg'))) && !server.users['priyaan@learners.procademy.invalid'], 'accounts: making one asks the grade first');
+  fill('#ac-grade', '7');
   fill('#ac-user', 'Bad Name'); fill('#ac-pass', 'mathrocks1'); fill('#ac-pass2', 'mathrocks1');
   m.querySelector('#ac-new').dispatchEvent(new Event('submit', { cancelable: true })); await tick(20);
   ok(/3 to 20 letters/.test(text(m.querySelector('#ac-new .ac-msg'))), 'accounts: a username with spaces is refused before anything is sent');
@@ -1118,7 +1123,7 @@
   await ACCOUNT.logOut(true);
   ACCOUNT.useBackend(device());
   m = await go3('#/profile');
-  fill('#ac-user', 'priyaan'); fill('#ac-pass', 'another123'); fill('#ac-pass2', 'another123');
+  fill('#ac-user', 'priyaan'); fill('#ac-pass', 'another123'); fill('#ac-pass2', 'another123'); fill('#ac-grade', '7');
   m.querySelector('#ac-new').dispatchEvent(new Event('submit', { cancelable: true })); await tick(40);
   ok(/already taken/.test(text(m.querySelector('#ac-new .ac-msg'))), 'accounts: a taken username says so');
   m.querySelector('[data-tab="in"]').click(); fill('#ac-id', 'priyaan'); fill('#ac-pw-in', 'mathrocks1');
@@ -1188,7 +1193,7 @@
   // an account made with an email: one email with a link, and nothing saved online until it is clicked
   ACCOUNT.useBackend(device()); S.reset(); S.setSkill('math7.circles', { level: 2, tries: 7, right: 5, sets: 1, last: Date.now() });
   m = await go3('#/profile');
-  fill('#ac-user', 'stargazer'); fill('#ac-pass', 'telescope9'); fill('#ac-pass2', 'telescope9'); fill('#ac-email', 'parent@example.com');
+  fill('#ac-user', 'stargazer'); fill('#ac-pass', 'telescope9'); fill('#ac-pass2', 'telescope9'); fill('#ac-email', 'parent@example.com'); fill('#ac-grade', '7');
   m.querySelector('#ac-new').dispatchEvent(new Event('submit', { cancelable: true })); await tick(60);
   m = document.getElementById('main');
   const vUser = server.users['parent@example.com'];
@@ -1289,6 +1294,45 @@
   S.setProfile({ enrolled: ['cpm:cc2', 'math-7'] });
   const ulSaved = UNLIMITED.pool('saved').skills;
   ok(ulSaved.length > 50 && ulSaved.length === new Set(ulSaved).size, 'unlimited: saved courses count each skill once');
+  S.reset();
+  }
+
+  { // questions like a picture, and the grade setting the level of things
+  const until = async (fn, ms) => { const t = Date.now(); while (Date.now() - t < (ms || 3000)) { if (fn()) return true; await tick(20); } return false; };
+  const title = q => { const id = UNLIMITED.likeThis(q)[0]; return id ? A.stripTags(A.skills[id].title) : ''; };
+  S.reset(); S.setProfile({ grade: 7, welcomed: true });
+  ok(title('-7 + 4') === 'Adding negative numbers' && /Two-step equations/.test(title('2x + 5 = 17')) && /fractions/i.test(title('3/4 + 1/6')) && /Percent increase/.test(title('A shirt costs $25 and is on sale for 20% off. What is the sale price?')) && /Scientific notation/.test(title('3.2 × 10^4')) && UNLIMITED.likeThis('qwzx plorb').length === 0, 'like a picture: a question is matched to its skill by its words and its kind of math');
+  m = await go('#/unlimited');
+  ok(m.querySelector('#ul-shot #shot-pick') && m.querySelector('#shot-text'), 'like a picture: the Practice page takes a picture or a typed question');
+  m.querySelector('#shot-text').value = '-7 + 4'; m.querySelector('#shot-form').dispatchEvent(new Event('submit', { cancelable: true }));
+  await until(() => document.querySelector('.find-note'));
+  m = document.getElementById('main');
+  ok(/^#\/unlimited\/similar\/math7\.add-negatives/.test(location.hash) && m.__session && m.__session.items[0].skillId === 'math7.add-negatives' && /From your question/.test(text(m.querySelector('.find-note'))), 'like a picture: a typed question starts practice of its skill at once, saying what it was');
+  FILES.ocr = async () => 'Lesson 4 Homework\n5. Solve 2x + 5 = 17';
+  m = await go('#/unlimited');
+  const png = await new Promise(r => { const cv = document.createElement('canvas'); cv.width = 40; cv.height = 20; cv.toBlob(r, 'image/png'); });
+  const dt = new DataTransfer(); dt.items.add(new File([png], 'shot.png', { type: 'image/png' }));
+  const fi = m.querySelector('#shot-file'); fi.files = dt.files; fi.dispatchEvent(new Event('change'));
+  await until(() => /similar/.test(location.hash) && document.querySelector('.find-note'));
+  const firstId = decodeURIComponent(location.hash.split('/')[3].split(',')[0]);
+  ok(A.skills[firstId] && /Two-step equations/.test(A.skills[firstId].title) && /From your picture/.test(text(document.querySelector('.find-note'))), 'like a picture: a screenshot is read on this device and matched to its skill');
+  FILES.ocr = null;
+  m = await go('#/unlimited');
+  m.querySelector('#shot-text').value = 'qwzx plorb'; m.querySelector('#shot-form').dispatchEvent(new Event('submit', { cancelable: true })); await tick(30);
+  ok(location.hash === '#/unlimited' && m.querySelector('.shot-none #shot-find'), 'like a picture: when nothing matches, it says so and offers other ways');
+  m = await go('#/unlimited/picture');
+  ok(m.querySelector('#ul-shot') && document.activeElement === m.querySelector('#shot-pick'), 'like a picture: its own address opens the Practice page at the box');
+  // the grade: the puzzle of the day and the first course
+  S.setProfile({ grade: 4 });
+  m = await go('#/leap/daily');
+  ok(LEAP.dailyLevel() === 4 && m.__leap.cards.length === 3 && BALANCE.dailyLevel() === 6, 'grade: a 4th grader’s puzzle of the day is a gentler one');
+  S.setProfile({ grade: 8 }); ok(LEAP.dailyLevel() === 18 && BALANCE.dailyLevel() === 18, 'grade: an 8th grader’s is harder, with fractions');
+  S.setProfile({ grade: null }); ok(LEAP.dailyLevel() === 12, 'grade: with no grade, the usual level');
+  S.reset(); S.setProfile({ welcomed: true });
+  m = await go('#/settings'); const gs = m.querySelector('#grade'); gs.value = '5'; gs.dispatchEvent(new Event('change'));
+  ok(S.get().profile.grade === 5 && S.get().profile.enrolled.join() === 'math-5', 'grade: choosing it in Settings saves that grade’s course when none is saved');
+  gs.value = 'adult'; gs.dispatchEvent(new Event('change'));
+  ok(S.get().profile.adult === true && S.get().profile.grade === null && S.get().profile.enrolled.join() === 'math-5', 'grade: an adult learner, and the saved course stays');
   S.reset();
   }
 

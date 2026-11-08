@@ -675,8 +675,9 @@ kbd { font-family: var(--mono); font-size: .8em; background: var(--surface-2); b
 .viz-key[aria-pressed="false"] { opacity: .5; text-decoration: line-through; }
 .viz-key sup { font-size: .7em; }
 .viz-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-top: 6px; }
-.viz-btn { font: inherit; font-size: .84rem; min-width: 34px; padding: 3px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
-.viz-btn:hover, .viz-key:hover { border-color: var(--line-strong); background: var(--surface-2); }
+.viz-btn { font: inherit; font-size: .84rem; font-weight: 600; min-width: 34px; min-height: 30px; padding: 3px 12px; border-radius: 999px; border: 1px solid transparent; background: var(--tint); color: var(--primary-ink); cursor: pointer; }
+.viz-btn:hover { background: var(--tint-2); }
+.viz-key:hover { border-color: var(--line-strong); background: var(--surface-2); }
 .viz-read { margin-left: auto; font-size: .78rem; color: var(--muted); font-variant-numeric: tabular-nums; }
 .viz-note { margin: 6px 4px 0; font-size: .8rem; color: var(--muted); }
 .viz-wait { padding: 22px; text-align: center; color: var(--muted); font-size: .9rem; }
