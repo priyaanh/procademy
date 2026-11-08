@@ -1049,6 +1049,7 @@
       async load(uid) { if (!cur || cur.uid !== uid) throw err('permission-denied'); return server.docs[uid] ? JSON.parse(JSON.stringify(server.docs[uid])) : null; },
       async save(uid, data) { if (!cur || cur.uid !== uid || (!cur.via && !cur.verified && !cur.email.endsWith('@learners.procademy.invalid'))) throw err('permission-denied'); server.docs[uid] = JSON.parse(JSON.stringify(data)); },
       async changePassword(o, n) { if (cur.pw !== o) throw err('auth/invalid-credential'); cur.pw = n; },
+      async reauth(pw) { if (!cur || cur.pw !== pw) throw err('auth/invalid-credential'); },
       async remove(pw) { if (cur.via ? pw !== null : cur.pw !== pw) throw err('auth/invalid-credential'); delete server.docs[cur.uid]; delete server.users[cur.key]; cur = null; },
       async resetPassword() {} }; };
   // merging two copies of progress keeps the most of both
@@ -1091,6 +1092,26 @@
   m = document.getElementById('main');
   const uid1 = server.users['priyaan@learners.procademy.invalid'] && server.users['priyaan@learners.procademy.invalid'].uid;
   ok(uid1 && server.docs[uid1] && JSON.parse(server.docs[uid1].state).skills['math7.add-negatives'].level === 3 && /Signed in as @priyaan/.test(text(m)) && document.querySelector('#avatar-btn .av-dot'), 'accounts: making an account saves this device’s progress online, and the header shows you are signed in');
+  // the lock while signed in with a password: it sets the PIN, and resets a forgotten one
+  { const LK = ACCOUNT.lock, put = (sel, v) => { document.querySelector(sel).value = v; }, submit = () => document.querySelector('#lock-form').dispatchEvent(new Event('submit', { cancelable: true }));
+    const wait = async fn => { for (let k = 0; k < 200 && !fn(); k++) await tick(20); };
+    m = await go3('#/settings');
+    ok(LK.hasPassword() && LK.locked() && /here and in your account/.test(text(m.querySelector('#lock-card'))), 'lock: signed in with a password, erasing needs it');
+    m.querySelector('#pin-set').click(); await tick(10);
+    ok(/Your account password/.test(text(document.querySelector('#lock-form'))), 'lock: setting a PIN asks for the account password');
+    put('#lk-proof', 'not-it-123'); put('#lk-pin1', '4321'); put('#lk-pin2', '4321'); submit(); await wait(() => /isn’t your account password/.test(text(document.querySelector('#lk-msg'))));
+    ok(!LK.hasPin(), 'lock: the wrong account password sets no PIN');
+    put('#lk-proof', 'mathrocks1'); submit(); await wait(() => LK.hasPin());
+    ok(LK.hasPin() && await LK.check('4321'), 'lock: the account password sets the PIN');
+    m = document.getElementById('main'); m.querySelector('#pin-change').click(); await tick(10);
+    ok(/Your PIN or account password/.test(text(document.querySelector('#lock-form'))) && /Use your account password/.test(text(document.querySelector('#lock-form'))), 'lock: a forgotten PIN can be reset with the account password');
+    put('#lk-proof', 'mathrocks1'); put('#lk-pin1', '8642'); put('#lk-pin2', '8642'); submit(); await wait(() => !document.querySelector('#lock-form'));
+    ok(await LK.check('8642') && await LK.check('mathrocks1'), 'lock: the account password reset the PIN, and either one works');
+    m = document.getElementById('main'); m.querySelector('#pin-remove').click(); await tick(10);
+    put('#lk-proof', '8642'); submit(); await wait(() => !LK.hasPin());
+    ok(!LK.hasPin(), 'lock: the PIN can be removed');
+  }
+  m = await go3('#/profile');
   // a change is saved online by itself, a few seconds later
   S.setSkill('math7.circles', { level: 2, tries: 7, right: 5, sets: 1, last: Date.now() });
   await tick(3400);
@@ -1333,6 +1354,43 @@
   ok(S.get().profile.grade === 5 && S.get().profile.enrolled.join() === 'math-5', 'grade: choosing it in Settings saves that grade’s course when none is saved');
   gs.value = 'adult'; gs.dispatchEvent(new Event('change'));
   ok(S.get().profile.adult === true && S.get().profile.grade === null && S.get().profile.enrolled.join() === 'math-5', 'grade: an adult learner, and the saved course stays');
+  S.reset();
+  }
+
+  { // a PIN before progress is erased or replaced
+  const until = async (fn, ms) => { const t = Date.now(); while (Date.now() - t < (ms || 4000)) { if (fn()) return true; await tick(20); } return false; };
+  const LK = ACCOUNT.lock, panel = () => document.querySelector('#lock-panel'), msg = () => text(document.querySelector('#lk-msg'));
+  const put = (sel, v) => { document.querySelector(sel).value = v; };
+  const submit = () => document.querySelector('#lock-form').dispatchEvent(new Event('submit', { cancelable: true }));
+  S.reset(); S.setProfile({ welcomed: true }); S.setSkill('math7.circles', { level: 2, tries: 7, right: 5, sets: 1, last: Date.now() });
+  m = await go('#/settings');
+  ok(m.querySelector('#lock-card #pin-set') && m.querySelector('#lock-card #reset') && !LK.locked(), 'lock: Settings offers a PIN and Start over; nothing is locked yet');
+  m.querySelector('#reset').click(); await tick(10);
+  ok(/Erase everything\?/.test(text(panel())) && !panel().querySelector('#lk-proof'), 'lock: with no PIN, erasing just asks to be sure');
+  panel().querySelector('#lk-cancel').click(); await tick(10);
+  m.querySelector('#pin-set').click(); await tick(10);
+  put('#lk-pin1', '12a4'); put('#lk-pin2', '12a4'); submit(); await tick(10);
+  ok(/4 to 8 numbers/.test(msg()) && !LK.hasPin(), 'lock: a PIN has to be 4 to 8 numbers');
+  put('#lk-pin1', '2468'); put('#lk-pin2', '2469'); submit(); await tick(10);
+  ok(/different/.test(msg()) && !LK.hasPin(), 'lock: the two PINs have to match');
+  put('#lk-pin2', '2468'); submit(); await until(() => LK.hasPin());
+  ok(LK.hasPin() && !/2468/.test(JSON.stringify(S.get().profile.pin)) && /On/.test(text(document.querySelector('#lock-card'))) && !/"pin"/.test(S.exportJSON()), 'lock: a PIN is set, kept only as a hash, and never in a backup file');
+  document.querySelector('#reset').click(); await tick(10);
+  put('#lk-proof', '1111'); submit(); await until(() => /isn’t your PIN/.test(msg()));
+  ok(/isn’t your PIN/.test(msg()) && S.skill('math7.circles').level === 2, 'lock: the wrong PIN erases nothing');
+  put('#lk-proof', '2468'); submit(); await until(() => S.skill('math7.circles').level === 0);
+  ok(S.skill('math7.circles').level === 0 && LK.hasPin(), 'lock: the right PIN erases everything, and the PIN stays');
+  m = document.getElementById('main');
+  m.querySelector('#pin-change').click(); await tick(10);
+  put('#lk-proof', '2468'); put('#lk-pin1', '13579'); put('#lk-pin2', '13579'); submit(); await until(() => !document.querySelector('#lock-form'));
+  ok(await LK.check('13579') && !(await LK.check('2468')), 'lock: the PIN can be changed with the old one');
+  const backup = S.exportJSON();
+  S.setSkill('math7.circles', { level: 3, tries: 7, right: 7, sets: 1, last: Date.now() });
+  S.importJSON(backup);
+  ok(LK.hasPin() && await LK.check('13579'), 'lock: loading a copy keeps the PIN');
+  for (let k = 0; k < 4; k++) await LK.check('0000');
+  let waited = false; try { await LK.check('0000'); await LK.check('13579'); } catch (e) { waited = /Wait \d+ seconds/.test(e.message); }
+  ok(waited, 'lock: five wrong tries in a row mean a wait');
   S.reset();
   }
 

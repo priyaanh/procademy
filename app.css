@@ -961,6 +961,11 @@ label.set-row { cursor: pointer; }
 .switch:checked { background: var(--primary); }
 .switch:checked::after { transform: translateX(20px); }
 .set-card .move-box { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
+.set-acts { display: flex; flex-wrap: wrap; gap: 8px; }
+.lock-form { margin-top: 2px; padding-top: 14px; border-top: 1px solid var(--line); }
+.lock-form h3 { margin: 0 0 6px; }
+.lock-form .field input { width: 100%; max-width: 300px; }
+.lock-form .btn-row { margin-top: 4px; }
 .tile.has-ic { position: relative; }
 .tile-ic { position: absolute; top: 12px; right: 12px; opacity: .9; }
 .ic-flame { color: #d9480f; } .ic-star { color: var(--lvl3); } .ic-medal { color: #b7791f; }
