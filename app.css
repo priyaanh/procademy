@@ -330,6 +330,7 @@ footer { border-top: 1px solid var(--line); color: var(--muted); font-size: .9re
 .shot-reading { display: grid; gap: 8px; margin-top: 14px; max-width: 460px; }
 .shot-err, .shot-none { margin: 14px 0 0; }
 .shot-none { padding-top: 12px; border-top: 1px solid var(--line); }
+@container page (max-width: 560px) { .shot-paste { display: none; } .ul-shot-head .tool-ic { display: none; } }
 .ul-pick { display: flex; gap: 12px; align-items: flex-start; color: var(--ink); text-decoration: none; }
 .ul-pick:hover { border-color: var(--primary); text-decoration: none; }
 .ul-pick b { display: block; }

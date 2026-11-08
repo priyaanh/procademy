@@ -1222,7 +1222,7 @@
   server.sendFail = 'auth/too-many-requests';
   ACCOUNT.useBackend(device());
   m = await go3('#/profile');
-  fill('#ac-user', 'comet'); fill('#ac-pass', 'nucleus123'); fill('#ac-pass2', 'nucleus123'); fill('#ac-email', 'busy@example.com');
+  fill('#ac-user', 'comet'); fill('#ac-pass', 'nucleus123'); fill('#ac-pass2', 'nucleus123'); fill('#ac-email', 'busy@example.com'); if (m.querySelector('#ac-grade')) fill('#ac-grade', '7');
   m.querySelector('#ac-new').dispatchEvent(new Event('submit', { cancelable: true })); await tick(60);
   m = document.getElementById('main');
   ok(/couldn’t be sent just now/.test(text(m.querySelector('#account'))) && m.querySelector('#ac-resend'), 'verify: when the email can’t be sent, it says so and offers to send it again');
