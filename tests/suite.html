@@ -301,9 +301,9 @@
   const main = document.getElementById('main');
   const nameEl = main.querySelector('#name'); nameEl.value = 'Sam'; nameEl.dispatchEvent(new Event('input', { bubbles: true }));
   ok(S.get().profile.name === 'Sam' && document.querySelector('[data-brand]').textContent === 'Procademy', 'settings: the name is saved; the brand stays Procademy');
-  const themeEl = main.querySelector('#theme'); themeEl.value = 'dark'; themeEl.dispatchEvent(new Event('change', { bubbles: true }));
+  main.querySelector('#theme [data-v="dark"]').click();
   ok(document.documentElement.getAttribute('data-theme') === 'dark', 'settings: theme applies to <html>');
-  themeEl.value = 'system'; themeEl.dispatchEvent(new Event('change', { bubbles: true }));
+  main.querySelector('#theme [data-v="system"]').click();
   ok(!document.documentElement.hasAttribute('data-theme'), 'settings: system theme removes the attribute');
   await go('#/');
   ok(text(main).includes('Sam'), 'home greets by name');
@@ -620,9 +620,9 @@
   ok(/Cloud/.test(text(m.querySelector('.ai-meta'))) && /\d\.\d s/.test(text(m.querySelector('.ai-meta'))), 'tutor page: each answer says where it came from and how long it took');
   const saved1 = TUTORPAGE.load().chats;
   ok(saved1.length === 1 && /slope/i.test(saved1[0].title) && saved1[0].messages.length === 2 && location.hash === '#/tutor/' + saved1[0].id, 'tutor page: the chat is saved with a title, and the address names it');
-  ok(/Tutor details/.test(text(m.querySelector('#ai-status'))) && /How it runs/.test(text(m)), 'tutor page: a details card shows how the tutor is running');
+  ok(/Tutor details/.test(m.querySelector('#ai-status').textContent) && /How it runs/.test(m.querySelector('#ai-status').textContent), 'tutor page: a details card shows how the tutor is running');
   // style and subject reach the model
-  m.querySelector('[data-style="short"]').click();
+  const styleSel = m.querySelector('#ai-style'); styleSel.value = 'short'; styleSel.dispatchEvent(new Event('change'));
   const aboutSel = m.querySelector('#ai-about'); aboutSel.value = 'lesson'; aboutSel.dispatchEvent(new Event('change'));
   m.querySelector('[data-follow*="simply"]').click();
   for (let k = 0; k < 80 && TU.busy(); k++) await tick(25); await tick(40);
@@ -1480,7 +1480,7 @@
   m.querySelector('#recap-x').click(); await tick(10);
   m = await goW('#/');
   ok(!m.querySelector('#recap') && S.get().profile.recapSeen === mon, 'week: Got it puts the review away until next week');
-  m = await goW('#/settings'); const wg = m.querySelector('#week-goal'); wg.value = '3'; wg.dispatchEvent(new Event('change')); await tick(10);
+  m = await goW('#/settings'); m.querySelector('#week-goal [data-v="3"]').click(); await tick(10);
   m = await goW('#/');
   ok(S.get().profile.weekGoal === 3 && /of 3 days/.test(text(m.querySelector('.week-goal'))), 'week: the weekly goal can be changed in Settings');
   ok(!m.querySelector('.vs-home') && !m.querySelector('.tools .tool'), 'home: no challenge card or tools row (they’re on Progress and Tools)');
