@@ -361,7 +361,6 @@ footer { border-top: 1px solid var(--line); color: var(--muted); font-size: .9re
 .ul-topic-row select { padding: .55rem .6rem; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--surface); }
 .ul-topic-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 10px; }
 .ul-topic-chips .tiny { margin-right: 2px; }
-.tp-ai { font-size: .8rem; }
 .search-topic { margin-top: 16px; }
 .find-note { margin: -6px 0 14px; }
 .ul-more-topics { margin-top: 10px; }

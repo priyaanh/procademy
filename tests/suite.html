@@ -1370,7 +1370,7 @@
   // a suggested topic: the first question is there at once, with no AI request at all
   const g0 = gen.length;
   m = await go('#/unlimited/topic/7/Photosynthesis');
-  ok(m.querySelector('#choices') && /Reviewed question/.test(text(m)) && gen.length === g0, 'topics: a suggested topic starts at once, with reviewed questions and no AI request');
+  ok(m.querySelector('#choices') && m.__tp.source === 'bank' && !/\bAI\b/.test(text(m)) && gen.length === g0, 'topics: a suggested topic starts at once, with reviewed questions, no AI request and no “written by AI” label');
   const bankQ = TOPIC_BANK.photosynthesis.find(x => x[0] === text(m.querySelector('.question p')));
   [...m.querySelectorAll('#choices button')].find(x => x.textContent.slice(1) === bankQ[1][0]).click(); await tick(10);
   ok(/^Correct, well done\./.test(text(m.querySelector('#feedback'))) && text(m.querySelector('#feedback')).includes(bankQ[3]) && !m.querySelector('#tp-flag') && /Answered 1/.test(text(m.querySelector('.ul-tally'))), 'topics: a right answer says Correct, well done, and why');
@@ -1380,7 +1380,7 @@
   ok(/Getting questions ready on lighthouses/.test(text(m)) && !/busy/i.test(text(m)), 'topics: while the first questions are written it says so plainly, never that the AI is busy');
   await until(() => document.querySelector('#main #choices'));
   m = document.getElementById('main');
-  ok(m.querySelector('#choices') && streaming && /Question number 1\?/.test(text(m.querySelector('.question'))) && /Written by AI/.test(text(m)) && /Write 5 questions/.test(gen[gen.length - 1].messages[1].content) && /7th grade/.test(gen[gen.length - 1].messages[0].content) && /friendly tone/.test(gen[gen.length - 1].messages[0].content) && /No emojis/.test(gen[gen.length - 1].messages[0].content), 'topics: the first question appears as soon as it is written, while the rest are still coming');
+  ok(m.querySelector('#choices') && streaming && /Question number 1\?/.test(text(m.querySelector('.question'))) && !/\bAI\b/.test(text(m)) && /Write 5 questions/.test(gen[gen.length - 1].messages[1].content) && /7th grade/.test(gen[gen.length - 1].messages[0].content) && /friendly tone/.test(gen[gen.length - 1].messages[0].content) && /No emojis/.test(gen[gen.length - 1].messages[0].content), 'topics: the first question appears as soon as it is written, while the rest are still coming');
   tpGap = 5;
   await until(() => !streaming && chk.length === 1 && gen.length === g0 + 2, 4000);
   const pickT = good => { const b = [...m.querySelectorAll('#choices button')].find(x => good === /Right/.test(x.textContent)); b.click(); };
@@ -1395,7 +1395,7 @@
   ok(/won’t count toward your score/.test(text(m)) && /Answered 1/.test(text(m.querySelector('.ul-tally'))) && /Streak 1/.test(text(m.querySelector('.ul-tally'))), 'topics: “Report a problem” takes the question out of the score and gives the streak back');
   m.querySelector('#next').click(); await tick(10);
   ok(/Question number 4\?/.test(text(m.querySelector('.question'))) && /Write 10 questions/.test(gen[gen.length - 1].messages[1].content) && /Question number 1\?/.test(gen[gen.length - 1].messages[1].content), 'topics: the background check dropped the doubted question 3 before it was shown; the next ten were written ahead, told the earlier ones');
-  ok(/Written by AI and checked/.test(text(m)), 'topics: a question the background check agreed with says so');
+  ok(m.__tp.checked && !/\bAI\b/.test(text(m)), 'topics: a question the background check agreed with is marked checked, with no label on the page');
   const logN = S.get().log.length;
   m.querySelector('#stop').click(); await tick(10);
   ok(/Excellent work/.test(text(m)) && /1 \/ 1/.test(text(m.querySelector('.score'))) && S.get().log.length === logN + 1 && S.get().log[0].kind === 'topic' && !EMOJI.test(text(m)), 'topics: End session shows the score and logs the topic');
@@ -1410,7 +1410,7 @@
   m = await go('#/unlimited/topic/any/' + encodeURIComponent('rivers')); await tick(40);
   ok(/Use the free cloud AI service\?/.test(text(m)) && gen.length === g1, 'topics: with the tutor kept on this device, it asks before a topic goes to the cloud');
   m = await go('#/unlimited/topic/7/' + encodeURIComponent('World capitals')); await tick(40);
-  ok(m.querySelector('#choices') && /Reviewed question/.test(text(m)) && gen.length === g1, 'topics: a suggested topic needs no cloud at all, so it starts at once even then');
+  ok(m.querySelector('#choices') && m.__tp.source === 'bank' && gen.length === g1, 'topics: a suggested topic needs no cloud at all, so it starts at once even then');
   S.setProfile({ tutor: null });
   // leaving while questions are being written: the old page never draws over the new one
   tpGap = 200;
@@ -1434,7 +1434,7 @@
   ok(keptV.length >= 4 && !keptV.some(q => q.question === 'Question number 2?' || q.question === 'Question number 3?'), 'topics: questions written for a topic are kept on this device, without the reported one or the one the check doubted');
   tpGap = 400; const g2 = gen.length;
   m = await go('#/unlimited/topic/7/lighthouses');
-  ok(m.querySelector('#choices') && keptV.some(q => q.question === text(m.querySelector('.question p'))) && /Written by AI/.test(text(m)), 'topics: going back to a topic starts at once with the questions kept for it');
+  ok(m.querySelector('#choices') && keptV.some(q => q.question === text(m.querySelector('.question p'))) && m.__tp.source === 'saved', 'topics: going back to a topic starts at once with the questions kept for it');
   m = await go('#/unlimited'); tpGap = 5;
   ok(TOPICS.bankFor('The planets') === TOPIC_BANK['solar system'] && TOPICS.bankFor('the water cycle for kids') === TOPIC_BANK['water cycle'] && TOPICS.bankFor('Spanish') === TOPIC_BANK['spanish greetings'] && !TOPICS.bankFor('lighthouses') && !TOPICS.bankFor('solar cells') && !TOPICS.bankFor('weather in Spanish'), 'topics: another name for a suggested topic, or one with words like “for kids” around it, starts at once with reviewed questions; a different topic that only shares a word doesn’t');
   ok(TOPICS.MORE.every(([, list]) => list.every(t => TOPICS.bankFor(t))) && TOPICS.MORE.reduce((n, [, list]) => n + list.length, 0) === 32 && TOPICS.bankFor('WW2') === TOPIC_BANK['world war ii'] && TOPICS.bankFor('5th grade volcanoes') === TOPIC_BANK.volcanoes && TOPICS.bankFor('Phases of the Moon') === TOPIC_BANK.moon && TOPICS.bankFor('Newton’s laws') === TOPIC_BANK['forces and motion'], 'topics: thirty-two more topics have reviewed questions, found by their other names too (WW2, phases of the Moon, Newton’s laws)');
