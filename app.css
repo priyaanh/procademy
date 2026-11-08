@@ -961,8 +961,7 @@ label.set-row { cursor: pointer; }
 .switch:checked { background: var(--primary); }
 .switch:checked::after { transform: translateX(20px); }
 .set-card .move-box { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
-.set-acts { display: flex; flex-wrap: wrap; gap: 8px; }
-.lock-form { margin-top: 2px; padding-top: 14px; border-top: 1px solid var(--line); }
+.lock-form { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
 .lock-form h3 { margin: 0 0 6px; }
 .lock-form .field input { width: 100%; max-width: 300px; }
 .lock-form .btn-row { margin-top: 4px; }
