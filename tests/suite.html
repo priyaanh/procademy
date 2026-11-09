@@ -1395,6 +1395,97 @@
   S.reset();
   }
 
+  { // Home, finding things and the Practice page (the Continue button, the week's days, the problem of the day, search, tabs, the timer)
+  const until = async (fn, ms) => { const t = Date.now(); while (Date.now() - t < (ms || 4000)) { if (fn()) return true; await tick(20); } return false; };
+  S.reset(); S.setProfile({ grade: 7, welcomed: true, seenNews: 'n12', enrolled: ['math-7'] });
+  S.setSkill('math7.add-negatives', { level: 2, tries: 7, right: 5, sets: 1, last: Date.now() }); S.touchRecent('math7.add-negatives');
+  S.get().days[S.dayShift(S.today(), -1)] = { q: 9, right: 7, pts: 90 };
+  m = await go('#/');
+  ok(m.querySelector('#home-go') && /Continue/.test(text(m.querySelector('#home-go'))) && m.querySelector('#home-go').getAttribute('href') === '#/practice/math7.add-negatives', 'home: one Continue button picks up the last skill');
+  m.querySelectorAll('.wk-day')[5].click(); await tick(10);
+  ok(!m.querySelector('#day-detail').hidden && /9 questions, 7 right/.test(text(m.querySelector('#day-detail'))), 'home: a day of the week, tapped, says what was done');
+  m.querySelector('[data-whatis="streak"]').click(); await tick(5);
+  ok(!m.querySelector('#wi-streak').hidden && /streak saver/.test(text(m.querySelector('#wi-streak'))), 'home: What is this? explains the streak');
+  ok(m.querySelectorAll('.today-list li').length === 3 && m.querySelector('a[href="#/unlimited/quick"]') && m.querySelector('.today-new a') && m.querySelector('a.tile[href="#/mastered"]') && /about \d+ min left/.test(text(m.querySelector('#goal-tile'))), 'home: the problem of the day, five minutes, something new, the mastered tile and the minutes left');
+  // the problem of the day: one question, the same all day, then the summary
+  m = await go('#/unlimited/day');
+  ok(m.__session && m.__session.seed === 'pod:' + S.today() && /Problem of the day/.test(text(m)), 'problem of the day: one question at your level, the same all day');
+  answerCurrent(m, true); await tick();
+  await until(() => S.get().profile.pod === S.today());
+  ok(S.get().profile.pod === S.today(), 'problem of the day: answering it marks it done');
+  m.querySelector('#next').click(); await until(() => document.querySelector('.summary'));
+  ok(document.querySelector('.summary'), 'problem of the day: after one question it ends with the summary');
+  // how long a session lasts
+  try { localStorage.setItem('procademy.ullen.v1', 'q10'); } catch (e) {}
+  m = await go('#/unlimited/skill/math7.circles');
+  await until(() => m.querySelector('.ul-limit'));
+  ok(/0 of 10/.test(text(m.querySelector('.ul-limit'))), 'session length: a limit of 10 questions shows what is left');
+  localStorage.removeItem('procademy.ullen.v1');
+  m = await go('#/unlimited');
+  ok(m.querySelector('#ul-len [data-v="m5"]') && m.querySelector('a[href="#/unlimited/quick"]') && m.querySelector('a[href="#/unlimited/weak"]') && m.querySelector('.ul-today'), 'practice page: five minutes, weak skills, a session length and today’s count');
+  m.querySelector('#ul-len [data-v="m5"]').click();
+  ok(localStorage.getItem('procademy.ullen.v1') === 'm5', 'session length: chosen once, it is kept');
+  localStorage.removeItem('procademy.ullen.v1');
+  // a worksheet in a picture: one question at a time
+  ok(UNLIMITED.splitQuestions('Homework\n1. -7 + 4\n2. 2x + 5 = 17\n3) 3/4 + 1/6').length === 3, 'worksheet: numbered questions are split one by one');
+  FILES.ocr = async () => 'Worksheet\n1. -7 + 4\n2. 2x + 5 = 17\n3. 15% of 80';
+  const png2 = await new Promise(r => { const cv = document.createElement('canvas'); cv.width = 40; cv.height = 20; cv.toBlob(r, 'image/png'); });
+  const dt2 = new DataTransfer(); dt2.items.add(new File([png2], 'sheet.png', { type: 'image/png' }));
+  const fi2 = m.querySelector('#shot-file'); fi2.files = dt2.files; fi2.dispatchEvent(new Event('change'));
+  await until(() => m.querySelector('.shot-sheet'));
+  ok(m.querySelectorAll('.shot-qs li').length === 3 && /^#\/unlimited\/set\//.test(m.querySelector('.shot-sheet .btn.primary').getAttribute('href')), 'worksheet: each question gets its skill, and all of them can be practiced mixed');
+  FILES.ocr = null;
+  m = await go('#/'); m = await go('#/unlimited');
+  ok(m.querySelector('.shot-recent .chip-btn'), 'like a picture: recent questions come back with one tap');
+  // search: questions and typos
+  m = await go('#/search/' + encodeURIComponent('how do I find the slope?'));
+  ok(/Slope/.test(text(m.querySelector('.skills'))), 'search: a question finds its skills');
+  m = await go('#/search/fracions');
+  ok(/Showing results for/.test(text(m)) && m.querySelectorAll('.skills li').length > 3, 'search: a typo is corrected');
+  ok(VIEWS.fixQuery('fract').q === 'fract', 'search: a word still being typed is left alone');
+  // pages: all pages, mastered skills, breadcrumbs, the remembered Courses filter
+  m = await go('#/sitemap'); ok(m.querySelectorAll('.sm-group').length >= 5 && m.querySelector('a[href="#/timer"]'), 'all pages: every page in one place');
+  m = await go('#/mastered'); ok(/Mastered skills/.test(text(m.querySelector('h1'))), 'mastered skills: a page of their own');
+  m = await go('#/calc'); ok(/Tools/.test(text(m.querySelector('.crumbs'))), 'breadcrumbs: a tool shows the way back to Tools');
+  m = await go('#/courses/Elementary'); m = await go('#/'); m = await go('#/courses');
+  ok(/Elementary/.test(text(m.querySelector('.tabs .tab.on'))), 'courses: the last filter chosen is remembered');
+  m = await go('#/courses/High%20school'); m = await go('#/courses');
+  ok(/All/.test(text(m.querySelector('.tabs .tab.on'))), 'courses: choosing All on the page shows all');
+  localStorage.removeItem('procademy.ui.courses');
+  // the tab bar's middle three can be chosen
+  const pickTabs = async (off, on) => { document.getElementById('tab-more').click(); await tick(5); document.querySelector('#tabs-choose').click(); await tick(5); document.querySelector(`#tab-pick input[value="${off}"]`).click(); document.querySelector(`#tab-pick input[value="${on}"]`).click(); document.querySelector('#tabs-save').click(); await tick(10); };
+  await pickTabs('courses', 'tools');
+  ok([...document.querySelectorAll('.tabbar a')].map(a => a.dataset.nav).join() === 'home,unlimited,tutor,tools' && document.querySelector('#more-sheet a[href="#/courses"]'), 'tabs: the three middle tabs can be chosen, and the rest move to More');
+  await pickTabs('tools', 'courses');
+  ok([...document.querySelectorAll('.tabbar a')].map(a => a.dataset.nav).join() === 'home,unlimited,courses,tutor', 'tabs: and changed back');
+  // the study timer
+  m = await go('#/timer'); m.querySelector('#tm-go').click(); await tick(1200);
+  ok(!document.getElementById('timer-chip').hidden && /Focus 2[45]:\d\d/.test(text(document.getElementById('timer-chip'))), 'timer: while it runs, the time left shows at the top');
+  m.querySelector('#tm-reset').click(); await tick(1100);
+  ok(document.getElementById('timer-chip').hidden, 'timer: reset puts it away');
+  localStorage.removeItem('procademy.timer.v1');
+  // the test checklist, and practice for the test
+  S.setProfile({ prep: { book: 'cc2', ch: 3, date: S.dayShift(S.today(), 4), done: {}, tests: [] } });
+  m = await go('#/prep/cc2/3');
+  ok(m.querySelectorAll('.prep-check li').length === 7, 'test prep: a checklist for before the test');
+  m.querySelector('[data-check="bag"]').click(); await tick(5);
+  ok(S.get().profile.prep.check.bag === true, 'test prep: a ticked item is kept');
+  m = await go('#/unlimited/test');
+  ok(m.__session && m.__session.cpm && m.__session.cpm.chapter === 3, 'practice for my test: the chapter’s skills');
+  // a new learner: the plan as soon as a grade is chosen, one question to try, then the tour
+  S.reset(); m = await go('#/');
+  m.querySelector('[data-level="7"]').click(); await tick(5);
+  ok(!m.querySelector('#wl-plan').hidden && /7th grade math/.test(text(m.querySelector('#wl-plan'))), 'welcome: the plan for the week shows as soon as a grade is chosen');
+  m.querySelector('#wl-try').click(); await tick(80);
+  m = document.getElementById('main');
+  ok(/^#\/unlimited\/sample\//.test(location.hash) && m.__session, 'welcome: one question to try');
+  m = await go('#/'); await until(() => document.querySelector('.tour'));
+  ok(document.querySelector('.tour') && /1 of 4/.test(text(document.querySelector('.tour'))), 'tour: after the welcome, a short tour of the site');
+  document.querySelector('#tour-skip').click(); await tick(5);
+  ok(!document.querySelector('.tour') && S.get().profile.toured && !S.get().profile.tourNext, 'tour: it can be skipped, and doesn’t come back by itself');
+  S.reset();
+  }
+
   { // questions like a picture, and the grade setting the level of things
   const until = async (fn, ms) => { const t = Date.now(); while (Date.now() - t < (ms || 3000)) { if (fn()) return true; await tick(20); } return false; };
   const title = q => { const id = UNLIMITED.likeThis(q)[0]; return id ? A.stripTags(A.skills[id].title) : ''; };
@@ -1403,6 +1494,9 @@
   m = await go('#/unlimited');
   ok(m.querySelector('#ul-shot #shot-pick') && m.querySelector('#shot-text'), 'like a picture: the Practice page takes a picture or a typed question');
   m.querySelector('#shot-text').value = '-7 + 4'; m.querySelector('#shot-form').dispatchEvent(new Event('submit', { cancelable: true }));
+  await until(() => m.querySelector('.shot-match'));
+  ok(m.querySelectorAll('.shot-match').length >= 2 && /Adding negative numbers/.test(text(m.querySelector('.shot-match.best'))), 'like a picture: the closest skills show as cards, the best first');
+  m.querySelector('.shot-match.best').click();
   await until(() => document.querySelector('.find-note'));
   m = document.getElementById('main');
   ok(/^#\/unlimited\/similar\/math7\.add-negatives/.test(location.hash) && m.__session && m.__session.items[0].skillId === 'math7.add-negatives' && /From your question/.test(text(m.querySelector('.find-note'))), 'like a picture: a typed question starts practice of its skill at once, saying what it was');
@@ -1411,13 +1505,16 @@
   const png = await new Promise(r => { const cv = document.createElement('canvas'); cv.width = 40; cv.height = 20; cv.toBlob(r, 'image/png'); });
   const dt = new DataTransfer(); dt.items.add(new File([png], 'shot.png', { type: 'image/png' }));
   const fi = m.querySelector('#shot-file'); fi.files = dt.files; fi.dispatchEvent(new Event('change'));
+  await until(() => m.querySelector('#shot-read') && m.querySelector('.shot-match'));
+  ok(/2x \+ 5 = 17/.test(m.querySelector('#shot-read').value), 'like a picture: what was read is shown, to fix if need be');
+  m.querySelector('.shot-match.best').click();
   await until(() => /similar/.test(location.hash) && document.querySelector('.find-note'));
   const firstId = decodeURIComponent(location.hash.split('/')[3].split(',')[0]);
   ok(A.skills[firstId] && /Two-step equations/.test(A.skills[firstId].title) && /From your picture/.test(text(document.querySelector('.find-note'))), 'like a picture: a screenshot is read on this device and matched to its skill');
   FILES.ocr = null;
   m = await go('#/unlimited');
   m.querySelector('#shot-text').value = 'qwzx plorb'; m.querySelector('#shot-form').dispatchEvent(new Event('submit', { cancelable: true })); await tick(30);
-  ok(location.hash === '#/unlimited' && m.querySelector('.shot-none #shot-find'), 'like a picture: when nothing matches, it says so and offers other ways');
+  ok(location.hash === '#/unlimited' && m.querySelector('.shot-none [data-find]'), 'like a picture: when nothing matches, it says so and offers other ways');
   m = await go('#/unlimited/picture');
   ok(m.querySelector('#ul-shot') && document.activeElement === m.querySelector('#shot-pick'), 'like a picture: its own address opens the Practice page at the box');
   // the grade: the puzzle of the day and the first course
@@ -1580,7 +1677,7 @@
   m = await go('#/unlimited');
   ok(tb && [...tb.querySelectorAll('a')].map(a => text(a)).join(',') === 'Home,Practice,Courses,Tutor' && tb.querySelector('a.active[data-nav="unlimited"][aria-current="page"]'), 'tab bar: Home, Practice, Courses and Tutor, with the current page marked');
   moreB.click(); await tick(10);
-  ok(!sheet.hidden && moreB.getAttribute('aria-expanded') === 'true' && [...sheet.querySelectorAll('a')].map(a => a.getAttribute('href')).join(' ') === '#/cpm #/tools #/progress #/family #/profile #/settings', 'tab bar: More opens CPM books, Tools, Progress, Family and class, Profile and Settings');
+  ok(!sheet.hidden && moreB.getAttribute('aria-expanded') === 'true' && [...sheet.querySelectorAll('a')].map(a => a.getAttribute('href')).join(' ') === '#/cpm #/tools #/progress #/family #/profile #/settings #/sitemap', 'tab bar: More opens CPM books, Tools, Progress, Family and class, Profile, Settings and All pages');
   sheet.querySelector('a[href="#/tools"]').click(); await tick(60);
   ok(location.hash === '#/tools' && sheet.hidden && moreB.classList.contains('active') && !tb.querySelector('a.active'), 'tab bar: a page chosen from More opens, More closes, and More is marked as where you are');
   moreB.click(); await tick(10); document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await tick(10);
@@ -1809,7 +1906,7 @@
   m.querySelector('#wl-start').click(); await tick(60);
   ok(location.hash === '#/daily' && S.get().profile.grade === 7 && S.get().profile.goal === 30 && S.get().profile.enrolled.join() === 'math-7' && S.get().profile.welcomed && document.getElementById('main').__session, 'every day: two choices, and the first practice starts with the right course saved');
   m = await goHome();
-  ok(!m.querySelector('#welcome') && m.querySelector('.today-card') && m.querySelectorAll('.today-list li').length === 2 && /Puzzle of the day/.test(text(m.querySelector('.today-card'))) && m.querySelector('#goal-tile') && m.querySelectorAll('.week li').length === 7, 'every day: Home then shows today’s plan: practice and the puzzle of the day, the goal ring below, with the last 7 days');
+  ok(!m.querySelector('#welcome') && m.querySelector('.today-card') && m.querySelectorAll('.today-list li').length === 3 && /Puzzle of the day/.test(text(m.querySelector('.today-card'))) && /Problem of the day/.test(text(m.querySelector('.today-card'))) && m.querySelector('#goal-tile') && m.querySelectorAll('.week li').length === 7, 'every day: Home then shows today’s plan: practice and the puzzle of the day, the goal ring below, with the last 7 days');
   S.reset();
   m = await goHome();
   m.querySelector('[data-level="adult-algebra"]').click(); m.querySelector('#wl-start').click(); await tick(40);
@@ -1829,8 +1926,9 @@
   localStorage.setItem('procademy.leap.v1', JSON.stringify({ level: 1, stars: {}, daily: { [S.today()]: 2 } }));
   const bal0 = localStorage.getItem(BALANCE.KEY);
   localStorage.setItem(BALANCE.KEY, JSON.stringify({ level: 1, stars: {}, daily: { [S.today()]: 3 } }));      // the puzzle of the day takes turns: either one counts
+  S.setProfile({ pod: S.today() });
   m = await goHome();
-  ok(m.querySelector('.today-card.all-done') && /You’ve finished today’s plan/.test(text(m)) && m.querySelectorAll('.today-list li.done').length === 2, 'every day: when all three are done (with the goal), Home says so');
+  ok(m.querySelector('.today-card.all-done') && /You’ve finished today’s plan/.test(text(m)) && m.querySelectorAll('.today-list li.done').length === 3, 'every day: when all three are done (with the goal), Home says so');
   if (bal0 == null) localStorage.removeItem(BALANCE.KEY); else localStorage.setItem(BALANCE.KEY, bal0);
   if (leap0 == null) localStorage.removeItem('procademy.leap.v1'); else localStorage.setItem('procademy.leap.v1', leap0);
   // streak savers: 7 days in a row earns one; a missed day is then kept by it
