@@ -1531,6 +1531,118 @@
   S.reset();
   }
 
+  { // courses, skills, CPM, Progress, Settings, Profile and Family: easier to use and more useful
+  const until = async (fn, ms) => { const t = Date.now(); while (Date.now() - t < (ms || 3000)) { if (fn()) return true; await tick(20); } return false; };
+  const realPrint = window.print; let printed = 0; window.print = () => { printed++; };
+  const today = S.today(), mon = S.dayShift(today, -((new Date(today + 'T12:00').getDay() + 6) % 7));
+  S.reset(); S.setProfile({ welcomed: true, grade: 7, enrolled: ['math-7'], name: 'Sam', prep: { book: 'cc2', ch: 3, date: S.dayShift(today, 6), tests: [], done: {} } });
+  S.setSkill('math7.add-negatives', { level: 3, tries: 7, right: 6, sets: 1, last: Date.now() });
+  S.setSkill('math7.sub-negatives', { level: 1, tries: 5, right: 2, sets: 1, last: Date.now() });
+  S.get().days[mon] = { q: 12, right: 9, pts: 90 }; S.get().days[S.dayShift(mon, -14)] = { q: 20, right: 12, pts: 120 };
+  S.get().log.unshift({ t: new Date(mon + 'T10:00').getTime(), kind: 'practice', skill: 'math7.add-negatives', right: 6, total: 7, pts: 60, changes: [{ skillId: 'math7.add-negatives', from: 1, to: 3 }] });
+  S.save();
+  // courses: grade and fit, a recommendation, rows that fill
+  m = await go('#/courses');
+  const c7 = [...m.querySelectorAll('.course-card')].find(cd => /7th grade math/.test(text(cd.querySelector('h3'))));
+  ok(c7 && /Grade 7/.test(text(c7.querySelector('.course-meta'))) && /Your grade/.test(text(c7.querySelector('.course-meta'))) && m.querySelector('#rec-course a[href^="#/practice/"]') && /Recommended for you/.test(text(m.querySelector('#rec-course'))), 'courses: each card shows its grade and how it fits; a course is recommended first');
+  const grid = m.querySelector('.band-section .grid.balanced'), cols = Number(getComputedStyle(grid).getPropertyValue('--cols')), n = grid.children.length;
+  ok(cols >= 1 && (n % cols === 0 || cols - n % cols <= 1), `courses: the cards fill their rows (${n} in rows of ${cols})`);
+  // the skill map: Practice on every unit, and the skills on a coming test dotted
+  m = await go('#/course/math-7');
+  ok(m.querySelectorAll('.sm-go').length === m.querySelectorAll('.sm-unit').length && m.querySelector('.sm-go').getAttribute('href').startsWith('#/unlimited/unit/math-7/'), 'skill map: every unit has a Practice button');
+  // a skill page: the big idea, how long it takes, what to know first, three sample questions, a summary to print
+  m = await go('#/skill/math7.add-negatives');
+  ok(/The big idea:/.test(text(m.querySelector('.big-idea'))) && /about \d+ minutes/.test(text(m.querySelector('.hero'))) && m.querySelectorAll('.before-this a').length >= 1, 'skill: the big idea, the time a set takes, and what to know first');
+  ok(m.querySelectorAll('.sample-list > li').length === 3 && [...m.querySelectorAll('.sample-ans')].every(d => !d.open && d.querySelector('p').textContent.trim()), 'skill: three sample questions, each with its answer a tap away');
+  m.querySelector('#print-summary').click(); await tick(20);
+  const sheet = document.getElementById('skill-print');
+  ok(printed === 1 && sheet && /Adding negative numbers/.test(sheet.textContent) && sheet.querySelector('.we-steps li') && /Answer:/.test(sheet.textContent), 'skill: a one-page summary prints, with the lesson and a worked example');
+  const testSid = [...(VIEWS.testSoon() || { ids: new Set() }).ids][0];
+  if (testSid) { m = await go('#/skill/' + encodeURIComponent(testSid)); ok(m.querySelector('.hero .test-chip'), 'skill: a skill on the coming test says when'); }
+  // a long lesson in steps, and the step remembered
+  const longSid = Object.keys(A.skills).find(id => { if (!A.whereIs(id)) return false; const d = document.createElement('div'); d.innerHTML = A.skills[id].learn || ''; return d.children.length >= 4 && d.textContent.length > 900; });
+  try { localStorage.removeItem('procademy.read.v1'); } catch (e) {}
+  m = await go('#/skill/' + encodeURIComponent(longSid));
+  const steps = m.querySelectorAll('.learn-step');
+  ok(steps.length >= 2 && [...steps].filter(x => !x.hidden).length === 1 && /Step 1 of/.test(text(m.querySelector('.learn-nav'))), 'lesson: a long lesson shows one step at a time (' + longSid + ')');
+  m.querySelector('[data-step-go="1"]').click(); await tick(10);
+  m = await go('#/skill/' + encodeURIComponent(longSid));
+  ok(/Step 2 of/.test(text(m.querySelector('.learn-nav'))), 'lesson: coming back opens the step you were on');
+  m.querySelector('[data-step-all]').click(); await tick(10);
+  ok(![...m.querySelectorAll('.learn-step')].some(x => x.hidden) && !m.querySelector('.learn-nav'), 'lesson: Show it all shows every step');
+  try { localStorage.removeItem('procademy.read.v1'); } catch (e) {}
+  // Progress: this week first, what to practice next and why, how it's going, a report in one tap
+  m = await go('#/progress');
+  ok(/This week/.test(text(m.querySelector('.pr-week'))) && /Adding negative numbers/.test(text(m.querySelector('.pr-ups'))) && m.querySelector('.pr-week') === m.querySelector('.card'), 'progress: this week comes first, with what got better');
+  const nextRows = [...m.querySelectorAll('.pr-next li')];
+  ok(nextRows.length >= 2 && nextRows.every(li => li.querySelector('.sub').textContent.trim() && li.querySelector('a.btn[href^="#/practice/"]')), 'progress: what to practice next, each with why and a Practice button');
+  ok(m.querySelectorAll('.pr-chart .pr-col').length === 8 && m.querySelector('.pr-chart').getAttribute('aria-label').includes('questions'), 'progress: eight weeks of questions and first-try rights');
+  ok(/Due for review/.test(text(m)) && /Activity/.test(text(m)) && /Mastery/.test(text(m)), 'progress: everything else is still there, further down');
+  m.querySelector('#pr-print').click(); await tick(10);
+  m = await go('#/report'); await tick(450);
+  ok(printed === 2, 'progress: Print a report opens the report and prints it in one tap');
+  m = await go('#/progress'); m.querySelector('#pr-share').click(); await tick(20);
+  ok(FAMILY._last && FAMILY._last.includes('#/family/add/'), 'progress: Share with a parent copies the read-only progress link');
+  // Settings and Profile: one tab strip; the look back to how it started
+  m = await go('#/settings');
+  ok([...m.querySelectorAll('.me-tabs a')].map(a => a.getAttribute('href')).join() === '#/profile,#/settings' && m.querySelector('.me-tabs .tab.on').getAttribute('href') === '#/settings', 'settings: tabs for Profile and Settings');
+  m.querySelector('#theme [data-v="dark"]').click(); m.querySelector('#size [data-v="large"]').click(); await tick(10);
+  m.querySelector('#look-reset').click(); await tick(10);
+  ok(S.get().profile.theme === 'system' && S.get().profile.textSize === 'normal' && !document.documentElement.hasAttribute('data-theme'), 'settings: Reset to defaults puts the look back');
+  // Profile: wide, the reminder beside the summary; signing up a step at a time, with the password rules shown
+  ACCOUNT.useBackend({ ready: Promise.resolve(), status: () => 'ready', providers: [], onChange() {}, current: () => null, reauth: async () => {} });
+  try { localStorage.setItem('procademy.lastuser.v1', 'sam_7'); } catch (e) {}
+  m = await go('#/profile');
+  ok(m.querySelector('.me-tabs .tab.on').getAttribute('href') === '#/profile' && m.querySelector('.profile-grid > .reminder'), 'profile: the same tabs, and the reminder sits with the summary');
+  ok(m.querySelector('#ac-id').value === 'sam_7', 'profile: the last username used here is filled in to log in');
+  const stepShown = n => !m.querySelector(`.ac-step[data-step="${n}"]`).hidden;
+  m.querySelector('#ac-user').value = 'x'; m.querySelector('#ac-next').click(); await tick(10);
+  ok(stepShown(1) && /3 to 20/.test(text(m.querySelector('#ac-new .ac-msg'))), 'sign up: a step is checked before the next one');
+  m.querySelector('#ac-user').value = 'sam_7'; m.querySelector('#ac-next').click(); await tick(10);
+  ok(stepShown(2) && /Step 2 of 3/.test(text(m.querySelector('#ac-step-n'))), 'sign up: one short step at a time');
+  const pw1 = m.querySelector('#ac-pass'), pw2 = m.querySelector('#ac-pass2');
+  pw1.value = 'short'; pw1.dispatchEvent(new Event('input')); await tick(5);
+  ok(!m.querySelector('[data-rule="len"]').classList.contains('ok'), 'sign up: the rules show what is still missing');
+  pw1.value = 'telescope9'; pw2.value = 'telescope9'; pw1.dispatchEvent(new Event('input')); await tick(5);
+  ok([...m.querySelectorAll('[data-rule]')].every(li => li.classList.contains('ok')), 'sign up: every rule is ticked as it is met');
+  const show = pw1.parentElement.querySelector('.pw-show'); show.click();
+  ok(pw1.type === 'text' && show.getAttribute('aria-pressed') === 'true', 'sign up: Show reveals the password');
+  ACCOUNT.useBackend(null); try { localStorage.removeItem('procademy.lastuser.v1'); } catch (e) {}
+  // CPM: choose the class lesson from lists; Today's homework; it moves ahead by itself
+  S.setProfile({ cpm: null });
+  m = await go('#/cpm');
+  m.querySelector('#cpm-pick-book').value = 'cc2'; m.querySelector('#cpm-pick-book').dispatchEvent(new Event('change'));
+  m.querySelector('#cpm-pick-lesson').value = '3.1.1'; m.querySelector('#cpm-pick').dispatchEvent(new Event('submit', { cancelable: true })); await tick(30);
+  m = document.getElementById('main');
+  ok(S.get().profile.cpm.lesson === '3.1.1' && /Today’s homework/.test(text(m.querySelector('.cpm-now'))) && /left in chapter 3/.test(text(m.querySelector('.cpm-now'))), 'cpm: the class lesson is picked from lists; Home shows Today’s homework and what is left in the chapter');
+  m = await go('#/cpm/cc2/3.1.1');
+  ok(m.querySelectorAll('.key-ideas li').length >= 1, 'cpm: a lesson shows its key ideas');
+  m.querySelector('[data-pace="1"]').click(); await tick(20);
+  const cp = S.get().profile.cpm;
+  ok(cp.pace === 1 && cp.from === '3.1.1' && cp.since === today, 'cpm: the lesson can move ahead by itself, every school day');
+  S.setProfile({ cpm: Object.assign({}, cp, { since: S.dayShift(today, -7) }) });
+  let school = 0; for (let d = S.dayShift(today, -6); d <= today; d = S.dayShift(d, 1)) { const w = new Date(d + 'T12:00').getDay(); if (w > 0 && w < 6) school++; }
+  CPMVIEWS.advance();
+  const all = A.cpmById('cc2').chapters.flatMap(ch => ch.lessons).map(l => l.id);
+  ok(all.indexOf(S.get().profile.cpm.lesson) === all.indexOf('3.1.1') + school, `cpm: a week later it has moved ${school} lessons ahead`);
+  S.setProfile({ cpm: null });
+  // Family: the week at a glance, today's goal (a parent can change it), highlights, a question to ask, practice links for a class
+  m = await go('#/family');
+  const fc = m.querySelector('.fam-card');
+  ok(fc.querySelectorAll('.fam-week li').length === 7 && fc.querySelector('.fam-week li.did') && /Today: \d+ of 20/.test(text(fc.querySelector('.fam-goal'))) && /This week:/.test(text(fc.querySelector('.fam-high'))) && /Ask about it/.test(text(fc.querySelector('.fam-ask'))), 'family: each learner’s week, today’s goal, highlights and something to ask about');
+  const gsel = fc.querySelector('[data-fam-goal]'); gsel.value = '30'; gsel.dispatchEvent(new Event('change')); await tick(20);
+  ok(S.get().profile.goal === 30 && /of 30/.test(text(document.querySelector('.fam-goal'))), 'family: a parent can set the daily goal');
+  m = document.getElementById('main');
+  const cs = m.querySelector('#fa-course'); cs.value = 'math-7'; cs.dispatchEvent(new Event('change'));
+  const us = m.querySelector('#fa-unit'); us.value = us.options[1].value; us.dispatchEvent(new Event('change'));
+  m.querySelector('#fa-copy').click(); await tick(20);
+  ok(FAMILY._assign && FAMILY._assign.endsWith('#/unlimited/unit/math-7/' + us.value) && m.querySelector('#fa-try').getAttribute('href') === '#/unlimited/unit/math-7/' + us.value, 'family: a teacher copies a practice link for a unit');
+  const code = FAMILY.link().split('#/family/add/')[1], sum2 = FAMILY.read(code);
+  ok(sum2 && sum2.w7.length === 7 && sum2.goal === 30 && sum2.ups.includes('math7.add-negatives') && FAMILY.read(DRAW.encode(JSON.stringify(Object.assign({}, JSON.parse(DRAW.decode(code)), { w7: [1, 2, 0, 0, 0, 0, 0] })))).w7 === null, 'family: a progress link carries the week, the goal and what leveled up; a bad week is left out');
+  window.print = realPrint;
+  S.reset();
+  }
+
   { // Erase all progress (not signed in: it asks to be sure)
   const until = async (fn, ms) => { const t = Date.now(); while (Date.now() - t < (ms || 4000)) { if (fn()) return true; await tick(20); } return false; };
   S.reset(); S.setProfile({ welcomed: true }); S.setSkill('math7.circles', { level: 2, tries: 7, right: 5, sets: 1, last: Date.now() });
@@ -1765,7 +1877,7 @@
   // family and class: a progress link adds a learner; an older link never replaces a newer one
   S.setProfile({ name: 'Priyaan' });
   const famUrl = FAMILY.link(), famCode = famUrl.split('#/family/add/')[1], fsum = FAMILY.read(famCode);
-  ok(fsum && fsum.name === 'Priyaan' && fsum.grade === 7 && fsum.week.q === 4 && fsum.courses[0].id === 'math-7' && fsum.next.length && Object.keys(JSON.parse(DRAW.decode(famCode))).sort().join() === 'counts,courses,grade,id,last,name,next,slips,streak,t,v,week', 'family: a progress link carries a short, checked summary and nothing more');
+  ok(fsum && fsum.name === 'Priyaan' && fsum.grade === 7 && fsum.week.q === 4 && fsum.courses[0].id === 'math-7' && fsum.next.length && Object.keys(JSON.parse(DRAW.decode(famCode))).sort().join() === 'counts,courses,goal,grade,id,last,name,next,slips,streak,t,today,ups,v,w7,week', 'family: a progress link carries a short, checked summary and nothing more');
   ok(!FAMILY.read(DRAW.encode(JSON.stringify(Object.assign({}, fsum, { courses: [{ id: 'nope', pct: 50 }], week: { days: 9, q: 1, right: 0 } })))), 'family: a link with impossible numbers is refused');
   m = await goW('#/family/add/' + famCode);
   ok(/Add Priyaan’s progress\?/.test(text(m)), 'family: opening a progress link asks before adding');
