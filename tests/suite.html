@@ -602,6 +602,106 @@
   UI.close();
   try { localStorage.removeItem('procademy.ui.v1'); } catch (e) {}
 
+  { /* ---- tutor, calculators, tools and the glossary: easier to use ---- */
+  const goB = async h => { location.hash = '#/settings'; await tick(15); return go(h); };
+  const untilB = async (fn, ms) => { const t = Date.now(); while (Date.now() - t < (ms || 3000)) { if (fn()) return true; await tick(20); } return false; };
+  // a long answer comes a step at a time
+  const paced = document.createElement('div'); paced.innerHTML = TU.render('Here is how.\n1. Add 7 to both sides: 3x = 21.\n2. Divide by 3: x = 7.\n3. Check it: 3(7) − 7 = 14.\nSo x = 7.');
+  document.body.appendChild(paced);
+  const pm = { role: 'assistant', content: 'x' }; UI.pace(paced, pm);
+  const shownLi = () => [...paced.querySelectorAll('li')].filter(li => !li.hidden).length;
+  ok(shownLi() === 1 && /Next step \(2 of 3\)/.test(text(paced.querySelector('.pace'))) && paced.querySelector('p:last-of-type').hidden, 'tutor: a numbered answer shows one step at a time');
+  paced.querySelector('[data-pace="next"]').click();
+  ok(shownLi() === 2 && pm.paceStep === 2, 'tutor: Next step shows the next one');
+  paced.querySelector('[data-pace="all"]').click();
+  ok(shownLi() === 3 && !paced.querySelector('.pace') && !paced.querySelector('p:last-of-type').hidden, 'tutor: Show all steps shows the rest');
+  paced.remove();
+  ok(UI.pictureAsk([{ role: 'user', content: 'What is a volcano?' }]) === 'Show me a picture of a volcano' && /Thinking/.test(UI.thinkingHtml()), 'tutor: Show me a picture asks for one of the subject; a clear thinking line');
+  S.setProfile({ name: 'Priyaan' }); m = await goB('#/');
+  ok(/the student/.test(UI.pageText()) && !/Priyaan/.test(UI.pageText()), 'tutor: Help with this page describes the page without the learner’s name');
+  // read answers aloud
+  const realSay = COACH.say; let said = '';
+  COACH.say = h => { said = h; return true; };
+  UI.setPref({ voice: true }); UI.speak({ content: 'Seven.' });
+  ok(!COACH.canSpeak() || /Seven/.test(said), 'tutor: with Read aloud on, an answer is read out');
+  UI.setPref({ voice: false }); COACH.say = realSay;
+  // the floating button keeps clear of buttons
+  const fab = document.getElementById('tutor-fab');
+  if (fab && UI.placeFab) {
+    root.innerHTML = '';                                                  // a practice view left here has its own Ask button, which hides this one
+    m = await goB('#/settings'); window.scrollTo(0, 0); UI.placeFab();
+    const base = fab.classList.contains('away'), r = fab.getBoundingClientRect(), blocker = document.createElement('button');
+    blocker.textContent = 'Under'; blocker.style.cssText = `position:fixed;left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;z-index:5`;
+    document.body.appendChild(blocker); UI.placeFab();
+    const away = fab.classList.contains('away');
+    blocker.remove(); UI.placeFab();
+    ok(away && fab.classList.contains('away') === base, 'tutor button: it steps aside while it would cover a button, and comes back');
+  }
+  // the tutor page: pin, rename, search, homework help
+  try { localStorage.setItem('procademy.chats.v1', JSON.stringify({ chats: ['Slope', 'Circles', 'Fractions', 'Percents'].map((t, k) => ({ id: 'z' + k, title: t, created: k, updated: Date.now() - k * 1000, about: 'general', level: 'auto', style: 'steps', messages: [{ role: 'user', content: t + ' question' }, { role: 'assistant', content: 'About ' + t }] })) })); } catch (e) {}
+  m = await goB('#/tutor/z0');
+  ok(m.querySelector('#ai-find') && m.querySelector('#ai-chats-btn') && [...m.querySelectorAll('#ai-style option')].some(o => o.value === 'homework'), 'tutor page: a chat search, a Chats button for phones, and Homework help (hints only)');
+  m.querySelector('[data-pin="z2"]').click(); await tick(10);
+  ok(TUTORPAGE.load().chats.find(c => c.id === 'z2').pinned && m.querySelector('.ai-chat').dataset.chat === 'z2', 'tutor page: a pinned chat goes to the top');
+  m.querySelector('[data-ren="z1"]').click(); await tick(10);
+  const rin = m.querySelector('#ai-ren-in'); rin.value = 'Circle areas'; rin.closest('form').dispatchEvent(new Event('submit', { cancelable: true })); await tick(10);
+  ok(TUTORPAGE.load().chats.find(c => c.id === 'z1').title === 'Circle areas', 'tutor page: a chat can be renamed');
+  const fnd = m.querySelector('#ai-find'); fnd.value = 'percent'; fnd.dispatchEvent(new Event('input')); await tick(10);
+  ok(m.querySelectorAll('.ai-chat').length === 1 && /Percents/.test(text(m.querySelector('.ai-chat'))), 'tutor page: the search finds chats by what was said');
+  fnd.value = ''; fnd.dispatchEvent(new Event('input'));
+  try { localStorage.removeItem('procademy.chats.v1'); } catch (e) {}
+  // the calculator: a first look, copy, Y= to the graphing page
+  localStorage.removeItem('procademy.calc.v1');
+  m = await goB('#/calc');
+  ok(m.querySelector('#cx-how') && m.querySelector('#cx-how-try'), 'calc page: a first visit shows how to use it');
+  m.querySelector('#cx-how-try').click(); await tick(20);
+  ok(!m.querySelector('#cx-how') && m.__calc.shown === '7/12' && m.querySelector('#cx-forms .cx-copy[data-copy="7/12"]') && m.querySelector('#cx-big .cx-copy'), 'calc page: Try an example works one out, with Copy beside each form');
+  m = await goB('#/calc');
+  ok(!m.querySelector('#cx-how'), 'calc page: the first look shows once');
+  const cst = JSON.parse(localStorage.getItem('procademy.calc.v1')); cst.ys = ['X²−4', '2X+1', '', '', '', '']; cst.on = [true, true, true, true, true, true]; localStorage.setItem('procademy.calc.v1', JSON.stringify(cst));
+  m = await goB('#/calc');
+  const tg = m.querySelector('#cx-tograph-btn');
+  ok(!m.querySelector('#cx-tograph').hidden && tg && DRAW.decode(tg.getAttribute('href').replace('#/graph/', '')) === 'y = x²-4\ny = 2x+1', 'calc page: the Y= graphs open in the graphing calculator');
+  localStorage.removeItem('procademy.calc.v1');
+  // the graphing page: what a starter shows, key points, a table, undo, saving
+  try { localStorage.removeItem('procademy.graph.v1'); } catch (e) {}
+  m = await goB('#/graph');
+  m.querySelector('[data-start="0"]').click(); await tick(40);
+  ok(!m.querySelector('#calc-explain').hidden && /slope/.test(text(m.querySelector('#calc-explain'))), 'graph: a starter says what it shows in a sentence');
+  ok(m.querySelectorAll('#calc-below-body [data-key]').length >= 1, 'graph: the key points are listed under the graph');
+  m.querySelector('[data-below="table"]').click(); await tick(20);
+  ok(m.querySelectorAll('.calc-table tbody tr').length >= 5, 'graph: a table of values');
+  await tick(700);
+  const before = m.__calc.lines().filter(l => l.trim()).join('|');
+  m.querySelector('#calc-clear').click(); await tick(40);
+  m.__calc.undo(); await tick(40);
+  ok(m.__calc.lines().filter(l => l.trim()).join('|') === before, 'graph: Undo brings back what Clear took away');
+  m.__calc.redo(); await tick(40);
+  ok(!m.__calc.lines().some(l => l.trim()), 'graph: Redo does it again');
+  m.__calc.undo(); await tick(40);
+  m.querySelector('#calc-save').click(); await tick(10);
+  m.querySelector('#calc-save-name').value = 'My line'; m.querySelector('#calc-save-form').dispatchEvent(new Event('submit', { cancelable: true })); await tick(20);
+  ok(!m.querySelector('#calc-saved').hidden && /My line/.test(m.querySelector('#calc-saved').textContent) && JSON.parse(localStorage.getItem('procademy.graph.v1')).saved[0].name === 'My line', 'graph: a graph can be saved by name');
+  try { localStorage.removeItem('procademy.graph.v1'); } catch (e) {}
+  // tools: what you are studying, what you used, an example on every card
+  S.reset(); S.get().recent = ['math7.add-negatives']; S.save && S.save();
+  m = await goB('#/tools');
+  ok(/For what you’re studying/.test(text(m)) && m.querySelectorAll('.tool-try').length >= 15 && /Used recently/.test(text(m)), 'tools: tools for what you are studying, the ones used lately, and a Try example on each');
+  // the glossary: formulas, and pictures
+  m = await goB('#/words/formulas');
+  const fq = m.querySelector('#fm-q'); fq.value = 'slope'; fq.dispatchEvent(new Event('input')); await tick(10);
+  ok([...m.querySelectorAll('.formula h3')].some(h => /Slope/.test(h.textContent)) && m.querySelector('.words-tabs .tab.on').textContent === 'Formulas', 'words: a formula sheet, searchable');
+  m = await goB('#/words/slope');
+  ok(m.querySelector('#w-slope .word-pic'), 'words: some words have a picture');
+  // check my answer
+  const CA = (q, a) => STEPS.checkAnswer(q, a);
+  ok(CA('2x + 5 = 17', 'x = 6').ok === true && CA('2x + 5 = 17', '6').ok === true && CA('2x + 5 = 17', '7').ok === false && /17 = 17|19 = 17/.test(CA('2x + 5 = 17', '7').msg) && !/x = 6/.test(CA('2x + 5 = 17', '7').msg), 'check my answer: right or not, without giving the answer away');
+  ok(CA('3/4 + 1/6', '11/12').ok === true && /simplified/.test(CA('3/4 + 1/6', '22/24').msg) && CA('2x + 5 = 17', '2x = 12').ok === null && CA('hello', '3').ok === null, 'check my answer: expressions, one that could be simpler, a step that isn’t finished, and a problem it can’t read');
+  m = await goB('#/steps');
+  ok(m.querySelector('.step-in').value === STEPS.EXAMPLES[0][1] && m.querySelector('#ca-form'), 'steps page: it opens with an example, and Check my answer is there');
+  S.reset();
+  }
+
   /* ---- the tutor's own page ---- */
   try { localStorage.removeItem('procademy.chats.v1'); } catch (e) {}
   const tReqs = [];
@@ -2224,7 +2324,7 @@
   ok(m.__data.sets[0].n === 3 && /“x” isn’t a number/.test(text(m)), 'data: something that isn’t a number is left out, and it says so');
 
   m = await go10('#/tools');
-  ok(m.querySelectorAll('.tool').length === 18 && m.querySelector('.tool[href="#/unlimited"]') && m.querySelector('.tool[href="#/calc"]') && m.querySelector('.tool[href="#/numbers"]') && m.querySelector('.tool[href="#/data"]'), 'tools: every tool on one page');
+  ok(m.querySelectorAll('.tool:not(.again)').length === 18 && m.querySelector('.tool[href="#/unlimited"]') && m.querySelector('.tool[href="#/calc"]') && m.querySelector('.tool[href="#/numbers"]') && m.querySelector('.tool[href="#/data"]'), 'tools: every tool on one page');
   m = await go10('#/skill/g6.gcf-lcm');
   ok(m.querySelector('.hero a[href="#/numbers/12-18"]'), 'tools: the GCF and LCM skill offers the number explorer');
   m = await go10('#/skill/g6.spread');
