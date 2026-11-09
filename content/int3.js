@@ -2161,9 +2161,11 @@
         `Solve those two equations: ${X} = ${N(sol[0])} and ${Y} = ${N(sol[1])}.`, `Substitute into (1): ${N(rows[0][0] * sol[0] + rows[0][1] * sol[1])} ${c1 > 0 ? '+' : '−'} ${Z} = ${N(ds[0])}, so ${Z} = ${N(sol[2])}.`];
       if (rng.chance(0.4)) {
         const answer = pt3(...sol), [x, y, z] = sol;
-        const wrong = [pt3(y, x, z), pt3(x, z, y), pt3(-x, y, z), pt3(x, -y, z), pt3(x, y, -z), pt3(z, y, x)];
+        let wrong = [pt3(y, x, z), pt3(x, z, y), pt3(-x, y, z), pt3(x, -y, z), pt3(x, y, -z), pt3(z, y, x)].filter(w => key(w) !== key(answer));
+        // a solution like (0, 0, 0) or (2, 2, 2) is its own swap: nearby points make up the wrong choices
+        if (new Set(wrong.map(key)).size < 3) wrong = wrong.concat([pt3(x + 1, y, z), pt3(x, y - 1, z), pt3(x, y, z + 2)]);
         hints.push(`The solution is <b>${answer}</b>.`);
-        return { prompt: `Solve the system.${big(sys)}`, type: 'choice', choices: options(answer, wrong.filter(w => key(w) !== key(answer))), answer, hints, params: { kind: 'triple', rows, ds } };
+        return { prompt: `Solve the system.${big(sys)}`, type: 'choice', choices: options(answer, wrong), answer, hints, params: { kind: 'triple', rows, ds } };
       }
       const ask = rng.int(0, 2), ans = sol[ask];
       hints.push(`So (${X}, ${Y}, ${Z}) = ${pt3(...sol)}, and ${'xyz'[ask]} = <b>${N(ans)}</b>.`);
