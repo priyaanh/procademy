@@ -497,7 +497,7 @@
   answerCurrent(m, true); await tick();
   c = UI.getContext();
   ok(c.answerShown === true && c.steps.length === q0.hints.length && TU.messages([], c)[0].content.includes('Correct answer (checked): ' + c.answer), 'tutor: after answering, the checked answer and all steps are shared');
-  ok(m.querySelector('#ask-tutor') && /Help with this one/.test(m.querySelector('#ask-tutor').textContent), 'tutor: the exercise has a "Help with this one" button');
+  ok(m.querySelector('#ask-tutor') && /Ask the tutor/.test(m.querySelector('#ask-tutor').textContent), 'tutor: the exercise has a tutor button (“Help with this one” before answering, “Ask the tutor” after)');
   m.querySelector('#next').click(); await tick();
   ok(UI.history().length === 0, 'tutor: moving to the next question clears the chat');
   // unlimited mode: an on-device helper starts in the background and answers whenever the cloud is busy

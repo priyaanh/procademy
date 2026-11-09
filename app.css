@@ -543,7 +543,7 @@ footer { border-top: 1px solid var(--line); color: var(--muted); font-size: .9re
 .course-tools { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; margin: 16px 0 4px; }
 .course-tools input[type="search"] { flex: 1 1 240px; padding: .55rem .9rem; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--surface); }
 .tabs { display: flex; flex-wrap: wrap; gap: 4px; }
-.tab { padding: .4rem .8rem; border-radius: 999px; color: var(--ink); font-weight: 600; font-size: .92rem; border: 1px solid transparent; }
+.tab { padding: .4rem .8rem; border-radius: 999px; color: var(--ink); font: inherit; font-weight: 600; font-size: .92rem; border: 1px solid transparent; background: transparent; cursor: pointer; }
 .tab:hover { background: var(--tint); text-decoration: none; }
 .tab.on { background: var(--primary-soft); color: var(--primary-ink); border-color: var(--primary); }
 .empty-saved p { margin-bottom: 8px; }
