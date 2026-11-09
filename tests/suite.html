@@ -1760,6 +1760,52 @@
   S.reset();
   }
 
+  { // easier on every device: header numbers, back to top, offline, toasts read out, less motion, swipes, focus, full rows
+  const mainEl = document.getElementById('main');
+  S.reset(); S.setProfile({ welcomed: true });
+  m = await go('#/courses');
+  S.addPoints(1500); await tick(320);
+  ok(/1,500 pts/.test(text(document.getElementById('stats'))), 'header: the points follow every save, with no page asking');
+  const tall = document.createElement('div'); tall.style.height = (innerHeight * 3) + 'px'; mainEl.appendChild(tall);
+  scrollTo(0, innerHeight * 2); dispatchEvent(new Event('scroll')); await tick(60);
+  const up = document.querySelector('.to-top');
+  ok(up && up.classList.contains('show') && /Back to top/.test(up.getAttribute('aria-label')), 'back to top: it appears on a long page');
+  up.click(); for (let k = 0; k < 60 && scrollY > 0; k++) await tick(25);
+  ok(scrollY === 0 && document.activeElement === mainEl, 'back to top: it goes to the top and puts focus on the page');
+  tall.remove(); dispatchEvent(new Event('scroll')); await tick(60);
+  ok(!up.classList.contains('show'), 'back to top: it goes away again near the top');
+  dispatchEvent(new Event('offline')); await tick(10);
+  const note = document.querySelector('.net-note');
+  ok(note && !note.hidden && /offline/.test(note.textContent) && /Practice/.test(note.textContent), 'offline: a note says so, and that practice still works');
+  dispatchEvent(new Event('online')); await tick(120);
+  ok(note.hidden && /back online/.test(text(document.querySelector('.toast'))), 'offline: coming back online says so');
+  VIEWS.toast('Saved your note'); await tick(120);
+  ok([...document.querySelectorAll('[role="status"][aria-live="polite"]')].some(x => x.textContent === 'Saved your note'), 'toasts: screen readers hear them');
+  S.setProfile({ reduceMotion: true }); APP.applyPrefs();
+  const calmOn = document.documentElement.dataset.motion === 'reduce';
+  S.setProfile({ reduceMotion: false }); APP.applyPrefs();
+  ok(calmOn && !document.documentElement.hasAttribute('data-motion'), 'less motion: the setting turns animations off and on');
+  let presses = 0; const nb = document.createElement('button'); nb.id = 'next'; nb.textContent = 'Next'; nb.addEventListener('click', () => presses++); mainEl.appendChild(nb);
+  const swipe = (x0, x1, y1) => { const t0 = new Touch({ identifier: 1, target: nb, clientX: x0, clientY: 300 }), t1 = new Touch({ identifier: 1, target: nb, clientX: x1, clientY: y1 }); nb.dispatchEvent(new TouchEvent('touchstart', { touches: [t0], changedTouches: [t0], bubbles: true })); nb.dispatchEvent(new TouchEvent('touchend', { touches: [], changedTouches: [t1], bubbles: true })); };
+  swipe(300, 120, 305); swipe(300, 260, 305); swipe(300, 120, 520);
+  ok(presses === 1, 'swipe: a long swipe to the left presses Next; a short or slanted one does nothing');
+  nb.remove();
+  const navLink = document.querySelector('.top .nav a[href="#/progress"]'); navLink.focus(); navLink.click(); await tick(60);
+  ok(document.activeElement === mainEl, 'focus: choosing a page from the menu moves focus to the page');
+  m = await go('#/courses/Elementary'); await tick(30);
+  const gridEl = [...m.querySelectorAll('.grid')].find(g => g.offsetParent), cards = gridEl ? [...gridEl.children] : [];
+  ok(cards.length === 6 && (mainEl.clientWidth < 1120 || (new Set(cards.map(c => Math.round(c.getBoundingClientRect().top))).size === 2 && Math.abs(cards[5].getBoundingClientRect().right - gridEl.getBoundingClientRect().right) < 2)), 'rows: six course cards make two full rows on a laptop (' + mainEl.clientWidth + 'px)');
+  S.enroll('math-k', true); m = await go('#/courses'); m = await go('#/courses/Elementary');
+  const sb = m.querySelector('.save-btn.on');
+  ok(sb && getComputedStyle(sb, '::before').content === '""' && getComputedStyle(sb).backgroundColor !== getComputedStyle(m.querySelector('.save-btn:not(.on)')).backgroundColor, 'saved: a saved course’s button has a check and looks different from Save');
+  S.setSkill('math7.circles', { level: 1, tries: 2, right: 1, sets: 1, last: Date.now() });
+  m = await go('#/course/math-7');
+  ok(/gradient/.test(getComputedStyle(m.querySelector('.sm-cell.l1')).backgroundImage), 'skill map: a level shows as a fill, not only a color');
+  let bad = ''; try { S.importJSON('{"hello":1}'); } catch (e) { bad = e.message; }
+  ok(/Save a copy/.test(bad), 'load a copy: a wrong file says which file to choose');
+  S.reset();
+  }
+
   const SUGGESTED_ALL_BANKED = m => [...m.querySelectorAll('#ul-topic .chip-btn')].slice(-12).every(a => TOPICS.bankFor(a.textContent.trim()));
   { // practice any topic: reviewed questions start at once; AI questions stream in, checked in the background
   const TUt = TUTOR, realF = TUt.fetch, use0 = TUt.cloud.use.slice(), gen = [], chk = [];
