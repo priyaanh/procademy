@@ -376,7 +376,7 @@ footer { border-top: 1px solid var(--line); color: var(--muted); font-size: .9re
 .question .lead { color: var(--muted); font-size: .9rem; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 6px; }
 .question .big { font-size: 1.6rem; margin: .4rem 0; }
 .answer { margin-top: 18px; }
-.answer input[type="text"] { width: 100%; max-width: 320px; padding: .7rem .9rem; font-size: 1.15rem; border: 2px solid var(--line-strong); border-radius: 10px; background: var(--surface); }
+.answer input[type="text"] { width: 100%; max-width: 360px; min-height: 54px; padding: .7rem 1rem; font-size: 1.3rem; border: 2px solid var(--line-strong); border-radius: 12px; background: var(--surface); }
 .answer input[type="text"]:focus { outline: none; border-color: var(--primary); }
 .answer .unit { margin-left: 8px; font-size: 1.1rem; color: var(--muted); }
 .answer .help { color: var(--muted); font-size: .85rem; margin-top: 6px; }
@@ -404,6 +404,48 @@ footer { border-top: 1px solid var(--line); color: var(--muted); font-size: .9re
 .summary .what { color: var(--muted); margin-top: 6px; }
 .summary .changes { display: flex; flex-direction: column; gap: 8px; align-items: center; margin: 18px 0; }
 .summary .btn-row { justify-content: center; }
+/* the player's extras: the keypad, the scratch pad, bigger pictures, skip and pause, keys, and the summary's list */
+.ans-row { flex-wrap: wrap; gap: 8px; }
+.ans-row .ans-input { flex: 1 1 200px; }
+.ans-pad { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; max-width: 360px; margin-top: 10px; }
+.ans-key { min-height: 50px; border: 0; border-radius: 12px; background: var(--tint); color: var(--primary-ink); font: 700 1.2rem var(--font); cursor: pointer; }
+.ans-key:hover { background: var(--tint-2); }
+.ans-key.del { font-size: 1.05rem; }
+.question svg.figure.zoomable { cursor: zoom-in; }
+.fig-zoom { display: flex; margin: -4px auto 8px; }
+.zoom-dlg { border: 0; border-radius: var(--radius); padding: 18px; width: min(94vw, 900px); max-height: 92vh; background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
+.zoom-dlg::backdrop { background: rgba(10, 14, 24, .55); }
+.zoom-body svg { display: block; width: 100%; height: auto; max-height: 76vh; margin: 0 auto; }
+.scratch { margin-top: 12px; border: 1px solid var(--line-strong); border-radius: 12px; overflow: hidden; color: var(--ink); background: var(--surface); }
+.scratch-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 4px 6px 4px 12px; background: var(--tint); }
+.scratch canvas { display: block; width: 100%; height: 240px; touch-action: none; cursor: crosshair; }
+.ex-head #pause { flex: none; }
+.ex-head .dots { flex: none; }
+.ex-go { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+.ex-keys { margin: 12px 0 0; }
+.ex-keys kbd { font-size: .78em; }
+.resume-card { text-align: center; padding: 32px 24px; }
+.resume-card .btn-row { justify-content: center; }
+.sum-note { margin: 14px auto 0; max-width: 560px; }
+.sum-missed { text-align: left; margin: 22px auto 0; max-width: 640px; padding-top: 18px; border-top: 1px solid var(--line); }
+.sum-missed h2 { font-size: 1.1rem; margin: 0 0 8px; }
+.sum-missed ol { margin: 0; padding-left: 1.3rem; display: grid; gap: 10px; }
+.sum-missed li { display: grid; gap: 2px; }
+.sum-q { overflow-wrap: anywhere; }
+.skill-pace { margin: 12px 0 0; color: var(--muted); }
+.link-btn { border: 0; background: none; padding: 0; color: var(--primary-ink); font: inherit; font-weight: 600; cursor: pointer; }
+.link-btn:hover { text-decoration: underline; }
+@container page (max-width: 560px) {
+  .ex-foot .spacer { display: none; }
+  .ex-go { flex: 1 1 100%; flex-direction: column; align-items: stretch; gap: 6px; margin-left: 0; }
+  .ex-go .ex-count { text-align: center; }
+  .ex-go #check, .ex-go #next { min-height: 52px; font-size: 1.05rem; }
+  .ans-row .pad-toggle { flex: 1 1 100%; }
+  .ans-pad { max-width: none; }
+  .scratch canvas { height: 200px; }
+  .q-tools { justify-content: flex-start; margin-right: 0; }
+  .q-tools .btn { padding: .3rem .6rem; }
+}
 .learn { font-size: 1.05rem; }
 .learn h3 { margin-top: 1.2rem; }
 .learn .example { background: var(--surface-2); border-left: 4px solid var(--primary); padding: 12px 16px; border-radius: 0 10px 10px 0; margin: 12px 0; }
@@ -738,7 +780,8 @@ body.sorting-cards { user-select: none; -webkit-user-select: none; cursor: grabb
 .daily-main h2 { margin: 0; }
 .daily-main p { margin: 4px 0 0; }
 .coach-note { margin-top: 8px; padding: 10px 12px; border-radius: 10px; background: var(--warn-soft); color: var(--ink); display: flex; gap: 10px; align-items: flex-start; font-size: .95rem; }
-.q-tools { display: flex; align-items: center; justify-content: flex-end; gap: 8px; min-height: 0; margin: -6px -6px 4px 0; }
+.q-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 4px 6px; min-height: 0; margin: -6px -6px 4px 0; }
+.q-tools .btn { white-space: nowrap; }
 .q-tools:empty { display: none; }
 .q-tools .chip { margin-right: auto; }
 .say-btn { min-width: 38px; }
@@ -1716,6 +1759,17 @@ label.set-row { cursor: pointer; }
 .rv-groups { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .rv-group { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 10px 12px; border-radius: 12px; background: var(--surface-2); }
 .rv-text { flex: 1 1 220px; min-width: 0; display: grid; gap: 2px; }
+.rv-day { margin-top: 14px; background: linear-gradient(160deg, color-mix(in srgb, var(--primary) 10%, var(--surface)) 0%, var(--surface) 60%); }
+.rv-skill + .rv-skill { margin-top: 18px; }
+.rv-list { list-style: none; margin: 8px 0 0; padding: 0 0 0 4px; display: grid; gap: 6px; }
+.rv-item > details > summary { cursor: pointer; display: flex; align-items: baseline; gap: 10px; padding: 8px 12px; border-radius: 10px; }
+.rv-item > details > summary:hover { background: var(--tint); }
+.rv-item > details[open] > summary { background: var(--tint); }
+.rv-q { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.rv-detail { padding: 10px 12px 4px; display: grid; gap: 8px; }
+.rv-detail .question { font-size: 1rem; }
+.rv-how { display: grid; gap: 8px; }
+.rv-more { margin: 6px 0 0 16px; }
 /* my notes: on each skill page, and all together (#/notes) */
 .my-notes textarea { width: 100%; padding: .6rem .75rem; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--surface); color: var(--ink); font: inherit; resize: vertical; }
 .notes-list { display: grid; gap: 10px; }

@@ -191,7 +191,9 @@
   s = E.start('review', { seed: 'r2' });
   ok(s.items.length === 3 && s.items.every((it, k) => it.seed === missedBefore[k].seed) && s.hints, 'review rebuilds the exact missed questions, with hints');
   f = drive(s, (it, k) => k === 0 ? 'right' : 'skip');
-  ok(S.get().missed.length === 2 && S.skill(sid).level === 1, 'review: a right answer clears the question; levels do not change');
+  ok(S.get().missed.length === 3 && S.get().missed.find(m => m.seed === missedBefore[0].seed).wins === 1 && S.skill(sid).level === 1, 'review: a right answer counts toward clearing the question; levels do not change');
+  f = drive(E.start('review', { items: [missedBefore[0]] }), () => 'right');
+  ok(S.get().missed.length === 2, 'review: right a second time clears it');
   // streak
   S.reset();
   const t = S.today();
@@ -1266,6 +1268,88 @@
   m.querySelector('#news-x').click(); await tick(10);
   m = await go('#/settings');
   ok(m.querySelector('a[href="#/new"]') && !document.getElementById('news'), 'what’s new: after Got it, it is still in Settings');
+  S.reset();
+  }
+
+  { // the practice player: keypad, Show me how, skip, pause, sound, scratch pad, pictures, the summary, test out, review
+  const until = async (fn, ms) => { const t = Date.now(); while (Date.now() - t < (ms || 3000)) { if (fn()) return true; await tick(20); } return false; };
+  const fake = (answer, extra) => Object.assign({ type: 'number', answer, prompt: '<p>Write it as a decimal.</p>', hints: ['First step.', 'Second step.', 'The answer.'] }, extra || {});
+  S.reset(); S.setProfile({ welcomed: true });
+  // the engine: skip, pack and unpack, spread, right twice to clear, test out
+  let sk = E.start('practice', { skillId: 'math7.add-negatives', seed: 'sk1' }); const first = sk.items[0].seed;
+  ok(E.skip(sk) && sk.items[sk.items.length - 1].seed === first && sk.items[sk.items.length - 1].skipped && sk.i === 0 && !E.skip(Object.assign(sk, { i: sk.items.length - 1 })), 'player engine: Skip moves a question to the end, once, and never the last one');
+  sk = E.start('practice', { skillId: 'math7.add-negatives', seed: 'sk2' }); E.answer(sk, 'oops?'); E.answer(sk, '999'); E.next(sk);
+  const un = E.unpack(JSON.parse(JSON.stringify(E.pack(sk))));
+  ok(un.i === 1 && un.items.length === 7 && un.items.every((it, k) => it.q.prompt === sk.items[k].q.prompt) && un.results[0].tries === 1, 'player engine: a paused set packs small and unpacks to the same questions and answers');
+  const sp = E.spread([{ skillId: 'a' }, { skillId: 'a' }, { skillId: 'a' }, { skillId: 'b' }, { skillId: 'b' }, { skillId: 'c' }]);
+  ok(sp.every((it, k) => !k || it.skillId !== sp[k - 1].skillId), 'player engine: mixed sets never ask the same skill twice in a row when another can go between');
+  const to = E.start('testout', { skillId: 'math7.add-negatives' });
+  ok(to.items.length === E.TESTOUT_N && !to.hints, 'test out: five questions, no hints');
+  drive(to, () => 'right');
+  ok(S.skill('math7.add-negatives').level === 3, 'test out: all right makes the skill Proficient');
+  S.reset();
+  drive(E.start('practice', { skillId: 'math7.add-negatives', seed: 'w1' }), (it, k) => k === 0 ? 'skip' : 'right');
+  const mw = S.get().missed[0];
+  drive(E.start('review', { items: [mw] }), () => 'right');
+  ok(S.get().missed.length === 1 && S.get().missed[0].wins === 1, 'review: one right answer marks a mistake “right once”');
+  drive(E.start('review', { items: [mw] }), () => 'right');
+  ok(S.get().missed.length === 0, 'review: the second right answer clears it');
+  ok(COACH.diagnose({ type: 'number', answer: 12.5, prompt: '<p>Find it.</p>', hints: [] }, '25').kind === 'double', 'coach: an answer exactly double the right one is named');
+  // the player
+  S.reset(); S.setProfile({ welcomed: true, player: { pad: true } });
+  m = await go('#/practice/math7.add-negatives');
+  ok(m.querySelector('#ans-pad') && !m.querySelector('#ans-pad').hidden && m.querySelector('#ans').getAttribute('inputmode') === 'none' && /6 left/.test(text(m.querySelector('.ex-left'))), 'player: an on-screen keypad for number answers, and how many are left');
+  ['1', '-', '2'].forEach(k => m.querySelector(`.ans-key[data-key="${k}"]`).click());
+  m.querySelector('.ans-key[data-key="del"]').click();
+  ok(m.querySelector('#ans').value === '1-' && !m.querySelector('#check').disabled, 'player: the keypad types at the cursor, and deletes');
+  m.__session.items[0].q = fake(0.5); m.querySelector('#scratch-btn').click(); await tick(10);
+  m.querySelector('#ans').value = '0.25'; m.querySelector('#ans').dispatchEvent(new Event('input', { bubbles: true })); m.querySelector('#check').click(); await tick(10);
+  ok(m.querySelector('#ans').value === '0.25' && m.__session.results[0].said === '0.25' && m.querySelector('#show-how') && m.querySelector('.scratch canvas'), 'player: after a wrong answer what was typed stays, Show me how is offered, and the scratch pad stays open');
+  m.querySelector('#show-how').click(); await tick(10);
+  ok(m.querySelectorAll('.hints .hint').length === 2 && m.querySelector('#check') && m.__session.results[0].hinted, 'player: Show me how gives every step but the last, as a hint');
+  m.querySelector('#ans').value = '50%'; m.querySelector('#ans').dispatchEvent(new Event('input', { bubbles: true })); m.querySelector('#check').click(); await tick(10);
+  ok(m.querySelector('.feedback.good') && /50% is the same as 0\.5/.test(text(m.querySelector('#feedback'))), 'player: a percent is accepted for a decimal, and says it is the same');
+  m.querySelector('#next').click(); await tick(10);
+  const skipped = m.__session.items[1].seed;
+  m.querySelector('#skip').click(); await tick(10);
+  ok(m.__session.items[m.__session.items.length - 1].seed === skipped && m.__session.i === 1, 'player: Skip for now moves the question to the end');
+  ok(!S.get().profile.player.sound && /Sound off/.test(text(m.querySelector('#sound'))), 'player: sound is off unless turned on');
+  m.querySelector('#sound').click(); await tick(5);
+  ok(S.get().profile.player.sound === true && m.querySelector('#sound').getAttribute('aria-pressed') === 'true', 'player: the sound choice is remembered');
+  m.querySelector('#pause').click(); await tick(40);
+  ok(S.get().profile.paused['#/practice/math7.add-negatives'] && location.hash !== '#/practice/math7.add-negatives', 'player: Pause saves the set and leaves');
+  m = await go('#/practice/math7.add-negatives');
+  ok(m.querySelector('#resume') && /question 2 of 7/.test(text(m)), 'player: the set offers to carry on where it was paused');
+  m.querySelector('#resume').click(); await tick(10);
+  m = document.getElementById('main');
+  ok(m.__session.i === 1 && m.__session.items[m.__session.items.length - 1].seed === skipped && !S.get().profile.paused['#/practice/math7.add-negatives'], 'player: it carries on at the same question, with the skipped one still at the end');
+  for (let k = 0; k < 30 && !m.querySelector('.summary'); k++) { if (m.querySelector('#next')) m.querySelector('#next').click(); else answerCurrent(m, m.__session.i !== 2); await tick(); if (m.querySelector('#giveup') && m.querySelector('.feedback.bad')) { m.querySelector('#giveup').click(); await tick(); } }
+  ok(m.querySelector('.summary') && m.querySelectorAll('.sum-missed li').length === 2 && m.querySelector('#redo-missed') && m.querySelector('#print-set'), 'summary: the questions to look at again, with Practice these again and Print this set');
+  m.querySelector('#print-set').click(); await tick(10);
+  ok(m.querySelectorAll('.ws-q').length === 7 && m.querySelectorAll('.ws-answers li').length === 7, 'summary: Print this set makes a worksheet of the same questions, with an answer key');
+  // a picture can be zoomed
+  m = await go('#/practice/math8.trend-lines');
+  const fig = m.querySelector('.question svg.figure');
+  ok(fig && m.querySelector('.fig-zoom') && parseFloat(fig.style.width.replace(/.*,\s*/, '')) > Number(fig.getAttribute('width')), 'player: pictures are drawn larger, with Zoom in');
+  m.querySelector('.fig-zoom').click(); await tick(10);
+  const dlg = document.querySelector('dialog.zoom-dlg');
+  ok(dlg && dlg.open && dlg.querySelector('svg'), 'player: Zoom in shows the picture large');
+  dlg.querySelector('button').click(); await tick(10);
+  ok(!document.querySelector('dialog.zoom-dlg'), 'player: the zoomed picture closes');
+  // test out and go back from the skill page
+  m = await go('#/skill/math7.sub-negatives');
+  ok(m.querySelector('#testout') && m.querySelector(`.skill-pace a[href="#/skill/${encodeURIComponent(A.courseSkills(A.courseById('math-7'))[A.courseSkills(A.courseById('math-7')).indexOf('math7.sub-negatives') - 1])}"]`), 'skill: Too easy? Test out, and Too hard? Go back to the skill before');
+  m.querySelector('#testout').click(); await tick(10);
+  ok(m.__session && m.__session.kind === 'testout' && !m.querySelector('#hint'), 'skill: Test out starts five questions with no hints');
+  // review: each mistake, I understand now, a review day
+  S.reset(); S.setProfile({ welcomed: true });
+  for (let k = 0; k < 11; k++) S.addMissed(k % 2 ? 'math7.add-negatives' : 'math7.circles', 'rv' + k);
+  m = await go('#/review');
+  ok(m.querySelector('.rv-day') && /Fix my mistakes/.test(text(m.querySelector('[data-rv="all"]'))) && m.querySelectorAll('.rv-item').length === 11, 'review: every mistake is listed by skill, with a review day suggested when there are many');
+  m.querySelector('.rv-item details').open = true; await tick(5);
+  ok(/The answer is/.test(text(m.querySelector('.rv-item'))) && m.querySelector('.rv-item .hint'), 'review: a mistake opens to the right answer and how to get it');
+  m.querySelector('[data-ok]').click(); await tick(10);
+  ok(S.get().missed.length === 10, 'review: I understand now takes it off the list');
   S.reset();
   }
 
