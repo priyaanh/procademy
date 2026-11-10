@@ -1,0 +1,29 @@
+# The checks that need no browser, on every push and pull request and once a week (Monday, 06:00 UTC):
+# every question generator, the no-emoji rule, the CPM books and the preload list. tests/run.sh runs these
+# and the browser checks on a computer before each push; this catches anything that slips past.
+name: Checks
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Every question generator (content)
+        run: node tests/content.js
+      - name: No emojis or pictographs (formal)
+        run: node tests/formal.js
+      - name: CPM books
+        run: node tests/cpm.js
+      - name: Preload list is current
+        run: node tools/preload.js --check
