@@ -2488,7 +2488,7 @@ body { padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-are
   :is(main .grid:not(.wide), main .wn-list):has(> :nth-child(5)):has(> :last-child:nth-child(4n+3)) > :nth-last-child(-n+3) { grid-column: span 4; }
   :is(main .grid:not(.wide), main .wn-list):has(> :nth-child(5)):has(> :last-child:nth-child(4n+2)) > :nth-last-child(-n+6) { grid-column: span 4; }
   :is(main .grid:not(.wide), main .wn-list):has(> :nth-child(5)):has(> :last-child:nth-child(4n+1)) > :nth-last-child(-n+9) { grid-column: span 4; }
-  :is(main .grid:not(.wide), main .wn-list):has(> :last-child:nth-child(5)) > :nth-last-child(-n+2) { grid-column: span 6; }
+  :is(main .grid:not(.wide), main .wn-list):has(> :nth-child(5)):has(> :last-child:nth-child(5)) > :nth-last-child(-n+2) { grid-column: span 6; }      /* as specific as the rules above, so it wins */
 }
 /* ... and on a tablet or a narrow window, three to a row: 4 cards are 2 and 2, 5 are 3 and 2 */
 @container page (min-width: 700px) and (max-width: 1089px) {
@@ -2655,3 +2655,4 @@ kbd { display: inline-block; min-width: 1.6em; padding: .1em .45em; border-radiu
 .course-head { display: inline-flex; align-items: center; gap: 12px; }
 .course-art { width: 58px; height: 36px; color: var(--primary); opacity: .7; flex: none; }
 .my-courses.compact .course-art { display: none; }
+.today-grade { margin: 4px 0 0; }
