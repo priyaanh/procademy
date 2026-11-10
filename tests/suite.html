@@ -226,7 +226,7 @@
     ok(m.querySelectorAll('.sm-unit').length === mapUnits.length && mapUnits.every(u => m.querySelector(`.sm-unit[href="#/unit/${c.id}/${u.id}"]`)) && !m.querySelector('.unit-card') && text(m).includes(c.title), `course page ${c.id}: the skill map opens each of its ${mapUnits.length} units`);
     const u = c.units[0];
     const mu = await go(`#/unit/${c.id}/${u.id}`);
-    ok(mu.querySelectorAll('.skills li').length === u.skills.length + 3 && mu.querySelector(`a[href="#/worksheet/unit/${c.id}/${u.id}"]`) && mu.querySelector(`a[href="#/unlimited/unit/${c.id}/${u.id}"]`), `unit page ${c.id}/${u.id}: ${u.skills.length} skills + unlimited + test + worksheet`);
+    ok(mu.querySelectorAll('.skills li').length === u.skills.length + 5 && mu.querySelector(`a[href="#/quiz/${c.id}/${u.id}"]`) && mu.querySelector(`a[href="#/boss/${c.id}/${u.id}"]`) && mu.querySelector(`a[href="#/worksheet/unit/${c.id}/${u.id}"]`) && mu.querySelector(`a[href="#/unlimited/unit/${c.id}/${u.id}"]`), `unit page ${c.id}/${u.id}: ${u.skills.length} skills + unlimited + test + quiz + boss + worksheet`);
   }
   ok(document.title.includes('Procademy'), 'document title carries the brand');
   // every skill: learn article and a practice question render
@@ -270,7 +270,7 @@
   ok(root.querySelector('.feedback.good') && root.querySelector('#next') && !E.counts(root.__session.results[0]), 'player: right on the second try, but it does not count');
   root.querySelector('#next').click(); await tick();
   const hq = root.__session.items[1].q;
-  for (let k = 0; k < hq.hints.length; k++) { root.querySelector('#hint').click(); await tick(); }
+  for (let k = 0; k <= hq.hints.length && !root.querySelector('#hint').disabled; k++) { root.querySelector('#hint').click(); await tick(); }
   ok(root.querySelectorAll('.hints .hint').length >= hq.hints.length && root.querySelector('#next') && root.querySelector('#hint').disabled, 'player: the last hint reveals the question and offers Next');
   root.querySelector('#next').click(); await tick();
   root.querySelector('#giveup').click(); await tick();
@@ -1034,7 +1034,7 @@
     m.querySelector('#check').click();
     ok(m.querySelector('.coach-note') && /sign/.test(text(m.querySelector('.coach-note'))) && S.get().mistakes.sign && S.get().mistakes.sign.n >= 1, 'coach: a wrong sign gets a note, and the slip is counted');
   } else { S.noteMistake('sign', ses.items[ses.i].skillId); ok(true, 'coach: (this question was not a number; the slip count is tested directly)'); }
-  ok(!!m.querySelector('.say-btn') === C.canSpeak(), 'read aloud: questions have a 🔊 button where the browser can speak');
+  ok(!!m.querySelector('#read-q') === C.canSpeak(), 'read aloud: questions have a Read aloud button where the browser can speak');
   for (let k = 0; k < 12 && !E.isDone(m.__session); k++) { const it = m.__session.items[m.__session.i]; if (!m.querySelector('#next')) { if (it.q.type === 'choice') m.querySelector(`#choices button[data-k="${it.q.answerIndex}"]`).click(); else { const i2 = m.querySelector('#ans'); i2.value = String(it.q.answer); i2.dispatchEvent(new Event('input', { bubbles: true })); } m.querySelector('#check').click(); } m.querySelector('#next').click(); await tick(); }
   ok(m.querySelector('.summary') && (S.get().days[S.today()] || {}).daily === 1 && S.skill('math7.circles').level === 3, 'today\'s practice: finishing marks the day done; it never lowers a level');
   m = await go('#/');
@@ -1548,6 +1548,94 @@
   ok(/The answer is/.test(text(m.querySelector('.rv-item'))) && m.querySelector('.rv-item .hint'), 'review: a mistake opens to the right answer and how to get it');
   m.querySelector('[data-ok]').click(); await tick(10);
   ok(S.get().missed.length === 10, 'review: I understand now takes it off the list');
+  S.reset();
+  }
+
+  { // more ways to practice: questions that follow the learner, a nudge first, the step a slip stopped at, a timed quiz, beat your best,
+    // boss levels, the weekly challenge, drills, a warm-up, the summer plan, ready for high school, formula cards and reading along
+  const until = async (fn, ms) => { const t = Date.now(); while (Date.now() - t < (ms || 3000)) { if (fn()) return true; await tick(20); } return false; };
+  const goW = async h => { location.hash = '#/settings'; await tick(15); return go(h); };
+  const finishAll = async (m, right) => { for (let k = 0; k < 40 && m.__session && !m.querySelector('.summary'); k++) { if (m.querySelector('#check')) { answerCurrent(m, typeof right === 'function' ? right(k) : right); await tick(); if (!right && m.querySelector('#giveup')) { m.querySelector('#giveup').click(); await tick(); } } if (m.querySelector('#next')) { m.querySelector('#next').click(); await tick(); } } };
+  S.reset(); S.setProfile({ grade: 7, welcomed: true });
+  ok(E.weight({ prompt: '−3/4 × 128 + 2<sup>5</sup>', hints: ['a', 'b', 'c'] }) > E.weight({ prompt: '2 + 3', hints: ['a'] }), 'adaptive: a question with more steps, fractions and powers weighs more');
+  let m = await goW('#/unlimited/skill/math7.add-negatives');
+  ok(/Steady/.test(text(m.querySelector('.adapt'))), 'adaptive: unlimited practice starts steady');
+  for (let k = 0; k < 2; k++) { answerCurrent(m, true); await tick(); m.querySelector('#next').click(); await tick(); }
+  ok(E.levelOf(m.__session) === 2 && /Harder/.test(text(m.querySelector('.adapt'))), 'adaptive: two right in a row bring harder questions');
+  answerCurrent(m, false); await tick(); m.querySelector('#giveup').click(); await tick(); m.querySelector('#next').click(); await tick();
+  ok(E.levelOf(m.__session) === 1, 'adaptive: a miss eases them off again');
+  m.querySelector('#hint').click(); await tick();
+  const r0 = m.__session.results[m.__session.i];
+  ok(m.querySelector('.hint.nudge') && !(r0 && r0.hinted) && /Hint/.test(text(m.querySelector('#hint'))), 'hints: the first rung is a free nudge (the big idea), then come the steps');
+  m.querySelector('#hint').click(); await tick();
+  ok(m.__session.results[m.__session.i].hinted && m.querySelectorAll('.hints .hint').length === 2, 'hints: the next rung is the first step, and it counts as a hint');
+  const dgE = COACH.diagnose({ type: 'number', answer: 5, prompt: 'Solve 2x + 3 = 13.', hints: ['Subtract 3 from both sides: 2x = 10.', 'Divide by 2: x = 5.'] }, '10');
+  ok(dgE && dgE.kind === 'early' && dgE.step === 0 && /step 1/.test(dgE.msg), 'coach: an answer that stops early says which step it stopped at');
+  // a timed quiz that runs out of time: what wasn't reached isn't a mistake
+  const u7 = A.whereIs('math7.add-negatives').unit.id, missed0 = S.get().missed.length;
+  m = document.getElementById('main');
+  V._h.exercise(m, E.start('quiz', { courseId: 'math-7', unitId: u7, minutes: 0.01 }), { back: '#/' });
+  ok(m.querySelector('#ex-clock') && !m.querySelector('#hint') && !m.querySelector('#pause'), 'quiz: a clock, no hints and no pause');
+  await until(() => m.querySelector('.summary'), 4000);
+  ok(/Time’s up/.test(text(m.querySelector('.summary'))) && S.get().missed.length === missed0, 'quiz: time running out ends it, and questions not reached aren’t mistakes');
+  m = await goW('#/unit/math-7/' + u7);
+  ok(m.querySelector(`a[href="#/quiz/math-7/${u7}"]`) && m.querySelector(`a[href="#/boss/math-7/${u7}"]`), 'unit page: a timed quiz and a boss level');
+  // boss levels: three misses end it; beating one is saved, with a badge and a celebration
+  m = await goW(`#/boss/math-7/${u7}`);
+  ok(m.__session.kind === 'boss' && m.querySelectorAll('.lives i.on').length === 3 && m.__session.items.length === E.BOSS_N, 'boss: eight hard questions and three lives');
+  for (let k = 0; k < 3; k++) { answerCurrent(m, false); await tick(); if (k < 2) { m.querySelector('#next').click(); await tick(); } }
+  ok(/See how you did/.test(text(m.querySelector('#next'))), 'boss: the third miss ends it');
+  m.querySelector('#next').click(); await tick();
+  ok(/The boss won/.test(text(m.querySelector('.summary'))) && !(S.get().profile.bosses || {})['math-7/' + u7], 'boss: lost, and not saved as beaten');
+  m = await goW(`#/boss/math-7/${u7}`);
+  await finishAll(m, true);
+  ok(/Boss beaten/.test(text(m.querySelector('.summary'))) && S.get().profile.bosses['math-7/' + u7] && S.get().badges.boss && m.querySelector('.confetti'), 'boss: beaten, saved, a badge and a celebration');
+  m = await goW('#/unit/math-7/' + u7);
+  ok(/Beaten/.test(text(m.querySelector('.boss-row'))), 'boss: the unit page says it was beaten');
+  // beat your best
+  m = await goW('#/speed/math7.add-negatives');
+  ok(m.__session.kind === 'speed' && m.querySelector('#ex-clock') && m.__session.items.length === E.SPEED_N, 'speed: ten questions against a stopwatch');
+  await finishAll(m, true);
+  const best = S.get().profile.best['math7.add-negatives'];
+  ok(best && best.right === 10 && best.ms > 0 && /A new best/.test(text(m.querySelector('.summary'))) && S.get().badges.best, 'speed: the time is kept as a best, with a badge');
+  m = await goW('#/skill/math7.add-negatives');
+  ok(m.querySelector('a[href="#/speed/math7.add-negatives"]') && /best \d+:\d\d, 10 of 10 right/.test(text(m.querySelector('.skill-pace'))), 'speed: the skill page links it and shows the best');
+  // the weekly challenge
+  m = await goW('#/weekly');
+  ok(/This week’s challenge/.test(text(m)) && E.weeklyItem(A.courseById('math-7'), E.weekOf()).q.hints.length >= 2, 'weekly: a harder problem from the learner’s course, the same all week');
+  m.querySelector('#wk-go').click(); await tick();
+  answerCurrent(m, true); await tick(); m.querySelector('#next').click(); await tick();
+  ok(/Challenge solved/.test(text(m.querySelector('.summary'))) && S.get().profile.weekly[E.weekOf()] && S.get().badges.weekly, 'weekly: solving it is kept for the week, with the Weekly challenger badge');
+  // drills for a kind of slip
+  S.noteMistake('sign', 'math7.add-negatives'); S.noteMistake('sign', 'math7.sub-negatives');
+  m = await goW('#/review');
+  const dr = m.querySelector('[data-drill="sign"]');
+  ok(dr, 'drills: a kind of slip seen twice gets a drill');
+  dr.click(); await tick();
+  ok(/Drill: Sign slips/.test(text(m.querySelector('.ex-head'))) && /Watch for it/.test(text(m.querySelector('.ex-banner'))) && m.__session.items.every(it => ['math7.add-negatives', 'math7.sub-negatives'].includes(it.skillId)), 'drills: fresh questions from those skills, with the tip to watch for');
+  // a warm-up, the summer plan and ready for high school
+  m = await goW('#/warmup');
+  ok(m.__session && m.__session.kind === 'endless' && m.querySelector('#ex-clock') && V.warmSkills().every(id => A.skills[id]), 'warm-up: five minutes of mental math near the learner’s grade');
+  m = await goW('#/summer');
+  ok(m.querySelectorAll('.summer-week').length === 8, 'summer: an eight-week plan');
+  m.querySelector('[data-week="1"]').click(); await tick();
+  await finishAll(m, true);
+  ok(S.get().profile.summer && S.get().profile.summer.done[1], 'summer: finishing a week ticks it off');
+  m = await goW('#/ready');
+  ok(m.querySelectorAll('.ready-list li').length === V.readyIds().length && V.readyIds().length >= 20 && /Ready for high school/.test(text(m)), 'ready: the skills high school builds on, each with Practice');
+  // formula flashcards
+  ok(VOCAB.deckOf('formulas').length >= 5 && VOCAB.deckOf('formulas').every(c => c.formula && /^f-/.test(c.id)), 'formulas: the formula sheet as a deck of cards');
+  m = await goW('#/words/formulas'); m.querySelector('#fm-cards').click(); await tick(60); m = document.getElementById('main');
+  ok(m.querySelector('input[name="deck"][value="formulas"]:checked'), 'formulas: Study them as flashcards opens on the formula deck');
+  // read along, a worked example that plays, and the new skills
+  m = await goW('#/practice/math7.two-step-equations');
+  ok(COACH.sentencesOf(m.querySelector('.question')).length >= 1 && m.querySelector('#read-q'), 'read aloud: the question is split into sentences to highlight as it is read');
+  m = await goW('#/skill/math7.add-negatives');
+  m.querySelector('#we-play').click(); await tick();
+  ok(m.querySelector('#worked').__worked.shown === 1 && /Pause/.test(text(m.querySelector('#we-play'))), 'worked example: Play shows the steps one at a time');
+  m.querySelector('#we-play').click(); await tick();
+  ok(['g4.estimate-sum-diff', 'g4.mental-math', 'g5.times-11', 'g5.estimate-products', 'g5.line-graphs', 'g6.percent-in-head', 'g6.recipe-scaling', 'g6.money-plans', 'g6.double-bar-graphs', 'math7.sports-stats'].every(id => A.skills[id] && A.whereIs(id)), 'new skills: estimation, mental math, everyday problems and graph reading, each in a unit');
+  ok(E.start('chapter-test', { book: 'cc2', chapter: 3 }).secondChance, 'test prep: a practice test gives a second chance on a miss, like a unit test');
   S.reset();
   }
 
@@ -2575,7 +2663,7 @@
   er.checked = false; er.dispatchEvent(new Event('change'));
   ok(!document.documentElement.hasAttribute('data-read') && getComputedStyle(document.body).fontFamily !== ff && /verdana/i.test(ff), 'easier reading: a clearer typeface, and it turns off again');
   // read each question aloud, once
-  const said = [], oldSay = COACH.say; COACH.say = t => { said.push(t); };
+  const said = [], oldSay = COACH.say, oldAlong = COACH.readAlong; COACH.say = t => { said.push(t); }; COACH.readAlong = items => { said.push(items); return true; };
   S.setProfile({ autoRead: true });
   m = await go7('#/practice/' + encodeURIComponent(wsid));
   ok(said.length === 1 && m.querySelector('#feedback[aria-live="polite"]'), 'read-aloud: a question is read aloud when the setting is on; feedback is announced to screen readers');
@@ -2584,7 +2672,7 @@
   S.setProfile({ autoRead: false });
   m = await go7('#/practice/' + encodeURIComponent(wsid));
   ok(said.length === 1, 'read-aloud: off by default');
-  COACH.say = oldSay;
+  COACH.say = oldSay; COACH.readAlong = oldAlong;
   S.reset();
   }
 

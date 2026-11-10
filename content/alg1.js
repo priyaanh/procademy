@@ -1079,7 +1079,11 @@
     make(rng) {
       const wantIrr = rng.bool();
       const pickItems = (gens, k) => rng.sample(gens.map((g, i) => i), k).map(i => gens[i](rng));
-      const odd = pickItems(wantIrr ? IRR_GENS : RAT_GENS, 1)[0], rest = pickItems(wantIrr ? RAT_GENS : IRR_GENS, 3);
+      // two different makers can land on the same number (1/9 twice): draw again until all four read differently
+      const key = it => A.normText(A.stripTags(it.h));
+      let odd, rest, tries = 0;
+      do { odd = pickItems(wantIrr ? IRR_GENS : RAT_GENS, 1)[0]; rest = pickItems(wantIrr ? RAT_GENS : IRR_GENS, 3); tries++; }
+      while (new Set([odd].concat(rest).map(key)).size < 4 && tries < 30);
       const items = [odd].concat(rest), answer = odd.h;
       return { prompt: `Which number is <b>${wantIrr ? 'irrational' : 'rational'}</b>?`, type: 'choice', choices: items.map(it => it.h), answer, params: { wantIrr, items },
         hints: [`Rational means it can be written as a fraction of integers; irrational means it cannot.`, `Check the others: ${rest.map(it => `${it.h}: ${it.why}`).join('; ')}.`, `<b>${answer}</b> is the ${wantIrr ? 'irrational' : 'rational'} one: ${odd.why}.`] };

@@ -31,6 +31,7 @@
       { id: 'decimals', title: 'Understand decimals', blurb: 'Tenths and hundredths, as fractions and as decimals.', skills: ['g4.decimal-fractions', 'g4.compare-decimals'] },
       { id: 'geometry', title: 'Plane figures and angles', blurb: 'Parallel and perpendicular lines, symmetry, kinds of triangles, and measuring angles.', skills: ['g4.lines-shapes', 'g4.angles'] },
       { id: 'measurement', title: 'Area, perimeter, and units', blurb: 'Area and perimeter of rectangles, and changing big units into small ones.', skills: ['g4.area-perimeter', 'g4.unit-conversion'] },
+      { id: 'estimation', title: 'Estimation and mental math', blurb: 'Rounding to check an answer, and shortcuts for adding, subtracting and multiplying in your head.', skills: ['g4.estimate-sum-diff', 'g4.mental-math'] },
     ],
   });
 
@@ -798,6 +799,64 @@
       if (p.kind === 'compare') { const r = Math.abs(total - p.other) < 1e-9 ? 'They are the same' : total > p.other ? `${p.k} ${p.bigU}` : `${N(p.other)} ${p.small}`; return q.answer === r; }
       return Math.abs(q.answer - total) < 1e-6;
     },
+  });
+
+
+  /* ---------- Unit 9: estimation and mental math ---------- */
+  const roundTo = (x, place) => Math.round(x / place) * place;
+  A.skill({
+    id: 'g4.estimate-sum-diff', title: 'Estimating sums and differences',
+    learn: p('An <b>estimate</b> is a quick answer that is close to the exact one. To estimate a sum or a difference, <b>round each number first</b>, then add or subtract the rounded numbers, which is easy to do in your head.') +
+      p('Round to the place the question asks for. An estimate is a great way to <b>check</b> an exact answer: if they are far apart, look for a slip.') +
+      example('Example', `${big('Estimate 4,382 + 2,617 by rounding to the nearest hundred.')}4,382 rounds to 4,400 and 2,617 rounds to 2,600. Add: 4,400 + 2,600 = <b>7,000</b>. The exact sum, 6,999, is very close.`),
+    make(rng) {
+      const sub = rng.bool(), best = rng.chance(0.4);
+      if (best) {
+        let a = rng.int(1200, 8800), b = rng.int(1200, 8800);
+        if (sub && b > a) [a, b] = [b, a];
+        if (sub && a - b < 1000) a += 2000;
+        const est = sub ? roundTo(a, 1000) - roundTo(b, 1000) : roundTo(a, 1000) + roundTo(b, 1000), exact = sub ? a - b : a + b;
+        const wrong = [est + 2000, est * 10, est - 2000 > 0 ? est - 2000 : est + 4000];
+        const answer = N(est);
+        return { prompt: `Which is the best estimate of the ${sub ? 'difference' : 'sum'}?${big(`${N(a)} ${sub ? '−' : '+'} ${N(b)}`)}`, type: 'choice', choices: [answer].concat(wrong.map(N)), answer, params: { kind: 'best', a, b, sub, exact },
+          hints: [`Round each number to the nearest thousand: ${N(a)} is about ${N(roundTo(a, 1000))}, and ${N(b)} is about ${N(roundTo(b, 1000))}.`, `${sub ? 'Subtract' : 'Add'} the rounded numbers: ${N(roundTo(a, 1000))} ${sub ? '−' : '+'} ${N(roundTo(b, 1000))} = ${N(est)}.`, `The best estimate is <b>${N(est)}</b>. (The exact answer is ${N(exact)}.)`] };
+      }
+      const place = rng.pick([10, 100, 1000]);
+      let a = place === 10 ? rng.int(120, 980) : place === 100 ? rng.int(1200, 9800) : rng.int(12000, 98000), b = place === 10 ? rng.int(110, 890) : place === 100 ? rng.int(1100, 8900) : rng.int(11000, 89000);
+      if (sub && b > a) [a, b] = [b, a];
+      const ra = roundTo(a, place), rb = roundTo(b, place), ans = sub ? ra - rb : ra + rb;
+      const name = rng.pick(NAMES), word = rng.chance(0.4);
+      const nm = { 10: 'ten', 100: 'hundred', 1000: 'thousand' }[place];
+      const prompt = word ? (sub ? `${name}'s school collected ${N(a)} cans in March and ${N(b)} cans in April. Estimate how many more cans were collected in March, rounding each number to the nearest ${nm}.` : `A theater sold ${N(a)} tickets on Friday and ${N(b)} on Saturday. Estimate the total, rounding each number to the nearest ${nm}.`)
+        : `Estimate by rounding each number to the nearest ${nm}.${big(`${N(a)} ${sub ? '−' : '+'} ${N(b)}`)}`;
+      return { prompt, type: 'number', answer: ans, params: { kind: 'round', a, b, sub, place },
+        hints: [`${N(a)} rounds to ${N(ra)}.`, `${N(b)} rounds to ${N(rb)}.`, `${N(ra)} ${sub ? '−' : '+'} ${N(rb)} = <b>${N(ans)}</b>.`] };
+    },
+    verify(q) {
+      const P = q.params;
+      if (P.kind === 'round') return q.answer === (P.sub ? roundTo(P.a, P.place) - roundTo(P.b, P.place) : roundTo(P.a, P.place) + roundTo(P.b, P.place));
+      const val = c => Number(A.stripTags(c).replace(/,/g, ''));
+      const d = q.choices.map(c => Math.abs(val(c) - P.exact));
+      return d.indexOf(Math.min.apply(null, d)) === q.choices.indexOf(q.answer) && d.filter(x => x === Math.min.apply(null, d)).length === 1;
+    },
+  });
+
+  A.skill({
+    id: 'g4.mental-math', title: 'Mental math shortcuts',
+    learn: p('Some sums and products are quick to do in your head with a shortcut. <b>Adding 99 or 299?</b> Add 100 or 300, then take away 1. <b>Subtracting 99?</b> Subtract 100, then add 1 back.') +
+      p('<b>Times 5?</b> Multiply by 10, then halve it, because 5 is half of 10. <b>Times 25?</b> Multiply by 100, then take a quarter. <b>Times 50?</b> Multiply by 100, then halve it.') +
+      example('Example', `${big('48 × 5')}48 × 10 = 480, and half of 480 is <b>240</b>.`),
+    make(rng) {
+      const kind = rng.pick(['add', 'sub', 'five', 'quarter', 'fifty']);
+      let a, b, ans, prompt, hints;
+      if (kind === 'add') { b = rng.pick([99, 199, 299, 98, 198]); a = rng.int(112, 689); const up = Math.ceil(b / 100) * 100, off = up - b; ans = a + b; prompt = `Add in your head.${big(`${N(a)} + ${b}`)}`; hints = [`${b} is ${off} less than ${up}.`, `Add ${up}: ${a} + ${up} = ${a + up}. Then take away ${off}.`, `${a + up} − ${off} = <b>${N(ans)}</b>.`]; }
+      else if (kind === 'sub') { b = rng.pick([99, 199, 98, 299]); a = rng.int(b + 120, 999); const up = Math.ceil(b / 100) * 100, off = up - b; ans = a - b; prompt = `Subtract in your head.${big(`${N(a)} − ${b}`)}`; hints = [`${b} is ${off} less than ${up}.`, `Subtract ${up}: ${a} − ${up} = ${a - up}. You took away ${off} too many, so add ${off} back.`, `${a - up} + ${off} = <b>${N(ans)}</b>.`]; }
+      else if (kind === 'five') { a = rng.int(6, 49) * 2; b = 5; ans = a * 5; prompt = `Multiply in your head.${big(`${a} × 5`)}`; hints = ['5 is half of 10, so multiply by 10 and halve it.', `${a} × 10 = ${a * 10}.`, `Half of ${a * 10} is <b>${N(ans)}</b>.`]; }
+      else if (kind === 'quarter') { a = rng.int(2, 24) * 4; b = 25; ans = a * 25; prompt = `Multiply in your head.${big(`${a} × 25`)}`; hints = ['25 is a quarter of 100, so multiply by 100 and take a quarter.', `${a} × 100 = ${N(a * 100)}.`, `A quarter of ${N(a * 100)} is <b>${N(ans)}</b>.`]; }
+      else { a = rng.int(3, 49) * 2; b = 50; ans = a * 50; prompt = `Multiply in your head.${big(`${a} × 50`)}`; hints = ['50 is half of 100, so multiply by 100 and halve it.', `${a} × 100 = ${N(a * 100)}.`, `Half of ${N(a * 100)} is <b>${N(ans)}</b>.`]; }
+      return { prompt, type: 'number', answer: ans, params: { kind, a, b }, hints };
+    },
+    verify(q) { const { kind, a, b } = q.params; return q.answer === (kind === 'add' ? a + b : kind === 'sub' ? a - b : a * b); },
   });
 
 })();
