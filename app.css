@@ -2651,3 +2651,7 @@ kbd { display: inline-block; min-width: 1.6em; padding: .1em .45em; border-radiu
 .wn-pop li { display: grid; gap: 1px; }
 .wn-pop .btn-row { margin-top: 12px; }
 @media (max-width: 700px) { .wn-pop { left: 16px; right: 16px; width: auto; bottom: calc(80px + env(safe-area-inset-bottom, 0px)); } }
+/* course cards: the badge and a small drawing of what the course is about */
+.course-head { display: inline-flex; align-items: center; gap: 12px; }
+.course-art { width: 58px; height: 36px; color: var(--primary); opacity: .7; flex: none; }
+.my-courses.compact .course-art { display: none; }
