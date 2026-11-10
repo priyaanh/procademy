@@ -704,6 +704,104 @@
   S.reset();
   }
 
+  { // the tutor: ask by voice, ways to explain, Spanish and Hindi, what it remembers, practice made and checked by Procademy,
+    // a quiz buddy, a whiteboard, homework lines checked by the calculator, chats shared by link, cropping and PDFs, warming up
+  const until = async (fn, ms) => { const t = Date.now(); while (Date.now() - t < (ms || 3000)) { if (fn()) return true; await tick(20); } return false; };
+  const PG = TUTORPAGE, goT = async h => { location.hash = '#/settings'; await tick(15); return go(h); };
+  try { localStorage.removeItem('procademy.chats.v1'); } catch (e) {}
+  S.reset(); S.setProfile({ welcomed: true, grade: 7, tutor: null, cpm: { book: 'cc2', lesson: '3.1.2' } });
+  // ways to explain, and the language
+  const ctxOf = (o) => PG.contextFor(Object.assign({ about: 'general', level: 'auto', style: 'steps', lang: 'en', messages: [] }, o));
+  ok(/Socratic/.test(ctxOf({ style: 'socratic' }).style) && /Teach it back/.test(ctxOf({ style: 'teach' }).style), 'tutor: an "Ask me questions" mode and a "Teach it back" mode');
+  ok(/Reply in Hindi/.test(TU.contextText(ctxOf({ lang: 'hi' }))) && /Reply in Spanish/.test(TU.contextText(ctxOf({ lang: 'es' }))) && !/Language:/.test(TU.contextText(ctxOf({ lang: 'en' }))), 'tutor: explanations in Spanish or Hindi');
+  ok(/Language: Reply in Spanish/.test(TU.contextText(Object.assign(ctxOf({ lang: 'es' }), { notes: 'x'.repeat(5000) }))), 'tutor: the language survives a long context being cut');
+  // what it remembers: worked out on this device, can be switched off or forgotten
+  S.addMissed('math7.add-negatives', 'mm1'); S.addMissed('math7.add-negatives', 'mm2');
+  ok(UI.memoryItems().some(x => /Adding negative numbers \(2 missed questions\)/.test(x.text)) && /missed in practice/.test(UI.plan('help', [], ctxOf({}), []).ctx.memory), 'tutor: it remembers what was missed in practice, and says so with a question');
+  UI.setPref({ memory: false }); ok(!UI.memoryItems().length && !(UI.plan('help', [], ctxOf({}), []).ctx || {}).memory, 'tutor: remembering can be switched off');
+  UI.setPref({ memory: true, memoryFrom: Date.now() + 1 }); ok(!UI.memoryItems().length, 'tutor: Forget clears what it remembers');
+  UI.setPref({ memoryFrom: 0 });
+  // homework lines checked by Procademy's calculator
+  const cw = PG.checkWork('1. 3/4 + 1/6 = 11/12\n2. 2/3 x 3/4 = 1/3\n3) 12 × 3 = 36\nx + 2 = 5');
+  ok(cw.length === 3 && cw[0].ok && !cw[1].ok && cw[1].right === '1/2' && cw[2].ok, 'tutor: finished homework lines are checked with the calculator first (and a line with a letter is left to the tutor)');
+  // the tutor page: starters, voice, Quiz me
+  m = await goT('#/tutor/new');
+  const st = [...m.querySelectorAll('.ai-starter:not(.ai-ex) b')].map(b => b.textContent).join('|');
+  ok(/Quiz me/.test(st) && /Check my homework/.test(st) && /Teach it back/.test(st) && m.querySelectorAll('.ai-starter:not(.ai-ex)').length === 6, 'tutor page: six starters, with Quiz me, Check my homework and Teach it back');
+  ok(!!m.querySelector('#ai-mic') === !!(window.SpeechRecognition || window.webkitSpeechRecognition) && (!m.querySelector('#ai-mic') || /may send the recording/.test(m.querySelector('#ai-mic').title)), 'tutor page: a microphone where the browser can listen, saying where the sound may go');
+  UI.warm(true);
+  ok(document.querySelectorAll('link[rel="preconnect"][href="https://api.llm7.io"]').length === 1 && document.querySelector('link[rel="preconnect"][href="https://text.pollinations.ai"]'), 'tutor: opening it opens connections to the free services ahead of time (no question is sent)');
+  [...m.querySelectorAll('.ai-starter')].find(b => /Teach it back/.test(b.textContent)).click(); await tick(20);
+  ok(m.querySelector('#ai-style').value === 'teach' && /explain 3\.1\.2/.test(m.querySelector('#ai-text').value), 'tutor page: Teach it back starts the explanation for you to finish');
+  m = await goT('#/tutor/new');
+  const q0 = (S.get().days[S.today()] || {}).q || 0;
+  [...m.querySelectorAll('.ai-starter')].find(b => /Quiz me/.test(b.textContent)).click(); await tick(30);
+  m = document.getElementById('main');
+  const quiz1 = PG.load().chats[0].messages.find(x => x.quiz);
+  ok(m.querySelector('.ai-quiz') && /Question 1 of 5/.test(text(m.querySelector('.ai-quiz-head'))) && quiz1 && PG.buddyPlan().skills.includes(quiz1.quiz.skill), 'quiz buddy: five questions on the class lesson, one at a time');
+  ok(!/answer is|checked answer/i.test(PG.modelView([quiz1])[0].content), 'quiz buddy: the tutor never sees the answer of a question not yet tried');
+  const answerLast = async right => {
+    const ch = PG.load().chats[0], z = [...ch.messages].reverse().find(x => x.quiz).quiz, q = ACADEMY.question(z.skill, z.seed);
+    const last = [...document.querySelectorAll('.ai-quiz')].pop();
+    if (q.type === 'choice') last.querySelector(`[data-qchoice="${right ? q.answerIndex : (q.answerIndex + 1) % q.choices.length}"]`).click();
+    else { last.querySelector('input').value = right ? String(q.answer) : (q.type === 'number' ? '987654' : 'zzz'); last.querySelector('form').dispatchEvent(new Event('submit', { cancelable: true })); }
+    await tick(30);
+  };
+  await answerLast(false);
+  ok(S.get().missed.some(x => x.skill === quiz1.quiz.skill && x.seed === quiz1.quiz.seed) && ((S.get().days[S.today()] || {}).q || 0) === q0 + 1 && /Not quite/.test(text(document.querySelector('.ai-quiz .ai-quiz-fb'))), 'quiz buddy: a miss is saved for Review and counts toward today');
+  for (let k = 0; k < 4; k++) await answerLast(true);
+  m = document.getElementById('main');
+  ok(m.querySelectorAll('.ai-quiz').length === 5 && /4 of 5/.test(text(m.querySelector('.ai-local:last-child'))) && m.querySelector('[data-again]'), 'quiz buddy: a score at the end, with Another 5 questions');
+  // the whiteboard
+  m.querySelector('[data-qboard]').click(); await tick(20);
+  const wb = document.querySelector('.wb-wrap');
+  ok(wb && wb.querySelectorAll('.wb-steps li:not([hidden])').length === 1 && /Step 1 of/.test(text(wb.querySelector('#wb-count'))), 'whiteboard: the checked steps, written out one at a time');
+  wb.querySelector('[data-wb="next"]').click(); await tick(10);
+  ok(wb.querySelectorAll('.wb-steps li:not([hidden])').length === 2 || wb.querySelectorAll('.wb-steps li').length === 1, 'whiteboard: Next step shows the next one');
+  document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await tick(10);
+  ok(!document.querySelector('.wb-wrap'), 'whiteboard: Escape closes it');
+  // sharing the chat by link, read-only
+  m.querySelector('#ai-share-btn').click();
+  await until(() => m.__share);
+  const shareUrl = m.__share || '';
+  ok(/#\/tutor\/shared\/[zj][A-Za-z0-9_-]+$/.test(shareUrl) && m.querySelector('#ai-share-url'), 'share: the chat goes into a link (nothing stored online)');
+  m = await goT('#/tutor/shared/' + shareUrl.split('/shared/')[1]);
+  await until(() => document.querySelector('.ai-shared'));
+  m = document.getElementById('main');
+  ok(m.querySelectorAll('.ai-shared-thread .ai-quiz').length === 5 && !m.querySelector('.ai-shared-thread input, .ai-shared-thread [data-qchoice], .ai-shared-thread [data-practice]'), 'share: the link opens the chat read-only');
+  const nChats = PG.load().chats.length;
+  m.querySelector('#ai-keep').click(); await tick(40);
+  ok(PG.load().chats.length === nChats + 1 && /^Shared: /.test(PG.load().chats[0].title), 'share: a copy can be saved to your own chats');
+  m = await goT('#/tutor/shared/zNotARealLink');
+  await until(() => /doesn’t work/.test(text(document.getElementById('main'))));
+  ok(/doesn’t work/.test(text(document.getElementById('main'))), 'share: a broken link says so');
+  // Practice question under an answer: Procademy's own question on what the chat was about
+  const pc = { id: 'pq1', title: 'Slope', created: Date.now(), updated: Date.now(), about: 'general', level: 'auto', style: 'steps', lang: 'en', messages: [{ role: 'user', content: 'What is slope, and how do I find it?' }, { role: 'assistant', content: 'Slope is rise over run.', via: 'llm7' }] };
+  localStorage.setItem('procademy.chats.v1', JSON.stringify({ chats: [pc] }));
+  m = await goT('#/tutor/pq1');
+  m.querySelector('[data-practice]').click(); await tick(30);
+  const pz = PG.load().chats[0].messages.find(x => x.quiz);
+  ok(pz && /slope/i.test(ACADEMY.skills[pz.quiz.skill].title) && document.querySelector('.ai-quiz [data-qchoice], .ai-quiz input'), 'practice question: made and checked by Procademy, on what the chat was about');
+  // cropping a picture, and PDFs on the picture card
+  const cv = document.createElement('canvas'); cv.width = 400; cv.height = 200;
+  const blob = await new Promise(r => cv.toBlob(r, 'image/png'));
+  const cropping = FILES.crop(new File([blob], 'page.png', { type: 'image/png' }));
+  await until(() => document.querySelector('.crop-wrap img') && document.querySelector('.crop-wrap img').naturalWidth);
+  const cw2 = document.querySelector('.crop-wrap');
+  cw2.__select(10, 10, 100, 50); cw2.querySelector('#crop-go').click();
+  const part = await cropping;
+  const bmp = part && await createImageBitmap(part);
+  ok(part && part.type === 'image/png' && bmp && bmp.width < 400 && bmp.height < 200 && !document.querySelector('.crop-wrap'), 'crop: only the part chosen is kept, cut out on this device');
+  const cancelled = FILES.crop(new File([blob], 'page.png', { type: 'image/png' }));
+  await until(() => document.querySelector('.crop-wrap'));
+  document.querySelector('#crop-no').click();
+  ok(await cancelled === null, 'crop: Cancel keeps nothing');
+  m = await goT('#/unlimited');
+  ok(/pdf/.test(m.querySelector('#shot-file').accept) && /PDF/.test(text(m.querySelector('#shot-pick'))), 'questions like yours: a PDF worksheet works as well as a picture');
+  try { localStorage.removeItem('procademy.chats.v1'); } catch (e) {}
+  S.reset();
+  }
+
   /* ---- the tutor's own page ---- */
   try { localStorage.removeItem('procademy.chats.v1'); } catch (e) {}
   const tReqs = [];
@@ -716,7 +814,7 @@
   slope.click();
   for (let k = 0; k < 80 && !m.querySelector('.ai-actions'); k++) await tick(25);
   ok(m.querySelectorAll('.ai-msg.user').length === 1 && /slope and lines/.test(text(m.querySelector('.ai-msg.bot'))), 'tutor page: a starter asks its question and the answer streams in');
-  ok(m.querySelector('[data-act="copy"]') && m.querySelector('[data-follow*="simply"]') && m.querySelector('[data-follow*="practice question"]'), 'tutor page: each answer has Copy and follow-ups');
+  ok(m.querySelector('[data-act="copy"]') && m.querySelector('[data-follow*="simply"]') && m.querySelector('[data-practice]'), 'tutor page: each answer has Copy and follow-ups');
   const rel = [...m.querySelectorAll('.ai-related a')].map(a => decodeURIComponent(a.getAttribute('href')));
   ok(rel.length >= 1 && rel.some(h => /slope/.test(h)), 'tutor page: it links to Procademy practice that matches (' + rel.join(', ') + ')');
   ok(/Cloud/.test(text(m.querySelector('.ai-meta'))) && /\d\.\d s/.test(text(m.querySelector('.ai-meta'))), 'tutor page: each answer says where it came from and how long it took');
