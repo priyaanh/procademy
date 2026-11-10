@@ -79,6 +79,8 @@
 <script src="../lib/tiles.js"></script>
 <script src="../lib/chance.js"></script>
 <script src="../lib/calculator.js"></script>
+<script src="../lib/geometry.js"></script>
+<script src="../lib/measure.js"></script>
 <script src="../lib/numbers.js"></script>
 <script src="../lib/data.js"></script>
 <script src="../lib/shapes.js"></script>
@@ -1065,6 +1067,88 @@
   range.value = '-1'; range.dispatchEvent(new Event('input', { bubbles: true }));
   ok(sst.spec.items[0].f(3) === -9 && /−1|-1/.test(sf.querySelector('output').textContent), 'sliders: moving it changes the graph');
   root.innerHTML = '';
+  { // more math tools: calculator menus and statistics, best-fit lines, solving step by step, the geometry lab, units and scale
+  const C = CALCULATOR, ans = (e, deg) => { const r = C.calc(e, { deg: deg !== false }); return r.error ? 'ERR' : r.answer.text.replace(/^[=≈]\s*/, ''); };
+  ok(ans('5 nPr 2') === '20' && ans('5 nCr 2') === '10' && ans('3ˣ√8') === '2' && ans('3ˣ√-27') === '−3' && ans('round(2.345, 2)') === '2.35' && ans('lcm(12, 18)') === '36' && ans('gcd(12, 18)') === '6' && ans('remainder(17, 5)') === '2' && ans('min(3, 1/2)') === '1/2', 'tools: nPr, nCr, x-th roots, round, lcm, gcd, remainder and min work exactly');
+  ok(ans('3>2') === '1' && ans('1/3=0.333') === '0' && ans('2>1 and 3>4') === '0' && ans('2>1 or 3>4') === '1' && ans('not(0)') === '1', 'tools: the test and logic menus give 1 for true and 0 for false');
+  ok(C.calc('√8').answer.exactText === '2√2' && C.calc('sin(45)', { deg: true }).answer.exactText === '√2/2' && C.calc('2π').answer.exactText === '2π' && C.calc('√8').answer.forms[0][0] === 'Exact', 'tools: square roots and π stay exact: √8 = 2√2, sin 45° = √2/2');
+  ok(ans('30°15\'20"') === '2,723/90' && ans('sin(30°)', false) === '1/2' && ans('R►Pr(3, 4)') === '5' && C.calc('2,5').error && /round/.test(C.calc('(1,2)').error), 'tools: degrees-minutes-seconds, angle marks in radian mode, polar conversions, and a helpful word about commas');
+  try { localStorage.setItem('procademy.calc.v1', JSON.stringify({ seenHow: true })); } catch (e) {}
+  let mm = await go('#/calc');
+  const pk = async ks => { for (const k of ks) { mm.querySelector(`[data-k="${k}"]`).click(); await tick(); } };
+  await pk(['stat', '1']);
+  for (const v of [['1'], ['2'], ['3'], ['4'], ['5']]) await pk([...v, 'enter']);
+  await pk(['right']);
+  for (const v of [['3'], ['5'], ['7'], ['9'], ['1', '1']]) await pk([...v, 'enter']);
+  ok(mm.__calc.screen === 'stat' && mm.__calc.lists.L1.join() === '1,2,3,4,5' && mm.__calc.lists.L2.join() === '3,5,7,9,11', 'tools: stat 1 edits lists L1 and L2');
+  await pk(['left', 'stat', 'right', '1']);
+  ok(mm.__calc.stats.includes('x̄=3') && mm.__calc.stats.includes('Med=3') && mm.__calc.stats.includes('n=5') && mm.__calc.stats.includes('Q1=1.5'), '1-Var Stats: the mean, median, quartiles and n of L1');
+  await pk(['stat', 'right', '4']);
+  ok(mm.__calc.stats.includes('a=2') && mm.__calc.stats.includes('b=1') && mm.__calc.stats.includes('r²=1') && mm.__calc.ys[0] === '2X+1', 'LinReg(ax+b): y = 2x + 1 exactly, saved in Y1 to graph');
+  await pk(['graph']);
+  ok(mm.__calc.screen === 'graph', 'tools: the regression line and the points graph together');
+  await pk(['clear', '2nd', 'mode', 'math', 'right']);
+  ok(/round\(/.test(text(mm.querySelector('.cx-lcd'))) && /gcd\(/.test(text(mm.querySelector('.cx-lcd'))), 'tools: the math menu’s NUM tab has round, min, max, lcm and gcd');
+  await pk(['clear', '2nd', 'mode', '1', 'alpha', 'yeq', '1', '3']);
+  ok(mm.querySelector('.cx-entry .frac') && mm.__calc.entry === '1/3', 'tools: alpha y= gives n/d, a fraction that stacks as it is typed');
+  ok(mm.querySelectorAll('[data-demo]').length === 6 && typeof mm.__demo === 'function', 'tools: six lessons the calculator plays by itself');
+  C.receive(['2X+1', '−X+4']);
+  mm = await go('#/settings'); mm = await go('#/calc');
+  ok(mm.__calc.screen === 'graph' && mm.__calc.ys.slice(0, 2).join() === '2X+1,−X+4', 'tools: lines sent from the graphing page open as graphs on the calculator');
+  try { localStorage.removeItem('procademy.calc.v1'); } catch (e) {}
+  // the graphing page: best fit, dragging, course graphs
+  const fit = CALC.bestFit(['points (1, 3) (2, 5) (3, 7)', 'best fit']);
+  ok(fit && Math.abs(fit.a - 2) < 1e-9 && Math.abs(fit.b - 1) < 1e-9 && Math.abs(fit.r - 1) < 1e-9 && CALC.expand(['points (1, 3) (2, 5)', 'best fit'])[1] === 'y = 2x + 1', 'graphing: “best fit” becomes the least-squares line through the points');
+  ok(JSON.stringify(CALC.toCalculator(['y = m x + b', 'm = 2', 'b = -1', 'y < 3x', 'y = x² - 4'])) === JSON.stringify(['(2) X + (−1)', 'X² − 4']), 'graphing: y = lines go to the calculator, sliders as their values');
+  S.setProfile({ grade: 8, enrolled: ['math-8'] });
+  const cst = CALC.courseStarters();
+  ok(cst && cst.list.length >= 3 && cst.list.every(g => g.lines && g.unit), 'graphing: starter graphs for the units of the learner’s course');
+  try { localStorage.removeItem('procademy.graph.v1'); } catch (e) {}
+  mm = await go('#/graph');
+  mm.querySelectorAll('.calc-start')[8].click(); await tick(60);
+  ok(/Best fit: /.test(text(mm.querySelector('#calc-fit'))) && mm.querySelector('#calc-course [data-unit]'), 'graphing: the best-fit starter shows its equation and r, and the course row shows');
+  const fig = mm.querySelector('#calc-graph .viz'), svg = fig.querySelector('.viz-plot svg'), v = Dw.getView(fig).view, r = svg.getBoundingClientRect();
+  const hx = r.left + (1 - v.x0) / (v.x1 - v.x0) * r.width, hy = r.top + (v.y1 - 2) / (v.y1 - v.y0) * r.height;
+  ok(JSON.stringify(mm.__calc.handleAt(hx, hy)) === JSON.stringify({ i: 0, k: 0 }), 'graphing: a point written in a line can be grabbed to drag');
+  S.reset();
+  // solve, simplify and factor
+  const St = STEPS, plainA = r2 => String(r2.answer).replace(/<sup>(\d+)<\/sup>/g, '^$1').replace(/<[^>]+>/g, '');
+  ok(plainA(St.solve('3(x − 2) = x + 4')) === 'x = 5' && plainA(St.solve('x/2 + 1/3 = 5/6')) === 'x = 1' && plainA(St.solve('−2x + 3 < 9')) === 'x > −3' && plainA(St.solve('2x + 1 = 2x + 3')) === 'No solution.', 'solver: linear equations and inequalities, with fractions and a flipped sign');
+  ok(plainA(St.solve('x² − 5x + 6 = 0')) === 'x = 3 or x = 2' && /√41/.test(plainA(St.solve('2x² + 3x − 4 = 0'))) && plainA(St.solve('x^2 + 4 = 0')) === 'No real solution.' && St.solve('3(x − 2) = x + 4').steps.length === 6, 'solver: quadratics by factoring or the formula, every step shown with a check');
+  ok(plainA(St.simplify('(x + 3)(x − 2)')) === 'x^2 + x − 6' && plainA(St.factor('6x² + 11x − 10')) === '(3x − 2)(2x + 5)' && plainA(St.factor('x³ − 6x² + 11x − 6')) === '(x − 1)(x − 3)(x − 2)' && plainA(St.factor('4x² − 9')) === '(2x − 3)(2x + 3)' && /can’t be factored/.test(plainA(St.factor('x^2 + x + 1'))), 'solver: simplifying and factoring, including difference of squares and a cubic');
+  mm = await go('#/steps');
+  mm.querySelector('[data-try="2x + 5 = 17"]').click(); await tick();
+  ok(mm.querySelectorAll('.sv-steps li').length >= 4 && /x = 6/.test(text(mm.querySelector('.sv-answer'))), 'solver: the step checker page shows the steps');
+  // the geometry lab
+  mm = await go('#/geometry/construct');
+  const h = Math.sqrt(27);
+  mm.__geoTool('circ'); mm.__geoTap(-3, -1); mm.__geoTap(3, -1); mm.__geoTap(3, -1); mm.__geoTap(-3, -1);
+  mm.__geoTool('point'); mm.__geoTap(0.1, -1 + h); mm.__geoTap(-0.1, -1 - h);
+  mm.__geoTool('line'); mm.__geoTap(0, -1 + h); mm.__geoTap(0, -1 - h);
+  ok(mm.__geo.step === 4 && mm.querySelector('.gl-side .feedback.good') && mm.__geo.pts.filter(p => p.on).length === 2, 'geometry: bisecting a segment with compass and straightedge, each step checked, crossings snapped exactly');
+  mm.__geoTool('len'); mm.__geoTap(-3, -1); mm.__geoTap(3, -1);
+  ok(mm.__geo.meas.some(t => /= 6$/.test(t)), 'geometry: the ruler measures 6');
+  mm = await go('#/geometry/transform');
+  mm.__geoSet({ kind: 'reflect', line: 'y' });
+  ok(mm.__geo.rule === '(x, y) → (−x, y)' && JSON.stringify(mm.__geo.after) === JSON.stringify([[-1, 1], [-4, 1], [-1, 3]]), 'geometry: a reflection across the y-axis, with its rule');
+  mm.__geoSet({ kind: 'rotate', deg: 90 });
+  ok(JSON.stringify(mm.__geo.after[1]) === JSON.stringify([-1, 4]), 'geometry: a 90° turn takes (4, 1) to (−1, 4)');
+  // units and scale, scientific notation, two-step probability
+  const cv = MEASURE.convert('length', 'mi', 'km', 3), tf = MEASURE.convert('temp', 'F', 'C', 212);
+  ok(Math.abs(cv.out - 4.828032) < 1e-12 && /1 mile = 1\.609344 kilometers/.test(cv.fact) && tf.out === 100 && MEASURE.convert('length', 'm', 'ft', 1).fact === '1 foot = 0.3048 meters', 'units: conversions with the exact fact, stated the exact way round');
+  mm = await go('#/measure/scale');
+  ok(mm.__measure.per === 50 && mm.__measure.k === 5000 && mm.__measure.real === 325, 'scale: 1 cm : 50 m makes 6.5 cm on the map 325 m, a scale of 1 : 5,000');
+  const sp = t => { const x = NUMBERS.sciRead(t), q = NUMBERS.sciParts(x); return q.c + 'e' + q.p + '=' + NUMBERS.sciPlain(x); };
+  ok(sp('0.000452') === '4.52e-4=0.000452' && sp('93,000,000') === '9.3e7=93,000,000' && sp('6.02 × 10^23') === '6.02e23=602,000,000,000,000,000,000,000' && NUMBERS.sciPlain(NUMBERS.sciOp(NUMBERS.sciRead('3e5'), NUMBERS.sciRead('2e-2'), '×').r) === '6,000', 'scientific notation: both ways, exactly, and multiplying');
+  mm = await go('#/numbers');
+  ok(mm.querySelector('#nm-sci') && /6,000/.test(text(mm.querySelector('#sci-op-out'))), 'scientific notation: a card on the number explorer');
+  const pr = CHANCE.pairsOf([['Red', 3], ['Blue', 2]]);
+  ok(JSON.stringify(pr) === JSON.stringify([['Red then Red', 6], ['Red then Blue', 6], ['Blue then Red', 6], ['Blue then Blue', 2]]), 'probability: two draws without putting back, weighted by the ways each can happen');
+  mm = await go('#/chance/dice');
+  ok(mm.querySelectorAll('.ch-space td').length === 36 && mm.querySelector('[data-run="10000"]'), 'probability: the 36 rolls of two cubes, and a 10,000-trial run');
+  mm = await go('#/chance/draw2');
+  ok(/dependent events/.test(text(mm.querySelector('#ch-space'))), 'probability: a two-draw experiment explains dependent events');
+  }
   // the graphing calculator
   try { localStorage.removeItem('procademy.graph.v1'); } catch (e) {}
   m = await go('#/graph');
@@ -2895,8 +2979,8 @@
   ok(m.__calc.screen === 'table' && m.__calc.table[2].join() === '2,0,5', 'calc page: 2nd graph shows a table of values');
   pk(['window', 'neg', '5', 'enter']);
   ok(m.__calc.win.xmin === -5, 'calc page: the window can be changed');
-  pk(['zoom', '6', 'stat']);
-  ok(m.__calc.win.xmin === -10 && /Data tool/.test(m.__calc.note), 'calc page: zoom 6 is the standard window, and a key with nothing behind it says so');
+  pk(['zoom', '6', 'prgm']);
+  ok(m.__calc.win.xmin === -10 && /PRGM isn’t on this calculator/.test(m.__calc.note), 'calc page: zoom 6 is the standard window, and a key with nothing behind it says so');
   pk(['2nd', 'mode', 'clear', '3', 'add', 'enter']);
   ok(m.__calc.screen === 'error' && /missing/.test(m.__calc.error), 'calc page: a mistake shows an error screen');
   pk(['2']);
@@ -2948,7 +3032,7 @@
   ok(m.__data.sets[0].n === 3 && /“x” isn’t a number/.test(text(m)), 'data: something that isn’t a number is left out, and it says so');
 
   m = await go10('#/tools');
-  ok(m.querySelectorAll('.tool:not(.again)').length === 18 && m.querySelector('.tool[href="#/unlimited"]') && m.querySelector('.tool[href="#/calc"]') && m.querySelector('.tool[href="#/numbers"]') && m.querySelector('.tool[href="#/data"]'), 'tools: every tool on one page');
+  ok(m.querySelectorAll('.tool:not(.again)').length === 20 && m.querySelector('.tool[href="#/geometry"]') && m.querySelector('.tool[href="#/measure"]') && m.querySelector('.tool[href="#/unlimited"]') && m.querySelector('.tool[href="#/calc"]') && m.querySelector('.tool[href="#/numbers"]') && m.querySelector('.tool[href="#/data"]'), 'tools: every tool on one page');
   m = await go10('#/skill/g6.gcf-lcm');
   ok(m.querySelector('.hero a[href="#/numbers/12-18"]'), 'tools: the GCF and LCM skill offers the number explorer');
   m = await go10('#/skill/g6.spread');
