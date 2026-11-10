@@ -2610,3 +2610,12 @@ main:focus { outline: none; }                            /* focus lands here aft
 :root[data-read="easy"][data-font="dyslexic"] body { letter-spacing: 0; word-spacing: .06em; }      /* the font is wide already */
 :root[data-read="easy"][data-font="dyslexic"] :is(.nav a, .stat-pill, .brand) { font-size: .9rem; }
 @media (max-width: 1300px) { :root[data-read="easy"][data-font="dyslexic"] .stats { display: none; } }
+.lesson-done { background: var(--primary-soft); color: var(--primary-ink); }
+.lesson-todo { background: transparent; color: var(--muted); box-shadow: inset 0 0 0 1px var(--line); }
+.ch-words { margin-top: 10px; }
+.ch-words > summary { cursor: pointer; font-weight: 600; color: var(--primary-ink); }
+.ch-word-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.hw-hint { border-top: 1px solid var(--line); padding: 10px 0; }
+.hw-hint:first-of-type { border-top: 0; }
+.hw-hint > summary { cursor: pointer; }
+.hw-ex { margin: 6px 0; overflow-x: auto; }
