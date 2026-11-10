@@ -19,6 +19,11 @@ const safeJs = s => s.replace(/<\/(script)/gi, '<\\/$1').replace(/<!--/g, '<\\!-
 const hashOf = s => `'sha256-${crypto.createHash('sha256').update(s, 'utf8').digest('base64')}'`;
 
 let html = read('index.html');
+// the tools the site loads only when a page opens them (LAZY in lib/app.js) go in too, just before app.js
+const lazyBlock = (read('lib/app.js').match(/\/\* lazy:start \*\/([\s\S]*?)\/\* lazy:end \*\//) || [])[1];
+if (!lazyBlock) throw new Error('lib/app.js has no lazy:start / lazy:end block');
+const lazy = [...new Set(lazyBlock.match(/lib\/[\w-]+\.js/g))];
+html = html.replace('<script src="lib/app.js"></script>', lazy.map(f => `<script src="${f}"></script>\n`).join('') + '<script src="lib/app.js"></script>');
 const scripts = [...html.matchAll(/<script src="([^"]+)"><\/script>\n?/g)];
 if (!scripts.length) throw new Error('index.html has no scripts to inline');
 const inline = [];                                   // the text of every inline script, for the policy
