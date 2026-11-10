@@ -942,7 +942,7 @@
   m = await go('#/');
   ok(/Done/.test(text(m.querySelector('.daily-card'))) && /Practice again/.test(text(m.querySelector('.daily-card'))), 'today\'s practice: Home says it is done, and offers another round');
   m = await go('#/progress');
-  ok(/Due for review/.test(text(m)) && /Your mistake patterns/.test(text(m)) && /Sign slips/.test(text(m)), 'progress: what is due, and the learner\'s own mistake patterns with a tip');
+  ok(/Due this week/.test(text(m)) && /Your mistake patterns/.test(text(m)) && /Sign slips/.test(text(m)), 'progress: what is due, and the learner\'s own mistake patterns with a tip');
   // worksheets
   m = await go('#/worksheet/skill/math7.add-negatives');
   ok(m.querySelectorAll('.ws-q').length === 12 && m.querySelectorAll('.ws-key .ws-answers li').length === 12 && /Name/.test(text(m.querySelector('.ws-head'))), 'worksheet: 12 questions, a name line and an answer key');
@@ -1677,7 +1677,7 @@
   const nextRows = [...m.querySelectorAll('.pr-next li')];
   ok(nextRows.length >= 2 && nextRows.every(li => li.querySelector('.sub').textContent.trim() && li.querySelector('a.btn[href^="#/practice/"]')), 'progress: what to practice next, each with why and a Practice button');
   ok(m.querySelectorAll('.pr-chart .pr-col').length === 8 && m.querySelector('.pr-chart').getAttribute('aria-label').includes('questions'), 'progress: eight weeks of questions and first-try rights');
-  ok(/Due for review/.test(text(m)) && /Activity/.test(text(m)) && /Mastery/.test(text(m)), 'progress: everything else is still there, further down');
+  ok(/Due this week/.test(text(m)) && /Activity/.test(text(m)) && /Mastery/.test(text(m)), 'progress: everything else is still there, further down');
   m.querySelector('#pr-print').click(); await tick(10);
   m = await go('#/report'); await tick(450);
   ok(printed === 2, 'progress: Print a report opens the report and prints it in one tap');
@@ -1740,6 +1740,101 @@
   const code = FAMILY.link().split('#/family/add/')[1], sum2 = FAMILY.read(code);
   ok(sum2 && sum2.w7.length === 7 && sum2.goal === 30 && sum2.ups.includes('math7.add-negatives') && FAMILY.read(DRAW.encode(JSON.stringify(Object.assign({}, JSON.parse(DRAW.decode(code)), { w7: [1, 2, 0, 0, 0, 0, 0] })))).w7 === null, 'family: a progress link carries the week, the goal and what leveled up; a bad week is left out');
   window.print = realPrint;
+  S.reset();
+  }
+
+  { // progress for a parent: time, how ready, strongest and weakest, due this week, tests, a mastery map; family notes, assignments and sets; quiet hours, reminders, spreadsheets, copies
+  const until = async (fn, ms) => { const t = Date.now(); while (Date.now() - t < (ms || 4000)) { if (fn()) return true; await tick(20); } return false; };
+  ACCOUNT.useBackend(null);
+  try { localStorage.removeItem('procademy.family.v1'); } catch (e) { /* fine */ }
+  S.reset(); S.setProfile({ welcomed: true, name: 'Sam', grade: 7, enrolled: ['math-7'], goal: 10 });
+  S.countAnswer(true);
+  const d0 = S.get().days[S.today()];
+  ok(d0.sec > 0 && S.minutes({ q: 10 }) === 6 && S.minutes({ q: 3, sec: 600 }) === 10, 'time: each answer counts the time it took; days from before are estimated');
+  d0.sec = 600; d0.q = 12; d0.right = 9; S.save();
+  const ids = A.courseSkills(A.courseById('math-7'));
+  S.setSkill(ids[0], { level: 4, tries: 10, right: 10, sets: 2, last: Date.now(), due: S.dayShift(S.today(), 2) });
+  S.setSkill(ids[1], { level: 1, tries: 6, right: 2, sets: 1, last: Date.now(), due: S.today() });
+  S.setSkill(ids[2], { level: 3, tries: 8, right: 7, sets: 1, last: Date.now(), due: S.dayShift(S.today(), 4) });
+  const u0 = A.whereIs(ids[0]).unit.id;
+  S.logEvent({ kind: 'unit-test', course: 'math-7', unit: u0, right: 7, total: 10, pts: 50, changes: [] });
+  S.logEvent({ kind: 'unit-test', course: 'math-7', unit: u0, right: 9, total: 10, pts: 50, changes: [] });
+  m = await go('#/progress');
+  ok(m.querySelector('.pr-ready .pbar') && /Unit test:/.test(text(m.querySelector('.pr-ready'))) && /\d+%/.test(text(m.querySelector('.pr-ready-pct'))), 'progress: how ready for the next unit test');
+  ok(m.querySelector('[data-time-view="days"] .pr-tbars') && /10 min in the last 7 days/.test(text(m)), 'progress: minutes practicing, by day');
+  m.querySelector('[data-time="weeks"]').click();
+  ok(!m.querySelector('[data-time-view="weeks"]').hidden && m.querySelector('[data-time-view="days"]').hidden, 'progress: and by week');
+  const [strongC, weakC] = m.querySelectorAll('.pr-sw > div');
+  ok(text(strongC).includes(A.stripTags(A.skills[ids[0]].title)) && text(weakC).includes(A.stripTags(A.skills[ids[1]].title)), 'progress: strongest skills and the ones that need work');
+  ok(/Today/.test(text(m.querySelector('.pr-due'))) && m.querySelectorAll('.pr-due-days li').length >= 3, 'progress: what is due each day this week');
+  ok(m.querySelector('.pr-tests .pr-tchart polyline') && /9 \/ 10/.test(text(m.querySelector('.pr-tests'))), 'progress: test scores over time, with a chart');
+  ok(m.querySelector('.pr-map .sm-cell.l4') && m.querySelectorAll('.pr-map .sm-cell').length > 400, 'progress: a mastery map of every course');
+  m = await go('#/report');
+  ok(m.__report.min === 10 && m.__report.tests.length === 2 && m.__report.strong.includes(ids[0]) && /Tests in this period/.test(text(m)) && /How ready for the next test/.test(text(m)) && /10\s*minutes practicing/.test(text(m)), 'report: minutes, test scores, strongest skills and how ready');
+  ok(/^Practiced on 1 of 7 days: 12 questions, 75% correct on the first try, about 10 minutes in all\./m.test(REPORT.asText(m.__report)), 'report: the period in one sentence');
+  // a second learner on this device: everyone side by side, a note and practice assigned from Family and class
+  const samId = LEARNERS.active();
+  const riaId = await LEARNERS.add('Ria', { hue: 140 });
+  m = await go('#/family');
+  ok(m.querySelectorAll('.fam-table tbody tr').length === 2 && /Sam/.test(text(m.querySelector('.fam-table'))), 'family: everyone side by side');
+  m.querySelector(`[data-fam-note="${samId}"]`).click();
+  m.querySelector(`[data-fam-panel="${samId}"] .fn-text`).value = 'Great work this week.'; m.querySelector(`[data-fam-panel="${samId}"] .fn-by`).value = 'Mom';
+  m.querySelector(`[data-fam-panel="${samId}"] form`).dispatchEvent(new Event('submit', { cancelable: true })); await tick(20);
+  ok(LEARNERS.stateOf(samId).profile.parentNote.text === 'Great work this week.' && LEARNERS.stateOf(samId).profile.parentNote.by === 'Mom', 'family: a parent leaves a note for a learner who isn’t on screen');
+  m = document.getElementById('main');
+  m.querySelector(`[data-fam-assign="${samId}"]`).click();
+  const ap = m.querySelector(`[data-fam-panel="${samId}"]`);
+  ap.querySelector('.fa-title').value = 'Before Friday';
+  const boxes = [...ap.querySelectorAll('.fp-unit input[value]')].slice(0, 2);
+  boxes.forEach(b => { b.checked = true; b.dispatchEvent(new Event('change', { bubbles: true })); });
+  ap.querySelector('form').dispatchEvent(new Event('submit', { cancelable: true })); await tick(20);
+  const asg = LEARNERS.stateOf(samId).profile.assigned;
+  ok(asg && asg[0].title === 'Before Friday' && asg[0].ids.length === 2, 'family: practice is assigned to them');
+  // the hand-picked set link
+  m = document.getElementById('main');
+  const ps = m.querySelector('.fam-pickset'); ps.open = true; m.querySelector('#fs-title').value = 'Review';
+  [...ps.querySelectorAll('.fp-unit input[value]')].slice(0, 3).forEach(b => { b.checked = true; b.dispatchEvent(new Event('change', { bubbles: true })); });
+  m.querySelector('#fs-copy').click(); await tick(10);
+  ok(/#\/unlimited\/set\/[^/]+,[^/]+,[^/]+\/Review$/.test(FAMILY._assign), 'class: a link for any mix of skills');
+  // several progress links pasted at once
+  const sumLink = FAMILY.link();
+  m.querySelector('#fam-links').value = 'Here: ' + sumLink + '\nand a broken one: #/family/add/zzzz';
+  m.querySelector('#fam-paste-go').click(); await tick(20);
+  ok(FAMILY.shared().length >= 1, 'class: progress links pasted together are added');
+  try { localStorage.removeItem('procademy.family.v1'); } catch (e) { /* fine */ }
+  // back to Sam: the note and the practice show on Home
+  await LEARNERS.switchTo(samId);
+  m = await go('#/');
+  const strip = m.querySelector('.parent-strip');
+  ok(strip && /From Mom: Great work this week\./.test(text(strip)) && /Before Friday/.test(text(strip)) && /0 of 2 skills practiced/.test(text(strip)), 'home: the parent’s note and the assigned practice');
+  strip.querySelector('#ps-seen').click();
+  ok(S.get().profile.parentNote.seen && !/Great work/.test(text(m)), 'home: Got it puts the note away');
+  m = await go(strip.querySelector('a.btn').getAttribute('href'));
+  ok(m.__session && m.__session.skills && m.__session.skills.length === 2, 'set link: it practices exactly the chosen skills');
+  ok(LEARNERS.remove(riaId) && LEARNERS.count() === 1, 'family: the extra learner is removed again');
+  // settings: quiet hours, a reminder on chosen days, spreadsheets and the copies kept on this device
+  m = await go('#/settings');
+  const qs = m.querySelector('#quiet'); qs.value = '21-7'; qs.dispatchEvent(new Event('change'));
+  ok(S.get().profile.quiet.from === 21 && S.quietNow(new Date(2026, 0, 1, 23)) && S.quietNow(new Date(2026, 0, 1, 6)) && !S.quietNow(new Date(2026, 0, 1, 12)), 'quiet hours: kept, and they run past midnight');
+  VIEWS._lastDownload = null;
+  m.querySelector('#rm-days').value = 'school'; m.querySelector('#rm-hour').value = '16'; m.querySelector('#rm-add').click();
+  ok(VIEWS._lastDownload && /RRULE:FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR/.test(VIEWS._lastDownload.text) && /T160000/.test(VIEWS._lastDownload.text), 'reminder: a calendar file for school days at 4 pm');
+  qs.value = '20-7'; qs.dispatchEvent(new Event('change')); VIEWS._lastDownload = null;
+  m.querySelector('#rm-hour').value = '20'; m.querySelector('#rm-add').click();
+  ok(!VIEWS._lastDownload, 'reminder: not inside quiet hours');
+  S.setProfile({ quiet: null });
+  m.querySelector('#csv-days').click();
+  ok(/^Date,Questions,Right the first time,Percent right,Minutes,Points\r\n/.test(VIEWS._lastDownload.text) && /,12,9,75,10,/.test(VIEWS._lastDownload.text), 'spreadsheet: every day');
+  m.querySelector('#csv-skills').click();
+  ok(/^Course,Unit,Skill,Level/.test(VIEWS._lastDownload.text) && VIEWS._lastDownload.text.includes('Mastered'), 'spreadsheet: every skill');
+  S.copyNow();
+  const before = S.skill(ids[2]).level;
+  S.setSkill(ids[2], { level: 1 });
+  S.restoreCopy(0);
+  ok(S.skill(ids[2]).level === before && S.copies().length === 2, 'copies: going back to a copy kept on this device, and the newer progress is kept as a copy');
+  location.hash = '#/x'; await tick(10);
+  m = await go('#/settings');
+  ok(m.querySelectorAll('#copies [data-copy]').length === 2, 'copies: Settings lists them');
   S.reset();
   }
 
@@ -2023,7 +2118,7 @@
   // family and class: a progress link adds a learner; an older link never replaces a newer one
   S.setProfile({ name: 'Priyaan' });
   const famUrl = FAMILY.link(), famCode = famUrl.split('#/family/add/')[1], fsum = FAMILY.read(famCode);
-  ok(fsum && fsum.name === 'Priyaan' && fsum.grade === 7 && fsum.week.q === 4 && fsum.courses[0].id === 'math-7' && fsum.next.length && Object.keys(JSON.parse(DRAW.decode(famCode))).sort().join() === 'counts,courses,goal,grade,id,last,name,next,slips,streak,t,today,ups,v,w7,week', 'family: a progress link carries a short, checked summary and nothing more');
+  ok(fsum && fsum.name === 'Priyaan' && fsum.grade === 7 && fsum.week.q === 4 && fsum.courses[0].id === 'math-7' && fsum.next.length && Object.keys(JSON.parse(DRAW.decode(famCode))).sort().join() === 'counts,courses,gm,goal,grade,id,last,min,name,next,slips,streak,t,today,ups,v,w7,week', 'family: a progress link carries a short, checked summary and nothing more');
   ok(!FAMILY.read(DRAW.encode(JSON.stringify(Object.assign({}, fsum, { courses: [{ id: 'nope', pct: 50 }], week: { days: 9, q: 1, right: 0 } })))), 'family: a link with impossible numbers is refused');
   m = await goW('#/family/add/' + famCode);
   ok(/Add Priyaan’s progress\?/.test(text(m)), 'family: opening a progress link asks before adding');
