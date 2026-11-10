@@ -74,6 +74,8 @@
 <script src="../lib/tiles.js"></script>
 <script src="../lib/chance.js"></script>
 <script src="../lib/calculator.js"></script>
+<script src="../lib/geometry.js"></script>
+<script src="../lib/measure.js"></script>
 <script src="../lib/numbers.js"></script>
 <script src="../lib/data.js"></script>
 <script src="../lib/shapes.js"></script>
@@ -97,7 +99,7 @@
   const tick = ms => new Promise(r => setTimeout(r, ms || 0));
   let errors = [];
   window.addEventListener('error', e => errors.push(String(e.message)));
-  const routes = ['#/', '#/courses', '#/courses/Elementary', '#/courses/Middle%20school', '#/courses/High%20school', '#/courses/cpm', '#/courses/saved', '#/progress', '#/settings', '#/new', '#/unlimited', '#/unlimited/all', '#/unlimited/course/math-7', '#/unlimited/chapter/cc2/3', '#/unlimited/mine', '#/search/fraction', '#/review', '#/cpm', '#/tutor', '#/tutor/new'];
+  const routes = ['#/geometry/sketch', '#/geometry/construct', '#/geometry/transform', '#/measure/units', '#/measure/scale', '#/chance/draw2', '#/chance/coindie', '#/', '#/courses', '#/courses/Elementary', '#/courses/Middle%20school', '#/courses/High%20school', '#/courses/cpm', '#/courses/saved', '#/progress', '#/settings', '#/new', '#/unlimited', '#/unlimited/all', '#/unlimited/course/math-7', '#/unlimited/chapter/cc2/3', '#/unlimited/mine', '#/search/fraction', '#/review', '#/cpm', '#/tutor', '#/tutor/new'];
   A.courses.forEach(c => { routes.push('#/course/' + c.id); c.units.forEach(u => routes.push('#/unit/' + c.id + '/' + u.id)); });
   Object.keys(A.skills).forEach(id => routes.push('#/skill/' + encodeURIComponent(id)));
   A.cpm.forEach(b => { routes.push('#/cpm/' + b.id); b.chapters.forEach(ch => ch.lessons.forEach(l => routes.push('#/cpm/' + b.id + '/' + l.id))); });
