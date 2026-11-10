@@ -36,8 +36,9 @@
       { id: 'geometry', title: 'Geometry', blurb: 'Area of flat shapes, and volume and surface area of boxes.', skills: ['g6.area', 'g6.volume-surface-area'] },
       { id: 'stats', title: 'Data and statistics', blurb: 'The center of a data set and how spread out it is.', skills: ['g6.mean-median', 'g6.spread'] },
       { id: 'fraction-sense', title: 'Fractions as division and mixed numbers', blurb: 'Sharing things equally to make a fraction, and multiplying mixed numbers.', skills: ['g6.fraction-as-division', 'g6.multiply-mixed-numbers'] },
-      { id: 'data-displays', title: 'Statistical questions and data displays', blurb: 'Questions with answers that vary, and reading histograms and stem-and-leaf plots.', skills: ['g6.statistical-questions', 'g6.histograms', 'g6.stem-and-leaf'] },
+      { id: 'data-displays', title: 'Statistical questions and data displays', blurb: 'Questions with answers that vary, and reading histograms and stem-and-leaf plots.', skills: ['g6.statistical-questions', 'g6.histograms', 'g6.stem-and-leaf', 'g6.double-bar-graphs'] },
       { id: 'logic', title: 'Logic puzzles and Venn diagrams', blurb: 'Using clues to reason your way to an answer, and sorting things into overlapping circles.', skills: ['g6.logic-puzzles', 'g6.venn-diagrams'] },
+      { id: 'everyday', title: 'Math in everyday life', blurb: 'Tips and discounts in your head, scaling a recipe, and planning to save up for something.', skills: ['g6.percent-in-head', 'g6.recipe-scaling', 'g6.money-plans'] },
     ],
   });
 
@@ -1514,6 +1515,115 @@
       const r = {}; for (const m of q.prompt.matchAll(/data-r="(\w+)">(\d+)</g)) r[m[1]] = Number(m[2]);     // read the regions off the drawing
       const want = { both: r.ab, onlyA: r.a, onlyB: r.b, allA: r.a + r.ab, allB: r.b + r.ab, none: r.out, any: r.a + r.ab + r.b, total: r.a + r.ab + r.b + r.out }[pr.ask];
       return q.answer === want;
+    },
+  });
+
+
+  /* ---------- Math in everyday life ---------- */
+  const money = x => '$' + x.toFixed(2);
+  A.skill({
+    id: 'g6.percent-in-head', title: 'Percents in your head: tips and discounts',
+    learn: p('Start from <b>10%</b>: move the decimal point one place left (10% of $48 is $4.80). From there: <b>20%</b> is double 10%, <b>5%</b> is half of 10%, and <b>15%</b> is 10% plus 5%. <b>25%</b> is a quarter, and <b>1%</b> moves the point two places.') +
+      p('This is how people work out a tip or a discount at a glance. For a sale price, take the discount away from the price.') +
+      example('Example', `${big('A $48 meal: what is a 15% tip?')}10% is $4.80, and 5% is half of that, $2.40. So 15% is $4.80 + $2.40 = <b>$7.20</b>.`),
+    make(rng) {
+      const kind = rng.pick(['tip15', 'tip20', 'off25', 'pct5', 'pct30', 'sale']);
+      let price, ans, prompt, hints;
+      if (kind === 'tip15') { price = rng.int(6, 40) * 4; const t = price / 10, f = t / 2; ans = t + f; prompt = `A meal costs ${money(price)}. Work out a 15% tip in your head.`; hints = [`10% of ${money(price)} is ${money(t)}.`, `5% is half of 10%: ${money(f)}.`, `15% = ${money(t)} + ${money(f)} = <b>${money(ans)}</b>.`]; }
+      else if (kind === 'tip20') { price = rng.int(12, 90) * 2; const t = price / 10; ans = 2 * t; prompt = `A haircut costs ${money(price)}. What is a 20% tip?`; hints = [`10% of ${money(price)} is ${money(t)}.`, '20% is double 10%.', `2 × ${money(t)} = <b>${money(ans)}</b>.`]; }
+      else if (kind === 'off25') { price = rng.int(5, 40) * 4; ans = price / 4; prompt = `A jacket costs ${money(price)} and is 25% off. How much is taken off the price?`; hints = ['25% is one quarter.', `Divide by 4: ${money(price)} ÷ 4.`, `<b>${money(ans)}</b> is taken off.`]; }
+      else if (kind === 'pct5') { price = rng.int(10, 99) * 2; ans = price / 20; prompt = `Sales tax is 5%. How much tax is added to a ${money(price)} bike helmet?`; hints = [`10% of ${money(price)} is ${money(price / 10)}.`, '5% is half of 10%.', `Half of ${money(price / 10)} is <b>${money(ans)}</b>.`]; }
+      else if (kind === 'pct30') { price = rng.int(5, 60) * 10; ans = price * 3 / 10; prompt = `A game costs ${money(price)}. How much is 30% of the price?`; hints = [`10% of ${money(price)} is ${money(price / 10)}.`, '30% is three times 10%.', `3 × ${money(price / 10)} = <b>${money(ans)}</b>.`]; }
+      else { price = rng.int(4, 30) * 10; const off = price / 10 * 2; ans = price - off; prompt = `Sneakers cost ${money(price)}. They are 20% off. What is the sale price?`; hints = [`10% of ${money(price)} is ${money(price / 10)}, so 20% is ${money(off)}.`, `Take the discount off the price: ${money(price)} − ${money(off)}.`, `The sale price is <b>${money(ans)}</b>.`]; }
+      return { prompt, type: 'number', unit: '$', answer: Math.round(ans * 100) / 100, params: { kind, price }, hints };
+    },
+    verify(q) {
+      const { kind, price } = q.params, want = { tip15: price * 0.15, tip20: price * 0.2, off25: price * 0.25, pct5: price * 0.05, pct30: price * 0.3, sale: price * 0.8 }[kind];
+      return Math.abs(q.answer - want) < 1e-9;
+    },
+  });
+
+  const RECIPES = [['pancakes', 'cups of flour', 'pancakes'], ['muffins', 'cups of milk', 'muffins'], ['lemonade', 'cups of lemon juice', 'glasses'], ['granola bars', 'cups of oats', 'bars'], ['soup', 'teaspoons of salt', 'bowls'], ['cookies', 'cups of sugar', 'cookies']];
+  A.skill({
+    id: 'g6.recipe-scaling', title: 'Scaling a recipe',
+    learn: p('A recipe is a <b>ratio</b>: the amounts stay in proportion when you make more or less. Find the <b>scale factor</b>, the new number of servings divided by the old, and multiply every amount by it.') +
+      p('Another way: find the amount for <b>one serving</b> (divide), then multiply by the servings you want. Both give the same answer. Quarter and half amounts are common, like 1.5 cups.') +
+      example('Example', `${big('A recipe for 4 servings uses 3 cups of flour. How much for 6 servings?')}The scale factor is 6 ÷ 4 = 1.5, and 3 × 1.5 = <b>4.5 cups</b>.`),
+    make(rng) {
+      const [dish, what, unit] = rng.pick(RECIPES);
+      let from, to, amt;
+      do { from = rng.pick([2, 3, 4, 6, 8, 12]); to = rng.pick([2, 3, 4, 6, 8, 9, 12, 16, 18, 24]); amt = rng.pick([1, 1.5, 2, 2.5, 3, 4, 0.5, 0.75]); }
+      while (to === from || Math.abs(Math.round(amt * to / from * 4) - amt * to / from * 4) > 1e-9);
+      const ans = amt * to / from;
+      const name = rng.pick(NAMES);
+      return { prompt: `${name}'s recipe for ${dish} makes ${from} ${unit} and uses ${M.n(amt)} ${what}. How many ${what} are needed for ${to} ${unit}?`, type: 'number', answer: Math.round(ans * 100) / 100, params: { from, to, amt },
+        hints: [`The scale factor is ${to} ÷ ${from} = ${M.n(Math.round(to / from * 1000) / 1000)}.`, `Multiply the amount by it: ${M.n(amt)} × ${to} ÷ ${from}.`, `${M.n(amt)} × ${to} = ${M.n(amt * to)}, and ${M.n(amt * to)} ÷ ${from} = <b>${M.n(ans)}</b>.`] };
+    },
+    verify(q) { const { from, to, amt } = q.params; return Math.abs(q.answer - amt * to / from) < 1e-9; },
+  });
+
+  A.skill({
+    id: 'g6.money-plans', title: 'Planning with money',
+    learn: p('Money problems often take <b>two or three steps</b>. Write down what you know, then decide the order: find a total cost first, or how much is still needed, before dividing or subtracting.') +
+      p('When saving up, find how much is <b>still needed</b>, then divide by the amount saved each week. If it doesn’t divide evenly, you need <b>one more week</b>, because you can’t buy it until you have enough.') +
+      example('Example', `${big('A $126 bike. You have $30 and save $12 a week. How many weeks?')}Still needed: $126 − $30 = $96. Then 96 ÷ 12 = <b>8 weeks</b>.`),
+    make(rng) {
+      const name = rng.pick(NAMES);
+      if (rng.bool()) {
+        const per = rng.pick([5, 6, 8, 10, 12, 15, 20]), have = rng.int(0, 8) * 5, weeks = rng.int(3, 12), extra = rng.pick([0, 0, rng.int(1, per - 1)]);
+        const goal = have + per * weeks - (extra ? per - extra : 0), need = goal - have, ans = Math.ceil(need / per);
+        const item = rng.pick(['bike', 'video game', 'pair of headphones', 'skateboard', 'telescope', 'tablet case']);
+        return { prompt: `${name} wants a ${item} that costs ${money(goal)}. ${name} has ${money(have)} saved and saves ${money(per)} each week. How many weeks until ${name} has enough?`, type: 'number', answer: ans, params: { kind: 'save', goal, have, per },
+          hints: [`Still needed: ${money(goal)} − ${money(have)} = ${money(need)}.`, `Divide by the weekly saving: ${need} ÷ ${per} = ${M.n(Math.round(need / per * 100) / 100)}.`, `${need % per ? 'It doesn’t divide evenly, so round up: ' : ''}<b>${ans}</b> weeks.`] };
+      }
+      const start = rng.int(4, 12) * 5, n = rng.int(2, 5), each = rng.pick([1.25, 2.5, 3.75, 4.5, 2.25, 1.75]), other = rng.pick([1.8, 2.4, 3.6, 0.95, 1.5]);
+      const ans = Math.round((start - n * each - other) * 100) / 100;
+      if (ans <= 0) return this.make(rng);
+      const things = rng.pick([['notebooks', 'a pen'], ['packs of cards', 'a drink'], ['comic books', 'a bookmark'], ['bags of seeds', 'a watering can']]);
+      return { prompt: `${name} has ${money(start)}. ${name} buys ${n} ${things[0]} at ${money(each)} each and ${things[1]} for ${money(other)}. How much money is left?`, type: 'number', unit: '$', answer: ans, params: { kind: 'spend', start, n, each, other },
+        hints: [`The ${things[0]} cost ${n} × ${money(each)} = ${money(n * each)}.`, `Add ${things[1]}: ${money(n * each)} + ${money(other)} = ${money(n * each + other)}.`, `${money(start)} − ${money(n * each + other)} = <b>${money(ans)}</b>.`] };
+    },
+    verify(q) { const P = q.params; return P.kind === 'save' ? q.answer === Math.ceil((P.goal - P.have) / P.per) : Math.abs(q.answer - (P.start - P.n * P.each - P.other)) < 1e-9; },
+  });
+
+  /* ---------- double bar graphs ---------- */
+  const PAIRS = [{ title: 'Books read', a: 'Class A', b: 'Class B', cats: ['Sept', 'Oct', 'Nov', 'Dec'], what: 'books' }, { title: 'Goals scored', a: 'Hawks', b: 'Owls', cats: ['Game 1', 'Game 2', 'Game 3', 'Game 4'], what: 'goals' },
+    { title: 'Favorite fruit', a: 'Grade 5', b: 'Grade 6', cats: ['Apple', 'Banana', 'Grape', 'Mango'], what: 'votes' }, { title: 'Hours of practice', a: 'Piano', b: 'Soccer', cats: ['Week 1', 'Week 2', 'Week 3', 'Week 4'], what: 'hours' }];
+  function doubleBars(g, as, bs) {
+    const max = 12, uy = 13, x0 = 34, y0 = 34 + max * uy, bw = 20, gap = 24, W = x0 + g.cats.length * (2 * bw + gap) + 14;
+    let s = `<svg class="figure" viewBox="0 0 ${W} ${y0 + 54}" width="${W}" height="${y0 + 54}" role="img" aria-label="double bar graph: ${g.title}"><text x="${W / 2}" y="14" text-anchor="middle" font-size="13" font-weight="700">${g.title}</text>`;
+    for (let v = 0; v <= max; v += 2) s += `<line class="light" x1="${x0}" y1="${y0 - v * uy}" x2="${W - 6}" y2="${y0 - v * uy}" style="stroke-width:1"/><text x="${x0 - 6}" y="${y0 - v * uy + 4}" text-anchor="end" font-size="11">${v}</text>`;
+    g.cats.forEach((c, i) => {
+      const x = x0 + gap / 2 + i * (2 * bw + gap);
+      s += `<rect class="fill" x="${x}" y="${y0 - as[i] * uy}" width="${bw}" height="${as[i] * uy}"/><rect class="fill2" x="${x + bw}" y="${y0 - bs[i] * uy}" width="${bw}" height="${bs[i] * uy}"/><text x="${x + bw}" y="${y0 + 16}" text-anchor="middle" font-size="11">${c}</text>`;
+    });
+    const ly = y0 + 38;
+    s += `<rect class="fill" x="${x0}" y="${ly - 10}" width="12" height="12"/><text x="${x0 + 18}" y="${ly}" font-size="11">${g.a}</text><rect class="fill2" x="${x0 + 90}" y="${ly - 10}" width="12" height="12"/><text x="${x0 + 108}" y="${ly}" font-size="11">${g.b}</text>`;
+    return s + `<line class="stroke" x1="${x0}" y1="${y0}" x2="${W - 6}" y2="${y0}"/><line class="stroke" x1="${x0}" y1="28" x2="${x0}" y2="${y0}"/></svg>`;
+  }
+  A.skill({
+    id: 'g6.double-bar-graphs', title: 'Reading double bar graphs',
+    learn: p('A <b>double bar graph</b> compares two groups side by side. The key shows which shade is which group. For each category on the bottom, there is one bar for each group.') +
+      p('Read each bar by following its top across to the scale. To compare the groups in one category, <b>subtract</b> the shorter bar from the taller one; to find a group’s total, <b>add</b> its bars across all the categories.') +
+      example('Example', 'If Class A read 8 books in October and Class B read 5, Class A read 8 − 5 = <b>3</b> more books that month.'),
+    make(rng) {
+      const g = rng.pick(PAIRS), as = g.cats.map(() => rng.int(1, 12)), bs = g.cats.map(() => rng.int(1, 12));
+      const pic = doubleBars(g, as, bs), kind = rng.pick(['diff', 'total', 'most', 'both']);
+      if (kind === 'diff') { let i = rng.int(0, 3); if (as[i] === bs[i]) bs[i] = as[i] > 6 ? as[i] - rng.int(1, 4) : as[i] + rng.int(1, 4); const ans = Math.abs(as[i] - bs[i]); return { prompt: `Look at the double bar graph.${pic}In ${g.cats[i]}, how many more ${g.what} did ${as[i] > bs[i] ? g.a : g.b} have than ${as[i] > bs[i] ? g.b : g.a}?`, type: 'number', answer: ans, params: { kind, as, bs, i }, hints: [`In ${g.cats[i]}, ${g.a} has ${as[i]} and ${g.b} has ${bs[i]}.`, `Subtract the smaller from the larger.`, `${Math.max(as[i], bs[i])} − ${Math.min(as[i], bs[i])} = <b>${ans}</b>.`] }; }
+      if (kind === 'total') { const which = rng.bool(), list = which ? as : bs, ans = list.reduce((x, y) => x + y, 0); return { prompt: `Look at the double bar graph.${pic}How many ${g.what} did ${which ? g.a : g.b} have in all four categories altogether?`, type: 'number', answer: ans, params: { kind, as, bs, which }, hints: [`Read the ${which ? g.a : g.b} bars: ${list.join(', ')}.`, `Add them: ${list.join(' + ')}.`, `The total is <b>${ans}</b>.`] }; }
+      const both = as.map((x, i) => x + bs[i]), gaps = as.map((x, i) => Math.abs(x - bs[i])), list = kind === 'most' ? gaps : both, top = Math.max.apply(null, list);
+      if (list.filter(x => x === top).length > 1) { const i = rng.int(0, 3); const ans = as[i] + bs[i]; return { prompt: `Look at the double bar graph.${pic}How many ${g.what} were there in ${g.cats[i]} for both groups together?`, type: 'number', answer: ans, params: { kind: 'sum', as, bs, i }, hints: [`In ${g.cats[i]}: ${g.a} ${as[i]}, ${g.b} ${bs[i]}.`, 'Add the two bars.', `${as[i]} + ${bs[i]} = <b>${ans}</b>.`] }; }
+      const k = list.indexOf(top), answer = g.cats[k];
+      return { prompt: `Look at the double bar graph.${pic}${kind === 'most' ? `In which category is the difference between ${g.a} and ${g.b} the greatest?` : 'In which category is the total for both groups together the greatest?'}`, type: 'choice', choices: g.cats.slice(), keepOrder: true, answer, params: { kind, as, bs, k },
+        hints: [kind === 'most' ? `Find the gap between the two bars in each category: ${gaps.join(', ')}.` : `Add the two bars in each category: ${both.join(', ')}.`, `The greatest is ${top}.`, `<b>${answer}</b>.`] };
+    },
+    verify(q) {
+      const P = q.params;
+      if (P.kind === 'diff') return q.answer === Math.abs(P.as[P.i] - P.bs[P.i]) && q.answer > 0;
+      if (P.kind === 'total') return q.answer === (P.which ? P.as : P.bs).reduce((x, y) => x + y, 0);
+      if (P.kind === 'sum') return q.answer === P.as[P.i] + P.bs[P.i];
+      const list = P.kind === 'most' ? P.as.map((x, i) => Math.abs(x - P.bs[i])) : P.as.map((x, i) => x + P.bs[i]), top = Math.max.apply(null, list);
+      return list.indexOf(top) === P.k && list.filter(x => x === top).length === 1;
     },
   });
 

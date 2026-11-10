@@ -33,7 +33,8 @@
       { id: 'mult-div-decimals', title: 'Powers of ten, multiplying and dividing decimals', blurb: 'Exponents, shifting digits by powers of ten, and decimal products and quotients.', skills: ['g5.powers-of-ten', 'g5.multiply-divide-decimals'] },
       { id: 'volume', title: 'Volume', blurb: 'Counting unit cubes, V = l × w × h, and figures made of two boxes.', skills: ['g5.volume-prisms', 'g5.composite-volume'] },
       { id: 'coordinate-algebra', title: 'Coordinate plane and algebraic thinking', blurb: 'Reading and plotting points, order of operations, writing expressions, and patterns.', skills: ['g5.coordinate-plane', 'g5.order-of-operations', 'g5.numerical-patterns'] },
-      { id: 'measure-shapes', title: 'Measurement, data, and shapes', blurb: 'Converting units, line plots with fractions, and sorting triangles and quadrilaterals.', skills: ['g5.unit-conversion', 'g5.line-plots', 'g5.classify-shapes'] },
+      { id: 'measure-shapes', title: 'Measurement, data, and shapes', blurb: 'Converting units, line plots with fractions, and sorting triangles and quadrilaterals.', skills: ['g5.unit-conversion', 'g5.line-plots', 'g5.classify-shapes', 'g5.line-graphs'] },
+      { id: 'mental-math', title: 'Mental math and estimation', blurb: 'Multiplying by 9, 11 and 99 in your head, and estimating products and quotients.', skills: ['g5.times-11', 'g5.estimate-products'] },
     ],
   });
 
@@ -898,4 +899,101 @@
       return q.answer === (pairs === 1 ? 'trapezoid' : equal && right ? 'square' : right ? 'rectangle' : equal ? 'rhombus' : 'parallelogram');
     },
   });
+
+  /* ---------- Mental math and estimation ---------- */
+  A.skill({
+    id: 'g5.times-11', title: 'Multiplying by 9, 11 and 99 in your head',
+    learn: p('<b>Times 11:</b> for a two-digit number, write its two digits apart and put their sum in the middle: 43 × 11 → 4, 4 + 3, 3 → <b>473</b>. If the middle sum is 10 or more, carry the 1 to the first digit: 78 × 11 → 7 + 1, 5, 8 → <b>858</b>.') +
+      p('<b>Times 9:</b> multiply by 10, then subtract the number once, because 9 = 10 − 1. <b>Times 99:</b> multiply by 100, then subtract the number once.') +
+      example('Example', `${big('37 × 9')}37 × 10 = 370, and 370 − 37 = <b>333</b>.`),
+    make(rng) {
+      const kind = rng.pick(['eleven', 'eleven', 'nine', 'ninety-nine']), a = rng.int(12, 98);
+      let ans, hints;
+      if (kind === 'eleven') {
+        const t = Math.floor(a / 10), o = a % 10, mid = t + o;
+        ans = a * 11;
+        hints = [`Split ${a} into its digits, ${t} and ${o}.`, `Their sum, ${t} + ${o} = ${mid}, goes in the middle${mid >= 10 ? `; it is 10 or more, so write ${mid - 10} and carry 1 to the ${t}` : ''}.`, `So ${a} × 11 = <b>${N(ans)}</b>.`];
+      } else if (kind === 'nine') { ans = a * 9; hints = ['9 is 10 − 1, so multiply by 10 and take away one lot.', `${a} × 10 = ${a * 10}.`, `${a * 10} − ${a} = <b>${N(ans)}</b>.`]; }
+      else { ans = a * 99; hints = ['99 is 100 − 1, so multiply by 100 and take away one lot.', `${a} × 100 = ${N(a * 100)}.`, `${N(a * 100)} − ${a} = <b>${N(ans)}</b>.`]; }
+      const by = { eleven: 11, nine: 9, 'ninety-nine': 99 }[kind];
+      return { prompt: `Multiply in your head.${big(`${a} × ${by}`)}`, type: 'number', answer: ans, params: { a, by }, hints };
+    },
+    verify(q) { return q.answer === q.params.a * q.params.by; },
+  });
+
+  /** a number rounded to its leading digit: 4,382 → 4,000; 68 → 70 */
+  const lead = x => { const k = Math.pow(10, Math.floor(Math.log10(x))); return Math.round(x / k) * k; };
+  A.skill({
+    id: 'g5.estimate-products', title: 'Estimating products and quotients',
+    learn: p('To estimate a product, <b>round each factor to its leading digit</b> (the first digit, with zeros after it), then multiply: 48 × 31 is about 50 × 30 = 1,500.') +
+      p('To estimate a quotient, use <b>compatible numbers</b>: change the number being divided to one close by that divides evenly. 3,145 ÷ 8 is about 3,200 ÷ 8 = 400. An estimate tells you the size of the answer, so you can spot a misplaced digit.') +
+      example('Example', `${big('Estimate 612 × 48.')}612 is about 600 and 48 is about 50, so the product is about 600 × 50 = <b>30,000</b>.`),
+    make(rng) {
+      if (rng.chance(0.55)) {
+        let a = rng.pick([rng.int(12, 98), rng.int(112, 980)]), b = rng.int(12, 98);
+        const ea = lead(a), eb = lead(b), ans = ea * eb;
+        return { prompt: `Estimate the product by rounding each factor to its leading digit.${big(`${N(a)} × ${b}`)}`, type: 'number', answer: ans, params: { kind: 'product', a, b },
+          hints: [`${N(a)} rounds to ${N(ea)}, and ${b} rounds to ${eb}.`, `Multiply the rounded numbers: ${N(ea)} × ${eb}.`, `${N(ea)} × ${eb} = <b>${N(ans)}</b>.`] };
+      }
+      const d = rng.int(3, 9), est = rng.int(2, 9) * Math.pow(10, rng.int(1, 2));
+      let n = est * d + rng.int(-Math.floor(d * est / 20), Math.floor(d * est / 20));
+      if (n % d === 0) n += 1;
+      const answer = N(est), wrong = [N(est * 10), N(est / 10), N(est + 3 * Math.pow(10, Math.floor(Math.log10(est))))];
+      return { prompt: `Which is the best estimate?${big(`${N(n)} ÷ ${d}`)}`, type: 'choice', choices: [answer].concat(wrong), answer, params: { kind: 'quotient', n, d },
+        hints: [`Find a number close to ${N(n)} that ${d} divides evenly: ${N(est * d)}.`, `${N(est * d)} ÷ ${d} = ${N(est)}.`, `The best estimate is <b>${N(est)}</b>.`] };
+    },
+    verify(q) {
+      const P = q.params;
+      if (P.kind === 'product') return q.answer === lead(P.a) * lead(P.b);
+      const exact = P.n / P.d, val = c => Number(A.stripTags(c).replace(/,/g, '')), dist = q.choices.map(c => Math.abs(val(c) - exact)), best = Math.min.apply(null, dist);
+      return dist.indexOf(best) === q.choices.indexOf(q.answer) && dist.filter(x => x === best).length === 1;
+    },
+  });
+
+  /* ---------- reading line graphs ---------- */
+  const LINES = [
+    { title: 'Temperature on a spring day', unit: '°F', what: 'temperature', xs: ['8 am', '10 am', '12 pm', '2 pm', '4 pm', '6 pm'], lo: 40, step: 5 },
+    { title: 'Height of a bean plant', unit: 'cm', what: 'height', xs: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6'], lo: 0, step: 2 },
+    { title: 'Visitors to a library', unit: 'visitors', what: 'number of visitors', xs: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], lo: 20, step: 10 },
+    { title: 'Money in a savings jar', unit: 'dollars', what: 'amount saved', xs: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'], lo: 0, step: 5 },
+  ];
+  function lineGraph(g, vals) {
+    const W = 330, H = 220, x0 = 46, y0 = 180, top = 28, gw = W - x0 - 14, n = vals.length, rows = 8;
+    const yv = k => g.lo + k * g.step, py = v => y0 - (v - g.lo) / (rows * g.step) * (y0 - top), px = i => x0 + 12 + i * (gw - 24) / (n - 1);
+    let s = `<svg class="figure" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="line graph: ${g.title}"><text x="${W / 2}" y="16" text-anchor="middle" font-size="13" font-weight="700">${g.title}</text>`;
+    for (let k = 0; k <= rows; k++) s += `<line class="light" x1="${x0}" y1="${py(yv(k))}" x2="${W - 10}" y2="${py(yv(k))}" style="stroke-width:1"/><text x="${x0 - 6}" y="${py(yv(k)) + 4}" text-anchor="end" font-size="11">${yv(k)}</text>`;
+    vals.forEach((v, i) => { s += `<text x="${px(i)}" y="${y0 + 18}" text-anchor="middle" font-size="10.5">${g.xs[i]}</text>`; });
+    s += `<polyline class="line" points="${vals.map((v, i) => `${px(i).toFixed(1)},${py(v).toFixed(1)}`).join(' ')}"/>`;
+    vals.forEach((v, i) => { s += `<circle class="dot" cx="${px(i).toFixed(1)}" cy="${py(v).toFixed(1)}" r="4"/>`; });
+    return s + `<line class="stroke" x1="${x0}" y1="${y0}" x2="${W - 10}" y2="${y0}"/><line class="stroke" x1="${x0}" y1="${top - 6}" x2="${x0}" y2="${y0}"/></svg>`;
+  }
+  A.skill({
+    id: 'g5.line-graphs', title: 'Reading line graphs',
+    learn: p('A <b>line graph</b> shows how something changes over time. Each dot is one reading: find it above a time on the bottom, then <b>read across to the scale</b> on the side. The line between dots shows the change.') +
+      p('A line that climbs means the amount went up; a line that falls means it went down. <b>To find a change, subtract</b> the earlier reading from the later one. The steepest piece of line is where it changed fastest.') +
+      example('Example', 'If the temperature is 55°F at 10 am and 70°F at 2 pm, it rose 70 − 55 = <b>15</b> degrees between those times.'),
+    make(rng) {
+      const g = rng.pick(LINES), vals = [];
+      let v = rng.int(1, 3);
+      for (let i = 0; i < 6; i++) { vals.push(g.lo + v * g.step); v = Math.max(0, Math.min(8, v + rng.pick(g.what === 'height' || g.what === 'amount saved' ? [0, 1, 1, 2] : [-1, 1, 1, 2, -2]))); }
+      const pic = lineGraph(g, vals), kind = rng.pick(['read', 'change', 'most', 'drop']);
+      if (kind === 'read') { const i = rng.int(0, 5); return { prompt: `Look at the line graph.${pic}What was the ${g.what} at ${g.xs[i]}?`, type: 'number', answer: vals[i], params: { kind, vals, i }, hints: [`Find ${g.xs[i]} along the bottom.`, `Go up to the dot, then read across to the scale on the left.`, `It is <b>${vals[i]}</b>.`] }; }
+      if (kind === 'change') { let i = rng.int(0, 3), j = rng.int(i + 1, 5); if (vals[j] === vals[i]) j = vals.findIndex((x, k) => k > i && x !== vals[i]); if (j < 0) { i = 0; j = 5; } const ans = vals[j] - vals[i]; return { prompt: `Look at the line graph.${pic}By how much did the ${g.what} change from ${g.xs[i]} to ${g.xs[j]}? Write a fall as a negative number.`, type: 'number', answer: ans, params: { kind, vals, i, j }, hints: [`At ${g.xs[i]} it was ${vals[i]}; at ${g.xs[j]} it was ${vals[j]}.`, `Subtract the earlier reading from the later one: ${vals[j]} − ${vals[i]}.`, `The change is <b>${M.n(ans)}</b>.`] }; }
+      const ups = vals.slice(1).map((x, k) => x - vals[k]);
+      const target = kind === 'most' ? Math.max.apply(null, ups) : Math.min.apply(null, ups);
+      if (ups.filter(u => u === target).length > 1 || (kind === 'drop' && target >= 0)) { const i = rng.int(0, 5); return { prompt: `Look at the line graph.${pic}What was the ${g.what} at ${g.xs[i]}?`, type: 'number', answer: vals[i], params: { kind: 'read', vals, i }, hints: [`Find ${g.xs[i]} along the bottom.`, `Go up to the dot, then read across to the scale on the left.`, `It is <b>${vals[i]}</b>.`] }; }
+      const k = ups.indexOf(target), pair = i => `${g.xs[i]} to ${g.xs[i + 1]}`;
+      const answer = pair(k), choices = [answer].concat([0, 1, 2, 3, 4].filter(i => i !== k).slice(0, 3).map(pair));
+      return { prompt: `Look at the line graph.${pic}Between which two neighboring readings did the ${g.what} ${kind === 'most' ? 'go up the most' : 'fall the most'}?`, type: 'choice', choices, answer, params: { kind, vals, k },
+        hints: [`Find the piece of line that is ${kind === 'most' ? 'steepest going up' : 'steepest going down'}.`, `From ${g.xs[k]} to ${g.xs[k + 1]} it went from ${vals[k]} to ${vals[k + 1]}, a change of ${M.n(target)}.`, `<b>${answer}</b>.`] };
+    },
+    verify(q) {
+      const P = q.params;
+      if (P.kind === 'read') return q.answer === P.vals[P.i];
+      if (P.kind === 'change') return q.answer === P.vals[P.j] - P.vals[P.i];
+      const ups = P.vals.slice(1).map((x, k) => x - P.vals[k]), t = P.kind === 'most' ? Math.max.apply(null, ups) : Math.min.apply(null, ups);
+      return ups.indexOf(t) === P.k && ups.filter(u => u === t).length === 1;
+    },
+  });
+
 })();

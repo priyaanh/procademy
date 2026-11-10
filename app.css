@@ -306,6 +306,7 @@ footer { border-top: 1px solid var(--line); color: var(--muted); font-size: .9re
 .ex { max-width: 860px; margin: 0 auto; }
 .ex-head { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; flex-wrap: wrap; }
 .ex-head h1 { font-size: 1.2rem; margin: 0; flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.ex-head:has(.ul-tally) h1 { min-width: min(100%, 14rem); }          /* unlimited practice: the tally wraps below rather than squeezing the title */
 .back .back-short { display: none; }
 @media (max-width: 700px) {
   .ex-head h1 { flex: 1 1 100%; order: 3; font-size: 1.05rem; }
@@ -457,6 +458,61 @@ footer { border-top: 1px solid var(--line); color: var(--muted); font-size: .9re
 .skill-pace { margin: 12px 0 0; color: var(--muted); }
 .link-btn { border: 0; background: none; padding: 0; color: var(--primary-ink); font: inherit; font-weight: 600; cursor: pointer; }
 .link-btn:hover { text-decoration: underline; }
+/* the player's extras: how hard unlimited questions are, a clock, lives, a nudge, a drill's tip */
+.ul-tally .adapt { display: inline-flex; align-items: center; gap: 3px; padding: .15rem .55rem .15rem .4rem; border-radius: 999px; background: var(--tint); color: var(--primary-ink); font-weight: 600; font-size: .82rem; }
+.ul-tally .adapt i { width: 6px; height: 12px; border-radius: 2px; background: color-mix(in srgb, var(--primary) 25%, transparent); }
+.ul-tally .adapt i:last-of-type { margin-right: 4px; }
+.ul-tally .adapt.lv-0 i:nth-of-type(1), .ul-tally .adapt.lv-1 i:nth-of-type(-n+2), .ul-tally .adapt.lv-2 i { background: var(--primary); }
+.ex-clock { font-variant-numeric: tabular-nums; flex: none; }
+.ex-clock.low { background: var(--bad-soft); color: var(--bad); }
+.lives { display: inline-flex; gap: 5px; flex: none; }
+.lives i { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--primary); }
+.lives i.on { background: var(--primary); }
+.hint.nudge { border-left-color: var(--primary); background: var(--tint); }
+.ex-banner { margin: -4px 0 12px; padding: 10px 14px; border-radius: 12px; background: var(--tint); font-size: .95rem; }
+.say-q[aria-pressed="true"] { background: var(--primary); color: var(--on-primary); }
+::highlight(pc-read) { background-color: color-mix(in srgb, var(--primary) 18%, transparent); }
+::highlight(pc-word) { background-color: color-mix(in srgb, var(--primary) 42%, transparent); color: var(--ink); }
+/* the summary's extras: a line about time or lives, lessons to look at, a mastered banner, and a burst of pieces */
+.summary { position: relative; overflow: hidden; }
+.sum-extra { margin: 10px auto 0; max-width: 560px; }
+.sum-lessons { margin: 18px auto 0; max-width: 640px; text-align: left; }
+.sum-lessons h2 { font-size: 1.05rem; margin: 0; }
+.mastered-banner { display: inline-flex; align-items: center; gap: 12px; margin: 14px auto 4px; padding: 10px 18px 10px 12px; border-radius: 16px; background: var(--tint); text-align: left; }
+.mastered-banner b { display: block; color: var(--primary-ink); }
+.mb-medal { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--surface); color: #c58a00; box-shadow: var(--shadow-s); animation: pop .5s ease-out; }
+.confetti { position: absolute; inset: 0; pointer-events: none; }
+.confetti i { position: absolute; top: -12px; left: var(--x); width: 9px; height: 14px; border-radius: 3px; background: var(--primary); opacity: 0; transform: rotate(var(--r)); animation: fall 2.2s cubic-bezier(.2, .6, .4, 1) var(--d) forwards; }
+.confetti i:nth-child(4n+1) { background: #6ea0ff; } .confetti i:nth-child(4n+2) { background: #b9d0ff; width: 7px; height: 7px; border-radius: 50%; } .confetti i:nth-child(4n+3) { background: #f2b705; }
+@keyframes fall { 0% { opacity: 1; transform: translate(0, 0) rotate(var(--r)); } 100% { opacity: 0; transform: translate(var(--dx), 420px) rotate(calc(var(--r) + 540deg)); } }
+@media (prefers-reduced-motion: reduce) { .confetti { display: none; } }
+html[data-motion="reduce"] .confetti { display: none; }
+/* worked examples that play themselves */
+.we-in { animation: we-in .45s ease-out; }
+@keyframes we-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .we-in { animation: none; } }
+html[data-motion="reduce"] .we-in { animation: none; }
+/* more ways to practice: the weekly challenge, the summer plan, ready for high school */
+.weekly-card .chip { margin-right: 4px; }
+.weekly-done { display: flex; align-items: center; gap: 6px; margin: 12px 0 0; color: var(--ok-ink); }
+.summer-page .pbar { margin: 4px 0 18px; }
+.summer-weeks { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); gap: 14px; }
+.summer-weeks > .card { margin: 0; display: grid; gap: 6px; align-content: start; }
+.summer-week.next { box-shadow: 0 0 0 2px var(--primary), var(--shadow); }
+.summer-week.done { background: var(--tint); }
+.ready-head { display: grid; gap: 10px; }
+.ready-head .big-num { font-size: 2.4rem; font-weight: 800; letter-spacing: -.03em; line-height: 1; }
+.ready-groups { display: grid; grid-template-columns: 1fr; gap: 16px; margin-top: 16px; }
+@container page (min-width: 640px) { .ready-groups { grid-template-columns: 1fr 1fr; } .ready-groups > :last-child:nth-child(odd) { grid-column: 1 / -1; } }
+@container page (min-width: 960px) { .ready-groups { grid-template-columns: repeat(6, 1fr); } .ready-groups > * { grid-column: span 2; } .ready-groups > :nth-child(n+4):nth-last-child(-n+2) { grid-column: span 3; } .ready-groups > :last-child:nth-child(odd) { grid-column: span 3; } }
+.ready-groups > .card { margin: 0; }
+.ready-groups h2 { font-size: 1.1rem; }
+.ready-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 4px; }
+.ready-list li { display: flex; align-items: center; gap: 10px; padding: 4px 0; }
+.ready-list li > a:first-of-type { flex: 1; min-width: 0; }
+.ready-tick { flex: none; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line-strong); color: var(--on-primary); }
+.ready-list li.ok .ready-tick { background: var(--primary); border-color: var(--primary); }
+.rv-drills .btn-row { margin-top: 6px; }
 @container page (max-width: 560px) {
   .ex-foot .spacer { display: none; }
   .ex-go { flex: 1 1 100%; flex-direction: column; align-items: stretch; gap: 6px; margin-left: 0; }
@@ -492,6 +548,9 @@ footer { border-top: 1px solid var(--line); color: var(--muted); font-size: .9re
 .figure .stroke { stroke: var(--ink); fill: none; stroke-width: 2; }
 .figure .fill { fill: var(--primary-soft); stroke: var(--primary); stroke-width: 2; }
 .figure .light { stroke: var(--line-strong); }
+.figure .fill2 { fill: color-mix(in srgb, var(--primary) 55%, var(--surface)); stroke: var(--primary-ink); stroke-width: 2; }
+.figure .line { stroke: var(--primary); fill: none; stroke-width: 2.5; stroke-linejoin: round; }
+.figure .dot { fill: var(--primary); stroke: var(--surface); stroke-width: 1.5; }
 
 /* ---------- saving courses, the courses page ---------- */
 .course-card { position: relative; }
@@ -870,7 +929,8 @@ body.sorting-cards { user-select: none; -webkit-user-select: none; cursor: grabb
 .daily-main { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
 .daily-main h2 { margin: 0; }
 .daily-main p { margin: 4px 0 0; }
-.coach-note { margin-top: 8px; padding: 10px 12px; border-radius: 10px; background: var(--warn-soft); color: var(--ink); display: flex; gap: 10px; align-items: flex-start; font-size: .95rem; }
+.coach-note { margin-top: 8px; padding: 10px 12px; border-radius: 10px; background: var(--tint); color: var(--ink); display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-start; font-size: .95rem; }
+.coach-note > .btn-row { flex-basis: 100%; }
 .q-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 4px 6px; min-height: 0; margin: -6px -6px 4px 0; }
 .q-tools .btn { white-space: nowrap; }
 .q-tools:empty { display: none; }

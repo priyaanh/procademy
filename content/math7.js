@@ -19,7 +19,7 @@
       { id: 'rates', title: 'Rates and proportional relationships', blurb: 'Unit rates, proportional tables, the constant of proportionality, percent change.', skills: ['math7.unit-rate', 'math7.proportional-table', 'math7.constant-k', 'math7.percent-change'] },
       { id: 'expressions', title: 'Expressions, equations, and inequalities', blurb: 'Simplifying, expanding, and solving in two steps.', skills: ['math7.combine-like-terms', 'math7.distribute', 'math7.two-step-equations', 'math7.two-step-inequalities'] },
       { id: 'geometry', title: 'Geometry', blurb: 'Circles, angle pairs, and scale drawings.', skills: ['math7.circles', 'math7.angle-pairs', 'math7.scale-drawings'] },
-      { id: 'stats', title: 'Statistics and probability', blurb: 'Describing data with one number, and the chance of an event.', skills: ['math7.mean-median', 'math7.simple-probability', 'math7.compound-probability'] },
+      { id: 'stats', title: 'Statistics and probability', blurb: 'Describing data with one number, and the chance of an event.', skills: ['math7.mean-median', 'math7.simple-probability', 'math7.compound-probability', 'math7.sports-stats'] },
       { id: 'venn-probability', title: 'Venn diagrams and probability', blurb: 'Sorting with Venn diagrams, probability from experiments, and the chance of one event or another.', skills: ['math7.venn-diagrams', 'math7.experimental-probability', 'math7.or-probability'] },
       { id: 'rationals-interest', title: 'Rational numbers and simple interest', blurb: 'Repeating decimals as fractions, signed fractions and decimals, and interest on savings and loans.', skills: ['math7.repeating-decimals', 'math7.add-sub-rationals', 'math7.simple-interest'] },
       { id: 'properties-word-problems', title: 'Properties, comparing expressions, and word problems', blurb: 'Naming the arithmetic properties, comparing expressions, the 5-D Process, and Fraction Busters.', skills: ['math7.number-properties', 'math7.compare-expressions', 'math7.five-d-problems', 'math7.fraction-busters'] },
@@ -1629,6 +1629,43 @@
       if (sl.plane) return sliceShape(SOLIDS_3D[sl.solid], sl.plane) === q.answer;       // cut the solid for real and name the polygon
       const top = 'Circle', profile = { cylinder: 'Rectangle', cone: 'Triangle' }[sl.solid];
       return q.answer === (/parallel to its base/.test(sl.cut) ? top : profile);
+    },
+  });
+
+
+  /* ---------- sports statistics ---------- */
+  A.skill({
+    id: 'math7.sports-stats', title: 'Sports statistics',
+    learn: p('Sports use a few kinds of numbers again and again. A <b>shooting percentage</b> is made ÷ tried × 100: 18 made out of 24 tries is 18 ÷ 24 = 0.75, or 75%.') +
+      p('An <b>average per game</b> is the total ÷ the number of games, the mean. To find what a player needs next game for a new average, multiply the target average by the new number of games, then subtract the total so far.') +
+      example('Example', `${big('Points in four games: 12, 15, 9 and 20. What is the average?')}The total is 12 + 15 + 9 + 20 = 56, and 56 ÷ 4 = <b>14 points per game</b>.`),
+    make(rng) {
+      const name = rng.pick(NAMES), kind = rng.pick(['pct', 'avg', 'need']);
+      if (kind === 'pct') {
+        const tries = rng.pick([20, 25, 40, 50, 16, 24, 32, 12]), pct = rng.pick([25, 50, 75, 60, 40, 80, 70, 90, 35, 65]);
+        const made = tries * pct / 100;
+        if (!Number.isInteger(made)) return this.make(rng);
+        const what = rng.pick([['free throws', 'basketball'], ['penalty kicks', 'soccer'], ['serves in', 'volleyball'], ['shots on goal', 'hockey']]);
+        return { prompt: `In ${what[1]}, ${name} made ${made} of ${tries} ${what[0]}. What percent is that?`, type: 'number', unit: '%', answer: pct, params: { kind, made, tries },
+          hints: [`Divide made by tried: ${made} ÷ ${tries}.`, `${made} ÷ ${tries} = ${M.n(made / tries)}.`, `Times 100 makes it a percent: <b>${pct}%</b>.`] };
+      }
+      const n = rng.int(3, 5), avg = rng.int(8, 22), pts = [];
+      let left = avg * n;
+      for (let i = 0; i < n - 1; i++) { const v = Math.max(0, avg + rng.int(-6, 6)); pts.push(v); left -= v; }
+      if (left < 0 || left > 40) return this.make(rng);
+      pts.push(left);
+      if (kind === 'avg') return { prompt: `${name} scored ${M.list(pts.map(String))} points in ${n} games. What is ${name}'s average number of points per game?`, type: 'number', answer: avg, params: { kind, pts },
+        hints: [`Add the points: ${pts.join(' + ')} = ${avg * n}.`, `Divide by the number of games: ${avg * n} ÷ ${n}.`, `The average is <b>${avg}</b> points per game.`] };
+      const target = avg + rng.int(1, 4), need = target * (n + 1) - avg * n;
+      return { prompt: `${name} has scored ${M.list(pts.map(String))} points in ${n} games. How many points does ${name} need in the next game to average ${target} points per game?`, type: 'number', answer: need, params: { kind, pts, target },
+        hints: [`For an average of ${target} over ${n + 1} games, the total must be ${target} × ${n + 1} = ${target * (n + 1)}.`, `So far the total is ${pts.join(' + ')} = ${avg * n}.`, `${target * (n + 1)} − ${avg * n} = <b>${need}</b> points.`] };
+    },
+    verify(q) {
+      const P = q.params;
+      if (P.kind === 'pct') return Math.abs(q.answer - P.made / P.tries * 100) < 1e-9;
+      const sum = P.pts.reduce((x, y) => x + y, 0);
+      if (P.kind === 'avg') return q.answer * P.pts.length === sum;
+      return q.answer === P.target * (P.pts.length + 1) - sum;
     },
   });
 
