@@ -44,7 +44,8 @@ scripts.forEach(m => {
 html = out + html.slice(at);
 
 // the stylesheet inside; the icon as data; nothing else to fetch (the install manifest is for the website)
-const css = read('app.css');
+// the stylesheet's own files (the OpenDyslexic font) go inside as data, so the reading font works from a USB stick too
+const css = read('app.css').replace(/url\("(fonts\/[\w-]+\.woff2)"\)/g, (m, f) => `url("data:font/woff2;base64,${fs.readFileSync(path.join(ROOT, f)).toString('base64')}")`);
 if (/<\/style/i.test(css)) throw new Error('app.css contains </style');
 html = html.replace('<link rel="stylesheet" href="app.css">', `<style>\n${css}\n</style>`)
   .replace(/<link rel="icon" href="icon.svg" type="image\/svg\+xml">/, `<link rel="icon" href="data:image/svg+xml;base64,${Buffer.from(read('icon.svg')).toString('base64')}" type="image/svg+xml">`)

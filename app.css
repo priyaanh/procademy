@@ -281,7 +281,7 @@ footer { border-top: 1px solid var(--line); color: var(--muted); font-size: .9re
 .course-card:hover { text-decoration: none; border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 10px 28px rgba(23, 32, 64, .12); }
 .course-card .icon { font-size: 1.8rem; line-height: 1; }
 /* a course's or book's short label (K, 7, A1, CC2…) in a badge of its color */
-.icon.mono, .icon-big.mono, .mono-sm { display: inline-grid; place-items: center; min-width: 2.6rem; height: 2.6rem; padding: 0 .45rem; border-radius: 10px; background: var(--course-deep, #1d4fb8); color: #fff; font-size: 1rem; font-weight: 800; letter-spacing: .02em; line-height: 1; flex: none; }
+.icon.mono, .icon-big.mono, .mono-sm { display: inline-grid; place-items: center; min-width: 2.6rem; height: 2.6rem; padding: 0 .45rem; border-radius: 10px; background: var(--primary-ink); color: #fff; font-size: 1rem; font-weight: 800; letter-spacing: .02em; line-height: 1; flex: none; }
 .icon-big.mono { min-width: 3.4rem; height: 3.4rem; font-size: 1.25rem; border-radius: 12px; }
 .mono-sm { min-width: 2rem; height: 1.6rem; font-size: .72rem; border-radius: 7px; padding: 0 .35rem; }
 .icon.mono:empty, .icon-big.mono:empty, .mono-sm:empty { display: none; }
@@ -292,8 +292,8 @@ footer { border-top: 1px solid var(--line); color: var(--muted); font-size: .9re
 .icon-big.mono.stack .mono-top { font-size: .72rem; }
 .icon-big.mono.stack .mono-num { font-size: 1.55rem; }
 /* dark mode: a tinted badge with light lettering, so deep colors don't sink into the dark cards */
-:root[data-theme="dark"] :is(.icon.mono, .icon-big.mono, .mono-sm) { background: hsl(var(--course-h, 215) 45% 21%); color: hsl(var(--course-h, 215) 90% 84%); box-shadow: inset 0 0 0 1px hsl(var(--course-h, 215) 55% 40%); }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) :is(.icon.mono, .icon-big.mono, .mono-sm) { background: hsl(var(--course-h, 215) 45% 21%); color: hsl(var(--course-h, 215) 90% 84%); box-shadow: inset 0 0 0 1px hsl(var(--course-h, 215) 55% 40%); } }
+:root[data-theme="dark"] :is(.icon.mono, .icon-big.mono, .mono-sm) { background: color-mix(in srgb, var(--primary) 24%, var(--surface)); color: var(--primary-ink); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary) 45%, var(--surface)); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) :is(.icon.mono, .icon-big.mono, .mono-sm) { background: color-mix(in srgb, var(--primary) 24%, var(--surface)); color: var(--primary-ink); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary) 45%, var(--surface)); } }
 .test-mark { flex: none; width: 18px; height: 18px; border-radius: 4px; border: 2px solid var(--line-strong); }
 .course-card h3 { margin: 0; }
 .course-card p { color: var(--muted); font-size: .92rem; margin: 0; flex: 1; }
@@ -1004,7 +1004,7 @@ body.sorting-cards { user-select: none; -webkit-user-select: none; cursor: grabb
 
 /* today's practice, the coach and reading aloud */
 .daily-card { margin-top: 18px; background: linear-gradient(160deg, var(--primary-soft) 0%, var(--surface) 55%); }
-.daily-card.done { background: linear-gradient(160deg, var(--ok-soft) 0%, var(--surface) 55%); }
+.daily-card.done { background: linear-gradient(160deg, var(--primary-soft) 0%, var(--surface) 55%); }
 .daily-main { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
 .daily-main h2 { margin: 0; }
 .daily-main p { margin: 4px 0 0; }
@@ -1215,7 +1215,7 @@ body.calc-kp-open main { padding-bottom: 270px; }
 .sprint-weak ul { margin: 6px 0; padding-left: 1.2rem; }
 
 /* test prep (lib/prep.js) */
-.prep-home, .prep-today { margin-top: 18px; background: linear-gradient(160deg, var(--warn-soft) 0%, var(--surface) 55%); }
+.prep-home, .prep-today { margin-top: 18px; background: linear-gradient(160deg, var(--primary-soft) 0%, var(--surface) 55%); }
 .prep-home.done, .prep-today.done { border-left-color: var(--ok); }
 .prep-grid { display: grid; gap: 16px; margin-top: 16px; }
 .prep-grid > .card { margin: 0; }
@@ -2222,7 +2222,7 @@ label.set-row { cursor: pointer; }
 :where(p, footer, .help, .what, li > span) a:not(.btn):not(.chip-btn):not(.card-link) { text-decoration: underline; text-underline-offset: .15em; }
 /* every day (Home): today's plan with this week's days, and the welcome for someone new */
 .today-card { margin: 16px 0; }
-.today-card.all-done { background: linear-gradient(160deg, var(--ok-soft) 0%, var(--surface) 55%); }
+.today-card.all-done { background: linear-gradient(160deg, var(--primary-soft) 0%, var(--surface) 55%); }
 .today-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
 .today-head h2 { margin: 0 0 2px; }
 .week { list-style: none; display: flex; gap: 6px; margin: 0; padding: 0; }
@@ -2267,7 +2267,7 @@ label.set-row { cursor: pointer; }
 /* the weekly goal in today's plan, and the week in review */
 .week-goal { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
 .week-goal .pbar { flex: 1 1 120px; max-width: 220px; }
-.recap { margin: 16px 0; background: linear-gradient(160deg, var(--ok-soft) 0%, var(--surface) 55%); }
+.recap { margin: 16px 0; background: linear-gradient(160deg, var(--primary-soft) 0%, var(--surface) 55%); }
 .recap-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
 .recap-stats div { display: grid; padding: 10px; border-radius: 12px; background: var(--surface-2); text-align: center; }
 .recap-stats b { font-size: 1.4rem; }
@@ -2571,3 +2571,42 @@ body.on-ai-page .to-top { display: none; }
 }
 
 main:focus { outline: none; }                            /* focus lands here after a page change; the page itself needs no ring */
+
+/* ---------- look and finish ---------- */
+/* blue shades (Settings › Look › Blue): the whole site follows --primary, so a shade is four tokens per theme */
+:root[data-blue="ocean"] { --primary: #0a6aad; --primary-ink: #085a93; --primary-soft: #e1f0fa; }
+:root[data-blue="navy"] { --primary: #1f3fa8; --primary-ink: #1a358c; --primary-soft: #e7ebf8; }
+:root[data-blue="sky"] { --primary: #1c73d6; --primary-ink: #1763bb; --primary-soft: #e4f0fc; }
+@media (prefers-color-scheme: dark) {
+  :root[data-blue="ocean"]:not([data-theme="light"]) { --primary: #5cb3ec; --primary-ink: #86c7f2; --primary-soft: #14324a; }
+  :root[data-blue="navy"]:not([data-theme="light"]) { --primary: #93a9ff; --primary-ink: #b0c0ff; --primary-soft: #232a4d; }
+  :root[data-blue="sky"]:not([data-theme="light"]) { --primary: #7cc0ff; --primary-ink: #a2d2ff; --primary-soft: #1b3349; }
+}
+:root[data-blue="ocean"][data-theme="dark"] { --primary: #5cb3ec; --primary-ink: #86c7f2; --primary-soft: #14324a; }
+:root[data-blue="navy"][data-theme="dark"] { --primary: #93a9ff; --primary-ink: #b0c0ff; --primary-soft: #232a4d; }
+:root[data-blue="sky"][data-theme="dark"] { --primary: #7cc0ff; --primary-ink: #a2d2ff; --primary-soft: #1b3349; }
+.blue-dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .5); }
+.blue-dot[data-b="classic"] { background: #1865f2; } .blue-dot[data-b="ocean"] { background: #0a6aad; } .blue-dot[data-b="navy"] { background: #1f3fa8; } .blue-dot[data-b="sky"] { background: #1c73d6; }
+
+/* high contrast (Settings › Look): black and white with a deep blue, outlines on cards and buttons */
+:root[data-contrast="high"] { --bg: #ffffff; --surface: #ffffff; --surface-2: #eeeeee; --ink: #000000; --muted: #2e2e2e; --line: #6b6b6b; --line-strong: #1a1a1a; --card-line: #1a1a1a;
+  --primary: #003fae; --primary-ink: #00318a; --primary-soft: #dde6ff; --on-primary: #ffffff; --shadow: none; --shadow-s: none; }
+@media (prefers-color-scheme: dark) { :root[data-contrast="high"]:not([data-theme="light"]) { --bg: #000000; --surface: #000000; --surface-2: #1b1b1b; --ink: #ffffff; --muted: #e2e2e2; --line: #9a9a9a; --line-strong: #e6e6e6; --card-line: #e6e6e6;
+  --primary: #9cc0ff; --primary-ink: #bcd4ff; --primary-soft: #0f2147; --on-primary: #000000; --shadow: none; --shadow-s: none; } }
+:root[data-contrast="high"][data-theme="dark"] { --bg: #000000; --surface: #000000; --surface-2: #1b1b1b; --ink: #ffffff; --muted: #e2e2e2; --line: #9a9a9a; --line-strong: #e6e6e6; --card-line: #e6e6e6;
+  --primary: #9cc0ff; --primary-ink: #bcd4ff; --primary-soft: #0f2147; --on-primary: #000000; --shadow: none; --shadow-s: none; }
+:root[data-contrast="high"] :is(.card, .hero, .tile, .course-card) { border: 1.5px solid var(--card-line); }
+:root[data-contrast="high"] :is(.btn:not(.primary), .chip-btn, .save-btn, .seg, .tab, .viz-btn) { box-shadow: inset 0 0 0 1.5px var(--primary-ink); }
+:root[data-contrast="high"] main a:not([class]) { text-decoration: underline; text-underline-offset: 3px; }
+:root[data-contrast="high"] :focus-visible { outline-width: 4px; outline-color: var(--ink); }
+:root[data-contrast="high"] :is(.top, .tabbar) { -webkit-backdrop-filter: none; backdrop-filter: none; background: var(--surface); }
+
+/* OpenDyslexic (SIL Open Font License, fonts/OpenDyslexic-OFL.txt): fetched only when chosen under Easier-to-read text */
+@font-face { font-family: "OpenDyslexic"; src: url("fonts/OpenDyslexic-Regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "OpenDyslexic"; src: url("fonts/OpenDyslexic-Bold.woff2") format("woff2"); font-weight: 600 900; font-style: normal; font-display: swap; }
+:root[data-read="easy"][data-font="dyslexic"] { --font: "OpenDyslexic", Verdana, Tahoma, sans-serif; }
+:root[data-read="easy"][data-font="dyslexic"] :is(body, button, input, select, textarea) { font-family: "OpenDyslexic", Verdana, Tahoma, sans-serif; }
+:root[data-read="easy"][data-font="dyslexic"] body { line-height: 1.8; }
+:root[data-read="easy"][data-font="dyslexic"] body { letter-spacing: 0; word-spacing: .06em; }      /* the font is wide already */
+:root[data-read="easy"][data-font="dyslexic"] :is(.nav a, .stat-pill, .brand) { font-size: .9rem; }
+@media (max-width: 1300px) { :root[data-read="easy"][data-font="dyslexic"] .stats { display: none; } }
