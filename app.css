@@ -648,10 +648,10 @@ details.chapter[open] > summary::before { transform: rotate(90deg); }
 .tutor-fab { position: fixed; right: 18px; bottom: 18px; z-index: 40; display: inline-flex; align-items: center; gap: 6px; padding: .7rem 1.1rem; border-radius: 999px; border: 0;
   background: var(--primary); color: var(--on-primary); font-weight: 700; box-shadow: 0 4px 14px rgba(20, 24, 40, .22); min-height: 48px; }
 .tutor-fab:hover { filter: brightness(1.08); }
-.tutor-fab { transition: transform .22s ease, opacity .22s ease, padding .18s ease; }
+.tutor-fab { transition: transform .22s ease, opacity .22s ease, padding .18s ease, visibility 0s; }
 .tutor-fab.compact { padding: 0; width: 52px; min-height: 52px; height: 52px; justify-content: center; }
 .tutor-fab.compact span { display: none; }
-.tutor-fab.away { transform: translateY(calc(100% + 30px)); opacity: 0; pointer-events: none; }
+.tutor-fab.away { transform: translateY(calc(100% + 30px)); opacity: 0; pointer-events: none; visibility: hidden; transition: transform .22s ease, opacity .22s ease, padding .18s ease, visibility 0s linear .22s; }   /* hidden once it has slid away: not reachable by Tab either */
 @media (prefers-reduced-motion: reduce) { .tutor-fab { transition: none; } }
 .tutor-q { border-left: 0; background: var(--tint); }
 .tutor-q-text { font-weight: 600; margin-top: 2px; overflow-wrap: anywhere; }
