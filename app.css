@@ -2753,7 +2753,7 @@ html[data-motion="reduce"] .ex .verdict { animation: none; }
 .flag-box p { margin: 0; }
 .flag-box input { width: 100%; max-width: 480px; min-height: 44px; padding: .5rem .8rem; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--surface); }
 .flag-box .btn-row { margin-top: 0; }
-.flag-box .seg { justify-self: start; }
+.flag-box .seg { justify-self: start; background: var(--surface); border-radius: 16px; }
 /* going on by itself: the Next button fills up first */
 #next.auto-go { position: relative; overflow: hidden; }
 #next.auto-go::after { content: ""; position: absolute; left: 0; bottom: 0; height: 4px; width: 100%; background: color-mix(in srgb, var(--on-primary) 70%, transparent); transform-origin: left; animation: auto-go 1.8s linear forwards; }
@@ -2768,6 +2768,7 @@ html.pc-focus main { padding-top: 20px; }
 .pb-ic { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--surface); color: var(--primary); box-shadow: var(--shadow-s); }
 .pb-ic .ic { fill: currentColor; }
 .summary .perfect-banner + .mastered-banner { margin-left: 10px; }
+.summary .what:empty { display: none; }
 .sum-flags { text-align: left; margin: 22px auto 0; max-width: 640px; padding-top: 18px; border-top: 1px solid var(--line); }
 .sum-flags h2 { display: flex; align-items: center; gap: 8px; font-size: 1.1rem; margin: 0 0 8px; }
 .sum-flags h2 .ic { color: var(--primary-ink); }
@@ -2789,5 +2790,6 @@ html.pc-focus main { padding-top: 20px; }
   .order-item { min-height: 56px; }
   .opts-word, .flag-word { display: none; }
   .q-tools .len-pick { flex: 1 1 100%; margin: 0 0 4px; }
+  .flag-box .seg { display: grid; justify-items: start; justify-self: stretch; }
   .vd-title { font-size: 1.15rem; }
 }
