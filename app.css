@@ -2807,3 +2807,15 @@ kbd { display: inline-block; min-width: 1.6em; padding: .1em .45em; border-radiu
   main .tile-latest { display: none; }
   main .today-plan > .small.muted { flex-basis: 100%; }
 }
+/* a tip the first time a tool opens; the first badge */
+.tool-tip { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; margin: 0 0 16px; padding: 8px 8px 8px 14px; border-radius: 14px; background: var(--tint); }
+.tool-tip p { flex: 1 1 260px; margin: 0; min-width: 0; font-size: .92rem; }
+.tool-tip-ic { flex: none; display: grid; place-items: center; color: var(--primary-ink); }
+.first-badge { position: fixed; z-index: 55; right: 18px; bottom: 84px; width: min(460px, calc(100vw - 32px)); display: flex; align-items: center; gap: 10px 12px; padding: 10px 10px 10px 14px; border-radius: 18px; background: var(--surface); color: var(--ink); border: 1px solid var(--card-line); box-shadow: 0 14px 40px rgba(15, 23, 42, .2); animation: fb-in .25s ease-out; }
+@keyframes fb-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.first-badge p { flex: 1; margin: 0; min-width: 0; font-size: .9rem; }
+.first-badge p span { color: var(--muted); }
+.fb-medal { flex: none; display: grid; place-items: center; width: 42px; height: 42px; border-radius: 50%; background: var(--primary); color: var(--on-primary); }
+@media (max-width: 700px) { .first-badge { left: 16px; right: 16px; width: auto; bottom: calc(80px + env(safe-area-inset-bottom, 0px)); } }
+@media (max-width: 480px) { .first-badge { flex-wrap: wrap; } .first-badge p { flex-basis: calc(100% - 60px); } .first-badge .btn { margin-left: 54px; } }
+:root[data-motion="reduce"] .first-badge { animation: none; }
