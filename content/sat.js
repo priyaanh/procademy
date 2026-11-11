@@ -36,6 +36,7 @@
     units: [
       { id: 'algebra', title: 'Algebra', blurb: 'Linear equations, linear models, systems, inequalities, and the slopes and intercepts of lines.', skills: ['sat.linear-equations', 'sat.linear-models', 'sat.systems', 'sat.linear-inequalities', 'sat.lines'] },
       { id: 'advanced', title: 'Advanced math', blurb: 'Quadratics, exponents and radicals, functions, exponential models, polynomials, and line-and-parabola systems.', skills: ['sat.quadratics', 'sat.exponents-radicals', 'sat.functions', 'sat.exponential-models', 'sat.polynomials-rational', 'sat.nonlinear-systems'] },
+      { id: 'data', title: 'Problem solving and data analysis', blurb: 'Ratios, rates and unit conversions, percents, mean, median and spread, two-way tables, and what a sample can tell you.', skills: ['sat.ratios-rates', 'sat.percents', 'sat.statistics', 'sat.probability-tables', 'sat.sampling-inference'] },
     ],
   };
   A.course(COURSE);
@@ -473,6 +474,200 @@
       const B = P.pb - P.m, C = P.pc - P.k, s = Math.sqrt(B * B - 4 * C), x1 = (-B - s) / 2, x2 = (-B + s) / 2, y = x => x * x + P.pb * x + P.pc;
       if (!near(y(x1), P.m * x1 + P.k, 1e-9) || !near(y(x2), P.m * x2 + P.k, 1e-9)) return false;
       return near({ xsum: x1 + x2, ysum: y(x1) + y(x2), xbig: Math.max(x1, x2) }[P.ask], q.answer, 1e-9);
+    },
+  });
+
+  /* ---------- Unit 3: problem solving and data analysis ---------- */
+  A.skill({
+    id: 'sat.ratios-rates', title: 'Ratios, rates and unit conversions',
+    learn: p(`<b>Keep the units in the calculation and cancel them like factors.</b> To change feet per second into miles per hour, multiply by 3,600 seconds per hour and divide by 5,280 feet per mile.`) +
+      p(`For a ratio such as 3 : 5, think of the whole as 3 + 5 = 8 equal parts. For a rate, find the amount for one unit first (a unit rate), then scale up.`) +
+      example('Example', `30 miles per hour = 30 × 5,280 ÷ 3,600 = <b>44 feet per second</b>. Red and blue marbles in the ratio 3 : 5 with 64 marbles: each part is 64 ÷ 8 = 8, so there are 40 blue.`),
+    make(rng) {
+      const kind = rng.pick(['convert', 'share', 'rate', 'scale']);
+      if (kind === 'convert') {
+        const k = rng.int(1, 5), mph = 15 * k, fps = 22 * k, toFps = rng.bool();
+        return { prompt: `${toFps ? `A cyclist rides at ${mph} miles per hour. What is this speed in feet per second?` : `A ball rolls at ${fps} feet per second. What is this speed in miles per hour?`} (1 mile = 5,280 feet)`, type: 'number', answer: toFps ? fps : mph, unit: toFps ? 'ft/s' : 'mph', params: { kind, mph, fps, toFps },
+          hints: [toFps ? `Feet per hour: ${mph} × 5,280 = ${N(mph * 5280)}.` : `Feet per hour: ${fps} × 3,600 = ${N(fps * 3600)}.`, toFps ? `Divide by 3,600 seconds: ${N(mph * 5280)} ÷ 3,600 = <b>${fps}</b> feet per second.` : `Divide by 5,280 feet: ${N(fps * 3600)} ÷ 5,280 = <b>${mph}</b> miles per hour.`] };
+      }
+      if (kind === 'share') {
+        let a, b; do { a = rng.int(2, 7); b = rng.int(2, 9); } while (a === b || gcd(a, b) !== 1);
+        const k = rng.int(3, 15), T = (a + b) * k, ask = rng.pick(['first', 'second']), [n1, n2] = rng.pick([['red', 'blue'], ['fiction', 'nonfiction'], ['adult', 'student'], ['oak', 'maple']]);
+        const what = rng.pick([['marbles in a bag', 'marbles'], ['books on a shelf', 'books'], ['tickets sold', 'tickets'], ['trees in a park', 'trees']]);
+        const ans = ask === 'first' ? a * k : b * k;
+        return { prompt: `The ratio of ${n1} to ${n2} ${what[1]} among ${T} ${what[0]} is ${a} : ${b}. How many are ${ask === 'first' ? n1 : n2}?`, type: 'number', answer: ans, params: { kind, a, b, T, ask },
+          hints: [`There are ${a} + ${b} = ${a + b} equal parts, so each part is ${T} ÷ ${a + b} = ${k}.`, `${ask === 'first' ? n1 : n2}: ${ask === 'first' ? a : b} × ${k} = <b>${ans}</b>.`] };
+      }
+      if (kind === 'rate') {
+        const ppm = rng.pick([12, 15, 18, 20, 24, 30, 36, 40]), s = rng.pick([15, 20, 30, 40, 45].filter(x => ppm * x % 60 === 0)), P = ppm * s / 60, mins = rng.int(2, 9);
+        return { prompt: `A printer prints ${P} pages in ${s} seconds. At this rate, how many pages does it print in ${mins} minutes?`, type: 'number', answer: ppm * mins, unit: 'pages', params: { kind, P, s, mins },
+          hints: [`Pages per minute: ${P} pages in ${s} seconds is ${P} × ${60 / s === Math.round(60 / s) ? `${60 / s}` : `(60 ÷ ${s})`} = ${ppm} pages per minute.`, `${ppm} × ${mins} = <b>${ppm * mins}</b> pages.`] };
+      }
+      const per = rng.pick([20, 25, 40, 50, 60, 75]), d = rng.int(3, 18) / 2, miles = per * d, toMiles = rng.bool();
+      return { prompt: toMiles ? `On a map, 1 inch represents ${per} miles. Two towns are ${N(d)} inches apart on the map. How far apart are they, in miles?` : `On a map, 1 inch represents ${per} miles. Two towns are ${N(miles)} miles apart. How far apart are they on the map, in inches?`, type: 'number', answer: toMiles ? miles : d, unit: toMiles ? 'miles' : 'in.', params: { kind, per, d, miles, toMiles },
+        hints: [toMiles ? `Each inch is ${per} miles, so multiply.` : `Each inch is ${per} miles, so divide.`, toMiles ? `${N(d)} × ${per} = <b>${N(miles)}</b> miles.` : `${N(miles)} ÷ ${per} = <b>${N(d)}</b> inches.`] };
+    },
+    verify(q) {
+      const P = q.params;
+      if (P.kind === 'convert') return P.toFps ? near(P.mph * 5280 / 3600, q.answer, 1e-9) : near(P.fps / 5280 * 3600, q.answer, 1e-9);
+      if (P.kind === 'share') { const other = P.T - q.answer; return P.ask === 'first' ? q.answer * P.b === other * P.a : other * P.b === q.answer * P.a; }
+      if (P.kind === 'rate') return near(P.P / P.s * 60 * P.mins, q.answer, 1e-9);
+      return P.toMiles ? near(q.answer / P.per, P.d, 1e-9) : near(q.answer * P.per, P.miles, 1e-9);
+    },
+  });
+
+  A.skill({
+    id: 'sat.percents', title: 'Percents and percent change',
+    learn: p(`<b>Turn a percent change into a multiplier.</b> An increase of 20% multiplies by 1.20; a decrease of 15% multiplies by 0.85. Two changes in a row multiply: up 20% then down 20% is 1.2 × 0.8 = 0.96, a 4% loss overall, not 0%.`) +
+      p(`To undo a change, divide by its multiplier: if a price after 25% off is $36, the original was 36 ÷ 0.75 = $48. And "${V('p')}% of ${X}" is ${F(V('p'), 100)} × ${X}.`) +
+      example('Example', `A jacket's price goes up 30%, then down 10%. Final ÷ original = 1.3 × 0.9 = 1.17, so the final price is <b>117%</b> of the original.`),
+    make(rng) {
+      const kind = rng.pick(['successive', 'reverse', 'percent-of']);
+      if (kind === 'successive') {
+        const up = rng.pick([10, 20, 25, 30, 40, 50]), dn = rng.pick([10, 20, 25, 30, 40, 50]), order = rng.bool(), ans = M.round((100 + up) * (100 - dn) / 100, 4);
+        const first = order ? `increased by ${up}%` : `decreased by ${dn}%`, second = order ? `decreased by ${dn}%` : `increased by ${up}%`;
+        return { prompt: `The price of a bike was ${first}, and then the new price was ${second}. The final price is what percent of the original price?`, type: 'number', answer: ans, unit: '%', params: { kind, up, dn },
+          hints: [`Multipliers: up ${up}% is ${N(1 + up / 100)} and down ${dn}% is ${N(1 - dn / 100)}.`, `${N(1 + up / 100)} × ${N(1 - dn / 100)} = ${N(ans / 100)}, so the final price is <b>${N(ans)}%</b> of the original.`] };
+      }
+      if (kind === 'reverse') {
+        const d = rng.pick([10, 15, 20, 25, 30, 40]), O = rng.int(4, 40) * 5, S = M.round(O * (100 - d) / 100, 2), item = rng.pick(['jacket', 'lamp', 'pair of headphones', 'backpack', 'chair']);
+        return { prompt: `After a ${d}% discount, the price of a ${item} is ${money(S)}. What was the price before the discount, in dollars?`, type: 'number', answer: O, unit: '$', params: { kind, d, S },
+          hints: [`After ${d}% off, you pay ${100 - d}% of the price: ${N((100 - d) / 100)} × original = ${N(S)}.`, `Original = ${N(S)} ÷ ${N((100 - d) / 100)} = <b>${money(O)}</b>.`] };
+      }
+      const x = rng.int(2, 30) * 20, pc = rng.pick([5, 10, 15, 20, 25, 30, 35, 40, 45, 60, 75]), q2 = rng.pick([10, 20, 30, 40, 50, 80, 120, 150].filter(v => v !== pc)), y = x * pc / 100, ans = x * q2 / 100;
+      return { prompt: `If ${pc}% of a number is ${N(y)}, what is ${q2}% of the number?`, type: 'number', answer: ans, params: { kind, pc, y, q2 },
+        hints: [`The number is ${N(y)} ÷ ${N(pc / 100)} = ${N(x)}.`, `${q2}% of ${N(x)} is ${N(q2 / 100)} × ${N(x)} = <b>${N(ans)}</b>.`] };
+    },
+    verify(q) {
+      const P = q.params;
+      if (P.kind === 'successive') { let price = 1000; price += price * P.up / 100; price -= price * P.dn / 100; return near(price / 10, q.answer, 1e-9); }
+      if (P.kind === 'reverse') return near(q.answer - q.answer * P.d / 100, P.S, 1e-9);
+      return near(P.y * P.q2 / P.pc, q.answer, 1e-9);
+    },
+  });
+
+  const mean = a => a.reduce((s, x) => s + x, 0) / a.length;
+  const median = a => { const s = a.slice().sort((x, y) => x - y), n = s.length; return n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2; };
+  const sd = a => { const m = mean(a); return Math.sqrt(a.reduce((s, x) => s + (x - m) ** 2, 0) / a.length); };
+  const CHANGE = ['The mean decreases, and the median stays the same', 'Both decrease, and the mean decreases more', 'Both decrease, and the median decreases more', 'The median decreases, and the mean stays the same'];
+  A.skill({
+    id: 'sat.statistics', title: 'Mean, median and spread',
+    learn: p(`The mean is the total divided by the count, so <b>work with totals</b>: if 5 tests average 84, they add up to 420. An outlier pulls the mean toward it but barely moves the median, so <b>removing a very large value lowers the mean much more than the median</b>.`) +
+      p(`Standard deviation measures spread around the mean. <b>Adding the same number to every value doesn't change it</b>; spreading the values farther apart makes it bigger. For a frequency table, the median is the middle of the whole list of values, counted out in order.`) +
+      example('Example', `Five scores average 84. To raise the average of six scores to 86, the sixth must be 6 × 86 − 5 × 84 = 516 − 420 = <b>96</b>.`),
+    make(rng) {
+      const kind = rng.pick(['next-score', 'outlier', 'sd', 'frequency']), who = rng.pick(NAMES);
+      if (kind === 'next-score') {
+        let n, m, m2, ans; do { n = rng.int(3, 7); m = rng.int(70, 90); m2 = m + rng.int(1, 4); ans = (n + 1) * m2 - n * m; } while (ans > 100);
+        return { prompt: `${who}'s mean score on ${n} tests is ${m}. What score on the next test would make the mean of all ${n + 1} tests exactly ${m2}?`, type: 'number', answer: ans, params: { kind, n, m, m2 },
+          hints: [`The ${n} scores total ${n} × ${m} = ${n * m}.`, `For a mean of ${m2}, all ${n + 1} must total ${n + 1} × ${m2} = ${(n + 1) * m2}.`, `The next score is ${(n + 1) * m2} − ${n * m} = <b>${ans}</b>.`] };
+      }
+      if (kind === 'outlier') {
+        const base = Array.from({ length: 6 }, () => rng.int(10, 30));
+        if (rng.bool()) { const s = base.slice().sort((a, b) => a - b); base[base.indexOf(s[3])] = s[2]; }
+        const out = rng.int(70, 120), data = rng.shuffle(base.concat([out]));
+        const dm = mean(data) - mean(base), dmed = median(data) - median(base), answer = CHANGE[dmed === 0 ? 0 : dm > dmed ? 1 : 2];
+        return { prompt: `The value ${out} is removed from the data set below. How do the mean and the median change?${big(data.join(', '))}`, type: 'choice', answer, choices: CHANGE.slice(), params: { kind, data, out },
+          hints: [`Median before: ${N(median(data))}; after: ${N(median(base))}.`, `Mean before: ${N(M.round(mean(data), 2))}; after: ${N(M.round(mean(base), 2))}. The outlier was pulling the mean up.`, `<b>${answer}</b>.`] };
+      }
+      if (kind === 'sd') {
+        const n = 6, a = Array.from({ length: n }, () => rng.int(4, 20)), how = rng.pick(['shift', 'wider', 'narrower']);
+        const m = mean(a), c = rng.int(3, 12);
+        let b = how === 'shift' ? a.map(x => x + c) : how === 'wider' ? a.map(x => Math.round(m + 2 * (x - m)) + c) : a.map(() => Math.round(m) + rng.int(-1, 1));
+        if (how === 'narrower' && sd(b) >= sd(a)) b = a.map(() => Math.round(m));
+        const sa = sd(a), sb = sd(b), answer = Math.abs(sa - sb) < 1e-9 ? 'They have the same standard deviation' : sb > sa ? 'Data set B' : 'Data set A';
+        return { prompt: `Which data set has the greater standard deviation?${big(`A: ${a.join(', ')}<br>B: ${b.join(', ')}`)}`, type: 'choice', keepOrder: true, answer, choices: ['Data set A', 'Data set B', 'They have the same standard deviation'], params: { kind, a, b },
+          hints: [how === 'shift' ? `Each value in B is ${c} more than the matching value in A.` : `Compare how far the values sit from their mean: A runs from ${Math.min(...a)} to ${Math.max(...a)}, B from ${Math.min(...b)} to ${Math.max(...b)}.`, how === 'shift' ? `Adding the same number to every value moves the data without spreading it: <b>${answer.toLowerCase()}</b>.` : `The more spread-out set has the greater standard deviation: <b>${answer}</b>.`] };
+      }
+      const start = rng.int(1, 10), vals = [0, 1, 2, 3, 4].map(i => start + i * rng.pick([1, 2])).sort((x, y) => x - y), freq = vals.map(() => rng.int(1, 6));
+      const vv = [...new Set(vals)], ff = vv.map(v => vals.reduce((s, x, i) => s + (x === v ? freq[i] : 0), 0)), list = vv.flatMap((v, i) => Array(ff[i]).fill(v)), med = median(list), n = list.length;
+      return { prompt: `The frequency table shows the number of books each student in a club read last month. What is the median number of books?${M.table(['Books', 'Students'], vv.map((v, i) => [v, ff[i]]))}`, type: 'number', answer: med, params: { kind, vv, ff },
+        hints: [`There are ${n} students, so the median is ${n % 2 ? `the ${M.ordinal((n + 1) / 2)} value` : `the mean of the ${M.ordinal(n / 2)} and ${M.ordinal(n / 2 + 1)} values`} in order.`, `Count down the table: the median is <b>${N(med)}</b>.`] };
+    },
+    verify(q) {
+      const P = q.params;
+      if (P.kind === 'next-score') return (P.n * P.m + q.answer) / (P.n + 1) === P.m2;
+      if (P.kind === 'outlier') {
+        const rest = P.data.slice(); rest.splice(rest.indexOf(P.out), 1);
+        const dm = mean(P.data) - mean(rest), dmed = median(P.data) - median(rest);
+        const got = dm > 1e-9 && Math.abs(dmed) < 1e-9 ? 0 : dm > dmed && dmed > 0 ? 1 : dmed > dm && dm > 0 ? 2 : 3;
+        return q.answer === CHANGE[got];
+      }
+      if (P.kind === 'sd') { const va = sd(P.a), vb = sd(P.b); return q.answer === (Math.abs(va - vb) < 1e-9 ? 'They have the same standard deviation' : vb > va ? 'Data set B' : 'Data set A'); }
+      // walk to the middle position(s) without building the list
+      const n = P.ff.reduce((s, f) => s + f, 0), at = k => { let c = 0; for (let i = 0; i < P.vv.length; i++) { c += P.ff[i]; if (k <= c) return P.vv[i]; } };
+      return near(n % 2 ? at((n + 1) / 2) : (at(n / 2) + at(n / 2 + 1)) / 2, q.answer, 1e-9);
+    },
+  });
+
+  const TABLES = [
+    { who: 'students', one: 'student', rows: [['9th grade', 'a 9th grader', 'is in 9th grade'], ['10th grade', 'a 10th grader', 'is in 10th grade']], cols: [['Owns a pet', 'owns a pet'], ['No pet', 'doesn’t own a pet']] },
+    { who: 'moviegoers', one: 'person', rows: [['Adults', 'an adult', 'is an adult'], ['Teens', 'a teen', 'is a teen']], cols: [['Chose the comedy', 'chose the comedy'], ['Chose the drama', 'chose the drama']] },
+    { who: 'employees', one: 'employee', rows: [['Day shift', 'a day-shift worker', 'works the day shift'], ['Night shift', 'a night-shift worker', 'works the night shift']], cols: [['Walks or bikes', 'walks or bikes to work'], ['Drives', 'drives to work']] },
+    { who: 'club members', one: 'member', rows: [['Joined this year', 'a new member', 'joined this year'], ['Joined earlier', 'a longtime member', 'joined before this year']], cols: [['Plays chess', 'plays chess'], ['Doesn’t play chess', 'doesn’t play chess']] },
+  ];
+  A.skill({
+    id: 'sat.probability-tables', title: 'Two-way tables and probability',
+    learn: p(`A two-way table counts people by two features at once. <b>The words "given" or "if one of the … is chosen" shrink the group you're choosing from</b>: the denominator becomes that row's or column's total, not the grand total.`) +
+      p(`Probability = (number in the cell you want) ÷ (number in the group you're choosing from). "And" means a single cell out of everyone.`) +
+      example('Example', `40 9th graders, 15 of whom own a pet. If a 9th grader is chosen at random, the probability of a pet owner is 15 ÷ 40 = <b>${F(3, 8)}</b>. Out of all 100 students, the chance of a 9th-grade pet owner is 15 ÷ 100.`),
+    make(rng) {
+      const t = rng.int(0, TABLES.length - 1), T = TABLES[t], cells = [[rng.int(8, 60), rng.int(8, 60)], [rng.int(8, 60), rng.int(8, 60)]];
+      const rs = cells.map(r => r[0] + r[1]), cs = [0, 1].map(j => cells[0][j] + cells[1][j]), g = rs[0] + rs[1], i = rng.int(0, 1), j = rng.int(0, 1), ask = rng.pick(['given-row', 'given-col', 'and']);
+      const table = M.table(['', T.cols[0][0], T.cols[1][0], 'Total'], [[T.rows[0][0], cells[0][0], cells[0][1], rs[0]], [T.rows[1][0], cells[1][0], cells[1][1], rs[1]], ['Total', cs[0], cs[1], g]]);
+      const [num, den] = ask === 'given-row' ? [cells[i][j], rs[i]] : ask === 'given-col' ? [cells[i][j], cs[j]] : [cells[i][j], g], ans = fa(num, den);
+      const q = ask === 'given-row' ? `If ${T.rows[i][1]} from the survey is chosen at random, what is the probability that the ${T.one} ${T.cols[j][1]}?`
+        : ask === 'given-col' ? `If a ${T.one} who ${T.cols[j][1]} is chosen at random, what is the probability that the ${T.one} ${T.rows[i][2]}?`
+          : `If one of the ${g} ${T.who} is chosen at random, what is the probability that the ${T.one} ${T.rows[i][2]} and ${T.cols[j][1]}?`;
+      return { prompt: `The table shows the results of a survey of ${g} ${T.who}.${table}${q}`, type: 'number', ...ans, params: { t, cells, i, j, ask },
+        hints: [ask === 'and' ? `Choosing from everyone: the denominator is the grand total, ${g}.` : `Choosing only from ${ask === 'given-row' ? `the "${T.rows[i][0]}" row: its total is ${rs[i]}` : `the "${T.cols[j][0]}" column: its total is ${cs[j]}`}.`, `The cell you want holds ${num}. Probability = ${num} ÷ ${den} = <b>${ans.answerText || N(ans.answer)}</b>${ans.answerText ? ` (about ${N(M.round(num / den, 3))})` : ''}.`] };
+    },
+    verify(q) {
+      const { cells, i, j, ask } = q.params;
+      // count people one by one, the long way
+      let inGroup = 0, hit = 0;
+      for (let r = 0; r < 2; r++) for (let c = 0; c < 2; c++) for (let k = 0; k < cells[r][c]; k++) {
+        const ok = ask === 'given-row' ? r === i : ask === 'given-col' ? c === j : true;
+        if (ok) { inGroup++; if (r === i && c === j) hit++; }
+      }
+      return near(hit / inGroup, q.answer, 1e-9);
+    },
+  });
+
+  const SURVEYS = [
+    { pop: 'the city’s voters', wider: 'the state’s voters', act: 'support the new park', place: 'registered voters in a city', who: 'voters' },
+    { pop: 'the school’s students', wider: 'the state’s students', act: 'want a later start time', place: 'students at a large high school', who: 'students' },
+    { pop: 'the town’s library card holders', wider: 'the county’s adults', act: 'would use a weekend book club', place: 'library card holders in a town', who: 'card holders' },
+    { pop: 'the company’s employees', wider: 'the country’s workers', act: 'prefer a four-day workweek', place: 'employees of a large company', who: 'employees' },
+  ];
+  A.skill({
+    id: 'sat.sampling-inference', title: 'Samples, margins of error and conclusions',
+    learn: p(`<b>A random sample lets you generalize only to the population it was drawn from</b>, not to a bigger or different group. A sample proportion estimates the population proportion.`) +
+      p(`A <b>margin of error</b> gives a range of plausible values: 58% with a margin of 4% means the true percent is plausibly between 54% and 62%. It never makes the result exact. Larger random samples give smaller margins of error.`) +
+      example('Example', `In a random sample of 150 of a school's 2,400 students, 36 walk to school. That's 36 ÷ 150 = 24%, so about 0.24 × 2,400 = <b>576</b> students walk.`),
+    make(rng) {
+      const kind = rng.pick(['margin', 'generalize', 'estimate']), S = rng.pick(SURVEYS), n = rng.pick([200, 300, 400, 500, 600, 800]);
+      if (kind === 'margin') {
+        const pc = rng.int(35, 70), m = rng.pick([2, 3, 4, 5, 6]);
+        const answer = `Between ${pc - m}% and ${pc + m}% of ${S.pop} likely ${S.act}`;
+        const choices = [answer, `Exactly ${pc}% of ${S.pop} ${S.act}`, `Between ${pc - m}% and ${pc + m}% of ${S.wider} likely ${S.act}`, `Between ${pc - 2 * m}% and ${pc + 2 * m}% of ${S.pop} likely ${S.act}`];
+        return { prompt: `A random sample of ${n} ${S.place} found that ${pc}% ${S.act}, with a margin of error of ${m} percentage points. Which conclusion is best supported?`, type: 'choice', answer, choices, params: { kind, pc, m, s: SURVEYS.indexOf(S) },
+          hints: [`The margin of error gives a range: ${pc}% ± ${m}%, from ${pc - m}% to ${pc + m}%.`, `The sample came from ${S.place}, so the conclusion is about ${S.pop}: <b>${answer.toLowerCase()}</b>.`] };
+      }
+      if (kind === 'generalize') {
+        const answer = `All of ${S.pop}`, choices = [answer, `Only the ${n} ${S.who} who were asked`, `All of ${S.wider}`, `Only the ${S.who} who agreed with the result`];
+        return { prompt: `A researcher chose ${n} ${S.place} at random and asked whether they ${S.act}. To which group can the results most reasonably be generalized?`, type: 'choice', answer, choices, params: { kind, s: SURVEYS.indexOf(S) },
+          hints: [`A random sample represents the population it was drawn from.`, `It was drawn from ${S.place}: <b>${answer.toLowerCase()}</b>.`] };
+      }
+      const s = rng.pick([50, 80, 100, 120, 150, 200]), mult = rng.int(4, 20), total = s * mult, k = rng.int(5, Math.floor(s * 0.6));
+      return { prompt: `Of the ${N(total)} ${S.place}, a random sample of ${s} was asked, and ${k} said they ${S.act}. Based on this, about how many of the ${N(total)} ${S.act}?`, type: 'number', answer: k * mult, params: { kind, s, total, k },
+        hints: [`The sample proportion is ${k} ÷ ${s}.`, `Scale up: ${k} ÷ ${s} × ${N(total)} = <b>${N(k * mult)}</b>.`] };
+    },
+    verify(q) {
+      const P = q.params;
+      if (P.kind === 'margin') { const S = SURVEYS[P.s]; return q.answer.includes(`${P.pc - P.m}% and ${P.pc + P.m}%`) && q.answer.includes(`of ${S.pop} `); }
+      if (P.kind === 'generalize') return q.answer === `All of ${SURVEYS[P.s].pop}`;
+      return near(q.answer / P.total, P.k / P.s, 1e-12);
     },
   });
 })();
