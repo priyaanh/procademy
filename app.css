@@ -3040,3 +3040,6 @@ html.pc-focus main { padding-top: 20px; }
 .tf-l { fill: var(--ink); font: 700 11.5px var(--font); }
 .tf-d { fill: var(--muted); font: 700 13px var(--font); }
 
+.dt-binrow { align-items: center; gap: 10px 18px; margin-bottom: 10px; }
+.dt-binrow label { display: inline-flex; align-items: center; gap: 8px; }
+.dt-binrow input[type=range] { width: 150px; accent-color: var(--primary); }
