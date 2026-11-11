@@ -715,6 +715,16 @@ body.tutor-resizing iframe { pointer-events: none; }
 .tutor-check { display: flex; gap: 8px; align-items: flex-start; padding: 4px 0; font-size: .92rem; }
 .tutor-check input { margin-top: 4px; }
 .tutor-body .tutor-card + .tutor-card { margin-top: 2px; }
+/* tutor answers, laid out the same way every time: headings, key steps in bold, "Try this", math that reads like math */
+.tmsg .md-h, .ai-msg .md-h, .wb-steps .md-h { font-size: 1rem; font-weight: 700; line-height: 1.35; margin: .8rem 0 .3rem; color: var(--ink); }
+.tmsg .md-h:first-child, .ai-msg .bubble .md-h:first-child { margin-top: 0; }
+.tmsg ol > li, .ai-msg .bubble ol > li { margin: 0 0 .35rem; padding-left: 2px; }
+.tmsg ol > li::marker, .ai-msg .bubble ol > li::marker { color: var(--primary-ink); font-weight: 700; }
+.tmsg .md-try, .ai-msg .bubble .md-try { margin: .7rem 0 0; padding: 8px 12px; border-radius: 10px; background: var(--tint); }
+.tmsg .md-try b:first-child, .ai-msg .bubble .md-try b:first-child { color: var(--primary-ink); }
+.tmsg .frac, .ai-msg .bubble .frac { font-size: .88em; margin: 0 3px; }
+.tmsg sup, .ai-msg .bubble sup { font-size: .72em; line-height: 0; }
+.tmsg .sqrt .rad, .ai-msg .bubble .sqrt .rad { border-top-width: 1.3px; }
 @media (max-width: 700px) {
   .tutor { right: 0; left: 0; bottom: 0; top: var(--tutor-top, 18vh); width: auto; border-radius: var(--radius) var(--radius) 0 0; }
   .tutor-fab { right: 12px; bottom: 12px; }

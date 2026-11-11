@@ -434,7 +434,7 @@
   const h = UI.history();
   ok(h.length === 2 && h[0].role === 'user' && /Area and circumference/.test(h[0].content), 'tutor: the "Explain it" question is sent straight away');
   const shown = panel.querySelector('.tmsg.assistant:last-child');
-  ok(shown && shown.querySelector('b') && !shown.querySelector('script') && text(shown).includes('<script>') && text(shown).includes('(1)/(2)') && shown.querySelectorAll('li').length === 2, 'tutor: replies render a little markdown, escape HTML and tidy LaTeX');
+  ok(shown && shown.querySelector('b') && !shown.querySelector('script') && text(shown).includes('<script>') && shown.querySelector('.frac .num') && shown.querySelector('.frac .num').textContent === '1' && shown.querySelector('.frac .den').textContent === '2' && shown.querySelectorAll('li').length === 2, 'tutor: replies render a little markdown, escape HTML and tidy LaTeX (a fraction is stacked)');
   const req = cloudCalls[0];
   ok(req && req.url === TU.PROVIDERS[0].url && req.body.model === 'gpt-oss:20b' && req.body.stream === true && req.body.messages[0].role === 'system' && req.body.messages[0].content.includes('Lesson notes'), 'tutor: the first cloud request goes to LLM7, streams, and carries the lesson as context');
   ok(!JSON.stringify(req.body).includes('Sam') && !JSON.stringify(req.body).includes('points'), 'tutor: the request carries no name and no progress');
