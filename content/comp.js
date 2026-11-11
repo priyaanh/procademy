@@ -15,6 +15,8 @@
   const gcd = M.gcd, lcm = (a, b) => a / gcd(a, b) * b;
   const fa = (n, d) => { const [a, b] = M.simp(n, d); return b === 1 ? { answer: a } : { answer: a / b, answerText: M.fracText(a, b) }; };
   const ans$ = q => q.answerText || N(q.answer);
+  /** a number to follow an operator: negatives in parentheses */
+  const par = x => x < 0 ? `(${N(x)})` : N(x);
   /** a small count to start a sentence: "Six students …" */
   const Word = n => ['Zero', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve'][n] || N(n);
   const fact = n => { let r = 1; for (let i = 2; i <= n; i++) r *= i; return r; };
@@ -29,6 +31,7 @@
     units: [
       { id: 'counting', title: 'Counting', blurb: 'The multiplication principle, arrangements, choosing groups, overlaps, grid paths and page numbers.', skills: ['comp.multiplication-principle', 'comp.arrangements', 'comp.choosing', 'comp.overlaps', 'comp.paths-pages'] },
       { id: 'number-theory', title: 'Number theory', blurb: 'Divisors, GCF and LCM puzzles, remainders and cycles, units digits, divisibility rules, and zeros at the end.', skills: ['comp.divisors', 'comp.gcd-lcm', 'comp.remainders', 'comp.units-digit', 'comp.digit-rules', 'comp.trailing-zeros'] },
+      { id: 'algebra', title: 'Clever algebra', blurb: 'Algebra shortcuts, sums of sequences, work and rate problems, distance and speed, and repeating patterns.', skills: ['comp.algebra-identities', 'comp.series', 'comp.work-rate', 'comp.motion', 'comp.cycles'] },
     ],
   };
   A.course(COURSE);
@@ -409,6 +412,175 @@
       if (P.kind === 'product') return tz(BigInt(P.a) ** BigInt(P.ea) * BigInt(P.b) ** BigInt(P.eb)) === q.answer;
       for (let n = 1; n < q.answer; n++) if (zerosOf(n) === P.z) return false;
       return tz(bigFact(q.answer)) === P.z;
+    },
+  });
+
+  /* ---------- Unit 3: clever algebra ---------- */
+  A.skill({
+    id: 'comp.algebra-identities', title: 'Algebra shortcuts',
+    learn: p(`Contest problems reward using identities instead of brute force. The big three: <b>(${X} + ${Y})² = ${M.sup(X, 2)} + 2${X}${Y} + ${M.sup(Y, 2)}</b>, <b>(${X} − ${Y})² = ${M.sup(X, 2)} − 2${X}${Y} + ${M.sup(Y, 2)}</b>, and <b>${M.sup(X, 2)} − ${M.sup(Y, 2)} = (${X} + ${Y})(${X} − ${Y})</b>.`) +
+      p(`If you know ${X} + ${Y} and ${X}${Y}, you can find ${M.sup(X, 2)} + ${M.sup(Y, 2)} = (${X} + ${Y})² − 2${X}${Y} without finding ${X} and ${Y}. And products like 98 × 102 are (100 − 2)(100 + 2) = 10,000 − 4.`) +
+      example('Example', `${X} + ${Y} = 9 and ${X}${Y} = 14, so ${M.sup(X, 2)} + ${M.sup(Y, 2)} = 81 − 28 = <b>53</b>. And 1,003² − 997² = (2,000)(6) = <b>12,000</b>.`),
+    make(rng) {
+      const kind = rng.pick(['sum-product', 'sum-product', 'squares', 'near']);
+      if (kind === 'sum-product') {
+        let x, y; do { x = rng.int(-6, 12); y = rng.int(-6, 12); } while (x === y || !x || !y);
+        const s = x + y, pr = x * y, ask = rng.pick(['sq', 'diff', 'recip', 'cube']);
+        const out = { sq: [s * s - 2 * pr, 1], diff: [s * s - 4 * pr, 1], recip: [s, pr], cube: [s ** 3 - 3 * pr * s, 1] }[ask], ans = fa(out[0], out[1]);
+        const what = { sq: `${M.sup(X, 2)} + ${M.sup(Y, 2)}`, diff: `(${X} − ${Y})²`, recip: `${F(1, X)} + ${F(1, Y)}`, cube: `${M.sup(X, 3)} + ${M.sup(Y, 3)}` }[ask];
+        const how = { sq: `(${X} + ${Y})² − 2${X}${Y} = ${N(s * s)} − ${par(2 * pr)}`, diff: `(${X} + ${Y})² − 4${X}${Y} = ${N(s * s)} − ${par(4 * pr)}`, recip: `${F(`${X} + ${Y}`, `${X}${Y}`)} = ${F(s, pr, { raw: true })}`, cube: `(${X} + ${Y})³ − 3${X}${Y}(${X} + ${Y}) = ${N(s ** 3)} − ${par(3 * pr * s)}` }[ask];
+        return { prompt: `If ${X} + ${Y} = ${N(s)} and ${X}${Y} = ${N(pr)}, what is the value of ${what}?`, type: 'number', ...ans, params: { kind, s, pr, ask },
+          hints: [`Write ${what} using only ${X} + ${Y} and ${X}${Y}.`, `${what} = ${how}.`, `= <b>${ans$(ans)}</b>.`] };
+      }
+      if (kind === 'squares') {
+        const a = rng.int(40, 3000), d = rng.int(2, 12), b = a - d, ans = a * a - b * b;
+        return { prompt: `What is the value of ${N(a)}² − ${N(b)}²?`, type: 'number', answer: ans, params: { kind, a, b },
+          hints: [`Use ${M.sup(V('a'), 2)} − ${M.sup(V('b'), 2)} = (${V('a')} + ${V('b')})(${V('a')} − ${V('b')}).`, `(${N(a)} + ${N(b)})(${N(a)} − ${N(b)}) = ${N(a + b)} × ${d} = <b>${N(ans)}</b>.`] };
+      }
+      const c = rng.pick([20, 30, 40, 50, 60, 70, 80, 90, 100, 200, 1000]), d = rng.int(1, 9), ans = c * c - d * d;
+      return { prompt: `What is the value of ${N(c - d)} × ${N(c + d)}?`, type: 'number', answer: ans, params: { kind, a: c - d, b: c + d },
+        hints: [`The two numbers are ${N(c)} − ${d} and ${N(c)} + ${d}, so the product is ${N(c)}² − ${d}².`, `${N(c * c)} − ${d * d} = <b>${N(ans)}</b>.`] };
+    },
+    verify(q) {
+      const P = q.params;
+      if (P.kind === 'sum-product') {
+        const r = Math.sqrt(P.s * P.s - 4 * P.pr), x = (P.s + r) / 2, y = (P.s - r) / 2;
+        return near({ sq: x * x + y * y, diff: (x - y) ** 2, recip: 1 / x + 1 / y, cube: x ** 3 + y ** 3 }[P.ask], q.answer, 1e-9);
+      }
+      if (P.kind === 'squares') return BigInt(P.a) ** 2n - BigInt(P.b) ** 2n === BigInt(q.answer);
+      return P.a * P.b === q.answer;
+    },
+  });
+
+  A.skill({
+    id: 'comp.series', title: 'Sums of sequences',
+    learn: p(`<b>To add an arithmetic sequence, pair the first and last terms</b>: the sum is (number of terms) × (first + last) ÷ 2. So 1 + 2 + … + 100 = 100 × 101 ÷ 2 = 5,050.`) +
+      p(`The number of terms in ${V('a')}, ${V('a')} + ${V('d')}, …, ${V('L')} is <b>(${V('L')} − ${V('a')}) ÷ ${V('d')} + 1</b> (the +1 is easy to forget). The first ${V('n')} odd numbers add to ${M.sup(V('n'), 2)}.`) +
+      example('Example', `7 + 11 + 15 + … + 99: there are (99 − 7) ÷ 4 + 1 = 24 terms, so the sum is 24 × (7 + 99) ÷ 2 = <b>1,272</b>.`),
+    make(rng) {
+      const kind = rng.pick(['count', 'sum', 'sum', 'odd', 'even-odd']);
+      if (kind === 'count' || kind === 'sum') {
+        const a = rng.int(1, 20), d = rng.int(2, 9), n = rng.int(12, 60), L = a + (n - 1) * d, S = n * (a + L) / 2;
+        return { prompt: kind === 'count' ? `How many numbers are in the list ${a}, ${a + d}, ${a + 2 * d}, …, ${N(L)}?` : `What is the sum ${a} + ${a + d} + ${a + 2 * d} + … + ${N(L)}?`, type: 'number', answer: kind === 'count' ? n : S, params: { kind, a, d, L },
+          hints: [`The numbers go up by ${d}: (${N(L)} − ${a}) ÷ ${d} + 1 = ${n} terms.`, kind === 'count' ? `<b>${n}</b> numbers.` : `Sum = ${n} × (${a} + ${N(L)}) ÷ 2 = <b>${N(S)}</b>.`] };
+      }
+      if (kind === 'odd') {
+        const n = rng.int(10, 80), L = 2 * n - 1;
+        return { prompt: `What is the sum of all the odd numbers from 1 to ${L}?`, type: 'number', answer: n * n, params: { kind, L },
+          hints: [`There are (${L} + 1) ÷ 2 = ${n} odd numbers from 1 to ${L}.`, `The first ${n} odd numbers add to ${n}² = <b>${N(n * n)}</b>.`] };
+      }
+      const n = rng.int(20, 300);
+      return { prompt: `What is the value of (2 + 4 + 6 + … + ${2 * n}) − (1 + 3 + 5 + … + ${2 * n - 1})?`, type: 'number', answer: n, params: { kind, n },
+        hints: [`Pair the terms: (2 − 1) + (4 − 3) + … + (${2 * n} − ${2 * n - 1}).`, `There are ${n} pairs, each equal to 1: <b>${n}</b>.`] };
+    },
+    verify(q) {
+      const P = q.params; let s = 0, c = 0;
+      if (P.kind === 'count' || P.kind === 'sum') { for (let v = P.a; v <= P.L; v += P.d) { s += v; c++; } return (P.kind === 'count' ? c : s) === q.answer; }
+      if (P.kind === 'odd') { for (let v = 1; v <= P.L; v += 2) s += v; return s === q.answer; }
+      for (let v = 1; v <= 2 * P.n; v++) s += v % 2 ? -v : v; return s === q.answer;
+    },
+  });
+
+  const PAIRS = []; for (let a = 2; a <= 40; a++) for (let b = a + 1; b <= 60; b++) if ((a * b) % (a + b) === 0) PAIRS.push([a, b]);
+  A.skill({
+    id: 'comp.work-rate', title: 'Working together',
+    learn: p(`<b>Add rates, not times.</b> If a job takes ${V('a')} hours, the rate is ${F(1, V('a'))} of the job per hour. Two workers together do ${F(1, V('a'))} + ${F(1, V('b'))} per hour, so the job takes 1 ÷ (${F(1, V('a'))} + ${F(1, V('b'))}) hours.`) +
+      p(`A drain works against you: its rate is subtracted. To find one worker's time from the time together, subtract rates: ${F(1, V('b'))} = ${F(1, V('t'))} − ${F(1, V('a'))}.`) +
+      example('Example', `One pipe fills a tank in 3 hours and another in 6 hours. Together: ${F(1, 3)} + ${F(1, 6)} = ${F(1, 2)} of the tank per hour, so <b>2 hours</b>.`),
+    make(rng) {
+      const kind = rng.pick(['together', 'other', 'drain']), [a, b] = rng.pick(PAIRS), t = a * b / (a + b), [w1, w2] = rng.sample(NAMES, 2);
+      const job = rng.pick(['paint a fence', 'mow a large lawn', 'wash all the windows of a building', 'stack a load of firewood']);
+      if (kind === 'together') {
+        return { prompt: `${w1} can ${job} alone in ${a} hours, and ${w2} can do it alone in ${b} hours. Working together at these rates, how many hours will it take them?`, type: 'number', answer: t, unit: 'hours', params: { kind, a, b },
+          hints: [`Rates: ${F(1, a)} and ${F(1, b)} of the job per hour. Together: ${F(1, a)} + ${F(1, b)} = ${F(a + b, a * b)}.`, `Time = 1 ÷ ${F(a + b, a * b)} = <b>${t}</b> hours.`] };
+      }
+      if (kind === 'other') {
+        return { prompt: `Working together, ${w1} and ${w2} can ${job} in ${t} hours. ${w1} alone takes ${b} hours. How many hours would ${w2} take alone?`, type: 'number', answer: a, unit: 'hours', params: { kind, t, b },
+          hints: [`${w2}'s rate = together's rate − ${w1}'s rate = ${F(1, t)} − ${F(1, b)}.`, `= ${F(b - t, t * b)}, so ${w2} takes <b>${a}</b> hours.`] };
+      }
+      const fill = rng.int(2, 8), drain = fill + rng.int(1, 8), ans = fa(fill * drain, drain - fill);
+      return { prompt: `A pipe can fill an empty tank in ${fill} hours, and a drain can empty a full tank in ${drain} hours. If the tank starts empty and both are open, how many hours does it take to fill?`, type: 'number', ...ans, unit: 'hours', params: { kind, fill, drain },
+        hints: [`Net rate: ${F(1, fill)} − ${F(1, drain)} = ${F(drain - fill, fill * drain)} of the tank per hour.`, `Time = 1 ÷ ${F(drain - fill, fill * drain)} = <b>${ans$(ans)}</b> hours.`] };
+    },
+    verify(q) {
+      const P = q.params;
+      // run the job in small time steps and see when it's done
+      const run = rate => { let done = 0, steps = 0; const h = 1 / 3600; while (done < 1 - 1e-12 && steps < 1e6) { done += rate * h; steps++; } return steps * h; };
+      if (P.kind === 'together') return near(run(1 / P.a + 1 / P.b), q.answer, 0.001);
+      if (P.kind === 'other') return near(1 / P.t - 1 / P.b, 1 / q.answer, 1e-9);
+      return near(run(1 / P.fill - 1 / P.drain), q.answer, 0.001);
+    },
+  });
+
+  /** pairs of driving speeds whose round-trip average is a whole number */
+  const SPEEDS = [[20, 30], [20, 60], [30, 45], [30, 60], [30, 70], [40, 60], [22, 66], [24, 40], [24, 48], [28, 70], [30, 42], [36, 60], [42, 56]];
+  A.skill({
+    id: 'comp.motion', title: 'Distance, rate and time',
+    learn: p(`<b>Distance = rate × time.</b> Average speed is <b>total distance ÷ total time</b>, not the average of the speeds: going slower takes longer, so the slower speed counts more.`) +
+      p(`When two travelers move <b>toward each other</b>, the gap closes at the sum of their speeds. When one <b>chases</b> another, the gap closes at the difference of their speeds.`) +
+      example('Example', `Drive 60 miles at 30 mph (2 hours) and back at 60 mph (1 hour): 120 miles in 3 hours is an average of <b>40 mph</b>, not 45.`),
+    make(rng) {
+      const kind = rng.pick(['average', 'meet', 'chase']), who = rng.pick(NAMES);
+      if (kind === 'average') {
+        const [u, v] = rng.pick(SPEEDS), d = u * v / gcd(u, v) * rng.pick([1, 1, 2]), avg = 2 * u * v / (u + v), swap = rng.bool();
+        const [s1, s2] = swap ? [v, u] : [u, v];
+        return { prompt: `${who} drives ${d} miles to a lake at ${s1} miles per hour and returns along the same road at ${s2} miles per hour. What is the average speed for the whole trip, in miles per hour?`, type: 'number', answer: avg, unit: 'mph', params: { kind, d, s1, s2 },
+          hints: [`Times: ${d} ÷ ${s1} = ${d / s1} hours there and ${d} ÷ ${s2} = ${d / s2} hours back.`, `Average = total distance ÷ total time = ${2 * d} ÷ ${d / s1 + d / s2} = <b>${N(avg)}</b> mph (not the average of the two speeds).`] };
+      }
+      if (kind === 'meet') {
+        const u = rng.pick([30, 40, 45, 50, 55, 60]), v = rng.pick([35, 40, 50, 60, 65, 70]), mins = rng.pick([30, 45, 60, 75, 90, 120, 150, 180]), D = (u + v) * mins / 60;
+        return { prompt: `Two trains are ${N(D)} miles apart on parallel tracks and head toward each other, one at ${u} miles per hour and the other at ${v} miles per hour. In how many minutes will they meet?`, type: 'number', answer: mins, unit: 'min', params: { kind, D, u, v },
+          hints: [`The gap closes at ${u} + ${v} = ${u + v} miles per hour.`, `${N(D)} ÷ ${u + v} = ${N(mins / 60)} hours = <b>${mins}</b> minutes.`] };
+      }
+      const u = rng.pick([4, 5, 6]), v = rng.pick([10, 12, 15]), h = rng.pick([0.5, 1, 1.5, 2]), t = u * h / (v - u);
+      if (!Number.isInteger(t * 4)) return this.make(rng);
+      return { prompt: `${who} starts jogging along a trail at ${u} miles per hour. A friend starts from the same place ${N(h)} hour${h === 1 ? '' : 's'} later, riding a bike at ${v} miles per hour. How many hours after the friend starts does the friend catch up?`, type: 'number', answer: t, unit: 'hours', params: { kind, u, v, h },
+        hints: [`Head start: ${u} × ${N(h)} = ${N(u * h)} miles. The friend gains ${v} − ${u} = ${v - u} miles per hour.`, `${N(u * h)} ÷ ${v - u} = <b>${N(t)}</b> hours.`] };
+    },
+    verify(q) {
+      const P = q.params;
+      if (P.kind === 'average') return near((2 * P.d) / (P.d / P.s1 + P.d / P.s2), q.answer, 1e-9);
+      // step forward a minute at a time
+      if (P.kind === 'meet') { let gap = P.D, m = 0; while (gap > 1e-9) { gap -= (P.u + P.v) / 60; m++; } return m === q.answer && near(gap, 0, 1e-6); }
+      let walker = P.u * P.h, bike = 0, m = 0; while (bike < walker - 1e-9) { walker += P.u / 60; bike += P.v / 60; m++; } return near(m / 60, q.answer, 1e-9);
+    },
+  });
+
+  A.skill({
+    id: 'comp.cycles', title: 'Repeating patterns',
+    learn: p(`When something repeats every ${V('k')} steps, <b>only the remainder after dividing by ${V('k')} matters</b>. The digits of 1 ÷ 7 = 0.142857142857… repeat every 6, so the 100th digit is the same as the 4th (100 = 6 × 16 + 4).`) +
+      p(`For a repeating sum, add one full cycle, multiply by the number of full cycles, then add the leftover terms. A clock repeats every 12 hours.`) +
+      example('Example', `The sequence 1, 2, 3, 4, 1, 2, 3, 4, … : the first 50 terms are 12 full cycles (sum 10 each) plus 1, 2, so the sum is 120 + 3 = <b>123</b>.`),
+    make(rng) {
+      const kind = rng.pick(['decimal', 'decimal', 'clock', 'pattern-sum', 'alternating']);
+      if (kind === 'decimal') {
+        const b = rng.pick([7, 11, 13, 27, 37, 41]); let a; do { a = rng.int(1, b - 1); } while (gcd(a, b) !== 1);
+        const n = rng.int(20, 500), period = []; let r = a; do { r *= 10; period.push(Math.floor(r / b)); r %= b; } while (r !== a);
+        const ans = period[(n - 1) % period.length];
+        return { prompt: `What is the ${M.ordinal(n)} digit after the decimal point in the decimal for ${F(a, b)}?`, type: 'number', answer: ans, params: { kind, a, b, n },
+          hints: [`${F(a, b)} = 0.${period.join('')}${period.join('')}…, which repeats every ${period.length} digit${period.length === 1 ? '' : 's'}.`, `${n} = ${period.length} × ${Math.floor((n - 1) / period.length)} + ${(n - 1) % period.length + 1}, so it's digit ${(n - 1) % period.length + 1} of the block: <b>${ans}</b>.`] };
+      }
+      if (kind === 'clock') {
+        const h0 = rng.int(1, 12), n = rng.int(30, 2000), ans = (h0 - 1 + n) % 12 + 1;
+        return { prompt: `A 12-hour clock shows ${h0} o'clock. What hour will it show ${N(n)} hours from now? (Enter a number from 1 to 12.)`, type: 'number', answer: ans, params: { kind, h0, n },
+          hints: [`Every 12 hours the clock returns to the same hour. ${N(n)} = 12 × ${Math.floor(n / 12)} + ${n % 12}.`, `${n % 12} hours after ${h0} o'clock is <b>${ans}</b> o'clock.`] };
+      }
+      if (kind === 'pattern-sum') {
+        const k = rng.int(3, 6), cyc = Array.from({ length: k }, () => rng.int(1, 9)), n = rng.int(30, 200), full = Math.floor(n / k), left = n % k, cs = cyc.reduce((s, x) => s + x, 0), ans = full * cs + cyc.slice(0, left).reduce((s, x) => s + x, 0);
+        return { prompt: `The pattern ${cyc.join(', ')} repeats forever: ${cyc.concat(cyc).join(', ')}, … What is the sum of the first ${n} numbers?`, type: 'number', answer: ans, params: { kind, cyc, n },
+          hints: [`One full cycle adds to ${cs}. ${n} = ${k} × ${full} + ${left}.`, `${full} cycles give ${full * cs}${left ? `, and the ${left} leftover number${left === 1 ? '' : 's'} (${cyc.slice(0, left).join(', ')}) add ${cyc.slice(0, left).reduce((s, x) => s + x, 0)}` : ''}.`, `The sum is <b>${N(ans)}</b>.`] };
+      }
+      const n = rng.int(20, 400), ans = n % 2 ? (n + 1) / 2 : -n / 2;
+      return { prompt: `What is the value of 1 − 2 + 3 − 4 + 5 − 6 + … ${n % 2 ? '−' : '+'} ${n - 1} ${n % 2 ? '+' : '−'} ${n}?`, type: 'number', answer: ans, params: { kind, n },
+        hints: [`Group in pairs: (1 − 2) + (3 − 4) + … Each pair is −1.`, n % 2 ? `There are ${(n - 1) / 2} pairs, giving −${(n - 1) / 2}, plus the last term ${n}: −${(n - 1) / 2} + ${n} = <b>${ans}</b>.` : `There are ${n / 2} pairs: <b>${N(ans)}</b>.`] };
+    },
+    verify(q) {
+      const P = q.params;
+      if (P.kind === 'decimal') return Number((BigInt(P.a) * 10n ** BigInt(P.n) / BigInt(P.b)) % 10n) === q.answer;
+      if (P.kind === 'clock') { let h = P.h0; for (let i = 0; i < P.n; i++) h = h === 12 ? 1 : h + 1; return h === q.answer; }
+      let s = 0;
+      if (P.kind === 'pattern-sum') { for (let i = 0; i < P.n; i++) s += P.cyc[i % P.cyc.length]; return s === q.answer; }
+      for (let i = 1; i <= P.n; i++) s += i % 2 ? i : -i; return s === q.answer;
     },
   });
 })();
