@@ -279,7 +279,7 @@
   for (let k = 0; k <= hq.hints.length && !root.querySelector('#hint').disabled; k++) { root.querySelector('#hint').click(); await tick(); }
   ok(root.querySelectorAll('.hints .hint').length >= hq.hints.length && root.querySelector('#next') && root.querySelector('#hint').disabled, 'player: the last hint reveals the question and offers Next');
   root.querySelector('#next').click(); await tick();
-  root.querySelector('#giveup').click(); await tick();
+  root.querySelector('#giveup').click(); await tick(); root.querySelector('#giveup-yes').click(); await tick();      // nothing tried yet: it asks first
   ok(root.querySelector('.feedback.note') && text(root.querySelector('.feedback.note')).includes(String(A.answerText(root.__session.items[2].q)).trim().split(' ')[0]) && root.querySelector('#next'), 'player: "I don’t know" shows the answer and moves on');
   // unreadable input
   root.querySelector('#next').click(); await tick();
@@ -1599,9 +1599,9 @@
   const skipped = m.__session.items[1].seed;
   m.querySelector('#skip').click(); await tick(10);
   ok(m.__session.items[m.__session.items.length - 1].seed === skipped && m.__session.i === 1, 'player: Skip for now moves the question to the end');
-  ok(!S.get().profile.player.sound && /Sound off/.test(text(m.querySelector('#sound'))), 'player: sound is off unless turned on');
+  ok(!S.get().profile.player.sound && !m.querySelector('#sound').checked, 'player: sound is off unless turned on');
   m.querySelector('#sound').click(); await tick(5);
-  ok(S.get().profile.player.sound === true && m.querySelector('#sound').getAttribute('aria-pressed') === 'true', 'player: the sound choice is remembered');
+  ok(S.get().profile.player.sound === true && m.querySelector('#sound').checked, 'player: the sound choice is remembered');
   m.querySelector('#pause').click(); await tick(40);
   ok(S.get().profile.paused['#/practice/math7.add-negatives'] && location.hash !== '#/practice/math7.add-negatives', 'player: Pause saves the set and leaves');
   m = await go('#/practice/math7.add-negatives');
@@ -1725,6 +1725,196 @@
   ok(['g4.estimate-sum-diff', 'g4.mental-math', 'g5.times-11', 'g5.estimate-products', 'g5.line-graphs', 'g6.percent-in-head', 'g6.recipe-scaling', 'g6.money-plans', 'g6.double-bar-graphs', 'math7.sports-stats'].every(id => A.skills[id] && A.whereIs(id)), 'new skills: estimation, mental math, everyday problems and graph reading, each in a unit');
   ok(E.start('chapter-test', { book: 'cc2', chapter: 3 }).secondChance, 'test prep: a practice test gives a second chance on a miss, like a unit test');
   S.reset();
+  }
+
+  { // the practice screen: a clear right-or-wrong banner, Undo and a fraction template on the keypad, powers and roots when
+    // they help, arrow keys, the keypad kept per device, asking before "I don't know", focus mode, a timer, flagging, going on
+    // by itself, 5 / 7 / 10 questions, a similar one, partial credit, answering by hand (a point, a number line, an order,
+    // handwriting), the perfect set, the best streak, hints read aloud, Next skill
+  const until = async (fn, ms) => { const t = Date.now(); while (Date.now() - t < (ms || 3000)) { if (fn()) return true; await tick(20); } return false; };
+  const DEV = 'procademy.player.v1', clearDev = () => { try { localStorage.removeItem(DEV); } catch (e) { /* fine */ } };
+  clearDev(); S.reset(); S.setProfile({ welcomed: true });
+  const goP = async h => { location.hash = '#/settings'; await tick(15); location.hash = h; await tick(40); return document.getElementById('main'); };
+  const find = (sid, pred, tag) => { for (let k = 0; k < 800; k++) { const q = A.question(sid, (tag || 'pp') + k); if (pred(q)) return { seed: (tag || 'pp') + k, q }; } return null; };
+  const put = (mm, sid, pred, extra) => { const f = find(sid, pred); const sx = E.start('practice', Object.assign({ skillId: sid, seed: 'pp' }, extra || {})); sx.items[0] = { skillId: sid, seed: f.seed, q: f.q }; V._h.exercise(mm, sx, { back: '#/', backLabel: 'Home', again: () => {} }); return sx; };
+  const typeIn = (mm, v) => { const i = mm.querySelector('#ans'); i.value = v; i.dispatchEvent(new Event('input', { bubbles: true })); };
+  const key = (mm, k) => mm.querySelector(`.ans-key[data-key="${k}"]`).click();
+  // the engine: ways to answer by hand, partial credit, typed powers and roots, a similar question, a set's length
+  const qo = find('g6.number-line', q => q.params.kind === 'order').q, ho = E.hands(qo);
+  ok(ho && ho.kind === 'order' && ho.items.length === 4 && A.check(qo, ho.value(ho.answer)).correct && !A.check(qo, ho.value(ho.items)).correct && E.parts(qo, ho.value(ho.items)).of === 4, 'by hand: numbers to put in order; only the right order checks, and the places right are counted');
+  const fg = find('int1.transformations', q => { const h = E.hands(q); return h && q.choices.some((c, i) => i !== q.answerIndex && (E.parts(q, i) || {}).right === 1); }), qg = fg.q, hg = E.hands(qg);
+  ok(hg && hg.kind === 'grid' && A.check(qg, hg.value(hg.answer)).correct && !A.check(qg, hg.value([hg.answer[0] + 1, hg.answer[1]])).correct, 'by hand: a point question is answered on a grid; a point that isn’t one of the choices is simply wrong');
+  ok(['math8.point-on-line', 'alg1.linear-inequalities', 'g5.coordinate-plane', 'math7.percent-of'].every(id => [0, 1, 2, 3, 4, 5].every(k => !E.hands(A.question(id, 'h' + k)) || E.hands(A.question(id, 'h' + k)).kind !== 'grid')), 'by hand: no grid where many points would be right, or where the question has its own picture');
+  const hl = E.hands(A.question('math7.add-negatives', 'l1'));
+  ok(hl && hl.kind === 'line' && A.question('math7.add-negatives', 'l1').answer >= hl.min && A.question('math7.add-negatives', 'l1').answer <= hl.max && hl.start === A.question('math7.add-negatives', 'l1').params.a, 'by hand: adding integers on a number line that starts at the first number');
+  const one = qg.choices.findIndex((c, i) => i !== qg.answerIndex && (E.parts(qg, i) || {}).right === 1);
+  ok(E.parts(qg, one).of === 2 && E.parts(qg, one).which.filter(Boolean).length === 1 && E.parts(qg, qg.answerIndex) === null, 'partial credit: one coordinate of a point right is half right');
+  S.reset();
+  let sx = E.start('review', { items: [{ skill: 'int1.transformations', seed: fg.seed }] }); E.answer(sx, one); E.reveal(sx); E.next(sx);
+  let fx = E.finish(sx);
+  ok(fx.right === 0 && fx.pts === Math.floor(E.POINTS.hinted / 2) && sx.results[0].part.right === 1, 'partial credit: a partly right answer earns a few points, never a level');
+  ok(Math.abs(E.typedValue('√85') - Math.sqrt(85)) < 1e-9 && Math.abs(E.typedValue('4000 × 0.95^5') - 4000 * Math.pow(0.95, 5)) < 1e-9 && E.typedValue('3√2(2)') === 6 * Math.SQRT2 && E.typedValue('-2^2') === -4 && isNaN(E.typedValue('2 + x')) && isNaN(E.typedValue('(2')), 'powers and roots: typed expressions are worked out by a small reader (no eval)');
+  const qmk = find('geo.pythagorean-special', q => q.type === 'number' && q.tolerance != null, 'mk').q;
+  ok(E.mathKeys(qmk) && !E.mathKeys(A.question('math7.add-negatives', 'x')) && !E.mathKeys(A.question('math8.roots', 'x')), 'powers and roots: offered for rounded answers with a power or a root in them, not where typing the question back would answer it');
+  S.reset();
+  sx = E.start('practice', { skillId: 'math7.add-negatives', seed: 'sim1' }); E.reveal(sx);
+  const sim = E.similar(sx);
+  ok(sim && sim.why === 'similar' && sim.extra && sx.items[1] === sim && sx.items.length === 8 && sim.q.prompt !== sx.items[0].q.prompt, 'a similar one: the same skill, next, as an extra');
+  E.next(sx); sx.items.slice(1).forEach(it => { E.answer(sx, it.q.answer); E.next(sx); });
+  fx = E.finish(sx);
+  ok(fx.total === 7 && fx.right === 6 && fx.extras === 1 && fx.extraRight === 1 && S.skill('math7.add-negatives').level === 2, 'a similar one: it stays out of the score and the level (6 of 7 is Familiar)');
+  S.reset();
+  sx = E.start('practice', { skillId: 'math7.add-negatives', n: 5, seed: 'len5' });
+  sx.items.forEach(it => { E.answer(sx, it.q.answer); E.next(sx); });
+  fx = E.finish(sx);
+  ok(sx.items.length === 5 && fx.pts === 5 * E.POINTS.correct + Math.round(E.POINTS.set * 5 / 7) + E.POINTS.levelUp[3] && S.skill('math7.add-negatives').level === 3, 'set length: five questions, all right, is Proficient, with a set bonus in step');
+  // the player: the banner, the keypad's Undo, Clear and fraction template, powers and roots
+  S.reset(); S.setProfile({ welcomed: true, player: { pad: true } });
+  let m = await goP('#/practice/math7.percent-of');
+  ok(m.querySelector('#ans-pad') && !m.querySelector('#ans-pad').hidden, 'keypad: a choice made before this change (with the learner) still opens it');
+  m.querySelector('#pad-toggle').click(); await tick(10);
+  ok(m.querySelector('#ans-pad').hidden && JSON.parse(localStorage.getItem(DEV)).pad === false && S.get().profile.player.pad === true, 'keypad: open or closed is now kept on this device, not with the learner');
+  m.querySelector('#pad-toggle').click(); await tick(10);
+  key(m, '1'); key(m, '2'); key(m, 'undo');
+  ok(m.querySelector('#ans').value === '1', 'keypad: Undo takes back the last key');
+  key(m, 'clear'); key(m, 'undo');
+  ok(m.querySelector('#ans').value === '1' && !m.querySelector('.ans-key[data-key="^"]'), 'keypad: Clear empties the box, and Undo brings it back; no power key where it isn’t needed');
+  key(m, 'clear'); key(m, 'frac'); key(m, '3'); key(m, 'frac'); key(m, '4');
+  ok(m.querySelector('#ans').value === '3/4' && m.querySelector('#ans-preview .frac .num').textContent === '3' && !m.querySelector('#ans-preview').hidden, 'keypad: the fraction key is a template: the top, then the bottom, drawn stacked');
+  key(m, 'clear'); key(m, '2'); key(m, 'frac');
+  ok(m.querySelector('#ans').value === '2/' && m.querySelector('#ans-preview .den .slot'), 'keypad: after a number the fraction key starts the bottom, shown as a box to fill');
+  m.__session.items[0].q = Object.assign({}, m.__session.items[0].q, { type: 'number', answer: 0.5, prompt: '<p>Half as a decimal?</p>', hints: ['a', 'b'] });
+  typeIn(m, '0.5'); m.querySelector('#check').click(); await tick(10);
+  ok(m.querySelector('.feedback.good.verdict .vd-ic .ic') && text(m.querySelector('.vd-title')) === 'Correct', 'banner: a right answer gets a large check and “Correct”');
+  m = await goP('#/practice/math7.unit-rate');
+  answerCurrent(m, false); await tick(10);
+  ok(m.querySelector('.feedback.bad.verdict') && text(m.querySelector('.vd-title')) === 'Not quite' && m.querySelector('#check'), 'banner: a wrong answer gets a large cross and “Not quite”, and another try');
+  sx = put(m, 'geo.pythagorean-special', q => q.type === 'number' && q.tolerance != null && /legs/.test(q.prompt)); await tick(10);
+  const qp = sx.items[0].q;
+  ok(m.querySelector('.ans-key[data-key="^"]') && m.querySelector('.ans-key[data-key="√"]'), 'keypad: power and root keys when the question can use them');
+  typeIn(m, `√(${qp.answer}^2)`); m.querySelector('#check').click(); await tick(10);
+  ok(m.querySelector('.feedback.good') && /is/.test(text(m.querySelector('.vd-detail'))) && E.counts(sx.results[0]), 'powers and roots: an exact form is worked out and checked');
+  sx = put(m, 'math7.add-negatives', () => true); await tick(10);
+  typeIn(m, '2^3'); m.querySelector('#check').click(); await tick(10);
+  ok(/one number/.test(text(m.querySelector('#feedback'))) && !(sx.results[0] && sx.results[0].tries), 'powers and roots: elsewhere a typed power asks for the number itself, and isn’t counted as a try');
+  // asking before "I don't know"; a similar one
+  m.querySelector('#giveup').click(); await tick(10);
+  ok(m.querySelector('.giveup-ask') && !(sx.results[0] && sx.results[0].revealed) && document.activeElement && document.activeElement.id === 'giveup-no', '“I don’t know”: before anything is tried, it asks first');
+  m.querySelector('#giveup-no').click(); await tick(10);
+  ok(!m.querySelector('.giveup-ask') && m.querySelector('#check') && !(sx.results[0] && sx.results[0].revealed), '“I don’t know”: Keep trying goes back to the question');
+  m.querySelector('#giveup').click(); await tick(10); m.querySelector('#giveup-yes').click(); await tick(10);
+  ok(sx.results[0].revealed && m.querySelector('#next') && m.querySelector('#similar'), '“I don’t know”: Show the answer shows it, and a similar question is offered');
+  m.querySelector('#similar').click(); await tick(10);
+  ok(sx.i === 1 && sx.items[1].why === 'similar' && /A similar one/.test(text(m.querySelector('.q-tools'))) && sx.items.length === 8, 'a similar one: it comes next, marked as such');
+  answerCurrent(m, false); await tick(10);
+  m.querySelector('#giveup').click(); await tick(10);
+  ok(!m.querySelector('.giveup-ask') && sx.results[1].revealed, '“I don’t know”: after a try it shows the answer at once');
+  // the number line: dragging the marker writes the answer
+  m = document.getElementById('main');
+  sx = put(m, 'math7.add-negatives', () => true); await tick(10);
+  const nl = m.querySelector('.nline'), sl = E.hands(sx.items[0].q), nr = nl.getBoundingClientRect(), nx = v => nr.left + (Number(nl.dataset.pad) + (v - sl.min) * Number(nl.dataset.u)) * nr.width / Number(nl.dataset.w);
+  ok(nl && nl.getAttribute('role') === 'slider' && Number(nl.getAttribute('aria-valuenow')) === sl.start, 'number line: a marker to drag, starting at the first number');
+  nl.dispatchEvent(new PointerEvent('pointerdown', { clientX: nx(sx.items[0].q.answer), clientY: nr.top + 40, bubbles: true, pointerId: 7 }));
+  nl.dispatchEvent(new PointerEvent('pointerup', { clientX: nx(sx.items[0].q.answer), clientY: nr.top + 40, bubbles: true, pointerId: 7 }));
+  ok(A.parseNumber(m.querySelector('#ans').value) === sx.items[0].q.answer && Number(nl.getAttribute('aria-valuenow')) === sx.items[0].q.answer, 'number line: dropping the marker writes its number in the answer box');
+  nl.focus(); nl.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+  ok(A.parseNumber(m.querySelector('#ans').value) === sx.items[0].q.answer + 1, 'number line: the arrow keys move it one step');
+  nl.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true }));
+  m.querySelector('#check').click(); await tick(10);
+  ok(m.querySelector('.feedback.good') && m.querySelector('.nl-mark.ok'), 'number line: checked like a typed answer');
+  // a point on a grid: partly right, then right
+  sx = put(m, 'int1.transformations', q => q === qg || (q.prompt === qg.prompt)); await tick(10);
+  const gp = () => m.querySelector('.grid-pick'), clickAt = p => { const g = gp(), r = g.getBoundingClientRect(), u = Number(g.dataset.u), pd = Number(g.dataset.pad), k = r.width / 320; g.dispatchEvent(new MouseEvent('click', { clientX: r.left + (pd + (p[0] - hg.min) * u) * k, clientY: r.top + (320 - pd - (p[1] - hg.min) * u) * k, bubbles: true })); };
+  ok(gp() && m.querySelector('#choices').hidden && m.querySelector('#check').disabled, 'grid: the point is clicked on a grid (the choices wait behind “Choose from a list instead”)');
+  clickAt(hg.choices[one]); await tick(10);
+  ok(/Your point/.test(text(m.querySelector('.hands-read'))) && !m.querySelector('#check').disabled, 'grid: a click places the point and says where it is');
+  m.querySelector('#check').click(); await tick(10);
+  ok(/Partly right: the [xy]-coordinate is right/.test(text(m.querySelector('#feedback'))) && sx.results[0].said === hg.said(hg.choices[one]), 'partial credit: the coordinate that is right is named');
+  gp().focus(); clickAt(hg.answer); await tick(10); m.querySelector('#check').click(); await tick(10);
+  ok(m.querySelector('.feedback.good') && m.querySelector('.gr-pt.right'), 'grid: the right point is right');
+  m.querySelector('#next').click(); await tick(10);
+  // putting things in order, with the keyboard; the list instead, kept per device
+  sx = put(m, 'g6.number-line', q => q.prompt === qo.prompt); await tick(10);
+  const order = () => [...m.querySelectorAll('.order-item .oi-text')].map(x => x.innerHTML);
+  const moveTo = (val, to) => { for (let g = 0; g < 10; g++) { const at = order().indexOf(val); if (at === to) return; m.querySelectorAll('.order-item')[at].dispatchEvent(new KeyboardEvent('keydown', { key: at > to ? 'ArrowUp' : 'ArrowDown', bubbles: true })); } };
+  ok(m.querySelectorAll('.order-item').length === 4 && m.querySelector('#check').disabled, 'order: tiles to put in order; Check waits for a move');
+  ho.answer.forEach((v, k) => moveTo(v, k));
+  ok(order().join('|') === ho.answer.join('|') && !m.querySelector('#check').disabled && document.activeElement && document.activeElement.classList.contains('order-item'), 'order: the arrow keys move a tile, and it keeps the focus');
+  m.querySelector('#check').click(); await tick(10);
+  ok(m.querySelector('.feedback.good') && m.querySelectorAll('.order-item.ok').length === 4, 'order: the right order checks as right');
+  sx = put(m, 'g6.number-line', q => q.prompt === qo.prompt); await tick(10);
+  m.querySelector('#hands-switch').click(); await tick(10);
+  ok(!m.querySelector('#choices').hidden && !m.querySelector('.order-list') && JSON.parse(localStorage.getItem(DEV)).hands === false, 'order: “Choose from a list instead” shows the choices, and is remembered on this device');
+  m.querySelector('#hands-switch').click(); await tick(10);
+  // the arrow keys move through choices
+  sx = put(m, 'math7.proportional-table', q => q.type === 'choice' && !E.hands(q)); await tick(10);
+  const cb = m.querySelectorAll('#choices button');
+  cb[0].focus(); cb[0].dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+  ok(document.activeElement === m.querySelectorAll('#choices button')[1] && m.querySelectorAll('#choices button')[1].getAttribute('aria-pressed') === 'true', 'arrow keys: down moves to the next choice and chooses it');
+  m.querySelectorAll('#choices button')[1].dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true }));
+  m.querySelectorAll('#choices button')[0].dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true }));
+  ok(m.querySelectorAll('#choices button')[cb.length - 1].getAttribute('aria-pressed') === 'true', 'arrow keys: up from the first goes round to the last');
+  // handwriting: a digit drawn is read and typed in
+  const INK = V._h.exercise.INK, stroke = pts => pts.map(([x, y]) => [x * 1.6 + 30, y * 1.6 + 20]);
+  ok(INK.read([stroke([[12, 0], [88, 0], [38, 100]])], 200) === '7' && INK.read([stroke([[62, 0], [10, 68], [88, 68]]), stroke([[66, 30], [66, 100]])], 200) === '4' && INK.read([stroke([[10, 50], [90, 52]])], 200) === '−' && INK.read([stroke([[50, 0], [22, 12], [12, 50], [22, 88], [50, 100], [78, 88], [88, 50], [78, 12], [50, 2]])], 200) === '0', 'handwriting: a 7, a 4, a minus sign and a 0 are read');
+  localStorage.setItem(DEV, JSON.stringify({ ink: true }));
+  sx = put(m, 'math7.add-negatives', () => true); await tick(10);
+  const cvs = m.querySelector('.ink canvas');
+  ok(cvs && m.querySelector('#ink-toggle') && m.querySelector('#ans').getAttribute('inputmode') === 'none', 'handwriting: a box to write in, kept open on this device');
+  const cr = cvs.getBoundingClientRect(), pe = (t, x, y) => cvs.dispatchEvent(new PointerEvent(t, { clientX: cr.left + x, clientY: cr.top + y, bubbles: true, pointerId: 9 }));
+  pe('pointerdown', 20, 20); [[60, 20], [100, 21], [140, 22], [110, 80], [80, 140], [70, 170]].forEach(([x, y]) => pe('pointermove', x, y)); pe('pointerup', 70, 170);
+  cvs.closest('.ink').__read();
+  ok(m.querySelector('#ans').value === '7' && /Read as 7/.test(text(m.querySelector('.ink-last'))), 'handwriting: the digit is typed into the answer');
+  m.querySelector('.ink [data-ink="undo"]').click();
+  ok(m.querySelector('#ans').value === '', 'handwriting: Undo takes it back');
+  m.querySelector('#ink-toggle').click(); await tick(10);
+  ok(!m.querySelector('.ink') && JSON.parse(localStorage.getItem(DEV)).ink === false, 'handwriting: Stop writing closes it');
+  clearDev();
+  // options: a timer, focus mode, going on by itself; flagging
+  S.reset(); S.setProfile({ welcomed: true });
+  m = await goP('#/practice/math7.add-negatives');
+  m.querySelector('#opts-btn').click(); await tick(5);
+  ok(!m.querySelector('#opts-panel').hidden && m.querySelector('#sound') && !m.querySelector('#sound').checked, 'options: sound, a timer, going on by itself and focus mode, folded into one menu');
+  m.querySelector('#opt-focus').click(); await tick(5);
+  ok(S.get().profile.player.focus && document.documentElement.classList.contains('pc-focus') && getComputedStyle(document.querySelector('.top')).display === 'none', 'focus mode: the menus hide while practicing');
+  m.querySelector('#opt-timer').click(); await tick(10);
+  ok(S.get().profile.player.timer && m.querySelector('#ex-timer') && /0:0\d/.test(text(m.querySelector('#ex-timer'))), 'timer: an on-screen timer for the set');
+  m.querySelector('#opt-auto').click(); await tick(5);
+  m.querySelector('#flag-btn').click(); await tick(5);
+  ok(m.querySelector('#flag-box') && m.querySelectorAll('#flag-why button').length === 3, 'flag: what’s wrong with the question, with a note');
+  m.querySelector('#flag-why [data-v="answer"]').click(); m.querySelector('#flag-note').value = 'I think 3 is right';
+  m.querySelector('#flag-save').click(); await tick(10);
+  const fl0 = (S.get().profile.flagged || [])[0];
+  ok(fl0 && fl0.why === 'answer' && fl0.note === 'I think 3 is right' && fl0.skill === 'math7.add-negatives' && m.querySelector('#flag-btn').getAttribute('aria-pressed') === 'true' && !m.querySelector('#flag-box'), 'flag: kept with the learner’s progress, and the question shows as flagged');
+  answerCurrent(m, true); await tick(10);
+  ok(m.querySelector('#next.auto-go'), 'go on by itself: after a right answer the Next button fills');
+  await until(() => m.__session.i === 1, 3000);
+  ok(m.__session.i === 1, 'go on by itself: the next question comes up');
+  answerCurrent(m, true); await tick(10);
+  m.querySelector('.feedback').dispatchEvent(new PointerEvent('pointerdown', { bubbles: true })); await tick(2100);
+  ok(m.__session.i === 1 && !m.querySelector('#next.auto-go'), 'go on by itself: a tap first keeps the answer on screen');
+  for (let k = 0; k < 16 && !m.querySelector('.summary'); k++) { if (m.querySelector('#next')) m.querySelector('#next').click(); else if (m.querySelector('.feedback.bad') && m.querySelector('#giveup')) m.querySelector('#giveup').click(); else answerCurrent(m, m.__session.i !== 4); await tick(); }
+  ok(m.querySelector('.summary') && /Time: \d+:\d\d/.test(text(m.querySelector('.summary .what'))) && /Longest streak: 4 in a row/.test(text(m.querySelector('.summary .what'))) && m.querySelector('.sum-flags') && !document.documentElement.classList.contains('pc-focus'), 'summary: the time, the longest streak, the flagged question, and the menus back');
+  location.hash = '#/'; await tick(20);
+  ok(!document.documentElement.classList.contains('pc-focus'), 'focus mode: off the practice screen the menus are always there');
+  // 5, 7 or 10 questions, chosen at the first question; a perfect set; Next skill leads after a good set
+  S.reset(); S.setProfile({ welcomed: true });
+  m = await goP('#/practice/math7.add-negatives');
+  ok(m.querySelector('.len-pick [data-len="7"][aria-checked="true"]'), 'set length: 5, 7 or 10, chosen before the first answer');
+  m.querySelector('[data-len="5"]').click(); await tick(10);
+  ok(m.__session.items.length === 5 && S.get().profile.player.len === 5, 'set length: five questions, and the choice is kept');
+  answerCurrent(m, true); await tick(10);
+  ok(!m.querySelector('.len-pick'), 'set length: no choosing once the set has begun');
+  for (let k = 0; k < 12 && !m.querySelector('.summary'); k++) { if (m.querySelector('#next')) m.querySelector('#next').click(); else answerCurrent(m, true); await tick(); }
+  const nxt = m.querySelector('.summary .btn-row .btn');
+  ok(m.querySelector('.perfect-banner') && m.querySelector('.confetti') && /5 \/ 5/.test(text(m.querySelector('.score'))), 'a perfect set: celebrated');
+  ok(nxt && /Next skill/.test(text(nxt)) && nxt.classList.contains('primary') && !m.querySelector('#again').classList.contains('primary'), 'Next skill: it leads after a good set');
+  m = await goP('#/practice/math7.add-negatives');
+  ok(m.__session.items.length === 5, 'set length: the next set has the length chosen');
+  // hints can be read aloud
+  m.querySelector('#hint').click(); await tick(5); m.querySelector('#hint').click(); await tick(5);
+  ok(!COACH.canSpeak() || m.querySelector('.hints .hint:not(.nudge) .say-btn'), 'hints: each one has Read aloud (where the device has a voice)');
+  clearDev(); S.reset();
   }
 
   { // unlimited practice: questions without end, saved every 7 answers like a practice set
