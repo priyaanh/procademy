@@ -145,7 +145,7 @@
         else do { c2 = Math.round(c1 * q2 / q1 * (1 + rng.pick([-1, 1]) * rng.int(4, 20) / 100)); } while (c2 * q1 === c1 * q2);
         const u1 = c1 / q1, u2 = c2 / q2, opts = [sizeName(q1, unit), sizeName(q2, unit), `Both cost the same per ${unit}`], answer = c1 * q2 === c2 * q1 ? opts[2] : u1 < u2 ? opts[0] : opts[1];
         return { prompt: `A store sells ${item} in two sizes: ${plural(q1, unit)} for ${$(dl(c1))} and ${plural(q2, unit)} for ${$(dl(c2))}. Which is the better buy?`, type: 'choice', keepOrder: true, answer, choices: opts, params: { kind, c1, q1, c2, q2, opts },
-          hints: [`Unit prices: ${$(dl(c1))} ÷ ${q1} ≈ ${$(M.round(u1 / 100, 4))} and ${$(dl(c2))} ÷ ${q2} ≈ ${$(M.round(u2 / 100, 4))} per ${unit}.`, answer === opts[2] ? `They're equal: <b>both cost the same per ${unit}</b>.` : `The lower unit price wins: <b>${answer.toLowerCase()}</b>.`] };
+          hints: [`Unit prices: ${$(dl(c1))} ÷ ${q1} ≈ ${'$' + N(M.round(u1 / 100, 4))} and ${$(dl(c2))} ÷ ${q2} ≈ ${'$' + N(M.round(u2 / 100, 4))} per ${unit}.`, answer === opts[2] ? `They're equal: <b>both cost the same per ${unit}</b>.` : `The lower unit price wins: <b>${answer.toLowerCase()}</b>.`] };
       }
       const q1 = rng.int(2, 6), q2 = q1 + rng.int(1, 6), c = clearPrice(rng, q1 / q2, q1 * 90, q1 * 450), ans = Math.round(c * q2 / q1);
       return { prompt: `${plural(q1, unit === 'bar' ? 'pound' : unit)} of ${item === 'granola bars' ? 'trail mix' : item} cost ${$(dl(c))}. At the same price per ${unit === 'bar' ? 'pound' : unit}, how much would ${plural(q2, unit === 'bar' ? 'pound' : unit)} cost, to the nearest cent?`, type: 'number', answer: dl(ans), unit: '$', params: { kind, c, q1, q2 },
