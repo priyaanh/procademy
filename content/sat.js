@@ -37,6 +37,7 @@
       { id: 'algebra', title: 'Algebra', blurb: 'Linear equations, linear models, systems, inequalities, and the slopes and intercepts of lines.', skills: ['sat.linear-equations', 'sat.linear-models', 'sat.systems', 'sat.linear-inequalities', 'sat.lines'] },
       { id: 'advanced', title: 'Advanced math', blurb: 'Quadratics, exponents and radicals, functions, exponential models, polynomials, and line-and-parabola systems.', skills: ['sat.quadratics', 'sat.exponents-radicals', 'sat.functions', 'sat.exponential-models', 'sat.polynomials-rational', 'sat.nonlinear-systems'] },
       { id: 'data', title: 'Problem solving and data analysis', blurb: 'Ratios, rates and unit conversions, percents, mean, median and spread, two-way tables, and what a sample can tell you.', skills: ['sat.ratios-rates', 'sat.percents', 'sat.statistics', 'sat.probability-tables', 'sat.sampling-inference'] },
+      { id: 'geometry', title: 'Geometry and trigonometry', blurb: 'Area and volume, angles and similar triangles, right-triangle trigonometry, and circles, arcs and radians.', skills: ['sat.area-volume', 'sat.angles-triangles', 'sat.right-triangles', 'sat.circles'] },
     ],
   };
   A.course(COURSE);
@@ -668,6 +669,171 @@
       if (P.kind === 'margin') { const S = SURVEYS[P.s]; return q.answer.includes(`${P.pc - P.m}% and ${P.pc + P.m}%`) && q.answer.includes(`of ${S.pop} `); }
       if (P.kind === 'generalize') return q.answer === `All of ${SURVEYS[P.s].pop}`;
       return near(q.answer / P.total, P.k / P.s, 1e-12);
+    },
+  });
+
+  /* ---------- Unit 4: geometry and trigonometry ---------- */
+  const PI = 'π';
+  /** "kπ" for a fraction k = n/d */
+  const kpi = (n, d) => { const [a, b] = M.simp(n, d); return `${a === 1 ? '' : a === -1 ? '−' : N(a)}${PI}${b === 1 ? '' : '/' + b}`; };
+  A.skill({
+    id: 'sat.area-volume', title: 'Area and volume',
+    learn: p(`The formulas you'll use most: <b>cylinder ${V('V')} = π${M.sup(V('r'), 2)}${V('h')}</b>, <b>cone ${V('V')} = ${F(1, 3)}π${M.sup(V('r'), 2)}${V('h')}</b>, <b>sphere ${V('V')} = ${F(4, 3)}π${M.sup(V('r'), 3)}</b>, and rectangle area = length × width. Answers are often written as a multiple of π, so keep π as a symbol.`) +
+      p(`<b>Scaling:</b> if every length is multiplied by ${V('k')}, areas are multiplied by ${M.sup(V('k'), 2)} and volumes by ${M.sup(V('k'), 3)}. If only some lengths change, multiply the factors for the ones that do: tripling a cylinder's radius multiplies its volume by 9.`) +
+      example('Example', `A cone with radius 6 and height 5 has volume ${F(1, 3)}π(36)(5) = <b>60π</b>. Doubling its radius and keeping its height multiplies the volume by 4, to 240π.`),
+    make(rng) {
+      const kind = rng.pick(['solid', 'solid', 'scale', 'rectangle']);
+      if (kind === 'solid') {
+        const shape = rng.pick(['cylinder', 'cone', 'sphere']);
+        let r, h = 0, k;
+        if (shape === 'cylinder') { r = rng.int(2, 9); h = rng.int(2, 12); k = r * r * h; }
+        else if (shape === 'cone') { do { r = rng.int(2, 9); h = rng.int(2, 12); } while ((r * r * h) % 3); k = r * r * h / 3; }
+        else { r = rng.pick([3, 6, 9]); k = 4 * r ** 3 / 3; }
+        const dims = shape === 'sphere' ? `a radius of ${r} centimeters` : `a radius of ${r} centimeters and a height of ${h} centimeters`, form = { cylinder: `π${M.sup(V('r'), 2)}${V('h')}`, cone: `${F(1, 3)}π${M.sup(V('r'), 2)}${V('h')}`, sphere: `${F(4, 3)}π${M.sup(V('r'), 3)}` }[shape];
+        return { prompt: `A ${shape} has ${dims}. Its volume is ${K}π cubic centimeters. What is the value of ${K}?`, type: 'number', answer: k, params: { kind, shape, r, h },
+          hints: [`${V('V')} = ${form}.`, shape === 'sphere' ? `${F(4, 3)}π(${r})<sup>3</sup> = ${F(4, 3)}π(${r ** 3}) = ${N(k)}π.` : `${shape === 'cone' ? `${F(1, 3)}` : ''}π(${r})<sup>2</sup>(${h}) = ${shape === 'cone' ? `${F(1, 3)}π(${r * r * h})` : `π(${r * r})(${h})`} = ${N(k)}π.`, `<b>${K} = ${N(k)}</b>.`] };
+      }
+      if (kind === 'scale') {
+        const a = rng.pick([2, 3, 4]), [bn, bd] = rng.pick([[1, 2], [2, 1], [3, 1], [1, 3], [1, 1]]), ans = fa(a * a * bn, bd);
+        const hText = bn === bd ? 'its height stays the same' : bn > bd ? `its height is ${bn === 2 ? 'doubled' : 'tripled'}` : `its height is ${bd === 2 ? 'cut in half' : 'divided by 3'}`;
+        return { prompt: `The radius of a cylinder is ${a === 2 ? 'doubled' : a === 3 ? 'tripled' : 'multiplied by 4'}, and ${hText}. The new volume is how many times the original volume?`, type: 'number', ...ans, params: { kind, a, bn, bd },
+          hints: [`Volume is π${M.sup(V('r'), 2)}${V('h')}: the radius counts twice and the height once.`, `${a}² × ${bn === bd ? '1' : ft(bn, bd)} = <b>${ans.answerText || N(ans.answer)}</b>.`] };
+      }
+      const m = rng.pick([2, 3]), w = rng.int(3, 15), c = rng.int(-3, 6), L = m * w + c, P = 2 * (L + w);
+      return { prompt: `The length of a rectangle is ${c === 0 ? `${m === 2 ? 'twice' : 'three times'} its width` : `${Math.abs(c)} ${c > 0 ? 'more' : 'less'} than ${m === 2 ? 'twice' : 'three times'} its width`}. Its perimeter is ${P} inches. What is its area, in square inches?`, type: 'number', answer: L * w, unit: 'sq in.', params: { kind, m, c, P },
+        hints: [`Let the width be ${V('w')}. Then 2(${M.poly([m, c], 'w')}) + 2${V('w')} = ${P}, so ${M.poly([2 * m + 2, 2 * c], 'w')} = ${P}.`, `${V('w')} = ${w} and the length is ${L}.`, `Area = ${L} × ${w} = <b>${L * w}</b> square inches.`] };
+    },
+    verify(q) {
+      const P = q.params;
+      if (P.kind === 'solid') { const v = { cylinder: Math.PI * P.r * P.r * P.h, cone: Math.PI * P.r * P.r * P.h / 3, sphere: 4 / 3 * Math.PI * P.r ** 3 }[P.shape]; return near(v / Math.PI, q.answer, 1e-9); }
+      if (P.kind === 'scale') { const r = 1.7, h = 2.3, v0 = Math.PI * r * r * h, v1 = Math.PI * (P.a * r) ** 2 * (h * P.bn / P.bd); return near(v1 / v0, q.answer, 1e-9); }
+      for (let w = 1; w < 100; w++) { const L = P.m * w + P.c; if (2 * L + 2 * w === P.P) return L * w === q.answer; }
+      return false;
+    },
+  });
+
+  A.skill({
+    id: 'sat.angles-triangles', title: 'Lines, angles and triangles',
+    learn: p(`<b>The angles of a triangle add to 180°.</b> When two parallel lines are cut by a transversal, <b>alternate interior angles are equal</b> and <b>same-side interior angles add to 180°</b>.`) +
+      p(`If a segment inside a triangle is parallel to one side, it cuts off a smaller <b>similar</b> triangle: matching sides are in the same ratio. Write the ratio with whole sides, such as ${V('AD')} ÷ ${V('AB')} = ${V('DE')} ÷ ${V('BC')}.`) +
+      example('Example', `In triangle ${V('ABC')}, ${V('DE')} ∥ ${V('BC')} with ${V('AD')} = 4, ${V('DB')} = 6 and ${V('DE')} = 5. Then ${V('AB')} = 10, so ${V('BC')} = 5 × 10 ÷ 4 = <b>12.5</b>.`),
+    make(rng) {
+      const kind = rng.pick(['sum', 'similar', 'parallel']);
+      if (kind === 'sum') {
+        let x, a, b, c3; do { x = rng.int(8, 30); a = [rng.int(1, 4), rng.int(1, 4), rng.int(1, 4)]; b = [rng.int(-15, 25), rng.int(-15, 25)]; c3 = 180 - (a[0] + a[1] + a[2]) * x - b[0] - b[1]; } while ([a[0] * x + b[0], a[1] * x + b[1], a[2] * x + c3].some(t => t <= 10) || Math.abs(c3) > 60);
+        const bs = [b[0], b[1], c3], angs = a.map((ai, i) => ai * x + bs[i]), ask = rng.pick(['x', 'largest']), ans = ask === 'x' ? x : Math.max(...angs);
+        const show = i => `(${M.poly([a[i], bs[i]])})°`;
+        return { prompt: `In triangle ${V('ABC')}, the measures of angles ${V('A')}, ${V('B')} and ${V('C')} are ${show(0)}, ${show(1)} and ${show(2)}. What is ${ask === 'x' ? `the value of ${X}` : 'the measure, in degrees, of the largest angle'}?`, type: 'number', answer: ans, params: { kind, a, bs, ask },
+          hints: [`The angles add to 180: ${M.poly([a[0] + a[1] + a[2], bs[0] + bs[1] + bs[2]])} = 180.`, `So ${X} = ${x}, and the angles are ${angs.join('°, ')}°.`, ask === 'x' ? `<b>${X} = ${x}</b>.` : `The largest is <b>${Math.max(...angs)}°</b>.`] };
+      }
+      if (kind === 'similar') {
+        const ad = rng.int(2, 9), db = rng.int(2, 12), de = ad * rng.int(1, 5) / rng.pick([1, 2]), ans = fa(2 * de * (ad + db), 2 * ad);
+        return { prompt: `In triangle ${V('ABC')}, point ${V('D')} is on ${V('AB')} and point ${V('E')} is on ${V('AC')}, with ${V('DE')} parallel to ${V('BC')}. If ${V('AD')} = ${ad}, ${V('DB')} = ${db} and ${V('DE')} = ${de}, what is the length of ${V('BC')}?`, type: 'number', ...ans, params: { kind, ad, db, de },
+          hints: [`Triangles ${V('ADE')} and ${V('ABC')} are similar, and ${V('AB')} = ${ad} + ${db} = ${ad + db}.`, `${V('BC')} ÷ ${de} = ${ad + db} ÷ ${ad}, so ${V('BC')} = ${de} × ${ad + db} ÷ ${ad} = <b>${ans.answerText || N(ans.answer)}</b>.`] };
+      }
+      const same = rng.bool(); let x, p1, q1, p2, q2;
+      do { x = rng.int(5, 30); p1 = rng.int(2, 6); p2 = rng.int(1, 5); q1 = rng.int(-20, 40); q2 = same ? 180 - (p1 + p2) * x - q1 : (p1 - p2) * x + q1; } while (p1 === p2 || p1 * x + q1 <= 0 || p2 * x + q2 <= 0 || p1 * x + q1 >= 180 || p2 * x + q2 >= 180 || Math.abs(q2) > 120);
+      const a1 = p1 * x + q1, ask = rng.pick(['x', 'angle']), ans = ask === 'x' ? x : a1;
+      return { prompt: `Two parallel lines are cut by a transversal. Two ${same ? 'same-side interior' : 'alternate interior'} angles measure (${M.poly([p1, q1])})° and (${M.poly([p2, q2])})°. What is ${ask === 'x' ? `the value of ${X}` : `the measure, in degrees, of the angle (${M.poly([p1, q1])})°`}?`, type: 'number', answer: ans, params: { kind, same, p1, q1, p2, q2, ask },
+        hints: [same ? `Same-side interior angles add to 180°: (${M.poly([p1, q1])}) + (${M.poly([p2, q2])}) = 180.` : `Alternate interior angles are equal: ${M.poly([p1, q1])} = ${M.poly([p2, q2])}.`, `Solve: ${X} = ${x}.`, ask === 'x' ? `<b>${X} = ${x}</b>.` : `${p1}(${x}) ${M.signed(q1)} = <b>${a1}°</b>.`] };
+    },
+    verify(q) {
+      const P = q.params;
+      if (P.kind === 'sum') { const x = (180 - P.bs.reduce((s, b) => s + b, 0)) / P.a.reduce((s, a) => s + a, 0); return near(P.ask === 'x' ? x : Math.max(...P.a.map((a, i) => a * x + P.bs[i])), q.answer, 1e-9); }
+      if (P.kind === 'similar') return near(P.ad / (P.ad + P.db), P.de / q.answer, 1e-12);
+      for (let x = 0; x <= 90; x++) { const a1 = P.p1 * x + P.q1, a2 = P.p2 * x + P.q2; if (P.same ? a1 + a2 === 180 : a1 === a2) return (P.ask === 'x' ? x : a1) === q.answer; }
+      return false;
+    },
+  });
+
+  const TRIPLES = [[3, 4, 5], [5, 12, 13], [8, 15, 17], [7, 24, 25], [20, 21, 29], [9, 40, 41]];
+  const R2 = M.sqrt('2'), R3 = M.sqrt('3');
+  A.skill({
+    id: 'sat.right-triangles', title: 'Right triangles and trigonometry',
+    learn: p(`In a right triangle, <b>sin = opposite ÷ hypotenuse, cos = adjacent ÷ hypotenuse, tan = opposite ÷ adjacent</b>. The two acute angles add to 90°, so <b>sin ${V('x')}° = cos(90 − ${V('x')})°</b>: the sine of one acute angle is the cosine of the other.`) +
+      p(`Know the special triangles: in a <b>45°-45°-90°</b> triangle the hypotenuse is leg × ${R2}; in a <b>30°-60°-90°</b> triangle the sides are ${V('a')}, ${V('a')}${R3} and 2${V('a')}. And the Pythagorean theorem: ${M.sup(V('a'), 2)} + ${M.sup(V('b'), 2)} = ${M.sup(V('c'), 2)}.`) +
+      example('Example', `If sin ${V('A')} = ${F(5, 13)}, the sides are 5, 12 and 13, so cos ${V('A')} = ${F(12, 13)} and tan ${V('A')} = ${F(5, 12)}. And sin 25° = cos 65°.`),
+    make(rng) {
+      const kind = rng.pick(['ratio', 'ratio', 'cofunction', 'special', 'pythag']);
+      if (kind === 'ratio') {
+        const [a, b, c] = rng.pick(TRIPLES), give = rng.pick(['sinA', 'cosA', 'tanA']), ask = rng.pick(['sinA', 'cosA', 'tanA', 'sinB', 'cosB'].filter(t => t !== give));
+        // A is opposite a, B is opposite b; C is the right angle
+        const val = { sinA: [a, c], cosA: [b, c], tanA: [a, b], sinB: [b, c], cosB: [a, c] }, nm = t => `${t.slice(0, 3)} ${V(t[3])}`;
+        const ans = fa(...val[ask]);
+        return { prompt: `In right triangle ${V('ABC')}, angle ${V('C')} is the right angle and ${nm(give)} = ${F(...val[give])}. What is ${nm(ask)}?`, type: 'number', ...ans, params: { kind, a, b, c, give, ask },
+          hints: [`${nm(give)} = ${F(...val[give])} fits a ${a}-${b}-${c} right triangle, with ${a} opposite ${V('A')}, ${b} opposite ${V('B')} and hypotenuse ${c}.`, `${nm(ask)} = ${{ sinA: 'opposite ÷ hypotenuse', cosA: 'adjacent ÷ hypotenuse', tanA: 'opposite ÷ adjacent', sinB: 'opposite ÷ hypotenuse', cosB: 'adjacent ÷ hypotenuse' }[ask]} = <b>${ans.answerText || N(ans.answer)}</b>.`] };
+      }
+      if (kind === 'cofunction') {
+        const k = rng.int(5, 85), sinFirst = rng.bool();
+        return { prompt: `If ${sinFirst ? 'sin' : 'cos'}(${X}°) = ${sinFirst ? 'cos' : 'sin'}(${k}°) and 0 &lt; ${X} &lt; 90, what is the value of ${X}?`, type: 'number', answer: 90 - k, params: { kind, k, sinFirst },
+          hints: [`The sine of an angle equals the cosine of its complement.`, `So ${X} + ${k} = 90 and <b>${X} = ${90 - k}</b>.`] };
+      }
+      if (kind === 'special') {
+        const t = rng.pick(['30-short', '30-long', '45-hyp', '45-leg']), a = rng.int(2, 12);
+        if (t === '30-short' || t === '30-long') {
+          return { prompt: `In a 30°-60°-90° triangle, the hypotenuse has length ${2 * a}. ${t === '30-short' ? 'What is the length of the shorter leg?' : `The longer leg has length ${K}${R3}. What is the value of ${K}?`}`, type: 'number', answer: a, params: { kind, t, a },
+            hints: [`The sides are in the ratio 1 : ${R3} : 2, so the shorter leg is half the hypotenuse: ${a}.`, t === '30-short' ? `The shorter leg is <b>${a}</b>.` : `The longer leg is ${a}${R3}, so <b>${K} = ${a}</b>.`] };
+        }
+        return { prompt: t === '45-hyp' ? `Each leg of an isosceles right triangle has length ${a}. The hypotenuse has length ${K}${R2}. What is the value of ${K}?` : `The hypotenuse of an isosceles right triangle has length ${a}${R2}. What is the length of each leg?`, type: 'number', answer: a, params: { kind, t, a },
+          hints: [`In a 45°-45°-90° triangle the hypotenuse is a leg times ${R2}.`, t === '45-hyp' ? `The hypotenuse is ${a}${R2}, so <b>${K} = ${a}</b>.` : `Each leg is <b>${a}</b>.`] };
+      }
+      const [a, b, c] = rng.pick(TRIPLES), s = rng.int(1, 4), ask = rng.pick(['hyp', 'leg']), ans = ask === 'hyp' ? c * s : b * s;
+      return { prompt: ask === 'hyp' ? `A right triangle has legs of length ${a * s} and ${b * s}. What is the length of its hypotenuse?` : `A right triangle has a hypotenuse of length ${c * s} and one leg of length ${a * s}. What is the length of the other leg?`, type: 'number', answer: ans, params: { kind, a: a * s, b: b * s, c: c * s, ask },
+        hints: [ask === 'hyp' ? `${M.sup(V('c'), 2)} = ${a * s}² + ${b * s}² = ${(a * s) ** 2 + (b * s) ** 2}.` : `${M.sup(V('b'), 2)} = ${c * s}² − ${a * s}² = ${(c * s) ** 2 - (a * s) ** 2}.`, `Take the square root: <b>${ans}</b>.`] };
+    },
+    verify(q) {
+      const P = q.params, d = Math.PI / 180;
+      if (P.kind === 'ratio') { const A_ = Math.atan2(P.a, P.b), B_ = Math.PI / 2 - A_; return near({ sinA: Math.sin(A_), cosA: Math.cos(A_), tanA: Math.tan(A_), sinB: Math.sin(B_), cosB: Math.cos(B_) }[P.ask], q.answer, 1e-9); }
+      if (P.kind === 'cofunction') return q.answer > 0 && q.answer < 90 && near(P.sinFirst ? Math.sin(q.answer * d) : Math.cos(q.answer * d), P.sinFirst ? Math.cos(P.k * d) : Math.sin(P.k * d), 1e-12);
+      if (P.kind === 'special') {
+        if (P.t === '30-short') return near(2 * P.a * Math.sin(30 * d), q.answer, 1e-9);
+        if (P.t === '30-long') return near(2 * P.a * Math.cos(30 * d), q.answer * Math.sqrt(3), 1e-9);
+        if (P.t === '45-hyp') return near(Math.hypot(P.a, P.a), q.answer * Math.SQRT2, 1e-9);
+        return near(P.a * Math.SQRT2 * Math.cos(45 * d), q.answer, 1e-9);
+      }
+      return P.ask === 'hyp' ? P.a ** 2 + P.b ** 2 === q.answer ** 2 : P.a ** 2 + q.answer ** 2 === P.c ** 2;
+    },
+  });
+
+  A.skill({
+    id: 'sat.circles', title: 'Circles, arcs and radians',
+    learn: p(`A circle with center (${V('h')}, ${V('k')}) and radius ${V('r')} has equation (${X} − ${V('h')})² + (${Y} − ${V('k')})² = ${M.sup(V('r'), 2)}. If the equation is expanded, <b>complete the square</b> in ${X} and in ${Y} to find the center and radius.`) +
+      p(`An arc or sector is a fraction of the circle: <b>arc length = ${F(V('θ'), 360)} × 2π${V('r')}</b> and <b>sector area = ${F(V('θ'), 360)} × π${M.sup(V('r'), 2)}</b>. To change degrees to radians, multiply by ${F('π', 180)}: 180° is π radians.`) +
+      example('Example', `${M.sup(X, 2)} + ${M.sup(Y, 2)} − 6${X} + 4${Y} − 12 = 0 becomes (${X} − 3)² + (${Y} + 2)² = 25: center (3, −2), radius 5. A 120° arc of a circle with radius 9 has length ${F(1, 3)} × 18π = <b>6π</b>.`),
+    make(rng) {
+      const kind = rng.pick(['equation', 'arc', 'radians']);
+      if (kind === 'equation') {
+        const h = rng.int(-6, 6), k = rng.int(-6, 6), r = rng.int(2, 9), D = -2 * h, E = -2 * k, Fc = h * h + k * k - r * r, ask = rng.pick(['r', 'r', 'h', 'k']);
+        const eq = `${M.sup(X, 2)} + ${M.sup(Y, 2)}${D ? ` ${M.signed(D)}${X}` : ''}${E ? ` ${M.signed(E)}${Y}` : ''}${Fc ? ` ${M.signed(Fc)}` : ''} = 0`;
+        const ans = { r, h, k }[ask];
+        return { prompt: `What is the ${ask === 'r' ? 'radius' : ask === 'h' ? `${X}-coordinate of the center` : `${Y}-coordinate of the center`} of the circle with this equation?${big(eq)}`, type: 'number', answer: ans, params: { kind, D, E, Fc, ask },
+          hints: [`Complete the square: (${X}${h ? ` ${M.signed(-h)}` : ''})² − ${h * h} + (${Y}${k ? ` ${M.signed(-k)}` : ''})² − ${k * k} ${M.signed(Fc)} = 0.`, `So (${X}${h ? ` ${M.signed(-h)}` : ''})² + (${Y}${k ? ` ${M.signed(-k)}` : ''})² = ${r * r}: center ${M.pt(h, k)}, radius ${r}.`, `The answer is <b>${N(ans)}</b>.`] };
+      }
+      if (kind === 'arc') {
+        const th = rng.pick([30, 40, 45, 60, 72, 90, 120, 135, 150, 216, 240, 270]), r = rng.int(2, 12), what = rng.pick(['arc', 'sector']);
+        const [n, d] = what === 'arc' ? [th * 2 * r, 360] : [th * r * r, 360], ans = fa(n, d);
+        return { prompt: `A circle has radius ${r}. A central angle of ${th}° cuts off ${what === 'arc' ? `an arc of length ${K}π` : `a sector with area ${K}π`}. What is the value of ${K}?`, type: 'number', ...ans, params: { kind, th, r, what },
+          hints: [`The ${what} is ${F(th, 360)} of the whole circle.`, what === 'arc' ? `${F(th, 360)} × 2π(${r}) = ${kpi(n, d)}.` : `${F(th, 360)} × π(${r})² = ${kpi(n, d)}.`, `<b>${K} = ${ans.answerText || N(ans.answer)}</b>.`] };
+      }
+      const th = rng.pick([20, 30, 36, 40, 45, 60, 72, 90, 120, 135, 150, 210, 225, 240, 270, 300, 315, 330]), toRad = rng.bool();
+      if (toRad) {
+        const ans = fa(th, 180);
+        return { prompt: `An angle measures ${th}°. Its measure in radians is ${K}π. What is the value of ${K}?`, type: 'number', ...ans, params: { kind, th, toRad },
+          hints: [`Multiply by ${F('π', 180)}: ${th} × ${F('π', 180)} = ${kpi(th, 180)}.`, `<b>${K} = ${ans.answerText || N(ans.answer)}</b>.`] };
+      }
+      return { prompt: `An angle measures ${kpi(th, 180)} radians. What is its measure in degrees?`, type: 'number', answer: th, unit: '°', params: { kind, th, toRad },
+        hints: [`Multiply by ${F(180, 'π')}: π radians is 180°.`, `${kpi(th, 180)} × ${F(180, 'π')} = <b>${th}°</b>.`] };
+    },
+    verify(q) {
+      const P = q.params;
+      if (P.kind === 'equation') {
+        const L = (x, y) => x * x + y * y + P.D * x + P.E * y + P.Fc;
+        if (P.ask === 'r') { const h = -P.D / 2, k = -P.E / 2; return q.answer > 0 && near(L(h + q.answer, k), 0, 1e-9) && near(L(h, k - q.answer), 0, 1e-9); }
+        const t = 1.3, y0 = 0.7, x0 = 0.4;
+        return P.ask === 'h' ? near(L(q.answer + t, y0), L(q.answer - t, y0), 1e-9) : near(L(x0, q.answer + t), L(x0, q.answer - t), 1e-9);
+      }
+      if (P.kind === 'arc') { const rad = P.th * Math.PI / 180, v = P.what === 'arc' ? P.r * rad : P.r * P.r * rad / 2; return near(v / Math.PI, q.answer, 1e-9); }
+      return P.toRad ? near(q.answer * Math.PI, P.th * Math.PI / 180, 1e-12) : near(q.answer, P.th, 1e-12) && near(Math.cos(P.th * Math.PI / 180), Math.cos(q.answer / 180 * Math.PI), 1e-12);
     },
   });
 })();
