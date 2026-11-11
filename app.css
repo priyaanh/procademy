@@ -3043,3 +3043,7 @@ html.pc-focus main { padding-top: 20px; }
 .dt-binrow { align-items: center; gap: 10px 18px; margin-bottom: 10px; }
 .dt-binrow label { display: inline-flex; align-items: center; gap: 8px; }
 .dt-binrow input[type=range] { width: 150px; accent-color: var(--primary); }
+.sh-fold { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; margin: 8px 0 14px; }
+.sh-fold-r { display: inline-flex; align-items: center; gap: 10px; color: var(--muted); }
+.sh-fold-r input { width: 180px; accent-color: var(--primary); }
+.sh-fold-face { stroke: var(--ink); stroke-width: 1.4; stroke-linejoin: round; fill-opacity: .82; }
