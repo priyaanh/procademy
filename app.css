@@ -777,7 +777,7 @@ body.tutor-resizing iframe { pointer-events: none; }
 .ai-verify li svg { flex: none; }
 .ai-verify li.ok svg { color: var(--ok-ink); }
 .ai-verify li.no svg { color: var(--bad); }
-.ai-verify .tiny { margin: 4px 12px 8px; }
+details.ai-verify > p.tiny { margin: 4px 12px 8px; }
 /* when the tutor can't answer (offline, or a service failed): Procademy's own help, at once */
 .tutor-failed p { margin: 0 0 6px; }
 .tutor-help { margin-top: 8px; display: grid; gap: 8px; }
@@ -793,10 +793,6 @@ body.tutor-resizing iframe { pointer-events: none; }
 .undo-btn { border: 0; border-radius: 999px; padding: .35rem .9rem; font: inherit; font-weight: 700; background: var(--primary); color: var(--on-primary); cursor: pointer; }
 /* the tutor's settings: answer length and text size */
 .seg-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; margin: 6px 0; }
-.seg { display: inline-flex; padding: 3px; gap: 2px; border-radius: 999px; background: var(--tint); }
-.seg-btn { border: 0; border-radius: 999px; padding: .3rem .8rem; min-height: 32px; font: inherit; font-size: .85rem; font-weight: 600; background: transparent; color: var(--primary-ink); cursor: pointer; }
-.seg-btn:hover { background: var(--tint-2); }
-.seg-btn.on { background: var(--primary); color: var(--on-primary); }
 .mem-dl { margin: 8px 0; display: grid; gap: 6px; }
 .mem-dl dt { color: var(--muted); font-size: .8rem; }
 .mem-dl dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
@@ -868,6 +864,9 @@ body.on-ai-page footer { display: none; }
 .ai-msg .bubble ul, .ai-msg .bubble ol { margin: .2rem 0 .55rem; padding-left: 1.3rem; }
 .ai-actions, .ai-related { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 8px; }
 .ai-meta { margin-left: auto; }
+.ai-end { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; }
+.ai-end .ai-meta, .ai-end .ai-rate { margin-left: 0; }
+.ai-msg > .ai-why { margin-top: 6px; }
 .ai-compose { padding: 6px 18px 14px; display: flex; flex-direction: column; gap: 6px; }
 .ai-box { display: flex; align-items: flex-end; gap: 4px; padding: 6px; border: 1px solid var(--line-strong); border-radius: 26px; background: var(--surface); box-shadow: var(--shadow-s); transition: border-color .15s, box-shadow .15s; }
 .ai-box:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent); }
@@ -884,14 +883,46 @@ body.on-ai-page footer { display: none; }
 .ai-starter:not(.ai-ex) { display: flex; flex-direction: column; align-items: flex-start; text-align: left; gap: 4px; padding: 14px 16px; border: 0; border-radius: 16px; background: var(--tint); color: var(--ink); font: inherit; cursor: pointer; min-height: 112px; transition: background .15s, transform .15s; }
 .ai-starter:not(.ai-ex):hover { background: var(--tint-2); transform: translateY(-1px); }
 .ai-st-ic { display: grid; place-items: center; width: 34px; height: 34px; margin-bottom: 6px; border-radius: 10px; background: var(--surface); color: var(--primary-ink); }
-.ai-examples { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px; margin-top: 18px; }
+.ai-examples { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px; margin-top: 10px; }
+/* questions to try, by subject */
+.ai-try { margin-top: 22px; }
+.ai-subjects { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px; }
+.ai-subjects > .small { flex-basis: 100%; text-align: center; margin-bottom: 2px; }
+.ai-subj { background: transparent; border-color: var(--line-strong); color: var(--ink); }
+.ai-subj:hover { background: var(--tint); }
+.ai-subj.on { background: var(--primary); border-color: var(--primary); color: var(--on-primary); }
+.ai-size-btn { font-weight: 800; font-size: .95rem; letter-spacing: -.02em; }
+/* a homework plan to tick off */
+.ai-plan .bubble { background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-s); }
+.ai-plan-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; margin-bottom: 8px; }
+.ai-plan .pbar { margin-bottom: 8px; }
+.ai-plan-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.ai-plan-list li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 12px; padding: 6px 0; border-bottom: 1px solid var(--line); }
+.ai-plan-list li:last-child { border-bottom: 0; }
+.ai-plan-check { display: flex; align-items: flex-start; gap: 10px; flex: 1 1 260px; min-width: 0; cursor: pointer; overflow-wrap: anywhere; }
+.ai-plan-check input { margin-top: 5px; width: 18px; height: 18px; flex: none; accent-color: var(--primary); }
+.ai-plan-list li.done .ai-plan-check span { color: var(--muted); text-decoration: line-through; }
+.ai-plan-side { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; }
+/* printing a chat: only the clean copy, in plain colors */
+#ai-print-view { display: none; }
+@media print {
+  body.print-chat > *:not(#ai-print-view) { display: none !important; }
+  body.print-chat #ai-print-view { display: block !important; color: #000; font-size: 12pt; }
+  #ai-print-view h1 { font-size: 18pt; margin: 0 0 4px; }
+  #ai-print-view .ai-print-sub { color: #444; margin: 0 0 14pt; }
+  #ai-print-view .ai-print-msg { break-inside: avoid; margin: 0 0 10pt; }
+  #ai-print-view .ai-print-who { font-weight: 700; font-size: 10pt; color: #1458d6; text-transform: uppercase; letter-spacing: .04em; }
+  #ai-print-view .ai-msg, #ai-print-view .bubble { display: block; max-width: none; padding: 0; background: none !important; color: #000 !important; border: 0; box-shadow: none; }
+  #ai-print-view .viz, #ai-print-view .ai-verify { break-inside: avoid; }
+  #ai-print-view .viz-bar, #ai-print-view .viz-legend button { display: none; }
+}
 /* asking by voice */
 .ai-bar-end { margin-left: auto; display: flex; gap: 6px; align-items: center; }
 .ai-round { width: 36px; height: 36px; background: var(--tint); color: var(--primary-ink); }
 .ai-round:hover { background: var(--tint-2); }
 .ai-round.on { background: var(--primary); color: var(--on-primary); }
-.ai-bar .ai-pick select { max-width: 178px; }
-.ai-bar label.ai-pick:first-of-type select { max-width: 210px; }
+.ai-bar .ai-pick select { max-width: 172px; }
+.ai-bar label.ai-pick:first-of-type select { max-width: 196px; }
 .mic-btn { flex: none; color: var(--muted); }
 .mic-btn:hover { color: var(--primary-ink); }
 .mic-btn.on { color: var(--on-primary); background: var(--primary); animation: mic-pulse 1.4s ease-in-out infinite; }
@@ -925,6 +956,7 @@ body.on-ai-page footer { display: none; }
 /* sharing a chat */
 .ai-share { padding: 12px 16px; border-bottom: 1px solid var(--line); background: var(--tint); }
 .ai-share-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.ai-print-row { margin-top: 10px; padding-top: 10px; border-top: 1px solid color-mix(in srgb, var(--primary) 18%, transparent); }
 .ai-share-row input { flex: 1 1 240px; min-width: 0; padding: .45rem .75rem; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--surface); color: var(--ink); font: inherit; font-size: .85rem; }
 .ai-shared { display: grid; gap: 16px; }
 .ai-shared-head { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; justify-content: space-between; }
@@ -967,8 +999,8 @@ body.on-ai-page footer { display: none; }
   .ai-bar .ai-pick select { width: 100%; max-width: 100%; }
   .ai-bar .ai-chats-btn { order: 0; }
   .ai-bar .ai-bar-end { order: 1; }
-  .ai-bar label.ai-pick:nth-of-type(4) { order: 1; flex: 0 1 auto; }
-  .ai-bar label.ai-pick:nth-of-type(4) select { width: auto; }
+  .ai-bar label.ai-pick:nth-of-type(4) { order: 3; }      /* the language joins the level and the style, so the buttons share the first row */
+  .ai-bar .ai-pick:not(:first-of-type) select { padding-left: .65rem; padding-right: 1.5rem; background-position: right .45rem center; font-size: .86rem; }
   .ai-bar label.ai-pick:first-of-type select { max-width: 100%; }
   .ai-thread { padding: 16px 12px; }
   .ai-compose { padding: 4px 10px 10px; }
