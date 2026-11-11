@@ -2656,3 +2656,58 @@ kbd { display: inline-block; min-width: 1.6em; padding: .1em .45em; border-radiu
 .course-art { width: 58px; height: 36px; color: var(--primary); opacity: .7; flex: none; }
 .my-courses.compact .course-art { display: none; }
 .today-grade { margin: 4px 0 0; }
+
+/* home */
+/* the welcome: what to do today, then who is learning, a goal on a slider, a name and a color */
+.welcome .wl-intro { max-width: 70ch; }
+.wl-lang { margin: 0 0 16px; padding: 12px 14px; border-radius: 14px; background: var(--tint); }
+.wl-lang p { margin: 0 0 8px; font-weight: 600; }
+.wl-lang .btn-row { margin: 0; }
+.wl-modes { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: 10px; margin-top: 6px; }
+.wl-mode { display: flex; align-items: center; gap: 12px; text-align: left; padding: 12px 14px; border-radius: 14px; border: 2px solid var(--line); background: var(--surface); color: var(--ink); font: inherit; cursor: pointer; min-height: 64px; }
+.wl-mode:hover { border-color: var(--primary); }
+.wl-mode.on { border-color: var(--primary); background: var(--primary-soft); }
+.wl-mode > span:last-child { display: grid; gap: 1px; min-width: 0; }
+.wl-mode-ic { flex: none; display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; background: var(--tint); color: var(--primary-ink); }
+.wl-mode.on .wl-mode-ic { background: var(--primary); color: var(--on-primary); }
+.wl-pane { padding-top: 2px; }
+.wl-age { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; margin-top: 10px; font-size: .9rem; }
+.wl-age label { font-weight: 600; }
+.wl-age select, .wl-pane input[type="text"], .wl-pane input:not([type]), .wl-pane textarea { padding: .55rem .75rem; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--surface); color: var(--ink); font: inherit; }
+.wl-pane textarea { width: 100%; resize: vertical; }
+.wl-pane .field { max-width: 640px; }
+.wl-goal-box { max-width: 520px; }
+.wl-goal-out { margin: 0 0 4px; }
+.wl-range { width: 100%; margin: 4px 0 0; accent-color: var(--primary); height: 28px; }
+/* each step's name sits under its place on the slider (the thumb's centre runs from 8px in to 8px from the end) */
+.wl-ticks { position: relative; height: 44px; margin: 0 8px; }
+.wl-tick { position: absolute; top: 0; left: calc(var(--at) * 100%); transform: translateX(-50%); display: grid; justify-items: center; gap: 0; padding: 3px 6px; border: 0; border-radius: 10px; background: none; color: var(--muted); font: inherit; font-size: .8rem; line-height: 1.3; cursor: pointer; white-space: nowrap; }
+.wl-tick b { color: var(--ink); font-size: .86rem; }
+.wl-tick:hover { background: var(--tint); }
+.wl-tick.on b, .wl-tick.on { color: var(--primary-ink); }
+.wl-tick:first-child { transform: translateX(-8px); justify-items: start; } .wl-tick:last-child { transform: translateX(calc(-100% + 8px)); justify-items: end; }
+.wl-me { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 8px 18px; margin-bottom: 16px; }
+.wl-me .field { margin-bottom: 0; }
+.wl-me .wl-name { flex: 0 1 300px; }
+.wl-av { flex: none; padding-bottom: 4px; }
+.wl-av .avatar { width: 44px; height: 44px; font-size: 1.35rem; }
+.wl-me .av-hues { min-height: 40px; align-items: center; }
+.wl-map { margin-top: 10px; }
+.wl-map summary { cursor: pointer; color: var(--primary-ink); font-weight: 600; font-size: .9rem; }
+.wl-units { margin: 10px 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: 6px 20px; counter-reset: unit; }
+.wl-units li { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: .86rem; counter-increment: unit; }
+.wl-units .t { min-width: 0; }
+.wl-units .t::before { content: counter(unit) ". "; color: var(--muted); font-variant-numeric: tabular-nums; }
+.wl-cells { display: flex; flex-wrap: wrap; gap: 3px; flex: none; max-width: 50%; justify-content: flex-end; }
+.wl-cells i { width: 10px; height: 10px; border-radius: 3px; border: 1.5px solid var(--lvl0); }
+.wl-lesson-list { list-style: none; margin: 8px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr)); gap: 8px; }
+.wl-lesson { display: grid; gap: 2px; width: 100%; text-align: left; padding: 10px 12px; border-radius: 12px; border: 2px solid var(--line); background: var(--surface); color: var(--ink); font: inherit; cursor: pointer; }
+.wl-lesson:hover { border-color: var(--primary); background: var(--primary-soft); }
+.wl-foot { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--line); }
+.wl-foot p { margin: 0; flex: 1 1 280px; }
+@container page (max-width: 480px) {
+  main .wl-modes { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  main .wl-mode { flex-direction: column; align-items: flex-start; gap: 6px; padding: 10px 12px; }
+  main .wl-mode .small { display: none; }
+  main .wl-mode-ic { width: 32px; height: 32px; }
+}
