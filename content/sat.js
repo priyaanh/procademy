@@ -38,6 +38,7 @@
       { id: 'advanced', title: 'Advanced math', blurb: 'Quadratics, exponents and radicals, functions, exponential models, polynomials, and line-and-parabola systems.', skills: ['sat.quadratics', 'sat.exponents-radicals', 'sat.functions', 'sat.exponential-models', 'sat.polynomials-rational', 'sat.nonlinear-systems'] },
       { id: 'data', title: 'Problem solving and data analysis', blurb: 'Ratios, rates and unit conversions, percents, mean, median and spread, two-way tables, and what a sample can tell you.', skills: ['sat.ratios-rates', 'sat.percents', 'sat.statistics', 'sat.probability-tables', 'sat.sampling-inference'] },
       { id: 'geometry', title: 'Geometry and trigonometry', blurb: 'Area and volume, angles and similar triangles, right-triangle trigonometry, and circles, arcs and radians.', skills: ['sat.area-volume', 'sat.angles-triangles', 'sat.right-triangles', 'sat.circles'] },
+      { id: 'act-topics', title: 'More ACT topics', blurb: 'Complex numbers, logarithms, sequences, matrices, and counting and probability, which the ACT includes.', skills: ['sat.complex-numbers', 'sat.logarithms', 'sat.sequences', 'sat.matrices', 'sat.counting-probability'] },
     ],
   };
   A.course(COURSE);
@@ -834,6 +835,207 @@
       }
       if (P.kind === 'arc') { const rad = P.th * Math.PI / 180, v = P.what === 'arc' ? P.r * rad : P.r * P.r * rad / 2; return near(v / Math.PI, q.answer, 1e-9); }
       return P.toRad ? near(q.answer * Math.PI, P.th * Math.PI / 180, 1e-12) : near(q.answer, P.th, 1e-12) && near(Math.cos(P.th * Math.PI / 180), Math.cos(q.answer / 180 * Math.PI), 1e-12);
+    },
+  });
+
+  /* ---------- Unit 5: more ACT topics ---------- */
+  const I = V('i');
+  /** a + bi, tidy: 3 − 2i, −i, 5, 4i */
+  const cx = (re, im) => {
+    const imPart = Math.abs(im) === 1 ? I : `${N(Math.abs(im))}${I}`;
+    if (im === 0) return N(re);
+    if (re === 0) return (im < 0 ? '−' : '') + imPart;
+    return `${N(re)} ${im < 0 ? '−' : '+'} ${imPart}`;
+  };
+  A.skill({
+    id: 'sat.complex-numbers', title: 'Complex numbers',
+    learn: p(`A complex number has the form ${V('a')} + ${V('b')}${I}, where <b>${I}² = −1</b>. Add and subtract by combining real parts and imaginary parts. Multiply like binomials (FOIL), then replace ${I}² with −1.`) +
+      p(`The powers of ${I} repeat every four: ${I}, −1, −${I}, 1. So for ${M.sup(I, V('n'))}, <b>divide ${V('n')} by 4 and use the remainder</b>. A number times its conjugate is real: (${V('a')} + ${V('b')}${I})(${V('a')} − ${V('b')}${I}) = ${M.sup(V('a'), 2)} + ${M.sup(V('b'), 2)}.`) +
+      example('Example', `(3 + 2${I})(1 − 4${I}) = 3 − 12${I} + 2${I} − 8${I}² = 3 − 10${I} + 8 = <b>11 − 10${I}</b>. And ${M.sup(I, 23)} = ${M.sup(I, 3)} = −${I}, since 23 leaves remainder 3.`),
+    make(rng) {
+      const kind = rng.pick(['multiply', 'multiply', 'power', 'conjugate']);
+      if (kind === 'multiply') {
+        const a = rng.nz(-6, 6), b = rng.nz(-6, 6), c = rng.nz(-6, 6), d = rng.nz(-6, 6);
+        const specs = [[a * c - b * d, a * d + b * c], [a * c + b * d, a * d + b * c], [a * c, b * d], [a * c - b * d, a * d - b * c], [a * c + b * d, a * d - b * c]];
+        const shown = specs.map(([r, i]) => cx(r, i)), answer = shown[0];
+        const choices = options(answer, shown.slice(1));
+        return { prompt: `Which of the following is equal to (${cx(a, b)})(${cx(c, d)})? (Note: ${I}² = −1)`, type: 'choice', answer, choices, params: { kind, a, b, c, d, specs, shown },
+          hints: [`FOIL: ${N(a * c)} ${M.signed(a * d)}${I} ${M.signed(b * c)}${I} ${M.signed(b * d)}${I}².`, `Replace ${I}² with −1: ${N(a * c)} ${M.signed(-b * d)} and ${N(a * d + b * c)}${I}.`, `<b>${answer}</b>.`] };
+      }
+      if (kind === 'power') {
+        const n = rng.int(5, 99), answer = ['1', 'i', '−1', '−i'][n % 4];
+        return { prompt: `What is the value of ${M.sup(I, n)}? (Note: ${I}² = −1)`, type: 'choice', keepOrder: true, answer: answer.replace('i', I), choices: ['1', I, '−1', `−${I}`], params: { kind, n },
+          hints: [`The powers of ${I} repeat every 4. ${n} ÷ 4 leaves a remainder of ${n % 4}.`, `So ${M.sup(I, n)} = ${n % 4 ? M.sup(I, n % 4) : `${I}<sup>0</sup>`} = <b>${answer.replace('i', I)}</b>.`] };
+      }
+      const a = rng.nz(-9, 9), b = rng.nz(-9, 9);
+      return { prompt: `What is the value of (${cx(a, b)})(${cx(a, -b)})? (Note: ${I}² = −1)`, type: 'number', answer: a * a + b * b, params: { kind, a, b },
+        hints: [`These are conjugates, so the ${I}-terms cancel: ${N(a * a)} − (${N(b)}${I})².`, `(${N(b)}${I})² = ${N(b * b)}${I}² = −${N(b * b)}, so the product is ${N(a * a)} + ${N(b * b)} = <b>${N(a * a + b * b)}</b>.`] };
+    },
+    verify(q) {
+      const P = q.params;
+      if (P.kind === 'multiply') {
+        // multiply in polar form: lengths multiply, angles add
+        const r = Math.hypot(P.a, P.b) * Math.hypot(P.c, P.d), t = Math.atan2(P.b, P.a) + Math.atan2(P.d, P.c), re = Math.round(r * Math.cos(t)), im = Math.round(r * Math.sin(t));
+        const hit = P.shown.filter((s, k) => P.specs[k][0] === re && P.specs[k][1] === im);
+        return hit.length >= 1 && hit.every(s => s === q.answer) && q.choices.filter(c => c === q.answer).length === 1;
+      }
+      if (P.kind === 'power') { let re = 1, im = 0; for (let k = 0; k < P.n; k++) [re, im] = [-im, re]; return q.answer === cx(re, im); }
+      const re = P.a * P.a - P.b * -P.b, im = P.a * -P.b + P.b * P.a; return im === 0 && re === q.answer;
+    },
+  });
+
+  const lg = (b, s) => `log<sub>${b}</sub> ${s}`;
+  A.skill({
+    id: 'sat.logarithms', title: 'Logarithms',
+    learn: p(`<b>${lg(V('b'), V('x'))} = ${V('y')} means ${M.sup(V('b'), V('y'))} = ${V('x')}</b>: a logarithm is the exponent you need. So ${lg(2, 32)} = 5, ${lg(3, F(1, 9))} = −2, and ${lg(4, 8)} = ${F(3, 2)} because ${M.sup(4, '3/2')} = 8.`) +
+      p(`The rules: <b>${lg(V('b'), V('M'))} + ${lg(V('b'), V('N'))} = ${lg(V('b'), V('MN'))}</b> and <b>${lg(V('b'), V('M'))} − ${lg(V('b'), V('N'))} = ${lg(V('b'), `(${V('M')} ÷ ${V('N')})`)}</b>. To solve ${lg(V('b'), '(…)')} = ${V('k')}, rewrite it in exponent form.`) +
+      example('Example', `${lg(6, 4)} + ${lg(6, 9)} = ${lg(6, 36)} = <b>2</b>. And ${lg(3, `(${X} + 5)`)} = 4 means ${X} + 5 = 81, so ${X} = 76.`),
+    make(rng) {
+      const kind = rng.pick(['evaluate', 'evaluate', 'solve', 'combine']);
+      if (kind === 'evaluate') {
+        const c = rng.pick([2, 3, 5]), m = rng.pick([1, 1, 2, 3].filter(e => c ** e <= 125)), n = rng.int(-3, 6), b = c ** m;
+        if (n === 0 || c ** Math.abs(n) > 3125) return this.make(rng);
+        const shown = n > 0 ? N(c ** n) : F(1, c ** -n), ans = fa(n, m);
+        return { prompt: `What is the value of ${lg(b, shown)}?`, type: 'number', ...ans, params: { kind, b, num: n > 0 ? c ** n : 1 / (c ** -n) },
+          hints: [`Write both numbers as powers of ${c}: ${b} = ${M.sup(c, m)} and ${shown} = ${M.sup(c, N(n))}.`, `You need (${M.sup(c, m)})<sup>${V('y')}</sup> = ${M.sup(c, N(n))}, so ${m === 1 ? '' : m}${V('y')} = ${N(n)}.`, `<b>${ans.answerText || N(ans.answer)}</b>.`] };
+      }
+      if (kind === 'solve') {
+        const b = rng.pick([2, 3, 4, 5, 10]), k = rng.int(1, b === 10 ? 3 : b === 2 ? 6 : 4), a = rng.int(-9, 9), x = b ** k - a;
+        return { prompt: `What value of ${X} satisfies the equation?${big(`${lg(b, `(${M.poly([1, a])})`)} = ${k}`)}`, type: 'number', answer: x, params: { kind, b, a, k },
+          hints: [`Rewrite in exponent form: ${M.poly([1, a])} = ${M.sup(b, k)} = ${N(b ** k)}.`, `<b>${X} = ${N(x)}</b>.`] };
+      }
+      if (rng.bool()) {
+        const [b, k, m, n] = rng.pick([[6, 2, 4, 9], [6, 2, 3, 12], [6, 2, 2, 18], [10, 2, 4, 25], [10, 2, 2, 50], [10, 2, 5, 20], [10, 3, 8, 125], [10, 3, 40, 25], [12, 2, 9, 16], [12, 2, 8, 18], [15, 2, 9, 25], [15, 2, 5, 45]]);
+        return { prompt: `What is the value of ${lg(b, m)} + ${lg(b, n)}?`, type: 'number', answer: k, params: { kind, b, m, n, op: '+' },
+          hints: [`Adding logs with the same base multiplies inside: ${lg(b, `(${m} × ${n})`)} = ${lg(b, m * n)}.`, `${M.sup(b, k)} = ${m * n}, so the value is <b>${k}</b>.`] };
+      }
+      const b = rng.pick([2, 3, 5]), nn = rng.pick([3, 5, 6, 7, 11].filter(v => v !== b)), k = rng.int(1, b === 5 ? 2 : 3), mm = nn * b ** k;
+      return { prompt: `What is the value of ${lg(b, mm)} − ${lg(b, nn)}?`, type: 'number', answer: k, params: { kind, b, m: mm, n: nn, op: '−' },
+        hints: [`Subtracting logs with the same base divides inside: ${lg(b, `(${mm} ÷ ${nn})`)} = ${lg(b, mm / nn)}.`, `${M.sup(b, k)} = ${mm / nn}, so the value is <b>${k}</b>.`] };
+    },
+    verify(q) {
+      const P = q.params, L = Math.log;
+      if (P.kind === 'evaluate') return near(L(P.num) / L(P.b), q.answer, 1e-9);
+      if (P.kind === 'solve') return q.answer + P.a > 0 && near(L(q.answer + P.a) / L(P.b), P.k, 1e-9);
+      return near((P.op === '+' ? L(P.m) + L(P.n) : L(P.m) - L(P.n)) / L(P.b), q.answer, 1e-9);
+    },
+  });
+
+  A.skill({
+    id: 'sat.sequences', title: 'Arithmetic and geometric sequences',
+    learn: p(`An <b>arithmetic</b> sequence adds the same difference ${V('d')} each time: ${M.sub(V('a'), V('n'))} = ${M.sub(V('a'), 1)} + (${V('n')} − 1)${V('d')}. A <b>geometric</b> sequence multiplies by the same ratio ${V('r')}: ${M.sub(V('a'), V('n'))} = ${M.sub(V('a'), 1)} · ${M.sup(V('r'), `${V('n')} − 1`)}.`) +
+      p(`If you know two terms of an arithmetic sequence, <b>the difference is (change in value) ÷ (number of steps between them)</b>. The sum of the first ${V('n')} terms of an arithmetic sequence is ${V('n')} × (first + last) ÷ 2.`) +
+      example('Example', `${M.sub(V('a'), 5)} = 17 and ${M.sub(V('a'), 9)} = 33: four steps add 16, so ${V('d')} = 4 and ${M.sub(V('a'), 1)} = 1. Then ${M.sub(V('a'), 20)} = 1 + 19 × 4 = <b>77</b>.`),
+    make(rng) {
+      const kind = rng.pick(['two-terms', 'geometric', 'sum']);
+      if (kind === 'two-terms') {
+        const a1 = rng.int(-10, 15), d = rng.nz(-6, 8), p1 = rng.int(2, 6), p2 = p1 + rng.int(2, 6), r = rng.int(p2 + 2, 30), t = n => a1 + (n - 1) * d;
+        return { prompt: `In an arithmetic sequence, the ${M.ordinal(p1)} term is ${N(t(p1))} and the ${M.ordinal(p2)} term is ${N(t(p2))}. What is the ${M.ordinal(r)} term?`, type: 'number', answer: t(r), params: { kind, p1, v1: t(p1), p2, v2: t(p2), r },
+          hints: [`From term ${p1} to term ${p2} is ${p2 - p1} steps, changing by ${N(t(p2) - t(p1))}: ${V('d')} = ${N(d)}.`, `From term ${p2} to term ${r} is ${r - p2} more steps: ${N(t(p2))} + ${r - p2} × ${d < 0 ? `(${N(d)})` : N(d)} = <b>${N(t(r))}</b>.`] };
+      }
+      if (kind === 'geometric') {
+        const half = rng.chance(0.25), r = half ? 0.5 : rng.pick([2, 3, -2, -3]), n = rng.int(4, half ? 7 : 6), a1 = half ? 2 ** (n - 1) * rng.pick([1, 3, 5]) : rng.pick([1, 2, 3, 5]), an = a1 * r ** (n - 1);
+        return { prompt: `The first term of a geometric sequence is ${N(a1)}, and each term after the first is ${half ? 'half of' : `${N(r)} times`} the term before it. What is the ${M.ordinal(n)} term?`, type: 'number', answer: an, params: { kind, a1, r, n },
+          hints: [`${M.sub(V('a'), V('n'))} = ${N(a1)} · ${half ? `(${F(1, 2)})` : r < 0 ? `(${N(r)})` : N(r)}<sup>${V('n')} − 1</sup>, so the ${M.ordinal(n)} term is ${N(a1)} · ${half ? `(${F(1, 2)})` : r < 0 ? `(${N(r)})` : N(r)}<sup>${n - 1}</sup>.`, `= ${N(a1)} × ${r ** (n - 1) < 0 ? `(${N(r ** (n - 1))})` : N(r ** (n - 1))} = <b>${N(an)}</b>.`] };
+      }
+      const a1 = rng.int(-5, 12), d = rng.nz(-3, 7), n = rng.int(6, 25), last = a1 + (n - 1) * d, S = n * (a1 + last) / 2;
+      return { prompt: `What is the sum of the first ${n} terms of the arithmetic sequence ${N(a1)}, ${N(a1 + d)}, ${N(a1 + 2 * d)}, ${N(a1 + 3 * d)}, …?`, type: 'number', answer: S, params: { kind, a1, d, n },
+        hints: [`The ${M.ordinal(n)} term is ${N(a1)} + ${n - 1} × ${d < 0 ? `(${N(d)})` : N(d)} = ${N(last)}.`, `Sum = ${n} × (${N(a1)} + ${last < 0 ? `(${N(last)})` : N(last)}) ÷ 2 = <b>${N(S)}</b>.`] };
+    },
+    verify(q) {
+      const P = q.params;
+      if (P.kind === 'two-terms') { const d = (P.v2 - P.v1) / (P.p2 - P.p1); let v = P.v1; for (let k = P.p1; k < P.r; k++) v += d; return near(v, q.answer, 1e-9); }
+      if (P.kind === 'geometric') { let v = P.a1; for (let k = 1; k < P.n; k++) v *= P.r; return near(v, q.answer, 1e-9); }
+      let s = 0; for (let k = 0; k < P.n; k++) s += P.a1 + k * P.d; return s === q.answer;
+    },
+  });
+
+  /** a matrix as a plain HTML table with bracket-like side rules (as in Precalculus) */
+  const mat = rows => `<table class="matrix" style="display:inline-table;border-collapse:separate;border-spacing:0;border-left:2px solid currentColor;border-right:2px solid currentColor;border-radius:4px;vertical-align:middle;margin:2px 4px"><tbody>${rows.map(r => `<tr>${r.map(c => `<td style="padding:3px 10px;text-align:center">${N(c)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+  A.skill({
+    id: 'sat.matrices', title: 'Matrices',
+    learn: p(`Add or subtract matrices of the same size entry by entry, and multiply by a number by multiplying every entry. <b>To multiply two matrices, the entry in row ${V('i')}, column ${V('j')} of ${V('AB')} is row ${V('i')} of ${V('A')} "dotted" with column ${V('j')} of ${V('B')}</b>: multiply matching entries and add.`) +
+      p(`The <b>determinant</b> of a 2 × 2 matrix with rows (${V('a')}, ${V('b')}) and (${V('c')}, ${V('d')}) is <b>${V('ad')} − ${V('bc')}</b>.`) +
+      example('Example', `${V('A')} = ${mat([[1, 2], [3, 4]])}, ${V('B')} = ${mat([[5, 0], [-1, 2]])}. Row 2 of ${V('A')} times column 1 of ${V('B')}: 3(5) + 4(−1) = <b>11</b>, the entry in row 2, column 1 of ${V('AB')}. The determinant of ${V('A')} is 4 − 6 = −2.`),
+    make(rng) {
+      const kind = rng.pick(['combine', 'multiply', 'multiply', 'determinant']), m = () => [[rng.int(-5, 6), rng.int(-5, 6)], [rng.int(-5, 6), rng.int(-5, 6)]];
+      const Am = m(), Bm = m(), i = rng.int(0, 1), j = rng.int(0, 1);
+      if (kind === 'combine') {
+        const k = rng.pick([2, 3, -2]), sgn = rng.pick([1, -1]), val = k * Am[i][j] + sgn * Bm[i][j];
+        return { prompt: `${V('A')} = ${mat(Am)} and ${V('B')} = ${mat(Bm)}. What is the entry in row ${i + 1}, column ${j + 1} of ${N(k)}${V('A')} ${sgn > 0 ? '+' : '−'} ${V('B')}?`, type: 'number', answer: val, params: { kind, Am, Bm, k, sgn, i, j },
+          hints: [`Only that position matters: ${N(k)} × ${Am[i][j] < 0 ? `(${N(Am[i][j])})` : N(Am[i][j])} ${sgn > 0 ? '+' : '−'} ${Bm[i][j] < 0 ? `(${N(Bm[i][j])})` : N(Bm[i][j])}.`, `= <b>${N(val)}</b>.`] };
+      }
+      if (kind === 'multiply') {
+        const val = Am[i][0] * Bm[0][j] + Am[i][1] * Bm[1][j];
+        return { prompt: `${V('A')} = ${mat(Am)} and ${V('B')} = ${mat(Bm)}. What is the entry in row ${i + 1}, column ${j + 1} of the product ${V('AB')}?`, type: 'number', answer: val, params: { kind, Am, Bm, i, j },
+          hints: [`Row ${i + 1} of ${V('A')} is (${Am[i].map(N).join(', ')}); column ${j + 1} of ${V('B')} is (${N(Bm[0][j])}, ${N(Bm[1][j])}).`, `${N(Am[i][0])}(${N(Bm[0][j])}) + ${N(Am[i][1])}(${N(Bm[1][j])}) = <b>${N(val)}</b>.`] };
+      }
+      const det = Am[0][0] * Am[1][1] - Am[0][1] * Am[1][0];
+      return { prompt: `What is the determinant of the matrix ${mat(Am)}?`, type: 'number', answer: det, params: { kind, Am },
+        hints: [`${V('ad')} − ${V('bc')} = (${N(Am[0][0])})(${N(Am[1][1])}) − (${N(Am[0][1])})(${N(Am[1][0])}).`, `= ${N(Am[0][0] * Am[1][1])} − ${Am[0][1] * Am[1][0] < 0 ? `(${N(Am[0][1] * Am[1][0])})` : N(Am[0][1] * Am[1][0])} = <b>${N(det)}</b>.`] };
+    },
+    verify(q) {
+      const P = q.params;
+      if (P.kind === 'combine') return P.k * P.Am[P.i][P.j] + P.sgn * P.Bm[P.i][P.j] === q.answer;
+      if (P.kind === 'multiply') { let s = 0; for (let t = 0; t < 2; t++) s += P.Am[P.i][t] * P.Bm[t][P.j]; return s === q.answer; }
+      // the determinant as the signed area of the parallelogram the rows span (shoelace)
+      const [[a, b], [c, d]] = P.Am, pts = [[0, 0], [a, b], [a + c, b + d], [c, d]];
+      let s = 0; for (let k = 0; k < 4; k++) { const [x1, y1] = pts[k], [x2, y2] = pts[(k + 1) % 4]; s += x1 * y2 - x2 * y1; }
+      return near(s / 2, q.answer, 1e-9);
+    },
+  });
+
+  const choose = (n, k) => { let r = 1; for (let t = 1; t <= k; t++) r = r * (n - k + t) / t; return Math.round(r); };
+  A.skill({
+    id: 'sat.counting-probability', title: 'Counting and probability',
+    learn: p(`<b>Multiply the number of choices at each step</b>: 4 shirts and 3 pairs of pants make 12 outfits. When order matters (president, then vice president), the choices shrink by one each time: 10 × 9. When order doesn't matter (a committee), divide by the number of orders: ${M.sub('C', '')}(10, 2) = 10 × 9 ÷ 2 = 45.`) +
+      p(`Probability = favorable outcomes ÷ total outcomes, when all outcomes are equally likely. For two draws <b>without replacement</b>, the second fraction has one fewer in its total.`) +
+      example('Example', `A bag has 5 red and 3 blue marbles. Drawing two without replacement, P(both red) = ${F(5, 8)} × ${F(4, 7)} = <b>${F(5, 14)}</b>.`),
+    make(rng) {
+      const kind = rng.pick(['outfits', 'officers', 'committee', 'one-draw', 'two-draws']);
+      if (kind === 'outfits') {
+        const s = rng.int(3, 8), pnt = rng.int(2, 6), h = rng.int(2, 5);
+        return { prompt: `A store sells a T-shirt in ${s} colors, shorts in ${pnt} colors, and caps in ${h} colors. How many different outfits of one T-shirt, one pair of shorts and one cap can be made?`, type: 'number', answer: s * pnt * h, params: { kind, ns: [s, pnt, h] },
+          hints: [`Multiply the choices at each step.`, `${s} × ${pnt} × ${h} = <b>${s * pnt * h}</b>.`] };
+      }
+      if (kind === 'officers') {
+        const n = rng.int(6, 15), k = rng.pick([2, 3]), ans = k === 2 ? n * (n - 1) : n * (n - 1) * (n - 2);
+        return { prompt: `A club of ${n} members will choose a president${k === 3 ? ', a vice president and a secretary' : ' and a vice president'}. No one can hold two offices. In how many ways can the offices be filled?`, type: 'number', answer: ans, params: { kind, n, k },
+          hints: [`Order matters, and each choice leaves one fewer person.`, `${k === 2 ? `${n} × ${n - 1}` : `${n} × ${n - 1} × ${n - 2}`} = <b>${N(ans)}</b>.`] };
+      }
+      if (kind === 'committee') {
+        const n = rng.int(6, 12), k = rng.pick([2, 3]), ans = choose(n, k);
+        return { prompt: `In how many ways can a group of ${k} students be chosen from ${n} students, if the order of choosing doesn't matter?`, type: 'number', answer: ans, params: { kind, n, k },
+          hints: [`In order there are ${k === 2 ? `${n} × ${n - 1} = ${n * (n - 1)}` : `${n} × ${n - 1} × ${n - 2} = ${n * (n - 1) * (n - 2)}`} ways; each group is counted ${k === 2 ? '2' : '3 × 2 × 1 = 6'} times.`, `${k === 2 ? n * (n - 1) : n * (n - 1) * (n - 2)} ÷ ${k === 2 ? 2 : 6} = <b>${ans}</b>.`] };
+      }
+      const r = rng.int(2, 9), b = rng.int(2, 9), g = rng.int(1, 6), T = r + b + g;
+      if (kind === 'one-draw') {
+        const ask = rng.pick(['not-red', 'red-or-blue']), num = ask === 'not-red' ? b + g : r + b, ans = fa(num, T);
+        return { prompt: `A bag holds ${r} red, ${b} blue and ${g} green marbles. One marble is drawn at random. What is the probability that it is ${ask === 'not-red' ? 'not red' : 'red or blue'}?`, type: 'number', ...ans, params: { kind, r, b, g, ask },
+          hints: [`There are ${T} marbles, and ${num} of them are ${ask === 'not-red' ? 'blue or green' : 'red or blue'}.`, `${num} ÷ ${T} = <b>${ans.answerText || N(ans.answer)}</b>.`] };
+      }
+      const ans = fa(r * (r - 1), T * (T - 1));
+      return { prompt: `A bag holds ${r} red, ${b} blue and ${g} green marbles. Two marbles are drawn at random without replacement. What is the probability that both are red?`, type: 'number', ...ans, params: { kind, r, b, g },
+        hints: [`First draw: ${F(r, T, { raw: true })}. Then ${r - 1} red remain among ${T - 1}: ${F(r - 1, T - 1, { raw: true })}.`, `${F(r, T, { raw: true })} × ${F(r - 1, T - 1, { raw: true })} = <b>${ans.answerText || N(ans.answer)}</b>.`] };
+    },
+    verify(q) {
+      const P = q.params;
+      if (P.kind === 'outfits') return P.ns.reduce((s, x) => s * x, 1) === q.answer;
+      if (P.kind === 'officers' || P.kind === 'committee') {
+        // list the choices one by one
+        let count = 0; const n = P.n;
+        for (let a = 0; a < n; a++) for (let b = 0; b < n; b++) for (let c = 0; c < (P.k === 3 ? n : 1); c++) {
+          const pick = P.k === 3 ? [a, b, c] : [a, b];
+          if (new Set(pick).size !== pick.length) continue;
+          if (P.kind === 'committee' && pick.some((x, t) => t && x < pick[t - 1])) continue;
+          count++;
+        }
+        return count === q.answer;
+      }
+      const bag = [].concat(Array(P.r).fill('r'), Array(P.b).fill('b'), Array(P.g).fill('g'));
+      if (P.kind === 'one-draw') return near(bag.filter(m => P.ask === 'not-red' ? m !== 'r' : m !== 'g').length / bag.length, q.answer, 1e-12);
+      let hit = 0, all = 0; for (let x = 0; x < bag.length; x++) for (let y = 0; y < bag.length; y++) if (x !== y) { all++; if (bag[x] === 'r' && bag[y] === 'r') hit++; }
+      return near(hit / all, q.answer, 1e-12);
     },
   });
 })();
