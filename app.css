@@ -3011,3 +3011,8 @@ html.pc-focus main { padding-top: 20px; }
 .ps-form input { flex: 1 1 200px; min-width: 0; padding: .45rem .7rem; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--surface); color: var(--ink); font: inherit; }
 @container page (max-width: 480px) { main .ps-note { flex-wrap: wrap; } main .ps-note p { flex-basis: calc(100% - 46px); } main .ps-replies { margin-left: 46px; } main .ps-form { margin-left: 0; } }
 .today-list li:has(.pod-how[open]) { align-items: flex-start; }
+/* tools */
+.it-pat { border-collapse: collapse; font-variant-numeric: tabular-nums; min-width: min(100%, 280px); }
+.it-pat th, .it-pat td { padding: 6px 14px; border-bottom: 1px solid var(--line); text-align: left; }
+.it-pat td:last-child, .it-pat th:last-child { text-align: right; font-weight: 700; }
+.it-pat tr.on td { background: var(--tint); }
