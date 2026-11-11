@@ -35,6 +35,7 @@
     blurb: 'Original practice in the style of the SAT and ACT math sections, by topic area and in mixed test-style sets. Listed at grade 11, the year most students take these tests.',
     units: [
       { id: 'algebra', title: 'Algebra', blurb: 'Linear equations, linear models, systems, inequalities, and the slopes and intercepts of lines.', skills: ['sat.linear-equations', 'sat.linear-models', 'sat.systems', 'sat.linear-inequalities', 'sat.lines'] },
+      { id: 'advanced', title: 'Advanced math', blurb: 'Quadratics, exponents and radicals, functions, exponential models, polynomials, and line-and-parabola systems.', skills: ['sat.quadratics', 'sat.exponents-radicals', 'sat.functions', 'sat.exponential-models', 'sat.polynomials-rational', 'sat.nonlinear-systems'] },
     ],
   };
   A.course(COURSE);
@@ -239,6 +240,239 @@
       if (P.kind === 'parallel') { const s = ((P.c - P.a) / P.b) - (P.c / P.b); return P.perp ? near(s * v, -1, 1e-9) : near(s, v, 1e-9); }
       if (P.kind === 'x-intercept') return near(P.m * v + P.b, 0, 1e-9);
       return near(P.m * P.x1 + v, P.y1, 1e-9);
+    },
+  });
+
+  /* ---------- Unit 2: advanced math ---------- */
+  const fac = r => r === 0 ? X : `(${M.poly([1, -r])})`;
+  const fx = s => `${V('f')}(${s})`, gx = s => `${V('g')}(${s})`;
+  A.skill({
+    id: 'sat.quadratics', title: 'Quadratic equations',
+    learn: p(`To solve ${V('a')}${M.sup(X, 2)} + ${V('b')}${X} + ${V('c')} = 0, <b>factor</b> when you can, or use the quadratic formula. Two shortcuts save time: <b>the solutions add to −${V('b')} ÷ ${V('a')} and multiply to ${V('c')} ÷ ${V('a')}</b>.`) +
+      p(`<b>The discriminant ${M.sup(V('b'), 2)} − 4${V('a')}${V('c')}</b> counts the real solutions: positive means two, zero means one, negative means none. The vertex of a parabola is at ${X} = −${V('b')} ÷ 2${V('a')}; its ${Y}-value there is the minimum (if ${V('a')} &gt; 0) or the maximum (if ${V('a')} &lt; 0).`) +
+      example('Example', `${M.poly([1, -2, -15])} = 0 factors as (${X} − 5)(${X} + 3) = 0, so ${X} = 5 or ${X} = −3. Their sum is 2, which is −(−2) ÷ 1.`),
+    make(rng) {
+      const kind = rng.pick(['roots', 'roots', 'count', 'vertex']);
+      if (kind === 'roots') {
+        let r1, r2; do { r1 = rng.int(-9, 9); r2 = rng.int(-9, 9); } while (r1 === r2);
+        const a = rng.pick([1, 1, 1, 2, 3]), co = [a, -a * (r1 + r2), a * r1 * r2];
+        const mixedSigns = r1 * r2 < 0, ask = rng.pick(['sum', 'product', mixedSigns ? 'positive' : 'greater']);
+        const ans = { sum: r1 + r2, product: r1 * r2, positive: Math.max(r1, r2), greater: Math.max(r1, r2) }[ask];
+        const what = { sum: 'sum of the solutions', product: 'product of the solutions', positive: 'positive solution', greater: 'greater solution' }[ask];
+        return { prompt: `What is the ${what} of the equation below?${big(`${M.poly(co)} = 0`)}`, type: 'number', answer: ans, params: { kind, co, ask },
+          hints: [`Factor: ${a === 1 ? '' : a}${fac(r1)}${fac(r2)} = 0.`, `So ${X} = ${N(r1)} or ${X} = ${N(r2)}.`, `The ${what} is <b>${N(ans)}</b>.`] };
+      }
+      if (kind === 'count') {
+        const a = rng.pick([1, 2, -1, 3, -2]), h = rng.int(-5, 5), k = rng.pick([-8, -3, -1, 0, 1, 2, 5, 9]), co = [a, -2 * a * h, a * h * h + k];
+        const n = a * k < 0 ? 2 : k === 0 ? 1 : 0, disc = co[1] * co[1] - 4 * co[0] * co[2];
+        return { prompt: `How many distinct real solutions does the equation below have?${big(`${M.poly(co)} = 0`)}`, type: 'choice', keepOrder: true, answer: String(n), choices: ['0', '1', '2', 'Infinitely many'], params: { kind, co },
+          hints: [`Find the discriminant: ${M.sup(V('b'), 2)} − 4${V('a')}${V('c')} = ${co[1] < 0 ? `(${N(co[1])})` : N(co[1])}² − 4(${N(co[0])})(${N(co[2])}) = ${N(disc)}.`, `It is ${disc > 0 ? 'positive, so there are' : disc === 0 ? 'zero, so there is' : 'negative, so there are'} <b>${n}</b> real solution${n === 1 ? '' : 's'}.`] };
+      }
+      const a = rng.pick([1, 2, 3, -1, -2]), h = rng.int(-6, 6), k = rng.int(-12, 12), co = [a, -2 * a * h, a * h * h + k], ask = rng.pick(['extreme', 'x']);
+      const word = a > 0 ? 'minimum' : 'maximum', ans = ask === 'x' ? h : k;
+      return { prompt: `For the function ${V('f')}(${X}) = ${M.poly(co)}, what is ${ask === 'x' ? `the value of ${X} where ${V('f')} reaches its ${word}` : `the ${word} value of ${V('f')}(${X})`}?`, type: 'number', answer: ans, params: { kind, co, ask },
+        hints: [`The vertex is at ${X} = −${V('b')} ÷ 2${V('a')} = ${N(-co[1])} ÷ ${N(2 * a)} = ${N(h)}.`, ask === 'x' ? `So the ${word} is at <b>${X} = ${N(h)}</b>.` : `${fx(N(h))} = ${N(k)}, so the ${word} value is <b>${N(k)}</b>.`] };
+    },
+    verify(q) {
+      const P = q.params, [a, b, c] = P.co, f = x => a * x * x + b * x + c;
+      if (P.kind === 'roots') {
+        const d = Math.sqrt(b * b - 4 * a * c), x1 = (-b - d) / (2 * a), x2 = (-b + d) / (2 * a);
+        const got = { sum: x1 + x2, product: x1 * x2, positive: Math.max(x1, x2), greater: Math.max(x1, x2) }[P.ask];
+        return (P.ask !== 'positive' || Math.min(x1, x2) < 0) && near(got, q.answer, 1e-9);
+      }
+      if (P.kind === 'count') { const top = f(-b / (2 * a)); return q.answer === String(Math.abs(top) < 1e-12 ? 1 : top * a < 0 ? 2 : 0); }
+      // scan a grid of x-values for the extreme
+      let best = -20; for (let x = -20; x <= 20; x += 0.25) if (a > 0 ? f(x) < f(best) : f(x) > f(best)) best = x;
+      return near(P.ask === 'x' ? best : f(best), q.answer, 1e-6);
+    },
+  });
+
+  const root = (n, inner) => (n === 2 ? '' : `<sup>${n}</sup>`) + M.sqrt(inner);
+  const xp = e => e === 1 ? X : M.sup(X, e);
+  A.skill({
+    id: 'sat.exponents-radicals', title: 'Exponents and radicals',
+    learn: p(`The exponent rules: ${M.sup(X, 'a')} · ${M.sup(X, 'b')} = ${M.sup(X, `${V('a')} + ${V('b')}`)}, ${M.sup(X, 'a')} ÷ ${M.sup(X, 'b')} = ${M.sup(X, `${V('a')} − ${V('b')}`)}, and (${M.sup(X, 'a')})<sup>${V('b')}</sup> = ${M.sup(X, V('a') + V('b'))}. <b>A fractional exponent is a root</b>: ${M.sup(X, `${V('m')}/${V('n')}`)} is the ${V('n')}th root of ${M.sup(X, V('m'))}.`) +
+      p(`To solve an equation like 4<sup>${X}</sup> = 8<sup>${X} − 1</sup>, <b>write both sides as powers of the same base</b>, then set the exponents equal: 2<sup>2${X}</sup> = 2<sup>3${X} − 3</sup>, so 2${X} = 3${X} − 3 and ${X} = 3.`) +
+      example('Example', `${M.sup(X, '3/4')} = ${root(4, M.sup(X, 3))}, and (${M.sup(X, 2)})<sup>3</sup> · ${M.sup(X, 4)} = ${M.sup(X, 10)}.`),
+    make(rng) {
+      const kind = rng.pick(['rational', 'solve', 'rules']);
+      if (kind === 'rational') {
+        let pp, qq; do { qq = rng.pick([2, 3, 4, 5]); pp = rng.int(2, 7); } while (gcd(pp, qq) !== 1);
+        const specs = [['root', qq, pp], ['root', pp, qq], ['mul', pp, qq], ['div', pp, qq]];
+        const show = ([t, a, b]) => t === 'root' ? root(a, xp(b)) : t === 'mul' ? `${a}${root(b, X)}` : `${F(xp(a), b)}`;
+        const choices = specs.map(show), answer = choices[0];
+        return { prompt: `Which expression is equivalent to ${M.sup(X, `${pp}/${qq}`)}, where ${X} &gt; 0?`, type: 'choice', answer, choices, params: { kind, pp, qq, specs, shown: choices.slice() },
+          hints: [`In ${M.sup(X, `${V('m')}/${V('n')}`)}, the denominator ${V('n')} is the root and the numerator ${V('m')} is the power.`, `So ${M.sup(X, `${pp}/${qq}`)} = <b>${answer}</b>, the ${{ 2: 'square', 3: 'cube', 4: 'fourth', 5: 'fifth' }[qq]} root of ${xp(pp)}.`] };
+      }
+      if (kind === 'solve') {
+        const b = rng.pick([2, 3, 5]), [m, n] = rng.pick([[1, 2], [2, 3], [1, 3], [2, 1], [3, 2], [3, 1]]), c = rng.nz(-4, 4) * Math.abs(n - m), x = n * c / (n - m);
+        const L = b ** m, R = b ** n;
+        return { prompt: `What value of ${X} satisfies the equation?${big(`${L}<sup>${X}</sup> = ${R}<sup>${M.poly([1, -c])}</sup>`)}`, type: 'number', answer: x, params: { kind, L, R, c },
+          hints: [`Write both sides as powers of ${b}: ${b}<sup>${m === 1 ? '' : m}${X}</sup> = ${b}<sup>${n === 1 ? M.poly([1, -c]) : `${n}(${M.poly([1, -c])})`}</sup>.`, `Set the exponents equal: ${M.term(m, 'x')} = ${M.poly([n, -n * c])}.`, `So <b>${X} = ${N(x)}</b>.`] };
+      }
+      const a = rng.int(2, 5), b = rng.int(2, 4), c = rng.int(1, 9), d = rng.int(1, 9), n = a * b + c - d;
+      return { prompt: `If the expression below equals ${M.sup(X, V('n'))} for all ${X} &gt; 0, what is the value of ${V('n')}?${big(`${F(`(${xp(a)})<sup>${b}</sup> · ${xp(c)}`, xp(d))}`)}`, type: 'number', answer: n, params: { kind, a, b, c, d },
+        hints: [`A power of a power multiplies: (${xp(a)})<sup>${b}</sup> = ${xp(a * b)}.`, `Multiplying adds exponents and dividing subtracts them: ${a * b} + ${c} − ${d}.`, `<b>${V('n')} = ${N(n)}</b>.`] };
+    },
+    verify(q) {
+      const P = q.params, x = 1.37, L = Math.log;
+      if (P.kind === 'rational') {
+        const val = ([t, a, b]) => t === 'root' ? Math.pow(Math.pow(x, b), 1 / a) : t === 'mul' ? a * Math.pow(x, 1 / b) : Math.pow(x, a) / b;
+        const target = Math.pow(x, P.pp / P.qq), hit = P.specs.map(sp => near(val(sp), target, 1e-9));
+        return hit.filter(Boolean).length === 1 && A.fixAngles(P.shown[hit.indexOf(true)]) === q.answer;
+      }
+      if (P.kind === 'solve') return near(q.answer * L(P.L), (q.answer - P.c) * L(P.R), 1e-9);
+      return near(L(Math.pow(Math.pow(x, P.a), P.b) * Math.pow(x, P.c) / Math.pow(x, P.d)) / L(x), q.answer, 1e-9);
+    },
+  });
+
+  A.skill({
+    id: 'sat.functions', title: 'Function notation and composition',
+    learn: p(`${fx(X)} names the output of ${V('f')} for the input ${X}. To find ${fx(V('a'))}, <b>replace every ${X} with ${V('a')}</b>, using parentheses, especially for negative numbers.`) +
+      p(`<b>A composition ${fx(gx(X))} works from the inside out</b>: find ${gx(X)} first, then put that result into ${V('f')}. For a linear function, two input–output pairs give the slope and then the whole rule.`) +
+      example('Example', `${fx(X)} = 2${X} + 1 and ${gx(X)} = ${M.sup(X, 2)} − 3. Then ${gx('−2')} = 4 − 3 = 1, and ${fx(gx('−2'))} = ${fx('1')} = <b>3</b>.`),
+    make(rng) {
+      const kind = rng.pick(['evaluate', 'compose', 'two-values', 'shift']);
+      if (kind === 'evaluate') {
+        const co = [rng.nz(-4, 4), rng.int(-9, 9), rng.int(-12, 12)], k = rng.nz(-5, 5), val = co[0] * k * k + co[1] * k + co[2];
+        return { prompt: `The function ${V('f')} is defined by ${fx(X)} = ${M.poly(co)}. What is the value of ${fx(N(k))}?`, type: 'number', answer: val, params: { kind, co, k },
+          hints: [`Replace ${X} with ${k < 0 ? `(${N(k)})` : N(k)}: ${N(co[0])}(${N(k)})² ${M.signed(co[1])}(${N(k)}) ${M.signed(co[2])}.`, `= ${N(co[0] * k * k)} ${M.signed(co[1] * k)} ${M.signed(co[2])} = <b>${N(val)}</b>.`] };
+      }
+      if (kind === 'compose') {
+        const m = rng.nz(-4, 5), b = rng.int(-8, 8), c = rng.int(-6, 6), k = rng.int(-4, 4), order = rng.pick(['fg', 'gf']);
+        const f = x => m * x + b, g = x => x * x + c, inner = order === 'fg' ? g(k) : f(k), val = order === 'fg' ? f(inner) : g(inner);
+        const outerName = order === 'fg' ? 'f' : 'g', innerName = order === 'fg' ? 'g' : 'f';
+        return { prompt: `If ${fx(X)} = ${M.poly([m, b])} and ${gx(X)} = ${M.poly([1, 0, c])}, what is the value of ${V(outerName)}(${V(innerName)}(${N(k)}))?`, type: 'number', answer: val, params: { kind, m, b, c, k, order },
+          hints: [`Inside first: ${V(innerName)}(${N(k)}) = ${N(inner)}.`, `Then ${V(outerName)}(${N(inner)}) = <b>${N(val)}</b>.`] };
+      }
+      if (kind === 'two-values') {
+        const m = rng.nz(-5, 6), b = rng.int(-10, 10), x1 = rng.int(-3, 4), x2 = x1 + rng.int(2, 6), t = rng.int(-6, 12);
+        return { prompt: `For a linear function ${V('f')}, ${fx(N(x1))} = ${N(m * x1 + b)} and ${fx(N(x2))} = ${N(m * x2 + b)}. What is the value of ${fx(N(t))}?`, type: 'number', answer: m * t + b, params: { kind, x1, y1: m * x1 + b, x2, y2: m * x2 + b, t },
+          hints: [`Slope = (${N(m * x2 + b)} − ${N(m * x1 + b)}) ÷ (${N(x2)} − ${N(x1)}) = ${N(m)}.`, `${fx(X)} = ${M.poly([m, b])}, since ${fx(N(x1))} = ${N(m)}(${N(x1)}) + ${V('b')} gives ${V('b')} = ${N(b)}.`, `${fx(N(t))} = <b>${N(m * t + b)}</b>.`] };
+      }
+      const m = rng.nz(-6, 7), b = rng.int(-9, 9), h = rng.nz(-4, 5);
+      return { prompt: `The function ${V('f')} is defined by ${fx(X)} = ${M.poly([m, b])}. What is the value of ${fx(M.poly([1, h]))} − ${fx(X)}?`, type: 'number', answer: m * h, params: { kind, m, b, h },
+        hints: [`${fx(M.poly([1, h]))} = ${N(m)}(${M.poly([1, h])}) ${M.signed(b)} = ${M.poly([m, m * h + b])}.`, `Subtract ${fx(X)} = ${M.poly([m, b])}: everything cancels except <b>${N(m * h)}</b>.`] };
+    },
+    verify(q) {
+      const P = q.params;
+      if (P.kind === 'evaluate') return P.co.reduce((s, c) => s * P.k + c, 0) === q.answer;
+      if (P.kind === 'compose') { const f = x => P.m * x + P.b, g = x => x * x + P.c; return (P.order === 'fg' ? f(g(P.k)) : g(f(P.k))) === q.answer; }
+      if (P.kind === 'two-values') { const s = (P.y2 - P.y1) / (P.x2 - P.x1); return near(P.y1 + s * (P.t - P.x1), q.answer, 1e-9); }
+      const f = x => P.m * x + P.b; return [0.3, 2.7, -5.1].every(x => near(f(x + P.h) - f(x), q.answer, 1e-9));
+    },
+  });
+
+  const GROW = [
+    { thing: 'population of a town', short: 'population', unit: 'people', per: 'year', t: 't', start: [1200, 4500, 8000, 15000] },
+    { thing: 'value of a used car, in dollars,', short: 'car’s value', unit: 'dollars', per: 'year', t: 't', start: [18000, 24000, 32000] },
+    { thing: 'number of bacteria in a sample', short: 'number of bacteria', unit: 'bacteria', per: 'hour', t: 'h', start: [500, 800, 2000] },
+    { thing: 'number of members of an online club', short: 'number of members', unit: 'members', per: 'month', t: 'm', start: [300, 640, 900] },
+  ];
+  A.skill({
+    id: 'sat.exponential-models', title: 'Exponential growth and decay',
+    learn: p(`In ${V('y')} = ${V('a')}(${V('b')})<sup>${V('t')}</sup>, ${V('a')} is the starting amount and ${V('b')} is the growth factor. <b>If ${V('b')} = 1 + ${V('r')}, the amount grows by ${V('r')} (as a percent) each period; if ${V('b')} = 1 − ${V('r')}, it shrinks by ${V('r')}.</b> So 1.06 means up 6% each period, and 0.85 means down 15%.`) +
+      p(`Exponential change multiplies by the same factor each period, while linear change adds the same amount. A <b>half-life</b> is the time for an amount to fall to half: after ${V('k')} half-lives, ${F(1, M.sup(2, V('k')))} of it is left.`) +
+      example('Example', `${V('P')} = 4,500(0.92)<sup>${V('t')}</sup> decreases by 8% per year. A 64 mg sample with a 5-hour half-life has 64 → 32 → 16 → <b>8 mg</b> left after 15 hours.`),
+    make(rng) {
+      const kind = rng.pick(['interpret', 'interpret', 'build', 'compute', 'half-life']);
+      if (kind === 'interpret' || kind === 'build') {
+        const c = rng.int(0, GROW.length - 1), ctx = GROW[c], up = c === 1 ? false : rng.bool(), r = rng.pick([2, 3, 4, 5, 6, 8, 12, 15, 20, 25]), b = up ? 1 + r / 100 : 1 - r / 100, a = rng.pick(ctx.start), T = V(ctx.t);
+        if (kind === 'interpret') {
+          const dir = up ? 'increases' : 'decreases', oth = up ? 'decreases' : 'increases', answer = `It ${dir} by ${r}% each ${ctx.per}`;
+          const choices = [answer, `It ${oth} by ${r}% each ${ctx.per}`, up ? `It ${dir} by ${N(b)}% each ${ctx.per}` : `It ${dir} by ${100 - r}% each ${ctx.per}`, `It ${dir} by ${r} ${ctx.unit} each ${ctx.per}`];
+          return { prompt: `The ${ctx.thing} is modeled by ${V('f')}(${T}) = ${N(a)}(${N(b)})<sup>${T}</sup>, where ${T} is the number of ${ctx.per}s from now. Which statement best describes how the ${ctx.short} changes?`, type: 'choice', answer, choices, params: { kind, b, per: ctx.per },
+            hints: [`The factor ${N(b)} is ${up ? `1 + ${N(r / 100)}` : `1 − ${N(r / 100)}`}.`, `Each ${ctx.per} the amount is multiplied by ${N(b)}: <b>${answer.toLowerCase()}</b>.`] };
+        }
+        const T2 = V('t'), fn = e => `${V('f')}(${T2}) = ${e}`, answer = fn(`${N(a)}(${N(b)})<sup>${T2}</sup>`);
+        const choices = [answer, fn(`${N(a)}(${N(r / 100)})<sup>${T2}</sup>`), fn(`${N(a)}(${N(up ? 1 - r / 100 : 1 + r / 100)})<sup>${T2}</sup>`), fn(`${N(a)} ${up ? '+' : '−'} ${N(r / 100)}${T2}`)];
+        return { prompt: `The ${ctx.thing.replace(/, in dollars,$/, '')} is ${N(a)} now and ${up ? 'increases' : 'decreases'} by ${r}% each ${ctx.per}. Which function gives the amount ${T2} ${ctx.per}s from now?`, type: 'choice', answer, choices, params: { kind, a, b },
+          hints: [`A change of ${r}% each ${ctx.per} multiplies by ${up ? `1 + ${N(r / 100)}` : `1 − ${N(r / 100)}`} = ${N(b)} each time.`, `So <b>${answer}</b>.`] };
+      }
+      if (kind === 'compute') {
+        const P0 = rng.pick([2000, 2500, 4000, 5000, 8000]), r = rng.pick([2, 3, 4, 5, 6]), t = rng.int(2, 5), val = Math.round(P0 * Math.pow(1 + r / 100, t));
+        return { prompt: `An investment of ${money(P0)} grows by ${r}% each year. To the nearest dollar, what is it worth after ${t} years?`, type: 'number', answer: val, unit: '$', params: { kind, P0, r, t },
+          hints: [`Multiply by 1 + ${N(r / 100)} = ${N(1 + r / 100)} once for each year: ${N(P0)}(${N(1 + r / 100)})<sup>${t}</sup>.`, `= ${N(M.round(P0 * Math.pow(1 + r / 100, t), 4))}, which rounds to <b>${money(val)}</b>.`] };
+      }
+      const k = rng.int(1, 5), h = rng.pick([3, 4, 5, 6, 8, 10, 12]), A0 = (2 ** k) * rng.int(2, 12), left = A0 / (2 ** k);
+      return { prompt: `A substance has a half-life of ${h} hours. A sample starts at ${N(A0)} milligrams. How many milligrams are left after ${h * k} hours?`, type: 'number', answer: left, unit: 'mg', params: { kind, h, A0, t: h * k },
+        hints: [`${h * k} hours is ${h * k} ÷ ${h} = ${k} half-li${k === 1 ? 'fe' : 'ves'}.`, `Halve ${N(A0)} ${k === 1 ? 'once' : `${k} times`}: ${N(A0)} ÷ ${2 ** k} = <b>${N(left)}</b> mg.`] };
+    },
+    verify(q) {
+      const P = q.params;
+      if (P.kind === 'interpret') { const pc = M.round(Math.abs(P.b - 1) * 100, 6); return q.answer === `It ${P.b > 1 ? 'increases' : 'decreases'} by ${N(pc)}% each ${P.per}`; }
+      if (P.kind === 'build') { const m = A.stripTags(q.answer).match(/\((\d*\.?\d+)\)/); return !!m && near(Number(m[1]), P.b, 1e-9) && A.stripTags(q.answer).includes(N(P.a)); }
+      if (P.kind === 'compute') { let v = P.P0; for (let i = 0; i < P.t; i++) v *= 1 + P.r / 100; return Math.abs(v - q.answer) <= 0.5; }
+      let m = P.A0, t = 0; while (t < P.t) { m /= 2; t += P.h; } return m === q.answer;
+    },
+  });
+
+  A.skill({
+    id: 'sat.polynomials-rational', title: 'Polynomials and rational equations',
+    learn: p(`<b>The remainder theorem:</b> when a polynomial ${V('p')}(${X}) is divided by ${X} − ${V('a')}, the remainder is ${V('p')}(${V('a')}). So ${X} − ${V('a')} is a factor exactly when ${V('p')}(${V('a')}) = 0. The zeros of a factored polynomial come from setting each factor equal to 0.`) +
+      p(`To solve an equation with ${X} in a denominator, <b>multiply both sides by the denominators (cross-multiply)</b>, solve, and then check that your answer doesn't make any denominator 0.`) +
+      example('Example', `${F(3, `${X} − 2`)} = ${F(5, `${X} + 2`)} gives 3(${X} + 2) = 5(${X} − 2), so 3${X} + 6 = 5${X} − 10 and <b>${X} = 8</b>.`),
+    make(rng) {
+      const kind = rng.pick(['remainder', 'zeros', 'rational']);
+      if (kind === 'remainder') {
+        const co = [1, rng.int(-6, 6), rng.int(-9, 9), rng.int(-12, 12)], a = rng.nz(-4, 4), val = co[0] * a ** 3 + co[1] * a * a + co[2] * a + co[3];
+        return { prompt: `What is the remainder when ${V('p')}(${X}) = ${M.poly(co)} is divided by ${M.poly([1, -a])}?`, type: 'number', answer: val, params: { kind, co, a },
+          hints: [`By the remainder theorem, the remainder is ${V('p')}(${N(a)}).`, `${V('p')}(${N(a)}) = ${N(a ** 3)} ${M.signed(co[1] * a * a)} ${M.signed(co[2] * a)} ${M.signed(co[3])} = <b>${N(val)}</b>.`] };
+      }
+      if (kind === 'zeros') {
+        let r1, r2; do { r1 = rng.int(-7, 7); r2 = rng.int(-7, 7); } while (r1 === r2);
+        let c, d; do { c = rng.pick([2, 3, 4, 5]); d = rng.nz(-9, 9); } while (d % c === 0);
+        const ask = rng.pick(['sum', 'greatest']), z3 = d / c, sum = fa(r1 * c + r2 * c + d, c);
+        const ans = ask === 'sum' ? sum : (Math.max(r1, r2) > z3 ? { answer: Math.max(r1, r2) } : fa(d, c));
+        return { prompt: `The polynomial ${V('p')} is defined by ${V('p')}(${X}) = ${fac(r1)}${fac(r2)}(${M.poly([c, -d])}). What is the ${ask === 'sum' ? 'sum of the zeros' : 'greatest zero'} of ${V('p')}?`, type: 'number', ...ans, params: { kind, r1, r2, c, d, ask },
+          hints: [`Set each factor equal to 0: ${X} = ${N(r1)}, ${X} = ${N(r2)}, and ${M.poly([c, -d])} = 0 gives ${X} = ${ft(d, c)}.`, ask === 'sum' ? `Add them: ${N(r1)} + ${r2 < 0 ? `(${N(r2)})` : N(r2)} + ${ft(d, c)} = <b>${ans.answerText || N(ans.answer)}</b>.` : `The greatest is <b>${ans.answerText || N(ans.answer)}</b>.`] };
+      }
+      let x, b, d, u, w; do { x = rng.int(-8, 10); b = rng.int(-6, 6); d = rng.int(-6, 6); u = x - b; w = x + d; } while (!u || !w || u === w || gcd(u, w) > 1 && Math.abs(u / gcd(u, w)) > 9);
+      const g = gcd(u, w), t = rng.pick([1, -1, 2]); let a = (u / g) * t, c = (w / g) * t; if (Math.abs(a) > 12 || Math.abs(c) > 12) { a = u / g; c = w / g; }
+      return { prompt: `What is the solution to the equation below?${big(`${F(N(a), M.poly([1, -b]))} = ${F(N(c), M.poly([1, d]))}`)}`, type: 'number', answer: x, params: { kind, a, b, c, d },
+        hints: [`Cross-multiply: ${N(a)}(${M.poly([1, d])}) = ${N(c)}(${M.poly([1, -b])}).`, `${M.poly([a, a * d])} = ${M.poly([c, -c * b])}, so ${M.term(a - c, 'x')} = ${N(-c * b - a * d)}.`, `<b>${X} = ${N(x)}</b>, which doesn't make either denominator 0.`] };
+    },
+    verify(q) {
+      const P = q.params;
+      if (P.kind === 'remainder') {
+        // synthetic division by x − a: the last number is the remainder
+        let r = 0; for (const c of P.co) r = r * P.a + c; return r === q.answer;
+      }
+      if (P.kind === 'zeros') {
+        const p = x => (x - P.r1) * (x - P.r2) * (P.c * x - P.d), zs = [P.r1, P.r2, P.d / P.c];
+        if (!zs.every(z => near(p(z), 0, 1e-9))) return false;
+        return near(P.ask === 'sum' ? zs.reduce((s, z) => s + z, 0) : Math.max(...zs), q.answer, 1e-9);
+      }
+      const x = q.answer; return x !== P.b && x !== -P.d && near(P.a / (x - P.b), P.c / (x + P.d), 1e-12);
+    },
+  });
+
+  A.skill({
+    id: 'sat.nonlinear-systems', title: 'Systems with a line and a parabola',
+    learn: p(`Where a line meets a parabola, their ${Y}-values are equal. <b>Set the two expressions equal</b>, move everything to one side, and solve the quadratic. Each solution ${X} gives an intersection point; find its ${Y} from the line.`) +
+      p(`How many intersections? Look at the discriminant of that quadratic: positive means 2 points, zero means 1 (the line just touches), negative means none.`) +
+      example('Example', `${Y} = ${M.poly([1, -1, -4])} and ${Y} = ${M.poly([2, 0])}. Then ${M.poly([1, -1, -4])} = 2${X}, so ${M.poly([1, -3, -4])} = 0 = (${X} − 4)(${X} + 1). The points are (4, 8) and (−1, −2).`),
+    make(rng) {
+      const kind = rng.pick(['count', 'solve', 'solve']);
+      if (kind === 'count') {
+        const m = rng.int(-4, 4), k = rng.int(-6, 6), h = rng.int(-4, 4), e = rng.pick([-9, -4, -1, 0, 0, 1, 3, 8]), b = m - 2 * h, c = k + h * h + e, n = e < 0 ? 2 : e === 0 ? 1 : 0;
+        const disc = (b - m) ** 2 - 4 * (c - k);
+        return { prompt: `How many points do the graphs of these two equations have in common?${big(`${Y} = ${M.poly([1, b, c])}<br>${Y} = ${M.poly([m, k])}`)}`, type: 'choice', keepOrder: true, answer: String(n), choices: ['0', '1', '2', 'Infinitely many'], params: { kind, b, c, m, k },
+          hints: [`Set them equal and collect terms: ${M.poly([1, b - m, c - k])} = 0.`, `The discriminant is ${N(disc)}, which is ${disc > 0 ? 'positive' : disc === 0 ? 'zero' : 'negative'}: <b>${n}</b> point${n === 1 ? '' : 's'} in common.`] };
+      }
+      let r1, r2; do { r1 = rng.int(-6, 6); r2 = rng.int(-6, 6); } while (r1 === r2);
+      const m = rng.int(-4, 4), k = rng.int(-8, 8), pb = m - (r1 + r2), pc = k + r1 * r2, ask = rng.pick(['xsum', 'ysum', 'xbig']);
+      const ans = { xsum: r1 + r2, ysum: m * (r1 + r2) + 2 * k, xbig: Math.max(r1, r2) }[ask];
+      const what = { xsum: `${V('x')}<sub>1</sub> + ${V('x')}<sub>2</sub>`, ysum: `${V('y')}<sub>1</sub> + ${V('y')}<sub>2</sub>`, xbig: `the greater of ${V('x')}<sub>1</sub> and ${V('x')}<sub>2</sub>` }[ask];
+      return { prompt: `The graphs of the equations below meet at (${V('x')}<sub>1</sub>, ${V('y')}<sub>1</sub>) and (${V('x')}<sub>2</sub>, ${V('y')}<sub>2</sub>). What is ${what}?${big(`${Y} = ${M.poly([1, pb, pc])}<br>${Y} = ${M.poly([m, k])}`)}`, type: 'number', answer: ans, params: { kind, pb, pc, m, k, ask },
+        hints: [`Set them equal: ${M.poly([1, pb - m, pc - k])} = 0, which factors as ${fac(r1)}${fac(r2)} = 0.`, `So ${X} = ${N(r1)} or ${X} = ${N(r2)}${ask === 'ysum' ? `, and the line gives ${Y} = ${N(m * r1 + k)} and ${Y} = ${N(m * r2 + k)}` : ''}.`, `${what.charAt(0) === 't' ? 'The answer' : what} is <b>${N(ans)}</b>.`] };
+    },
+    verify(q) {
+      const P = q.params;
+      if (P.kind === 'count') { const B = P.b - P.m, C = P.c - P.k, d = B * B - 4 * C; return q.answer === String(d > 0 ? 2 : d === 0 ? 1 : 0); }
+      const B = P.pb - P.m, C = P.pc - P.k, s = Math.sqrt(B * B - 4 * C), x1 = (-B - s) / 2, x2 = (-B + s) / 2, y = x => x * x + P.pb * x + P.pc;
+      if (!near(y(x1), P.m * x1 + P.k, 1e-9) || !near(y(x2), P.m * x2 + P.k, 1e-9)) return false;
+      return near({ xsum: x1 + x2, ysum: y(x1) + y(x2), xbig: Math.max(x1, x2) }[P.ask], q.answer, 1e-9);
     },
   });
 })();
