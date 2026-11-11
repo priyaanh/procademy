@@ -2186,6 +2186,7 @@ label.set-row { cursor: pointer; }
 .fr-dot.a { fill: var(--pc-a); }
 .fr-dot.b { fill: var(--pc-b); }
 .fr-dot.c { fill: var(--ink); }
+.fr-pc.c3, .fr-dot.c3 { fill: var(--vz3); }
 .fr-key { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 16px; font-size: .85rem; color: var(--muted); margin-top: 8px; }
 .fr-key > span { display: inline-flex; align-items: center; gap: 6px; }
 .fr-sw { display: inline-block; width: 14px; height: 14px; border-radius: 3px; flex: none; background: var(--pc-a); }
