@@ -39,6 +39,8 @@
       { id: 'data', title: 'Problem solving and data analysis', blurb: 'Ratios, rates and unit conversions, percents, mean, median and spread, two-way tables, and what a sample can tell you.', skills: ['sat.ratios-rates', 'sat.percents', 'sat.statistics', 'sat.probability-tables', 'sat.sampling-inference'] },
       { id: 'geometry', title: 'Geometry and trigonometry', blurb: 'Area and volume, angles and similar triangles, right-triangle trigonometry, and circles, arcs and radians.', skills: ['sat.area-volume', 'sat.angles-triangles', 'sat.right-triangles', 'sat.circles'] },
       { id: 'act-topics', title: 'More ACT topics', blurb: 'Complex numbers, logarithms, sequences, matrices, and counting and probability, which the ACT includes.', skills: ['sat.complex-numbers', 'sat.logarithms', 'sat.sequences', 'sat.matrices', 'sat.counting-probability'] },
+      { id: 'sat-sets', title: 'SAT-style mixed sets', blurb: 'Questions from several topic areas in one set, the way a test section mixes them, with tips on pacing.', skills: ['sat.mix-algebra', 'sat.mix-data-geometry', 'sat.mix-full'] },
+      { id: 'act-sets', title: 'ACT-style mixed sets', blurb: 'Core and advanced ACT-style questions mixed together, with tips for working quickly.', skills: ['sat.mix-act-core', 'sat.mix-act-advanced'] },
     ],
   };
   A.course(COURSE);
@@ -1038,4 +1040,39 @@
       return near(hit / all, q.answer, 1e-12);
     },
   });
+
+  /* ---------- Units 6 and 7: mixed, test-style sets ---------- */
+  /** a skill that asks a question from any of the pool's skills, the way a test section mixes topics */
+  function mixed(id, title, pool, learn) {
+    A.skill({
+      id, title, learn,
+      make(rng) {
+        const from = rng.pick(pool), q = A.skills[from].make(rng);
+        q.params = Object.assign({}, q.params, { from });
+        return q;
+      },
+      verify(q) { const def = A.skills[q.params.from]; return pool.includes(q.params.from) && (def.verify ? def.verify(q) : true); },
+    });
+  }
+  const U = id => COURSE.units.find(u => u.id === id).skills;
+  mixed('sat.mix-algebra', 'Mixed set: algebra and advanced math', U('algebra').concat(U('advanced')),
+    p(`On test day, questions from different topics arrive in no particular order, so this set mixes them. <b>Start by asking what the question wants</b>: ${X}, an expression, a count of solutions, or the meaning of a number.`) +
+      p(`Two habits save time. <b>Look for a shortcut before solving</b> (if 2${X} + 3 = 9, then 4${X} + 6 = 18 at once). On a multiple-choice question, <b>try the answer choices</b> in the equation when solving looks slow. And check that your answer is reasonable before moving on.`) +
+      example('Example', `"If ${M.poly([3, -1])} = 11, what is ${M.poly([6, -2])}?" The second expression is twice the first, so it is <b>22</b>, without finding ${X}.`));
+  mixed('sat.mix-data-geometry', 'Mixed set: data, geometry and trigonometry', U('data').concat(U('geometry')),
+    p(`This set mixes percents, rates, tables and statistics with geometry and right triangles. <b>For data questions, find the exact group the question is about</b>: a row, a column, or everyone. <b>For geometry, write the formula first</b>, then substitute.`) +
+      p(`Keep units in your work, so feet don't get mixed with miles. Sketch a quick picture for any geometry question without one, and mark the right angle and the parallel lines.`) +
+      example('Example', `A cylinder has radius 4 and height 5. Write ${V('V')} = π${M.sup(V('r'), 2)}${V('h')} first, then substitute: π(16)(5) = <b>80π</b>.`));
+  mixed('sat.mix-full', 'Full mixed set, SAT style', U('algebra').concat(U('advanced'), U('data'), U('geometry')),
+    p(`A full mix across the four SAT-style areas: algebra, advanced math, problem solving and data analysis, and geometry and trigonometry. <b>Pace yourself</b>: if a question is taking much longer than the others, make your best guess, mark it, and come back if there's time.`) +
+      p(`There's no penalty for a wrong answer on these tests, so <b>never leave a question blank</b>. Eliminate choices you know are wrong before you guess. When you're asked for a number, check that it answers the question asked (a length, not ${X}; the total, not one part).`) +
+      example('Example', `A question asks for the width, and you find ${X} = 7 where the width is 2${X} − 3. The answer is the width, <b>11</b>, not 7.`));
+  mixed('sat.mix-act-core', 'Mixed set: ACT-style core math', ['sat.ratios-rates', 'sat.percents', 'sat.statistics', 'sat.counting-probability', 'sat.linear-equations', 'sat.systems', 'sat.lines', 'sat.area-volume', 'sat.angles-triangles', 'sat.right-triangles'],
+    p(`The ACT mixes number sense, algebra, geometry and statistics, and it moves quickly: plan on roughly a minute per question. <b>Do the questions you're sure of first</b>, and don't let one hard question eat your time.`) +
+      p(`Most ACT questions are multiple choice. <b>Estimate before you calculate</b> so you can spot an answer that can't be right, and reread the last sentence of the question before you choose.`) +
+      example('Example', `"25% off, then $36. What was the original price?" Estimate first: the original must be more than $36, so any choice below $36 is out. Then 36 ÷ 0.75 = <b>$48</b>.`));
+  mixed('sat.mix-act-advanced', 'Mixed set: ACT-style advanced math', ['sat.quadratics', 'sat.functions', 'sat.exponents-radicals', 'sat.polynomials-rational', 'sat.complex-numbers', 'sat.logarithms', 'sat.sequences', 'sat.matrices', 'sat.circles', 'sat.exponential-models'],
+    p(`The later ACT questions reach further: complex numbers, logarithms, matrices, sequences and the unit circle sit next to quadratics and functions. <b>Recognize the topic first</b>, then recall its one key rule (${I}² = −1; a log is an exponent; row times column).`) +
+      p(`If a question looks unfamiliar, it often isn't: rewrite it in a form you know, such as exponent form for a logarithm, or completing the square for a circle.`) +
+      example('Example', `${lg(2, `(${X} − 3)`)} = 5 looks new, but in exponent form it's ${X} − 3 = 32, so <b>${X} = 35</b>.`));
 })();
