@@ -938,7 +938,8 @@ kbd { font-family: var(--mono); font-size: .8em; background: var(--surface-2); b
 .viz-title { font-weight: 700; font-size: .92rem; margin: 0 4px 6px; }
 .viz-plot { position: relative; }
 .viz-plot svg { display: block; width: 100%; height: auto; border-radius: 8px; user-select: none; -webkit-user-select: none; }
-.viz-graph .viz-plot svg { cursor: crosshair; touch-action: manipulation; }
+.viz-graph .viz-plot svg { cursor: crosshair; touch-action: pan-x pan-y; }
+.viz-graph .viz-plot:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: 8px; }
 .viz-graph.dragging .viz-plot svg { cursor: grabbing; }
 .viz-legend { display: flex; flex-wrap: wrap; gap: 4px 6px; margin-top: 6px; }
 .viz-key { display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: .84rem; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface-2); color: var(--ink); cursor: pointer; max-width: 100%; overflow-wrap: anywhere; text-align: left; }
@@ -1797,6 +1798,24 @@ label.set-row { cursor: pointer; }
 .calc-fit { margin: 8px 0 0; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 #calc-graph.can-pull svg, #calc-graph.pulling svg { cursor: grab; }
 #calc-graph.pulling svg { cursor: grabbing; }
+/* the graphing page: Play on a slider, a function's value, grid and angles, notes and pictures */
+.calc-play { flex: none; display: inline-grid; place-items: center; width: 34px; height: 34px; border: 0; border-radius: 50%; background: var(--tint); color: var(--primary-ink); cursor: pointer; }
+.calc-play:hover { background: var(--tint-2); }
+.calc-play .pa, .calc-play[aria-pressed="true"] .pl { display: none; }
+.calc-play[aria-pressed="true"] .pa { display: inline; }
+.calc-play[aria-pressed="true"] { background: var(--primary); color: var(--on-primary); }
+.calc-val { grid-column: 2 / 4; font: 700 1rem var(--mono); color: var(--primary-ink); padding: 0 4px; }
+.calc-row.is-value .calc-sw { background: var(--tint); }
+.calc-view { display: grid; gap: 12px; }
+.calc-view-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.calc-view-row > .small { min-width: 4.5em; }
+.calc-send { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin: 10px 0 0; }
+.calc-send label { flex: 1 1 100%; }
+.calc-send select, .calc-send input { flex: 1 1 200px; min-width: 0; min-height: 40px; padding: .4rem .7rem; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--surface); color: var(--ink); font: inherit; }
+/* a tool's how-to, folded under its title */
+.tool-how { margin: 8px 0 4px; }
+.tool-how summary { cursor: pointer; font-size: .9rem; font-weight: 650; color: var(--primary-ink); width: max-content; max-width: 100%; }
+.tool-how ol { margin: 8px 0 4px; padding-left: 1.3em; display: grid; gap: 4px; max-width: 72ch; }
 
 /* ---------- the step checker: solve, simplify or factor ---------- */
 .steps-solve .tabs { display: flex; gap: 4px; margin: 4px 0 10px; }
