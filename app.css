@@ -3016,3 +3016,27 @@ html.pc-focus main { padding-top: 20px; }
 .it-pat th, .it-pat td { padding: 6px 14px; border-bottom: 1px solid var(--line); text-align: left; }
 .it-pat td:last-child, .it-pat th:last-child { text-align: right; font-weight: 700; }
 .it-pat tr.on td { background: var(--tint); }
+.tf-ex { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 4px; }
+.tf-h { margin: 16px 0 10px; font-family: var(--mono); font-size: 1.3rem; }
+.tf-grid { display: grid; gap: 18px 28px; grid-template-columns: minmax(0, 1fr); }
+@container page (min-width: 860px) { .tf-grid { grid-template-columns: minmax(0, 300px) minmax(0, 1fr); } }
+.tf-grid h3 { margin: 0 0 8px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+.tf-pile { display: flex; flex-wrap: wrap; gap: 5px; align-items: flex-end; }
+.tf-p { --tc: var(--vz3); display: inline-grid; place-items: center; border: 2px solid var(--tc); border-radius: 4px; background: color-mix(in srgb, var(--tc) 24%, var(--surface)); color: var(--ink); font: 700 .78rem var(--font); }
+.tf-p.x2 { width: 54px; height: 54px; --tc: var(--vz1); }
+.tf-p.x { width: 22px; height: 54px; font-size: .72rem; }
+.tf-p.u { width: 22px; height: 22px; font-size: .62rem; --tc: var(--vz5); }
+.tf-p.neg { --tc: var(--vz2); background: var(--surface); border-style: dashed; }
+.tf-dims { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; font: 600 1.15rem var(--mono); margin-bottom: 10px; }
+.tf-side { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.tf-num input { width: 4.2em; min-height: 40px; padding: .3rem .4rem; font: 600 1.05rem var(--mono); text-align: center; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--surface); color: var(--ink); }
+.tf-pairs { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 12px; }
+.tf-svg { display: block; width: 100%; height: auto; margin: 4px 0 10px; }
+.tf-t { stroke-width: 2; }
+.tf-t.x2 { fill: color-mix(in srgb, var(--vz1) 24%, var(--surface)); stroke: var(--vz1); }
+.tf-t.x { fill: color-mix(in srgb, var(--vz3) 24%, var(--surface)); stroke: var(--vz3); }
+.tf-t.u { fill: color-mix(in srgb, var(--vz5) 24%, var(--surface)); stroke: var(--vz5); }
+.tf-t.neg { fill: var(--surface); stroke: var(--vz2); stroke-dasharray: 4 3; }
+.tf-l { fill: var(--ink); font: 700 11.5px var(--font); }
+.tf-d { fill: var(--muted); font: 700 13px var(--font); }
+
