@@ -33,6 +33,7 @@
       { id: 'number-theory', title: 'Number theory', blurb: 'Divisors, GCF and LCM puzzles, remainders and cycles, units digits, divisibility rules, and zeros at the end.', skills: ['comp.divisors', 'comp.gcd-lcm', 'comp.remainders', 'comp.units-digit', 'comp.digit-rules', 'comp.trailing-zeros'] },
       { id: 'algebra', title: 'Clever algebra', blurb: 'Algebra shortcuts, sums of sequences, work and rate problems, distance and speed, and repeating patterns.', skills: ['comp.algebra-identities', 'comp.series', 'comp.work-rate', 'comp.motion', 'comp.cycles'] },
       { id: 'geometry', title: 'Geometry', blurb: 'Polygon angles, areas on a grid, Pythagorean triples, circles with squares, scale factors, and counting shapes.', skills: ['comp.polygon-angles', 'comp.lattice-area', 'comp.pythagorean', 'comp.circles-squares', 'comp.scale-factors', 'comp.counting-shapes'] },
+      { id: 'probability', title: 'Probability', blurb: 'Dice and coins, probability by counting, expected value, and probability with lengths and areas.', skills: ['comp.dice-coins', 'comp.probability-counting', 'comp.expected-value', 'comp.geometric-probability'] },
     ],
   };
   A.course(COURSE);
@@ -764,6 +765,144 @@
       let c = 0;
       if (P.kind === 'rectangles') { for (let x1 = 0; x1 <= P.m; x1++) for (let x2 = x1 + 1; x2 <= P.m; x2++) for (let y1 = 0; y1 <= P.n; y1++) for (let y2 = y1 + 1; y2 <= P.n; y2++) c++; return c === q.answer; }
       for (let s = 1; s <= P.n; s++) for (let x = 0; x + s <= P.n; x++) for (let y = 0; y + s <= P.n; y++) c++; return c === q.answer;
+    },
+  });
+
+  /* ---------- Unit 5: probability ---------- */
+  const isPrime = n => { if (n < 2) return false; for (let d = 2; d * d <= n; d++) if (n % d === 0) return false; return true; };
+  const DICE = {
+    sum: { say: s => `the sum is ${s}`, test: s => (a, b) => a + b === s },
+    'at-least': { say: s => `the sum is at least ${s}`, test: s => (a, b) => a + b >= s },
+    prime: { say: () => 'the sum is a prime number', test: () => (a, b) => isPrime(a + b) },
+    'product-even': { say: () => 'the product of the two numbers is even', test: () => (a, b) => (a * b) % 2 === 0 },
+    'differ': { say: s => `the two numbers differ by ${s}`, test: s => (a, b) => Math.abs(a - b) === s },
+  };
+  A.skill({
+    id: 'comp.dice-coins', title: 'Dice and coins',
+    learn: p(`Two dice have 6 × 6 = 36 equally likely outcomes; ${V('n')} coins have 2<sup>${V('n')}</sup>. <b>Count the outcomes you want and divide by the total.</b> A quick table (first die down the side, second across the top) makes dice questions easy to count.`) +
+      p(`For coins, the number of ways to get exactly ${V('k')} heads from ${V('n')} flips is C(${V('n')}, ${V('k')}). <b>"At least one" is 1 minus "none"</b>: the chance of at least one head in 5 flips is 1 − ${F(1, 32)} = ${F(31, 32)}.`) +
+      example('Example', `Rolling two dice, a sum of 8 happens 5 ways (2-6, 3-5, 4-4, 5-3, 6-2), so the probability is <b>${F(5, 36)}</b>.`),
+    make(rng) {
+      if (rng.chance(0.55)) {
+        const kind = rng.pick(Object.keys(DICE)), s = kind === 'sum' ? rng.int(3, 11) : kind === 'at-least' ? rng.int(7, 11) : kind === 'differ' ? rng.int(1, 4) : 0;
+        const f = DICE[kind].test(s); let c = 0; for (let a = 1; a <= 6; a++) for (let b = 1; b <= 6; b++) if (f(a, b)) c++;
+        const ans = fa(c, 36);
+        return { prompt: `Two fair six-sided dice are rolled. What is the probability that ${DICE[kind].say(s)}? Give your answer as a fraction.`, type: 'number', ...ans, params: { die: kind, s },
+          hints: [`There are 36 equally likely outcomes. Count the ones where ${DICE[kind].say(s)}: ${c}.`, `${c} ÷ 36 = <b>${ans$(ans)}</b>.`] };
+      }
+      const n = rng.int(3, 6), kind = rng.pick(['exactly', 'at-least-one', 'more-heads']), k = rng.int(1, n - 1);
+      let c = 0; for (let m = 0; m < (1 << n); m++) { const h = popcount(m); if (kind === 'exactly' ? h === k : kind === 'at-least-one' ? h > 0 : h > n - h) c++; }
+      const ans = fa(c, 2 ** n), what = kind === 'exactly' ? `exactly ${k} of them land${k === 1 ? 's' : ''} heads` : kind === 'at-least-one' ? 'at least one lands heads' : 'more of them land heads than tails';
+      return { prompt: `${Word(n)} fair coins are flipped. What is the probability that ${what}? Give your answer as a fraction.`, type: 'number', ...ans, params: { coins: kind, n, k },
+        hints: [`There are 2<sup>${n}</sup> = ${2 ** n} equally likely outcomes.`, kind === 'exactly' ? `Ways to choose which ${k} are heads: C(${n}, ${k}) = ${c}.` : kind === 'at-least-one' ? `Only 1 outcome has no heads, so ${2 ** n} − 1 = ${c} have at least one.` : `Add the ways to get ${Array.from({ length: n + 1 }, (_, h) => h).filter(h => h > n - h).join(', ')} heads: ${c}.`, `${c} ÷ ${2 ** n} = <b>${ans$(ans)}</b>.`] };
+    },
+    verify(q) {
+      const P = q.params;
+      if (P.die) {
+        // roll the dice as a list of pairs and filter it
+        const pairs = []; for (let a = 1; a <= 6; a++) for (let b = 1; b <= 6; b++) pairs.push([a, b]);
+        const s = P.s, ok = { sum: ([a, b]) => a + b === s, 'at-least': ([a, b]) => a + b >= s, prime: ([a, b]) => [2, 3, 5, 7, 11].includes(a + b), 'product-even': ([a, b]) => a % 2 === 0 || b % 2 === 0, differ: ([a, b]) => a - b === s || b - a === s }[P.die];
+        return near(pairs.filter(ok).length / 36, q.answer, 1e-12);
+      }
+      const seqs = [[]]; for (let i = 0; i < P.n; i++) { const next = []; seqs.forEach(sq => { next.push(sq.concat('H'), sq.concat('T')); }); seqs.splice(0, seqs.length, ...next); }
+      const heads = sq => sq.filter(x => x === 'H').length, ok = P.coins === 'exactly' ? sq => heads(sq) === P.k : P.coins === 'at-least-one' ? sq => heads(sq) > 0 : sq => heads(sq) * 2 > P.n;
+      return near(seqs.filter(ok).length / seqs.length, q.answer, 1e-12);
+    },
+  });
+
+  A.skill({
+    id: 'comp.probability-counting', title: 'Probability by counting',
+    learn: p(`Many probability questions are counting questions: <b>probability = (number of favorable choices) ÷ (number of possible choices)</b>, using the counting tools from earlier, C(${V('n')}, ${V('k')}) and ${V('n')}!.`) +
+      p(`Make sure the top and bottom count the same kind of thing (both unordered groups, or both ordered lineups). Sometimes a clever view is quicker: in a random lineup of ${V('n')} people, any particular person is equally likely to be in each spot.`) +
+      example('Example', `Two of 4 boys and 5 girls are chosen at random. P(both girls) = C(5, 2) ÷ C(9, 2) = 10 ÷ 36 = <b>${F(5, 18)}</b>.`),
+    make(rng) {
+      const kind = rng.pick(['group', 'adjacent', 'pair']);
+      if (kind === 'group') {
+        const b = rng.int(3, 7), g = rng.int(3, 7), k = rng.pick([2, 3]), ask = k === 2 ? rng.pick(['all-girls', 'one-each']) : 'all-girls';
+        const fav = ask === 'all-girls' ? choose(g, k) : b * g, tot = choose(b + g, k), ans = fa(fav, tot);
+        return { prompt: `${k === 2 ? 'Two' : 'Three'} students are chosen at random from a group of ${b} boys and ${g} girls. What is the probability that ${ask === 'all-girls' ? `all ${k === 2 ? 'both' : 'three'} are girls`.replace('all both', 'both') : 'one boy and one girl are chosen'}?`, type: 'number', ...ans, params: { kind, b, g, k, ask },
+          hints: [`Possible groups: C(${b + g}, ${k}) = ${tot}.`, ask === 'all-girls' ? `All-girl groups: C(${g}, ${k}) = ${fav}.` : `One of each: ${b} × ${g} = ${fav}.`, `${fav} ÷ ${tot} = <b>${ans$(ans)}</b>.`] };
+      }
+      if (kind === 'adjacent') {
+        const n = rng.int(4, 7), [a, b] = rng.sample(NAMES, 2), ans = fa(2, n);
+        return { prompt: `${Word(n)} friends, including ${a} and ${b}, line up in a random order. What is the probability that ${a} and ${b} stand next to each other?`, type: 'number', ...ans, params: { kind, n },
+          hints: [`Lineups with them together: treat them as one block, (${n} − 1)! × 2 = ${2 * fact(n - 1)}. All lineups: ${n}! = ${fact(n)}.`, `${2 * fact(n - 1)} ÷ ${fact(n)} = <b>${ans$(ans)}</b>.`] };
+      }
+      const n = rng.int(6, 15), ask = rng.pick(['sum-even', 'product-even', 'sum-odd']);
+      const ev = Math.floor(n / 2), od = n - ev, tot = choose(n, 2), fav = ask === 'sum-even' ? choose(ev, 2) + choose(od, 2) : ask === 'sum-odd' ? ev * od : tot - choose(od, 2), ans = fa(fav, tot);
+      return { prompt: `Two different numbers are chosen at random from the whole numbers 1 through ${n}. What is the probability that their ${ask === 'product-even' ? 'product is even' : `sum is ${ask === 'sum-even' ? 'even' : 'odd'}`}?`, type: 'number', ...ans, params: { kind, n, ask },
+        hints: [`There are ${ev} even and ${od} odd numbers, and C(${n}, 2) = ${tot} pairs.`, ask === 'sum-even' ? `An even sum needs two evens or two odds: C(${ev}, 2) + C(${od}, 2) = ${fav}.` : ask === 'sum-odd' ? `An odd sum needs one even and one odd: ${ev} × ${od} = ${fav}.` : `The product is odd only for two odds, C(${od}, 2) = ${choose(od, 2)}, so ${tot} − ${choose(od, 2)} = ${fav} pairs have an even product.`, `${fav} ÷ ${tot} = <b>${ans$(ans)}</b>.`] };
+    },
+    verify(q) {
+      const P = q.params;
+      if (P.kind === 'group') {
+        let hit = 0, all = 0; const n = P.b + P.g;
+        for (let m = 0; m < (1 << n); m++) { if (popcount(m) !== P.k) continue; all++; const girls = popcount(m >> P.b); if (P.ask === 'all-girls' ? girls === P.k : girls === 1) hit++; }
+        return near(hit / all, q.answer, 1e-12);
+      }
+      if (P.kind === 'adjacent') { const ps = perms(Array.from({ length: P.n }, (_, i) => i)); return near(ps.filter(r => Math.abs(r.indexOf(0) - r.indexOf(1)) === 1).length / ps.length, q.answer, 1e-12); }
+      let hit = 0, all = 0; for (let a = 1; a <= P.n; a++) for (let b = a + 1; b <= P.n; b++) { all++; if (P.ask === 'sum-even' ? (a + b) % 2 === 0 : P.ask === 'sum-odd' ? (a + b) % 2 === 1 : (a * b) % 2 === 0) hit++; }
+      return near(hit / all, q.answer, 1e-12);
+    },
+  });
+
+  A.skill({
+    id: 'comp.expected-value', title: 'Expected value',
+    learn: p(`The <b>expected value</b> is the long-run average result: <b>multiply each outcome by its probability and add</b>. It doesn't have to be a result that can actually happen.`) +
+      p(`A game is <b>fair</b> when the expected winnings are 0. Expected values add: the expected number of sixes in 12 rolls is 12 × ${F(1, 6)} = 2.`) +
+      example('Example', `A spinner has 4 equal parts labeled 1, 1, 3 and 7. The expected value is (1 + 1 + 3 + 7) ÷ 4 = <b>3</b>. A game paying 10 points on a 6 and costing 1 point otherwise has expected value 10 × ${F(1, 6)} − 1 × ${F(5, 6)} = ${F(5, 6)} point.`),
+    make(rng) {
+      const kind = rng.pick(['spinner', 'game', 'count']);
+      if (kind === 'spinner') {
+        const k = rng.pick([4, 5, 6, 8]), labels = Array.from({ length: k }, () => rng.int(0, 12)), sum = labels.reduce((s, x) => s + x, 0), ans = fa(sum, k);
+        return { prompt: `A spinner is divided into ${k} equal sections labeled ${M.list(labels.map(String))}. What is the expected value of one spin?`, type: 'number', ...ans, params: { kind, labels },
+          hints: [`Each section has probability ${F(1, k)}, so the expected value is the average of the labels.`, `(${labels.join(' + ')}) ÷ ${k} = ${sum} ÷ ${k} = <b>${ans$(ans)}</b>.`] };
+      }
+      if (kind === 'game') {
+        const win6 = rng.int(4, 15), win45 = rng.int(1, 5), lose = rng.int(1, 6), num = win6 + 2 * win45 - 3 * lose, ans = fa(num, 6);
+        return { prompt: `In a game you roll a fair die. You win ${win6} points for a 6 and ${win45} point${win45 === 1 ? '' : 's'} for a 4 or a 5, and you lose ${lose} point${lose === 1 ? '' : 's'} for a 1, 2 or 3. What is your expected score for one roll?`, type: 'number', ...ans, params: { kind, pay: [-lose, -lose, -lose, win45, win45, win6] },
+          hints: [`Expected value = ${win6} × ${F(1, 6)} + ${win45} × ${F(2, 6, { raw: true })} − ${lose} × ${F(3, 6, { raw: true })}.`, `= (${win6} + ${2 * win45} − ${3 * lose}) ÷ 6 = ${F(num, 6, { raw: true })} = <b>${ans$(ans)}</b>.`] };
+      }
+      const n = rng.pick([6, 9, 12, 15, 18, 20, 24, 30, 36]), what = rng.pick([['a fair die is rolled', 'sixes', 6], ['a fair coin is flipped', 'heads', 2], ['a spinner with 4 equal colors is spun', 'reds', 4]]), ans = fa(n, what[2]);
+      return { prompt: `${what[0][0].toUpperCase() + what[0].slice(1)} ${n} times. What is the expected number of ${what[1]}?`, type: 'number', ...ans, params: { kind, n, sides: what[2] },
+        hints: [`Each try has probability ${F(1, what[2])}, and expected values add.`, `${n} × ${F(1, what[2])} = <b>${ans$(ans)}</b>.`] };
+    },
+    verify(q) {
+      const P = q.params;
+      if (P.kind === 'spinner') return near(P.labels.reduce((s, x) => s + x, 0) / P.labels.length, q.answer, 1e-12);
+      if (P.kind === 'game') return near(P.pay.reduce((s, x) => s + x / 6, 0), q.answer, 1e-12);
+      // the long way: the sum of k × P(exactly k successes) over every k
+      const pr = 1 / P.sides; let e = 0; for (let k = 0; k <= P.n; k++) e += k * choose(P.n, k) * pr ** k * (1 - pr) ** (P.n - k);
+      return near(e, q.answer, 1e-9);
+    },
+  });
+
+  A.skill({
+    id: 'comp.geometric-probability', title: 'Geometric probability',
+    learn: p(`When a point is chosen "at random" from a region, <b>probability = (size of the part you want) ÷ (size of the whole)</b>: lengths on a segment, areas in a shape.`) +
+      p(`On a dartboard of circles, compare areas, which go with the square of the radius: the inner circle of radius 2 inside a board of radius 6 is ${F(4, 36)} = ${F(1, 9)} of the board. In a square, sketch the line or curve and find the area of the part you want.`) +
+      example('Example', `A point is chosen at random inside a square with corners (0, 0) and (4, 4). The region where ${X} + ${Y} &lt; 2 is a triangle of area 2, so the probability is 2 ÷ 16 = <b>${F(1, 8)}</b>.`),
+    make(rng) {
+      const kind = rng.pick(['dartboard', 'segment', 'square']);
+      if (kind === 'dartboard') {
+        const r1 = rng.int(1, 4), r2 = r1 + rng.int(1, 4), r3 = r2 + rng.int(1, 4), ring = rng.bool(), ans = ring ? fa(r2 * r2 - r1 * r1, r3 * r3) : fa(r1 * r1, r3 * r3);
+        return { prompt: `A target is made of three circles with the same center and radii ${r1}, ${r2} and ${r3} inches. A dart hits the target at a random point. What is the probability that it lands ${ring ? `between the smallest and middle circles` : 'inside the smallest circle'}?`, type: 'number', ...ans, params: { kind, r1, r2, r3, ring },
+          hints: [`The target's area is ${r3 * r3}π. ${ring ? `The ring's area is ${r2 * r2}π − ${r1 * r1}π = ${r2 * r2 - r1 * r1}π.` : `The small circle's area is ${r1 * r1}π.`}`, `${ring ? r2 * r2 - r1 * r1 : r1 * r1}π ÷ ${r3 * r3}π = <b>${ans$(ans)}</b>.`] };
+      }
+      if (kind === 'segment') {
+        const L = rng.pick([10, 12, 15, 20, 24, 30]), c = rng.int(4, L - 4), d = rng.int(1, Math.min(c, L - c, 6)), ans = fa(2 * d, L);
+        return { prompt: `A number ${X} is chosen at random between 0 and ${L}. What is the probability that ${X} is within ${d} of ${c}?`, type: 'number', ...ans, params: { kind, L, c, d },
+          hints: [`"Within ${d} of ${c}" is the interval from ${c - d} to ${c + d}, of length ${2 * d}.`, `${2 * d} ÷ ${L} = <b>${ans$(ans)}</b>.`] };
+      }
+      const s = rng.int(2, 8), k = rng.int(1, 2 * s - 1), area = k <= s ? k * k / 2 : s * s - (2 * s - k) ** 2 / 2, ans = fa(2 * area, 2 * s * s);
+      return { prompt: `A point (${X}, ${Y}) is chosen at random inside the square with corners (0, 0), (${s}, 0), (${s}, ${s}) and (0, ${s}). What is the probability that ${X} + ${Y} &lt; ${k}?`, type: 'number', ...ans, params: { kind, s, k },
+        hints: [k <= s ? `The region ${X} + ${Y} &lt; ${k} is a right triangle with legs ${k}: area ${N(area)}.` : `The part where ${X} + ${Y} ≥ ${k} is a corner triangle with legs ${2 * s - k}, area ${N((2 * s - k) ** 2 / 2)}; the rest has area ${N(area)}.`, `${N(area)} ÷ ${s * s} = <b>${ans$(ans)}</b>.`] };
+    },
+    verify(q) {
+      const P = q.params, n = 600;
+      if (P.kind === 'dartboard') { let hit = 0, all = 0; const h = 2 * P.r3 / n; for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) { const x = -P.r3 + (i + 0.5) * h, y = -P.r3 + (j + 0.5) * h, d = x * x + y * y; if (d > P.r3 * P.r3) continue; all++; if (P.ring ? d > P.r1 * P.r1 && d < P.r2 * P.r2 : d < P.r1 * P.r1) hit++; } return near(hit / all, q.answer, 0.006); }
+      if (P.kind === 'segment') { let hit = 0; for (let i = 0; i < 10000; i++) { const x = (i + 0.5) * P.L / 10000; if (Math.abs(x - P.c) < P.d) hit++; } return near(hit / 10000, q.answer, 1e-3); }
+      let hit = 0; const h = P.s / n; for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) if ((i + 0.5) * h + (j + 0.5) * h < P.k) hit++; return near(hit / (n * n), q.answer, 0.004);
     },
   });
 })();
