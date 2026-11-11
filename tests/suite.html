@@ -2112,6 +2112,60 @@
   S.reset();
   }
 
+  { // look and finish: blue shades, high contrast, the reading font, blue badges, real prerequisites, CPM extras, shortcuts
+  const goL = async h => { location.hash = '#/x-look'; await tick(15); return go(h); };
+  const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  S.reset(); S.setProfile({ welcomed: true, grade: 7, enrolled: ['math-7'] });
+  ok(APP.LAZY && Object.keys(APP.LAZY).length >= 10 && Object.keys(APP.LAZY).every(g => window[g]) && APP.LAZY.CALC.includes('lib/calculator.js'), 'look: the tools that load when first opened are listed, and the suite has them all');
+  // one blue, four shades, high contrast
+  const classic = cssVar('--primary');
+  S.setProfile({ blue: 'navy' }); APP.applyPrefs();
+  ok(document.documentElement.dataset.blue === 'navy' && cssVar('--primary') !== classic, 'look: a blue shade changes the whole site’s blue');
+  S.setProfile({ blue: 'classic', contrast: 'high' }); APP.applyPrefs();
+  ok(!document.documentElement.hasAttribute('data-blue') && document.documentElement.dataset.contrast === 'high' && cssVar('--ink') === '#000000', 'look: high contrast turns the text black');
+  S.setProfile({ contrast: null }); APP.applyPrefs();
+  ok(!document.documentElement.hasAttribute('data-contrast'), 'look: and back');
+  m = await goL('#/settings');
+  ok(m.querySelector('#blue [data-v="ocean"]') && m.querySelector('#contrast') && !m.querySelector('#read-font'), 'look: Settings has the blue shades and high contrast; the reading font shows only with easier-to-read text');
+  m.querySelector('#blue [data-v="sky"]').click();
+  ok(S.get().profile.blue === 'sky' && document.documentElement.dataset.blue === 'sky', 'look: choosing a shade in Settings applies it');
+  const er2 = m.querySelector('#easy-read'); er2.checked = true; er2.dispatchEvent(new Event('change')); await tick(10);
+  m = document.getElementById('main');
+  m.querySelector('#read-font [data-v="dyslexic"]').click();
+  ok(document.documentElement.dataset.font === 'dyslexic' && /OpenDyslexic/.test(getComputedStyle(document.body).fontFamily), 'look: OpenDyslexic can be chosen as the reading font');
+  m.querySelector('#look-reset').click(); await tick(10);
+  ok(!document.documentElement.hasAttribute('data-font') && !document.documentElement.hasAttribute('data-blue') && !S.get().profile.easyRead, 'look: Reset to defaults puts the shade and font back too');
+  // the course badges are the one blue
+  m = await goL('#/courses');
+  const badge = m.querySelector('.course-card .icon.mono');
+  ok(badge && getComputedStyle(badge).backgroundColor === getComputedStyle(m.querySelector('.save-btn') || badge).color && m.querySelectorAll('.course-card .course-art').length >= 20, 'look: every course badge is the same blue, and each course card has its drawing');
+  // what to learn first
+  const unknown = Object.entries(PREREQ.map).filter(([id, pre]) => !A.skills[id] || pre.some(p => !A.skills[p] || A.whereIs(p).course.grade > A.whereIs(id).course.grade));
+  ok(Object.keys(PREREQ.map).length > 100 && unknown.length === 0, 'prerequisites: every skill in the map exists, and each builds only on skills from the same grade or earlier (' + unknown.map(x => x[0]).join(', ') + ')');
+  m = await goL('#/skill/math7.two-step-equations');
+  const pres = [...m.querySelectorAll('.before-this a')].map(a => decodeURIComponent(a.getAttribute('href')));
+  ok(pres.length === 2 && pres.some(h => /g6\.one-step-equations/.test(h)) && pres.some(h => /math7\.add-negatives/.test(h)), 'prerequisites: Good to know first lists what the skill really builds on');
+  ok(PREREQ.of('math7.two-step-equations')[0] === 'g6.one-step-equations' && PREREQ.of('not.a-skill').length === 0, 'prerequisites: most direct first, and nothing for a skill not in the map');
+  // CPM: practiced or not, the chapter's words, homework hints, a printable summary
+  m = await goL('#/cpm/cc2');
+  ok(/of \d+ practiced/.test(text(m.querySelector('.ch-meta'))) && m.querySelector('.lesson-todo') && m.querySelector('.ch-words .ch-word-list a[href^="#/words/"]'), 'cpm: each chapter says how many lessons were practiced, marks each lesson, and lists its math words');
+  m = await goL('#/cpm/cc2/3.1.2');
+  ok(m.querySelectorAll('.hw-hint').length >= 2 && m.querySelector('.hw-hint .hw-ex') && m.querySelector('#lesson-print'), 'cpm: a lesson has homework hints from Procademy’s own examples, and a one-page summary to print');
+  // Home: picks for the grade
+  m = await goL('#/');
+  ok(/For 7th grade:/.test(text(m.querySelector('.today-grade'))) && m.querySelector('.today-grade a[href="#/integers"]'), 'home: three picks for the learner’s grade');
+  // the shortcuts panel and the phone search button
+  document.body.dispatchEvent(new KeyboardEvent('keydown', { key: '?', bubbles: true }));
+  const kd = document.getElementById('keys-dialog');
+  ok(kd && kd.open && /Keyboard shortcuts/.test(kd.textContent), 'shortcuts: ? opens the list of keyboard shortcuts');
+  kd.close();
+  document.getElementById('search-open').click();
+  ok(document.activeElement === document.getElementById('search-input'), 'header: the search button puts the cursor in search');
+  document.getElementById('search-input').blur();
+  ok(LANG.tr('Graphing calculator', 'es') === 'Calculadora gráfica' && LANG.tr('Streak 3', 'hi') === 'लगातार 3' && LANG.tr('Chapter 4', 'es') === 'Capítulo 4', 'language: tools, the streak and chapters are translated');
+  S.reset();
+  }
+
   { // Erase all progress (not signed in: it asks to be sure)
   const until = async (fn, ms) => { const t = Date.now(); while (Date.now() - t < (ms || 4000)) { if (fn()) return true; await tick(20); } return false; };
   S.reset(); S.setProfile({ welcomed: true }); S.setSkill('math7.circles', { level: 2, tries: 7, right: 5, sets: 1, last: Date.now() });
