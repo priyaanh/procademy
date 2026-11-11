@@ -32,6 +32,7 @@
       { id: 'counting', title: 'Counting', blurb: 'The multiplication principle, arrangements, choosing groups, overlaps, grid paths and page numbers.', skills: ['comp.multiplication-principle', 'comp.arrangements', 'comp.choosing', 'comp.overlaps', 'comp.paths-pages'] },
       { id: 'number-theory', title: 'Number theory', blurb: 'Divisors, GCF and LCM puzzles, remainders and cycles, units digits, divisibility rules, and zeros at the end.', skills: ['comp.divisors', 'comp.gcd-lcm', 'comp.remainders', 'comp.units-digit', 'comp.digit-rules', 'comp.trailing-zeros'] },
       { id: 'algebra', title: 'Clever algebra', blurb: 'Algebra shortcuts, sums of sequences, work and rate problems, distance and speed, and repeating patterns.', skills: ['comp.algebra-identities', 'comp.series', 'comp.work-rate', 'comp.motion', 'comp.cycles'] },
+      { id: 'geometry', title: 'Geometry', blurb: 'Polygon angles, areas on a grid, Pythagorean triples, circles with squares, scale factors, and counting shapes.', skills: ['comp.polygon-angles', 'comp.lattice-area', 'comp.pythagorean', 'comp.circles-squares', 'comp.scale-factors', 'comp.counting-shapes'] },
     ],
   };
   A.course(COURSE);
@@ -525,7 +526,7 @@
         const [u, v] = rng.pick(SPEEDS), d = u * v / gcd(u, v) * rng.pick([1, 1, 2]), avg = 2 * u * v / (u + v), swap = rng.bool();
         const [s1, s2] = swap ? [v, u] : [u, v];
         return { prompt: `${who} drives ${d} miles to a lake at ${s1} miles per hour and returns along the same road at ${s2} miles per hour. What is the average speed for the whole trip, in miles per hour?`, type: 'number', answer: avg, unit: 'mph', params: { kind, d, s1, s2 },
-          hints: [`Times: ${d} ÷ ${s1} = ${d / s1} hours there and ${d} ÷ ${s2} = ${d / s2} hours back.`, `Average = total distance ÷ total time = ${2 * d} ÷ ${d / s1 + d / s2} = <b>${N(avg)}</b> mph (not the average of the two speeds).`] };
+          hints: [`Times: ${d} ÷ ${s1} = ${d / s1} hour${d / s1 === 1 ? '' : 's'} there and ${d} ÷ ${s2} = ${d / s2} hour${d / s2 === 1 ? '' : 's'} back.`, `Average = total distance ÷ total time = ${2 * d} ÷ ${d / s1 + d / s2} = <b>${N(avg)}</b> mph (not the average of the two speeds).`] };
       }
       if (kind === 'meet') {
         const u = rng.pick([30, 40, 45, 50, 55, 60]), v = rng.pick([35, 40, 50, 60, 65, 70]), mins = rng.pick([30, 45, 60, 75, 90, 120, 150, 180]), D = (u + v) * mins / 60;
@@ -581,6 +582,188 @@
       let s = 0;
       if (P.kind === 'pattern-sum') { for (let i = 0; i < P.n; i++) s += P.cyc[i % P.cyc.length]; return s === q.answer; }
       for (let i = 1; i <= P.n; i++) s += i % 2 ? i : -i; return s === q.answer;
+    },
+  });
+
+  /* ---------- Unit 4: geometry ---------- */
+  const REG = [3, 4, 5, 6, 8, 9, 10, 12, 15, 18, 20, 24, 30, 36];
+  /** the interior angle at one corner of a regular n-gon, measured from coordinates */
+  const cornerAngle = n => { const pt = k => [Math.cos(2 * Math.PI * k / n), Math.sin(2 * Math.PI * k / n)], [a, b, c] = [pt(-1), pt(0), pt(1)]; const u = [a[0] - b[0], a[1] - b[1]], v = [c[0] - b[0], c[1] - b[1]]; return Math.acos((u[0] * v[0] + u[1] * v[1]) / (Math.hypot(...u) * Math.hypot(...v))) * 180 / Math.PI; };
+  A.skill({
+    id: 'comp.polygon-angles', title: 'Angles in polygons',
+    learn: p(`<b>The interior angles of an ${V('n')}-sided polygon add to (${V('n')} − 2) × 180°</b>, because diagonals from one corner cut it into ${V('n')} − 2 triangles. <b>The exterior angles of any convex polygon add to 360°.</b>`) +
+      p(`In a regular polygon all angles are equal, so each exterior angle is 360° ÷ ${V('n')} and each interior angle is 180° minus that. Working backward: if each interior angle is 150°, each exterior angle is 30°, so there are 360 ÷ 30 = 12 sides.`) +
+      example('Example', `A regular octagon: each exterior angle is 360 ÷ 8 = 45°, so each interior angle is <b>135°</b>. The interior angles add to 6 × 180 = 1,080°.`),
+    make(rng) {
+      const kind = rng.pick(['sum', 'each', 'sides-interior', 'sides-sum']);
+      if (kind === 'sum') { const n = rng.int(5, 24); return { prompt: `What is the sum of the interior angles of a polygon with ${n} sides, in degrees?`, type: 'number', answer: (n - 2) * 180, unit: '°', params: { kind, n }, hints: [`Diagonals from one corner make ${n} − 2 = ${n - 2} triangles.`, `${n - 2} × 180 = <b>${N((n - 2) * 180)}°</b>.`] }; }
+      const n = rng.pick(REG.slice(2)), ext = 360 / n, int = 180 - ext;
+      if (kind === 'each') return { prompt: `What is the measure of each interior angle of a regular polygon with ${n} sides, in degrees?`, type: 'number', answer: int, unit: '°', params: { kind, n }, hints: [`Each exterior angle is 360 ÷ ${n} = ${N(ext)}°.`, `Each interior angle is 180 − ${N(ext)} = <b>${N(int)}°</b>.`] };
+      if (kind === 'sides-interior') return { prompt: `Each interior angle of a regular polygon measures ${N(int)}°. How many sides does it have?`, type: 'number', answer: n, params: { kind, int }, hints: [`Each exterior angle is 180 − ${N(int)} = ${N(ext)}°.`, `The exterior angles add to 360°, so there are 360 ÷ ${N(ext)} = <b>${n}</b> sides.`] };
+      const m = rng.int(5, 30), S = (m - 2) * 180;
+      return { prompt: `The interior angles of a polygon add to ${N(S)}°. How many sides does it have?`, type: 'number', answer: m, params: { kind, S }, hints: [`(${V('n')} − 2) × 180 = ${N(S)}, so ${V('n')} − 2 = ${m - 2}.`, `<b>${m}</b> sides.`] };
+    },
+    verify(q) {
+      const P = q.params;
+      if (P.kind === 'sum') return near(P.n * cornerAngle(P.n), q.answer, 1e-6);
+      if (P.kind === 'each') return near(cornerAngle(P.n), q.answer, 1e-6);
+      if (P.kind === 'sides-interior') return near(cornerAngle(q.answer), P.int, 1e-6);
+      return near(q.answer * cornerAngle(q.answer), P.S, 1e-6);
+    },
+  });
+
+  const shoelace = pts => Math.abs(pts.reduce((s, [x1, y1], i) => { const [x2, y2] = pts[(i + 1) % pts.length]; return s + x1 * y2 - x2 * y1; }, 0)) / 2;
+  A.skill({
+    id: 'comp.lattice-area', title: 'Areas on a coordinate grid',
+    learn: p(`For a polygon with corners on grid points, <b>draw the smallest rectangle around it and subtract the right triangles in the corners</b>. Each corner triangle is half of a small rectangle, so its area is easy.`) +
+      p(`The <b>shoelace formula</b> works for any polygon: list the corners in order, add ${M.sub(V('x'), 1)}${M.sub(V('y'), 2)} − ${M.sub(V('x'), 2)}${M.sub(V('y'), 1)} for each pair of neighbors (wrapping around), and take half the absolute value.`) +
+      example('Example', `The quadrilateral with corners (2, 0), (6, 3), (4, 6), (0, 2) sits in a 6 × 6 box (area 36). The corner triangles have areas 6, 3, 6 and 2, so the area is 36 − 17 = <b>19</b>.`),
+    make(rng) {
+      if (rng.bool()) {
+        const W = rng.int(4, 9), H = rng.int(4, 9), a = rng.int(1, W - 1), b = rng.int(1, H - 1), c = rng.int(1, W - 1), d = rng.int(1, H - 1);
+        const pts = [[a, 0], [W, b], [c, H], [0, d]], tri = [a * d / 2, (W - a) * b / 2, (W - c) * (H - b) / 2, c * (H - d) / 2], area = shoelace(pts);
+        return { prompt: `What is the area of the quadrilateral with vertices ${pts.map(([x, y]) => M.pt(x, y)).join(', ')}?`, type: 'number', answer: area, unit: 'sq units', params: { pts },
+          hints: [`It fits in the ${W} × ${H} rectangle from (0, 0) to ${M.pt(W, H)}, area ${W * H}, touching each side once.`, `The four corner triangles have areas ${tri.map(N).join(', ')}, adding to ${N(tri.reduce((s, t) => s + t, 0))}.`, `${W * H} − ${N(tri.reduce((s, t) => s + t, 0))} = <b>${N(area)}</b>.`] };
+      }
+      let pts, area; do { pts = [[rng.int(0, 3), rng.int(0, 3)], [rng.int(4, 10), rng.int(0, 5)], [rng.int(0, 8), rng.int(5, 10)]]; area = shoelace(pts); } while (area < 6);
+      const [[x1, y1], [x2, y2], [x3, y3]] = pts;
+      return { prompt: `What is the area of the triangle with vertices ${pts.map(([x, y]) => M.pt(x, y)).join(', ')}?`, type: 'number', answer: area, unit: 'sq units', params: { pts },
+        hints: [`Shoelace formula: ½ |${x1}(${y2} − ${y3}) + ${x2}(${y3} − ${y1}) + ${x3}(${y1} − ${y2})|.`, `= ½ |${N(x1 * (y2 - y3))} ${M.signed(x2 * (y3 - y1))} ${M.signed(x3 * (y1 - y2))}| = ½ × ${N(2 * area)}.`, `The area is <b>${N(area)}</b>.`] };
+    },
+    verify(q) {
+      // Pick's theorem: area = interior points + boundary points ÷ 2 − 1
+      const pts = q.params.pts, n = pts.length;
+      let B = 0; for (let i = 0; i < n; i++) { const [x1, y1] = pts[i], [x2, y2] = pts[(i + 1) % n]; B += gcd(Math.abs(x2 - x1), Math.abs(y2 - y1)); }
+      const inside = (x, y) => { let c = false; for (let i = 0, j = n - 1; i < n; j = i++) { const [xi, yi] = pts[i], [xj, yj] = pts[j]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c; } return c; };
+      const onEdge = (x, y) => pts.some((a, i) => { const b = pts[(i + 1) % n], cr = (b[0] - a[0]) * (y - a[1]) - (b[1] - a[1]) * (x - a[0]); return cr === 0 && x >= Math.min(a[0], b[0]) && x <= Math.max(a[0], b[0]) && y >= Math.min(a[1], b[1]) && y <= Math.max(a[1], b[1]); });
+      let I = 0; for (let x = -1; x <= 12; x++) for (let y = -1; y <= 12; y++) if (!onEdge(x, y) && inside(x, y)) I++;
+      return near(I + B / 2 - 1, q.answer, 1e-9);
+    },
+  });
+
+  const TRIP = [[3, 4, 5], [5, 12, 13], [8, 15, 17], [7, 24, 25], [6, 8, 10], [9, 12, 15], [20, 21, 29]];
+  const BOX = [[1, 2, 2, 3], [2, 3, 6, 7], [1, 4, 8, 9], [2, 6, 9, 11], [4, 4, 7, 9], [6, 6, 7, 11], [3, 4, 12, 13], [2, 10, 11, 15], [8, 9, 12, 17], [2, 5, 14, 15]];
+  A.skill({
+    id: 'comp.pythagorean', title: 'Pythagorean triples and distances',
+    learn: p(`Know the common <b>Pythagorean triples</b>: 3-4-5, 5-12-13, 8-15-17, 7-24-25, and their multiples such as 6-8-10. Spotting one saves a square root.`) +
+      p(`The distance between two points is the hypotenuse of a right triangle with legs equal to the changes in ${X} and ${Y}. The <b>space diagonal of a box</b> is √(${M.sup(V('l'), 2)} + ${M.sup(V('w'), 2)} + ${M.sup(V('h'), 2)}). The diagonals of a rhombus cut each other in half at right angles.`) +
+      example('Example', `A box 2 × 3 × 6 has a space diagonal of √(4 + 9 + 36) = √49 = <b>7</b>. A rhombus with diagonals 10 and 24 has sides of √(5² + 12²) = 13.`),
+    make(rng) {
+      const kind = rng.pick(['distance', 'box', 'rhombus', 'rect-area']), [a, b, c] = rng.pick(TRIP), s = rng.int(1, 3);
+      if (kind === 'distance') {
+        const x1 = rng.int(-8, 8), y1 = rng.int(-8, 8), sx = rng.sign(), sy = rng.sign(), flip = rng.bool(), dx = (flip ? b : a) * sx, dy = (flip ? a : b) * sy;
+        return { prompt: `What is the distance between the points ${M.pt(x1, y1)} and ${M.pt(x1 + dx, y1 + dy)}?`, type: 'number', answer: c, params: { kind, p1: [x1, y1], p2: [x1 + dx, y1 + dy] },
+          hints: [`The changes are ${Math.abs(dx)} across and ${Math.abs(dy)} up or down.`, `${Math.abs(dx)}-${Math.abs(dy)}-? is a Pythagorean triple: √(${dx * dx} + ${dy * dy}) = <b>${c}</b>.`] };
+      }
+      if (kind === 'box') {
+        const [l, w, h, d] = rng.pick(BOX), k = rng.int(1, 3);
+        return { prompt: `A rectangular box measures ${l * k} by ${w * k} by ${h * k} inches. How long is the straight segment from one corner to the opposite corner, through the inside of the box?`, type: 'number', answer: d * k, unit: 'in.', params: { kind, dims: [l * k, w * k, h * k] },
+          hints: [`Space diagonal = √(${(l * k) ** 2} + ${(w * k) ** 2} + ${(h * k) ** 2}) = √${(d * k) ** 2}.`, `<b>${d * k}</b> inches.`] };
+      }
+      if (kind === 'rhombus') {
+        const d1 = 2 * a * s, d2 = 2 * b * s, ask = rng.bool() ? 'side' : 'perimeter', ans = ask === 'side' ? c * s : 4 * c * s;
+        return { prompt: `The diagonals of a rhombus have lengths ${d1} and ${d2}. What is the ${ask === 'side' ? 'length of each side' : 'perimeter of the rhombus'}?`, type: 'number', answer: ans, params: { kind, d1, d2, ask },
+          hints: [`The diagonals bisect each other at right angles, making right triangles with legs ${a * s} and ${b * s}.`, ask === 'side' ? `Each side is √(${(a * s) ** 2} + ${(b * s) ** 2}) = <b>${c * s}</b>.` : `Each side is √(${(a * s) ** 2} + ${(b * s) ** 2}) = ${c * s}, so the perimeter is 4 × ${c * s} = <b>${ans}</b>.`] };
+      }
+      const L = b * s, Wd = a * s, D = c * s, P = 2 * (L + Wd), area = L * Wd;
+      return { prompt: `A rectangle has a perimeter of ${P} and a diagonal of length ${D}. What is its area?`, type: 'number', answer: area, params: { kind, P, D },
+        hints: [`Let the sides be ${V('l')} and ${V('w')}: ${V('l')} + ${V('w')} = ${P / 2} and ${M.sup(V('l'), 2)} + ${M.sup(V('w'), 2)} = ${D * D}.`, `(${V('l')} + ${V('w')})² = ${M.sup(V('l'), 2)} + ${M.sup(V('w'), 2)} + 2${V('l')}${V('w')}, so ${(P / 2) ** 2} = ${D * D} + 2 × area.`, `Area = (${(P / 2) ** 2} − ${D * D}) ÷ 2 = <b>${area}</b>.`] };
+    },
+    verify(q) {
+      const P = q.params;
+      if (P.kind === 'distance') return near(Math.hypot(P.p2[0] - P.p1[0], P.p2[1] - P.p1[1]), q.answer, 1e-9);
+      if (P.kind === 'box') return near(Math.hypot(...P.dims), q.answer, 1e-9);
+      if (P.kind === 'rhombus') { const sd = Math.hypot(P.d1 / 2, P.d2 / 2); return near(P.ask === 'side' ? sd : 4 * sd, q.answer, 1e-9); }
+      const sum = P.P / 2, r = Math.sqrt(2 * P.D * P.D - sum * sum), l = (sum + r) / 2, w = (sum - r) / 2;
+      return near(l * w, q.answer, 1e-9) && near(Math.hypot(l, w), P.D, 1e-9);
+    },
+  });
+
+  A.skill({
+    id: 'comp.circles-squares', title: 'Circles and squares together',
+    learn: p(`Two facts link circles and squares. <b>A circle inside a square</b> (touching all four sides) has diameter equal to the side. <b>A square inside a circle</b> (corners on the circle) has diagonal equal to the diameter, and a square with diagonal ${V('d')} has area ${M.sup(V('d'), 2)} ÷ 2.`) +
+      p(`For shaded regions, subtract: (area of the outer shape) − (area of the inner shape). Keep π as a symbol, so an answer looks like 64 − 16π.`) +
+      example('Example', `A square is drawn inside a circle of radius 5. Its diagonal is the diameter, 10, so its area is 100 ÷ 2 = <b>50</b>.`),
+    make(rng) {
+      const kind = rng.pick(['square-in-circle', 'circle-around', 'nested', 'shaded']);
+      if (kind === 'square-in-circle') { const r = rng.int(2, 15); return { prompt: `A square is drawn inside a circle of radius ${r} so that all four corners of the square lie on the circle. What is the area of the square?`, type: 'number', answer: 2 * r * r, params: { kind, r }, hints: [`The diagonal of the square is a diameter: ${2 * r}.`, `Area = diagonal² ÷ 2 = ${4 * r * r} ÷ 2 = <b>${2 * r * r}</b>.`] }; }
+      if (kind === 'circle-around') { const sd = 2 * rng.int(1, 9); return { prompt: `A circle passes through all four corners of a square with side length ${sd}. The area of the circle is ${V('k')}π. What is ${V('k')}?`, type: 'number', answer: sd * sd / 2, params: { kind, sd }, hints: [`The diameter is the square's diagonal, ${sd}${M.sqrt('2')}, so the radius is ${sd / 2}${M.sqrt('2')}.`, `${V('r')}² = ${sd * sd / 4} × 2 = ${sd * sd / 2}, so <b>${V('k')} = ${sd * sd / 2}</b>.`] }; }
+      if (kind === 'nested') { const sd = rng.int(2, 20); return { prompt: `A circle is drawn inside a square with side ${sd}, touching all four sides. A smaller square is then drawn inside the circle with its corners on the circle. What is the area of the smaller square?`, type: 'number', answer: sd * sd / 2, params: { kind, sd }, hints: [`The circle's diameter is ${sd}, and that is the small square's diagonal.`, `Area = ${sd}² ÷ 2 = <b>${N(sd * sd / 2)}</b>.`] }; }
+      const r = rng.int(1, 9);
+      return { prompt: `A circle of radius ${r} is drawn inside a square, touching all four sides. The area inside the square but outside the circle is ${V('a')} − ${V('b')}π, where ${V('a')} and ${V('b')} are whole numbers. What is ${V('a')} + ${V('b')}?`, type: 'number', answer: 5 * r * r, params: { kind, r },
+        hints: [`The square's side is the diameter, ${2 * r}, so its area is ${4 * r * r}. The circle's area is ${r * r}π.`, `The region is ${4 * r * r} − ${r * r}π, so ${V('a')} + ${V('b')} = ${4 * r * r} + ${r * r} = <b>${5 * r * r}</b>.`] };
+    },
+    verify(q) {
+      const P = q.params;
+      if (P.kind === 'square-in-circle') { const c = [P.r * Math.cos(0.3), P.r * Math.sin(0.3)], d = [P.r * Math.cos(0.3 + Math.PI / 2), P.r * Math.sin(0.3 + Math.PI / 2)]; return near(Math.hypot(c[0] - d[0], c[1] - d[1]) ** 2, q.answer, 1e-9); }
+      if (P.kind === 'circle-around') return near(Math.PI * (Math.hypot(P.sd, P.sd) / 2) ** 2 / Math.PI, q.answer, 1e-9);
+      if (P.kind === 'nested') return near((P.sd / Math.SQRT2) ** 2, q.answer, 1e-9);
+      // count grid cells in the square that fall outside the circle, then split into a − bπ
+      const n = 400, h = 2 * P.r / n; let out = 0; for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) { const x = -P.r + (i + 0.5) * h, y = -P.r + (j + 0.5) * h; if (x * x + y * y > P.r * P.r) out++; }
+      const area = out * h * h, a = 4 * P.r * P.r, b = (a - area) / Math.PI;
+      return near(b, Math.round(b), 0.05 * P.r * P.r) && a + Math.round(b) === q.answer;
+    },
+  });
+
+  A.skill({
+    id: 'comp.scale-factors', title: 'Scale factors for area and volume',
+    learn: p(`When a shape is scaled by a factor ${V('k')} (every length multiplied by ${V('k')}), <b>its area is multiplied by ${M.sup(V('k'), 2)} and its volume by ${M.sup(V('k'), 3)}</b>. This holds for any similar figures: triangles, maps, models, cubes.`) +
+      p(`Perimeters and other lengths scale by ${V('k')} itself, so a perimeter ratio gives you ${V('k')}. For percent changes, turn them into factors: making each edge 20% longer multiplies the volume by 1.2³ = 1.728, an increase of 72.8%.`) +
+      example('Example', `Two similar triangles have perimeters 12 and 18, so ${V('k')} = 1.5. If the smaller has area 20, the larger has area 20 × 1.5² = <b>45</b>.`),
+    make(rng) {
+      const kind = rng.pick(['similar', 'percent', 'model']);
+      if (kind === 'similar') {
+        const [n, d] = rng.pick([[3, 2], [2, 1], [5, 2], [3, 1], [4, 3], [5, 3], [5, 4]]), base = rng.int(2, 9) * d, P1 = base * 3, P2 = base * 3 * n / d, A1 = d * d * rng.int(1, 9), A2 = A1 * n * n / (d * d);
+        return { prompt: `Two similar triangles have perimeters ${P1} and ${P2}. The smaller triangle has an area of ${A1}. What is the area of the larger triangle?`, type: 'number', answer: A2, params: { kind, P1, P2, A1 },
+          hints: [`The scale factor is ${P2} ÷ ${P1} = ${M.fracText(n, d)}.`, `Area scales by the square: ${A1} × (${M.fracText(n, d)})² = ${A1} × ${M.fracText(n * n, d * d)} = <b>${N(A2)}</b>.`] };
+      }
+      if (kind === 'percent') {
+        const pc = rng.pick([10, 20, 50, 100]), solid = rng.pick(['cube', 'sphere', 'cylinder']), ans = M.round(((1 + pc / 100) ** 3 - 1) * 100, 4);
+        return { prompt: `Every length of a ${solid} is increased by ${pc}%. By what percent does its volume increase?`, type: 'number', answer: ans, unit: '%', params: { kind, pc, solid },
+          hints: [`The scale factor is ${N(1 + pc / 100)}, so the volume is multiplied by ${N(1 + pc / 100)}³ = ${N(M.round((1 + pc / 100) ** 3, 4))}.`, `That is an increase of <b>${N(ans)}%</b>.`] };
+      }
+      const k = rng.pick([10, 12, 20, 24, 25, 50]), dim = rng.pick([2, 3]), m = rng.int(2, 9), real = m * k ** dim;
+      return { prompt: dim === 2 ? `A model of a house is built at a scale of 1 : ${k}. The model's outside walls have a total area of ${m} square feet. What is the total area of the real house's outside walls, in square feet?` : `A model boat is built at a scale of 1 : ${k}. The model's hull holds ${m} cubic inches of air. How many cubic inches would the real hull hold?`, type: 'number', answer: real, params: { kind, k, dim, m },
+        hints: [`Lengths scale by ${k}, so ${dim === 2 ? `areas scale by ${k}² = ${N(k * k)}` : `volumes scale by ${k}³ = ${N(k ** 3)}`}.`, `${m} × ${N(k ** dim)} = <b>${N(real)}</b>.`] };
+    },
+    verify(q) {
+      const P = q.params;
+      if (P.kind === 'similar') { const heron = per => { const t = per / 12, a = 3 * t, b = 4 * t, c = 5 * t, s = per / 2; return Math.sqrt(s * (s - a) * (s - b) * (s - c)); }; return near(P.A1 * heron(P.P2) / heron(P.P1), q.answer, 1e-9); }
+      if (P.kind === 'percent') { const vol = r => P.solid === 'cube' ? r ** 3 : P.solid === 'sphere' ? 4 / 3 * Math.PI * r ** 3 : Math.PI * r * r * 2 * r; const f = 1 + P.pc / 100; return near((vol(2.3 * f) / vol(2.3) - 1) * 100, q.answer, 1e-6); }
+      let v = P.m; for (let i = 0; i < P.dim; i++) v *= P.k; return v === q.answer;
+    },
+  });
+
+  A.skill({
+    id: 'comp.counting-shapes', title: 'Counting diagonals, rectangles and squares',
+    learn: p(`<b>Diagonals:</b> each of the ${V('n')} corners of a polygon connects to ${V('n')} − 3 others by a diagonal, and each diagonal has two ends, so there are ${V('n')}(${V('n')} − 3) ÷ 2.`) +
+      p(`<b>Rectangles in a grid:</b> a rectangle is fixed by choosing 2 of the vertical lines and 2 of the horizontal lines. <b>Squares in an ${V('n')} × ${V('n')} grid:</b> count each size: ${M.sup(V('n'), 2)} of size 1, (${V('n')} − 1)² of size 2, and so on down to 1.`) +
+      example('Example', `A 3 × 3 grid of squares has 9 + 4 + 1 = <b>14</b> squares and C(4, 2) × C(4, 2) = 36 rectangles. A hexagon has 6 × 3 ÷ 2 = 9 diagonals.`),
+    make(rng) {
+      const kind = rng.pick(['diagonals', 'sides-from-diagonals', 'rectangles', 'squares']);
+      if (kind === 'diagonals' || kind === 'sides-from-diagonals') {
+        const n = rng.int(5, 25), D = n * (n - 3) / 2;
+        return kind === 'diagonals' ? { prompt: `How many diagonals does a polygon with ${n} sides have?`, type: 'number', answer: D, params: { kind, n }, hints: [`Each corner has ${n - 3} diagonals, and each diagonal is counted from both ends.`, `${n} × ${n - 3} ÷ 2 = <b>${D}</b>.`] }
+          : { prompt: `A convex polygon has ${D} diagonals. How many sides does it have?`, type: 'number', answer: n, params: { kind, D }, hints: [`Solve ${V('n')}(${V('n')} − 3) ÷ 2 = ${D}, so ${V('n')}(${V('n')} − 3) = ${2 * D}.`, `Try values: ${n} × ${n - 3} = ${2 * D}, so <b>${n}</b> sides.`] };
+      }
+      if (kind === 'rectangles') {
+        const m = rng.int(2, 8), n = rng.int(2, 6), ans = choose(m + 1, 2) * choose(n + 1, 2);
+        return { prompt: `A rectangle is divided into a grid of unit squares, ${m} squares wide and ${n} squares tall. How many rectangles of any size (including squares) can be found in the grid?`, type: 'number', answer: ans, params: { kind, m, n },
+          hints: [`There are ${m + 1} vertical lines and ${n + 1} horizontal lines. Choose 2 of each.`, `C(${m + 1}, 2) × C(${n + 1}, 2) = ${choose(m + 1, 2)} × ${choose(n + 1, 2)} = <b>${ans}</b>.`] };
+      }
+      const n = rng.int(3, 10), terms = Array.from({ length: n }, (_, k) => (n - k) ** 2), ans = terms.reduce((s, t) => s + t, 0);
+      return { prompt: `How many squares of any size are there in a ${n} × ${n} grid of unit squares?`, type: 'number', answer: ans, params: { kind, n },
+        hints: [`Count by size: ${n}² of size 1, ${n - 1}² of size 2, … , 1 of size ${n}.`, `${terms.join(' + ')} = <b>${ans}</b>.`] };
+    },
+    verify(q) {
+      const P = q.params;
+      if (P.kind === 'diagonals' || P.kind === 'sides-from-diagonals') {
+        const count = n => { let c = 0; for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) if (j - i !== 1 && !(i === 0 && j === n - 1)) c++; return c; };
+        return P.kind === 'diagonals' ? count(P.n) === q.answer : count(q.answer) === P.D;
+      }
+      let c = 0;
+      if (P.kind === 'rectangles') { for (let x1 = 0; x1 <= P.m; x1++) for (let x2 = x1 + 1; x2 <= P.m; x2++) for (let y1 = 0; y1 <= P.n; y1++) for (let y2 = y1 + 1; y2 <= P.n; y2++) c++; return c === q.answer; }
+      for (let s = 1; s <= P.n; s++) for (let x = 0; x + s <= P.n; x++) for (let y = 0; y + s <= P.n; y++) c++; return c === q.answer;
     },
   });
 })();
