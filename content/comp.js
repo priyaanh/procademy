@@ -27,7 +27,7 @@
   const popcount = m => { let c = 0; while (m) { c += m & 1; m >>= 1; } return c; };
   const COURSE = {
     id: 'competition-math', title: 'Competition math', subject: 'Middle school', grade: 7, icon: 'Comp', hue: 280,
-    blurb: 'New problems in the style of middle school contests such as MATHCOUNTS: clever counting, number theory, algebra shortcuts, geometry and probability. For strong students in grades 6 to 8, listed at grade 7.',
+    blurb: 'New problems in the style of middle school contests such as MATHCOUNTS: clever counting, number theory, equation shortcuts, geometry and probability. For strong students in grades 6 to 8, listed at grade 7.',
     units: [
       { id: 'counting', title: 'Counting', blurb: 'The multiplication principle, arrangements, choosing groups, overlaps, grid paths and page numbers.', skills: ['comp.multiplication-principle', 'comp.arrangements', 'comp.choosing', 'comp.overlaps', 'comp.paths-pages'] },
       { id: 'number-theory', title: 'Number theory', blurb: 'Divisors, GCF and LCM puzzles, remainders and cycles, units digits, divisibility rules, and zeros at the end.', skills: ['comp.divisors', 'comp.gcd-lcm', 'comp.remainders', 'comp.units-digit', 'comp.digit-rules', 'comp.trailing-zeros'] },
