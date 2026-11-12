@@ -3372,3 +3372,70 @@ mark.key-hl { background: none; color: inherit; text-decoration: underline 2px v
   .choices .why-not { margin-left: 8px; }
   .hint-acts { gap: 4px 14px; }
 }
+/* the Review page: the list, and beside it this week, when skills come back, sets to try again, spot the mistake */
+.rv-page { display: grid; gap: 16px; }
+.rv-page > h1 { margin: 0; }
+.rv-lead { margin: -8px 0 0; }
+.rv-page .rv-day { margin-top: 0; }
+.rv-acts { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; }
+.rv-acts .btn-row { margin: 0; }
+.rv-relax { flex: 0 1 380px; background: var(--surface); box-shadow: var(--shadow-s); padding: 10px 14px; }
+.rv-cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 340px); gap: 16px; align-items: start; }
+.rv-main, .rv-side { display: grid; gap: 16px; min-width: 0; }
+@container page (max-width: 860px) { .rv-cols { grid-template-columns: minmax(0, 1fr); } }
+.rv-side-card h2 { font-size: 1.1rem; }
+.rv-side-card p { margin-bottom: 0; }
+.rv-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.rv-stats > div { display: grid; padding: 10px 12px; border-radius: 12px; background: var(--tint); }
+.rv-stats b { font-size: 1.6rem; line-height: 1.1; color: var(--primary-ink); }
+.rv-stats span { font-size: .85rem; color: var(--muted); }
+.rv-remind { display: grid; gap: 6px; margin-top: 14px; }
+.rv-remind select { min-height: 40px; padding: .3rem .6rem; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--surface); color: var(--ink); }
+.rv-week .link-btn { margin-top: 8px; }
+.rv-cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; margin-top: 4px; }
+.rv-cell { display: grid; justify-items: center; padding: 6px 2px; border-radius: 10px; border: 1px solid transparent; background: var(--surface-2); color: var(--ink); min-height: 58px; min-width: 0; }
+.rv-cell .rv-wd { font-size: .68rem; color: var(--muted); font-weight: 600; white-space: nowrap; }
+.rv-cell .rv-dn { font-weight: 700; font-size: .95rem; }
+.rv-cell .rv-n { font-size: .72rem; font-weight: 800; color: var(--primary-ink); min-height: 1.1em; }
+.rv-cell.has { background: var(--tint); }
+.rv-cell.today { border-color: var(--line-strong); }
+.rv-cell[aria-pressed="true"] { background: var(--primary); color: var(--on-primary); }
+.rv-cell[aria-pressed="true"] .rv-wd, .rv-cell[aria-pressed="true"] .rv-n { color: var(--on-primary); }
+:root[data-contrast="high"] .rv-cell { border-color: var(--line-strong); }
+.rv-cal-list { margin: 10px 0 4px; }
+.rv-how-sr { margin-top: 10px; }
+.rv-how-sr > summary { cursor: pointer; font-weight: 650; color: var(--primary-ink); font-size: .92rem; }
+.rv-how-sr ul { margin: 6px 0; padding-left: 1.1rem; display: grid; gap: 4px; }
+.rv-how-sr p { margin: 6px 0; }
+.rv-sets { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 8px; }
+.rv-sets li { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; background: var(--surface-2); }
+.rv-set-t { flex: 1; min-width: 0; display: grid; overflow-wrap: anywhere; }
+.rv-spot .btn { margin-top: 10px; }
+.rv-each-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+.rv-each-head h2 { margin: 0; }
+.rv-find { margin-bottom: 10px; }
+.rv-find input { width: 100%; max-width: 420px; min-height: 42px; padding: .45rem .9rem; border: 1px solid var(--line-strong); border-radius: 999px; background: var(--surface); color: var(--ink); }
+.rv-find p { margin: 6px 0 0; }
+.rv-flat { padding-left: 0; }
+.rv-item .rv-sk { flex: none; max-width: 38%; text-align: right; overflow-wrap: anywhere; }
+.rv-item > details > summary .chip { flex: none; }
+.rv-tag { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.rv-note { display: grid; gap: 4px; }
+.rv-note textarea { width: 100%; min-height: 56px; padding: .5rem .7rem; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--surface); color: var(--ink); font: inherit; resize: vertical; }
+.rv-fold > summary { cursor: pointer; display: flex; align-items: baseline; gap: 10px; }
+.rv-fold[open] > summary { margin-bottom: 10px; }
+.rv-jr, .rv-old { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.rv-jr li { padding: 10px 12px; border-radius: 12px; background: var(--surface-2); display: grid; gap: 2px; }
+.rv-jr .note-text { margin: 4px 0 0; }
+.rv-old li { overflow-wrap: anywhere; }
+@container page (max-width: 560px) {
+  .rv-acts .btn-row .btn { flex: 1 1 auto; }
+  .rv-relax { flex: 1 1 100%; }
+  .rv-item .rv-sk { display: none; }
+}
+/* spot the mistake: someone's worked steps, numbered */
+.question .spot-lead { font-weight: 650; }
+.question .spot-q { padding: 10px 14px; border-radius: 12px; background: var(--surface-2); margin-bottom: 10px; }
+.question .spot-steps { margin: 0; padding-left: 1.6rem; display: grid; gap: 6px; }
+.question .spot-steps li::marker { font-weight: 700; color: var(--primary-ink); }
+.rv-out { display: flex; flex-wrap: wrap; gap: 4px 8px; margin: 12px -8px -4px; padding-top: 10px; border-top: 1px solid var(--line); }
