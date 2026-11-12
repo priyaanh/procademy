@@ -2825,3 +2825,4 @@ kbd { display: inline-block; min-width: 1.6em; padding: .1em .45em; border-radiu
 .ps-form { display: flex; gap: 8px; margin: -2px 0 0 46px; }
 .ps-form input { flex: 1 1 200px; min-width: 0; padding: .45rem .7rem; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--surface); color: var(--ink); font: inherit; }
 @container page (max-width: 480px) { main .ps-note { flex-wrap: wrap; } main .ps-note p { flex-basis: calc(100% - 46px); } main .ps-replies { margin-left: 46px; } main .ps-form { margin-left: 0; } }
+.today-list li:has(.pod-how[open]) { align-items: flex-start; }
