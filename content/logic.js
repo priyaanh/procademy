@@ -27,6 +27,7 @@
     blurb: 'Thinking like a programmer: logic puzzles, truth tables, sequences and patterns, reading code and tracing loops, binary and other number bases, and the steps of simple algorithms.',
     units: [
       { id: 'puzzles', title: 'Logic puzzles', blurb: 'Truth-tellers and liars, ordering puzzles, matching puzzles, and if-then reasoning.', skills: ['logic.truth-tellers', 'logic.ordering', 'logic.matching', 'logic.if-then'] },
+      { id: 'truth-tables', title: 'Truth tables', blurb: 'AND, OR and NOT, truth tables, equivalent expressions, and if-then statements.', skills: ['logic.and-or-not', 'logic.truth-table-rows', 'logic.equivalent', 'logic.conditionals'] },
     ],
   };
   A.course(COURSE);
@@ -193,6 +194,152 @@
       // a conclusion must be about the part the fact doesn't mention, and hold in every remaining world
       const forced = f === 'P' || f === 'nP' ? (okW.every(w => w.Q) ? cap(S.q2 || S.Q) : okW.every(w => !w.Q) ? cap(S.nQ) : NOTHING) : (okW.every(w => w.P) ? cap(S.p2 || S.P) : okW.every(w => !w.P) ? cap(S.nP) : NOTHING);
       return forced === q.answer;
+    },
+  });
+
+  /* ---------- Unit 2: truth tables ---------- */
+  // an expression is ['v', name] | ['not', e] | ['and', a, b] | ['or', a, b] | ['if', a, b]
+  const OPW = { and: 'AND', or: 'OR' };
+  /** HTML for an expression; compound parts inside other parts get parentheses */
+  function show(e, inner) {
+    if (e[0] === 'v') return V(e[1]);
+    if (e[0] === 'not') return `NOT ${show(e[1], true)}`;
+    const s = e[0] === 'if' ? `IF ${show(e[1], true)} THEN ${show(e[2], true)}` : `${show(e[1], true)} ${OPW[e[0]]} ${show(e[2], true)}`;
+    return inner ? `(${s})` : s;
+  }
+  const evalE = (e, env) => e[0] === 'v' ? env[e[1]] : e[0] === 'not' ? !evalE(e[1], env) : e[0] === 'and' ? evalE(e[1], env) && evalE(e[2], env) : e[0] === 'or' ? evalE(e[1], env) || evalE(e[2], env) : !evalE(e[1], env) || evalE(e[2], env);
+  /** the steps of evaluating an expression, innermost first, for hints */
+  function steps(e, env, out) {
+    if (e[0] === 'v') return out;
+    e.slice(1).forEach(x => steps(x, env, out));
+    out.push(`${show(e)} is ${evalE(e, env) ? 'true' : 'false'}`);
+    return out;
+  }
+  /** a tidy random expression: literals (p or NOT p) on distinct variables, joined by AND / OR, at most two levels deep */
+  function randExpr(rng, vars, depth) {
+    const lit = v => rng.chance(0.3) ? ['not', ['v', v]] : ['v', v], op = () => rng.pick(['and', 'or']);
+    const pair = () => { const [a, b] = rng.sample(vars, 2); const e = [op(), lit(a), lit(b)]; return rng.chance(0.25) ? ['not', e] : e; };
+    if (depth < 2) return pair();
+    const shape = rng.int(0, vars.length > 2 ? 2 : 1);
+    if (shape === 0) return [op(), pair(), lit(rng.pick(vars))];
+    if (shape === 1) return [op(), lit(rng.pick(vars)), pair()];
+    return [op(), pair(), pair()];
+  }
+  /** a tiny reader for the expression text (used only to check answers): NOT, AND, OR, IF … THEN, parentheses */
+  function parseBool(text) {
+    const t = A.stripTags(text).replace(/[()]/g, ' $& ').trim().split(/\s+/);
+    let i = 0;
+    const expr = () => { let a = term(); while (t[i] === 'OR') { i++; const b = term(), x = a; a = env => x(env) || b(env); } return a; };
+    const term = () => { let a = fac(); while (t[i] === 'AND') { i++; const b = fac(), x = a; a = env => x(env) && b(env); } return a; };
+    const fac = () => {
+      const w = t[i++];
+      if (w === 'NOT') { const a = fac(); return env => !a(env); }
+      if (w === 'IF') { const a = expr(); if (t[i++] !== 'THEN') throw new Error('THEN expected'); const b = expr(); return env => !a(env) || b(env); }
+      if (w === '(') { const a = expr(); if (t[i++] !== ')') throw new Error(') expected'); return a; }
+      if (/^[a-z]$/.test(w)) return env => env[w];
+      throw new Error('unexpected ' + w);
+    };
+    const f = expr(); if (i !== t.length) throw new Error('extra text'); return f;
+  }
+  const rows = vars => Array.from({ length: 2 ** vars.length }, (_, m) => Object.fromEntries(vars.map((v, k) => [v, !(m >> (vars.length - 1 - k) & 1)])));
+  const TF = ['True', 'False'];
+  A.skill({
+    id: 'logic.and-or-not', title: 'AND, OR and NOT',
+    learn: p(`Logic and programming use three basic operations on true/false values. <b>NOT</b> flips a value. <b>${V('p')} AND ${V('q')}</b> is true only when both are true. <b>${V('p')} OR ${V('q')}</b> is true when at least one is true (or both).`) +
+      p(`<b>Work from the inside out</b>, like order of operations: find the value of each part in parentheses first, then combine. Without parentheses, NOT goes first, then AND, then OR.`) +
+      example('Example', `${V('p')} is true, ${V('q')} is false, ${V('r')} is true. (${V('p')} AND NOT ${V('q')}) OR ${V('r')}: NOT ${V('q')} is true, so ${V('p')} AND NOT ${V('q')} is true, and the whole thing is <b>true</b>.`),
+    make(rng) {
+      const vars = rng.pick([['p', 'q'], ['p', 'q', 'r']]); let e;
+      do { e = randExpr(rng, vars, rng.int(1, 2)); } while (vars.some(v => !JSON.stringify(e).includes(`"${v}"`)));
+      const env = Object.fromEntries(vars.map(v => [v, rng.bool()])), val = evalE(e, env), answer = val ? 'True' : 'False';
+      const given = vars.map(v => `${V(v)} is ${env[v] ? 'true' : 'false'}`);
+      return { prompt: `If ${M.list(given)}, is this expression true or false?${big(show(e))}`, type: 'choice', keepOrder: true, answer, choices: TF.slice(), params: { env, text: A.stripTags(show(e)) },
+        hints: [`Work from the inside out.`, `${cap(steps(e, env, []).join('; '))}.`, `The expression is <b>${answer.toLowerCase()}</b>.`] };
+    },
+    verify(q) { return q.answer === (parseBool(q.params.text)(q.params.env) ? 'True' : 'False'); },
+  });
+
+  A.skill({
+    id: 'logic.truth-table-rows', title: 'Truth tables',
+    learn: p(`A <b>truth table</b> lists every combination of true (T) and false (F) for the variables, one per row, with the value of the expression in each row. With ${V('n')} variables there are <b>2<sup>${V('n')}</sup> rows</b>: 4 for two variables, 8 for three.`) +
+      p(`Fill the table column by column: first the variables, then each smaller part, then the whole expression. Counting the T's in the last column tells you how often the expression is true.`) +
+      example('Example', `${V('p')} OR NOT ${V('q')}: the rows (T, T), (T, F), (F, T), (F, F) give T, T, F, T. It is true in <b>3</b> of the 4 rows.`),
+    make(rng) {
+      const vars = rng.pick([['p', 'q'], ['p', 'q'], ['p', 'q', 'r']]); let e, cnt;
+      do { e = randExpr(rng, vars, rng.int(1, 2)); cnt = rows(vars).filter(r => evalE(e, r)).length; } while (vars.some(v => !JSON.stringify(e).includes(`"${v}"`)) || cnt === 0 || cnt === 2 ** vars.length);
+      const ask = rng.pick(['true', 'true', 'false']), ans = ask === 'true' ? cnt : 2 ** vars.length - cnt;
+      const table = M.table(vars.map(v => V(v)).concat([show(e)]), rows(vars).map(r => vars.map(v => r[v] ? 'T' : 'F').concat(['?'])), { compact: true });
+      return { prompt: `In how many rows of this truth table is the expression ${ask}?${table}`, type: 'number', answer: ans, params: { vars, text: A.stripTags(show(e)), ask },
+        hints: [`There are ${2 ** vars.length} rows. Work out the expression for each one.`, `The last column reads ${rows(vars).map(r => evalE(e, r) ? 'T' : 'F').join(', ')}.`, `It is ${ask} in <b>${ans}</b> row${ans === 1 ? '' : 's'}.`] };
+    },
+    verify(q) { const f = parseBool(q.params.text), c = rows(q.params.vars).filter(r => f(r) === (q.params.ask === 'true')).length; return c === q.answer; },
+  });
+
+  const vv = x => ['v', x], nt = x => ['not', x], an = (a, b) => ['and', a, b], or = (a, b) => ['or', a, b], im = (a, b) => ['if', a, b];
+  const EQUIV = [
+    (p, q) => [nt(an(p, q)), [or(nt(p), nt(q))], [an(nt(p), nt(q)), or(nt(p), q), an(nt(p), q), nt(or(p, q))]],
+    (p, q) => [nt(or(p, q)), [an(nt(p), nt(q))], [or(nt(p), nt(q)), an(nt(p), q), or(p, nt(q)), nt(an(p, q))]],
+    (p, q, r) => [an(p, or(q, r)), [or(an(p, q), an(p, r))], [or(an(p, q), r), an(or(p, q), r), or(p, an(q, r))]],
+    (p, q, r) => [or(p, an(q, r)), [an(or(p, q), or(p, r))], [an(or(p, q), r), or(an(p, q), r), an(p, or(q, r))]],
+    (p, q) => [im(p, q), [or(nt(p), q), im(nt(q), nt(p))], [im(q, p), im(nt(p), nt(q)), an(p, q), or(p, nt(q))]],
+    (p, q) => [nt(im(p, q)), [an(p, nt(q))], [an(nt(p), q), im(nt(p), nt(q)), or(nt(p), q)]],
+  ];
+  A.skill({
+    id: 'logic.equivalent', title: 'Equivalent expressions',
+    learn: p(`Two expressions are <b>equivalent</b> when they have the same value in every row of the truth table. Programmers use this to rewrite conditions in simpler ways.`) +
+      p(`<b>De Morgan's laws:</b> NOT (${V('p')} AND ${V('q')}) is the same as (NOT ${V('p')}) OR (NOT ${V('q')}), and NOT (${V('p')} OR ${V('q')}) is the same as (NOT ${V('p')}) AND (NOT ${V('q')}). The NOT flips each part <b>and</b> switches AND with OR. Also, IF ${V('p')} THEN ${V('q')} is the same as (NOT ${V('p')}) OR ${V('q')}.`) +
+      example('Example', `"Not (raining and cold)" means "not raining, or not cold, or both". So NOT (${V('r')} AND ${V('c')}) is equivalent to <b>(NOT ${V('r')}) OR (NOT ${V('c')})</b>, not (NOT ${V('r')}) AND (NOT ${V('c')}).`),
+    make(rng) {
+      const names = rng.pick([['p', 'q', 'r'], ['a', 'b', 'c'], ['x', 'y', 'z']]), [a, b, c] = rng.shuffle(names).map(vv), t = rng.int(0, EQUIV.length - 1), [orig, goods, bads] = EQUIV[t](a, b, c);
+      const vars = names.filter(v => JSON.stringify([orig]).includes(`"${v}"`)), same = e => rows(vars).every(r => evalE(e, r) === evalE(orig, r));
+      const right = rng.pick(goods.filter(same)), wrong = rng.shuffle(bads.filter(e => !same(e)));
+      const answer = show(right), choices = options(answer, wrong.map(e => show(e)));
+      return { prompt: `Which expression is equivalent to the one below (true in exactly the same cases)?${big(show(orig))}`, type: 'choice', answer, choices, params: { vars, text: A.stripTags(show(orig)), choiceText: choices.map(ch => A.stripTags(ch)) },
+        hints: [t < 2 ? `Use De Morgan's law: NOT flips each part and switches AND with OR.` : t < 4 ? `Distribute, as with numbers: share the outside part with each piece in the parentheses.` : `Check the truth table: an IF … THEN is false only when the IF part is true and the THEN part is false.`, `<b>${answer}</b> matches it in every row of the truth table.`] };
+    },
+    verify(q) {
+      const P = q.params, f = parseBool(P.text), hits = P.choiceText.filter(ch => { const g = parseBool(ch); return rows(P.vars).every(r => f(r) === g(r)); });
+      return hits.length === 1 && hits[0] === A.stripTags(q.answer);
+    },
+  });
+
+  const CONDS = [
+    ['it snows', 'it does not snow', 'school is closed', 'school is not closed'],
+    ['the number is even', 'the number is not even', 'the number ends in 0, 2, 4, 6 or 8', 'the number does not end in 0, 2, 4, 6 or 8'],
+    ['you press the button', 'you do not press the button', 'the light turns on', 'the light does not turn on'],
+    ['the score is over 100', 'the score is not over 100', 'the player wins', 'the player does not win'],
+    ['the battery is low', 'the battery is not low', 'the phone beeps', 'the phone does not beep'],
+  ];
+  const FORMS = { converse: 'converse', inverse: 'inverse', contrapositive: 'contrapositive' };
+  A.skill({
+    id: 'logic.conditionals', title: 'If-then statements',
+    learn: p(`A conditional "IF ${V('p')} THEN ${V('q')}" is <b>false only when ${V('p')} is true and ${V('q')} is false</b>. In every other case it's true, even when ${V('p')} is false (the promise wasn't broken).`) +
+      p(`Three related statements: the <b>converse</b> swaps the parts (if ${V('q')} then ${V('p')}), the <b>inverse</b> negates both (if not ${V('p')} then not ${V('q')}), and the <b>contrapositive</b> swaps and negates (if not ${V('q')} then not ${V('p')}). <b>Only the contrapositive always has the same truth value as the original.</b>`) +
+      example('Example', `"If it snows, then school is closed." Converse: if school is closed, then it snows. Contrapositive: <b>if school is not closed, then it does not snow</b>.`),
+    make(rng) {
+      if (rng.bool()) {
+        const pv = rng.bool(), qv = rng.bool(), answer = !pv || qv ? 'True' : 'False';
+        return { prompt: `${V('p')} is ${pv ? 'true' : 'false'} and ${V('q')} is ${qv ? 'true' : 'false'}. Is the statement below true or false?${big(`IF ${V('p')} THEN ${V('q')}`)}`, type: 'choice', keepOrder: true, answer, choices: TF.slice(), params: { kind: 'value', pv, qv },
+          hints: [`IF … THEN is false only when the IF part is true and the THEN part is false.`, pv && !qv ? `Here the IF part is true and the THEN part is false: <b>false</b>.` : `That isn't the case here, so it is <b>true</b>.`] };
+      }
+      const c = rng.int(0, CONDS.length - 1), [P, nP, Q, nQ] = CONDS[c], form = rng.pick(['converse', 'inverse', 'contrapositive', 'same']);
+      const S = (a, b) => `If ${a}, then ${b}.`, list = { original: S(P, Q), converse: S(Q, P), inverse: S(nP, nQ), contrapositive: S(nQ, nP) };
+      const answer = form === 'same' ? list.contrapositive : list[form];
+      const ask = form === 'same' ? 'Which statement is always true whenever the original statement is true?' : `Which statement is the ${FORMS[form]} of the original?`;
+      return { prompt: `Original statement: “${S(P, Q)}” ${ask}`, type: 'choice', answer, choices: [list.converse, list.inverse, list.contrapositive, form === 'same' ? `If ${Q}, then ${nP}.` : list.original], params: { kind: 'form', c, form },
+        hints: [`Converse: swap the parts. Inverse: negate both parts. Contrapositive: swap and negate.`, form === 'same' ? `Only the contrapositive always matches the original: “<b>${answer}</b>”` : `The ${form} is “<b>${answer}</b>”`] };
+    },
+    verify(q) {
+      const P = q.params;
+      if (P.kind === 'value') return q.answer === ((P.pv && !P.qv) ? 'False' : 'True');
+      const [p1, np, q1, nq] = CONDS[P.c], lit = { [p1]: ['p', true], [np]: ['p', false], [q1]: ['q', true], [nq]: ['q', false] };
+      // read each choice back as IF a THEN b over the two facts, and compare its truth table with the original's
+      const read = s => { const m = s.match(/^If (.+), then (.+)\.$/); return [lit[m[1]], lit[m[2]]]; };
+      const val = ([a, b], w) => !(w[a[0]] === a[1]) || (w[b[0]] === b[1]), W = [{ p: true, q: true }, { p: true, q: false }, { p: false, q: true }, { p: false, q: false }];
+      const [ia, ib] = read(q.answer);
+      if (P.form === 'same') return W.every(w => val([['p', true], ['q', true]], w) === val([ia, ib], w)) && q.choices.filter(ch => W.every(w => val(read(ch), w) === val([['p', true], ['q', true]], w))).length === 1;
+      const want = { converse: [['q', true], ['p', true]], inverse: [['p', false], ['q', false]], contrapositive: [['q', false], ['p', false]] }[P.form];
+      return JSON.stringify([ia, ib]) === JSON.stringify(want);
     },
   });
 })();
