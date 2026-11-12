@@ -2656,3 +2656,140 @@ kbd { display: inline-block; min-width: 1.6em; padding: .1em .45em; border-radiu
 .course-art { width: 58px; height: 36px; color: var(--primary); opacity: .7; flex: none; }
 .my-courses.compact .course-art { display: none; }
 .today-grade { margin: 4px 0 0; }
+
+/* player: the right-or-wrong banner, the keypad's template and Undo keys, answering by hand (an order, a point, a
+   number line, handwriting), the options menu, flagging a question, a progress bar on phones, focus mode and the
+   summary's perfect set (lib/views.js exercise) */
+.ex-acts { display: inline-flex; align-items: center; gap: 8px; flex: none; }
+.ex-streak { display: inline-block; margin-left: 4px; padding: .05rem .5rem; border-radius: 999px; background: var(--tint); color: var(--primary-ink); font-weight: 700; }
+.ex .verdict { align-items: center; gap: 14px; padding: 14px 16px; border-radius: 14px; background: var(--surface); border: 2px solid currentColor; font-weight: 500; animation: vd-in .28s ease-out; }
+.ex .verdict.good { color: var(--ok-ink); }
+.ex .verdict.bad { color: var(--bad); }
+.vd-ic { flex: none; display: grid; place-items: center; width: 46px; height: 46px; }
+.vd-ic .ic { width: 42px; height: 42px; stroke-width: 2.2; }
+.vd-text { display: grid; gap: 2px; min-width: 0; }
+.vd-title { font-size: 1.25rem; font-weight: 800; letter-spacing: -.01em; line-height: 1.2; }
+.vd-detail { color: var(--ink); line-height: 1.45; }
+@keyframes vd-in { from { opacity: 0; transform: scale(.97); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .ex .verdict { animation: none; } }
+html[data-motion="reduce"] .ex .verdict { animation: none; }
+.ex .feedback.note { background: var(--tint); color: var(--ink); font-weight: 500; }
+.ex .feedback.note > .ic { color: var(--primary-ink); }
+.giveup-ask { margin-top: 16px; padding: 14px 16px; border-radius: 14px; background: var(--tint); }
+.giveup-ask p { margin: 0; }
+.giveup-ask .btn-row { margin-top: 10px; }
+/* the keypad: four keys a row, Undo and Clear half a row each; the fraction key draws a fraction to fill */
+.ans-key.wide { grid-column: span 2; font-size: 1rem; }
+.ans-key[disabled] { opacity: .45; cursor: default; }
+.ans-key sup { font-size: .6em; }
+.kf { display: inline-grid; justify-items: center; gap: 3px; vertical-align: middle; }
+.kf i { width: 14px; height: 11px; border: 1.8px solid currentColor; border-radius: 3px; }
+.kf b { width: 20px; height: 2px; background: currentColor; border-radius: 2px; }
+.ans-preview { margin-top: 8px; font-size: 1.35rem; line-height: 1.3; min-height: 1.6em; display: flex; align-items: center; flex-wrap: wrap; gap: 2px; color: var(--ink); }
+.ans-preview .slot, .ans-preview .frac .slot { display: inline-block; width: .8em; height: .95em; border: 1.5px dashed var(--primary); border-radius: 3px; vertical-align: middle; }
+/* answering by hand */
+.hands { margin-top: 4px; }
+.hands-how { margin: 0 0 8px; }
+.hands-switch { display: inline-block; margin-top: 10px; font-size: .92rem; }
+.hands-right { margin: 8px 0 0; }
+.hands-grid { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 12px 24px; }
+.hands-side { flex: 1 1 200px; display: grid; gap: 8px; align-content: start; padding-top: 4px; }
+.hands-side p { margin: 0; }
+.hands-side .hands-switch { margin-top: 2px; justify-self: start; }
+.order-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; max-width: 420px; }
+.order-item { display: flex; align-items: center; gap: 12px; padding: .65rem .8rem; min-height: 52px; border: 2px solid var(--line-strong); border-radius: 12px; background: var(--surface); font-size: 1.1rem; font-weight: 600; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; transition: transform .15s ease; }
+.order-item:hover { border-color: var(--primary); }
+.order-item .key { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; flex: none; font-size: .8rem; font-weight: 700; color: var(--primary-ink); background: var(--tint); }
+.order-item .oi-text { flex: 1; min-width: 0; }
+.order-item .oi-grip { color: var(--muted); font-size: 1.1rem; line-height: 1; }
+.order-item.dragging { transition: none; cursor: grabbing; z-index: 2; position: relative; border-color: var(--primary); box-shadow: var(--shadow); background: var(--surface); }
+.order-item.ok { border-color: var(--ok); cursor: default; }
+.order-item.no { border-color: var(--bad); cursor: default; }
+.order-item.ok .key { color: var(--ok-ink); }
+.order-item.no .key { color: var(--bad); }
+.grid-pick { display: block; width: min(100%, 340px); height: auto; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); touch-action: none; cursor: crosshair; }
+.grid-pick .gr-line { stroke: var(--line); stroke-width: 1; }
+.grid-pick .gr-line.axis { stroke: var(--muted); stroke-width: 1.6; }
+.grid-pick .gr-num { fill: var(--muted); font-size: 9.5px; font-family: var(--font); }
+.grid-pick .gr-ax { fill: var(--ink); font-size: 12px; font-style: italic; font-family: var(--font); }
+.grid-pick .gr-pt { fill: var(--primary); stroke: var(--surface); stroke-width: 2; }
+.grid-pick .gr-ring { fill: none; stroke: var(--ok); stroke-width: 3; }
+.grid-pick .gr-pt.right { fill: var(--ok); }
+.grid-pick .gr-pt.wrong { fill: var(--bad); }
+.grid-pick .gr-hover { fill: color-mix(in srgb, var(--primary) 30%, transparent); pointer-events: none; }
+.nline-wrap { max-width: 640px; margin-top: 4px; }
+.nline { display: block; width: 100%; height: auto; touch-action: none; cursor: pointer; border-radius: 10px; }
+.nline .nl-axis, .nline .nl-tick { stroke: var(--muted); stroke-width: 1.4; }
+.nline .nl-tick.big { stroke: var(--ink); stroke-width: 2; }
+.nline .nl-num { fill: var(--muted); font-size: 13px; font-family: var(--font); }
+.nline .nl-start { fill: none; stroke: var(--muted); stroke-width: 2; }
+.nline .nl-tag { fill: var(--muted); font-size: 11px; font-family: var(--font); }
+.nline .nl-jump { fill: none; stroke: var(--primary); stroke-width: 2; stroke-dasharray: 4 4; }
+.nline .nl-mark circle { fill: var(--primary); stroke: var(--surface); stroke-width: 2.5; }
+.nline .nl-mark text { fill: var(--primary-ink); font-weight: 700; font-size: 14px; font-family: var(--font); }
+.nline .nl-mark.ok circle { fill: var(--ok); } .nline .nl-mark.no circle { fill: var(--bad); }
+/* writing digits by hand */
+.ink { margin-top: 10px; max-width: 360px; border: 1px solid var(--line-strong); border-radius: 12px; overflow: hidden; color: var(--ink); background: var(--surface); }
+.ink-bar { display: flex; align-items: center; gap: 8px; padding: 4px 6px 4px 12px; background: var(--tint); }
+.ink-bar .ink-last { margin-left: auto; color: var(--primary-ink); font-weight: 600; }
+.ink canvas { display: block; width: 100%; height: 190px; touch-action: none; cursor: crosshair; }
+/* hints can be read aloud */
+.hint .hn { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.hint .hn .say-btn { min-height: 28px; padding: .1rem .55rem; font-size: .78rem; text-transform: none; letter-spacing: 0; }
+/* options and flagging, folded into the question's tool row */
+.ex-opts { position: relative; }
+.ex-opts .btn .ic, .flag-btn .ic { flex: none; }
+.flag-btn[aria-pressed="true"] { color: var(--primary-ink); background: var(--tint); }
+.opts-panel { position: absolute; right: 0; top: calc(100% + 6px); z-index: 30; width: min(320px, calc(100vw - 32px)); padding: 6px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); box-shadow: 0 16px 40px rgba(15, 23, 42, .18); display: grid; gap: 2px; }
+.opt-row { display: flex; align-items: center; gap: 12px; padding: 10px 10px; border-radius: 10px; cursor: pointer; }
+.opt-row:hover { background: var(--tint); }
+.opt-text { flex: 1; min-width: 0; display: grid; gap: 1px; }
+.opt-text b { font-weight: 650; font-size: .95rem; }
+.opt-text span { color: var(--muted); font-size: .82rem; line-height: 1.35; }
+.len-pick { display: inline-flex; align-items: center; gap: 8px; margin-right: auto; }
+.len-pick .seg button { min-width: 36px; padding: .3rem .7rem; }
+.q-tools .len-pick + .chip { margin-right: 0; }
+.flag-box { margin: 4px 0 14px; padding: 14px 16px; border-radius: 14px; background: var(--tint); display: grid; gap: 10px; }
+.flag-box p { margin: 0; }
+.flag-box input { width: 100%; max-width: 480px; min-height: 44px; padding: .5rem .8rem; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--surface); }
+.flag-box .btn-row { margin-top: 0; }
+.flag-box .seg { justify-self: start; background: var(--surface); border-radius: 16px; }
+/* going on by itself: the Next button fills up first */
+#next.auto-go { position: relative; overflow: hidden; }
+#next.auto-go::after { content: ""; position: absolute; left: 0; bottom: 0; height: 4px; width: 100%; background: color-mix(in srgb, var(--on-primary) 70%, transparent); transform-origin: left; animation: auto-go 1.8s linear forwards; }
+@keyframes auto-go { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+/* focus mode: only the question, while it is on screen */
+html.pc-focus .top, html.pc-focus footer, html.pc-focus .tabbar, html.pc-focus .tutor-fab { display: none !important; }
+html.pc-focus body { padding-bottom: 0; }
+html.pc-focus main { padding-top: 20px; }
+/* the summary: a perfect set, and the questions flagged */
+.perfect-banner { display: inline-flex; align-items: center; gap: 12px; margin: 14px auto 4px; padding: 10px 18px 10px 12px; border-radius: 16px; background: var(--tint); text-align: left; animation: pop .5s ease-out; }
+.perfect-banner b { display: block; color: var(--primary-ink); }
+.pb-ic { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--surface); color: var(--primary); box-shadow: var(--shadow-s); }
+.pb-ic .ic { fill: currentColor; }
+.summary .perfect-banner + .mastered-banner { margin-left: 10px; }
+.summary .what:empty { display: none; }
+.sum-flags { text-align: left; margin: 22px auto 0; max-width: 640px; padding-top: 18px; border-top: 1px solid var(--line); }
+.sum-flags h2 { display: flex; align-items: center; gap: 8px; font-size: 1.1rem; margin: 0 0 8px; }
+.sum-flags h2 .ic { color: var(--primary-ink); }
+.sum-flags ul { margin: 0 0 8px; padding-left: 1.3rem; display: grid; gap: 8px; }
+.sum-flags li { display: grid; gap: 2px; }
+.sum-flags p { margin: 0; }
+/* phones: the question number as a bar across the screen; bigger answer choices */
+@container page (max-width: 560px) {
+  .ex-head { gap: 8px 10px; }
+  .ex-head .back { order: 0; }
+  .ex-head .ex-acts { order: 1; margin-left: auto; }
+  main .ex-head h1, .ex-head h1 { order: 2; flex: 1 1 100%; }
+  main .ex-head .dots, .ex-head .dots { order: 3; flex: 1 1 0; margin-left: 0; flex-wrap: nowrap; gap: 3px; }
+  .ex-head .dots span { flex: 1 1 0; width: auto; min-width: 0; height: 8px; }
+  .ex-head .ex-left { order: 4; white-space: nowrap; }
+  .ex-head .ul-tally { order: 3; }
+  .choices button { min-height: 62px; padding: .85rem 1rem; font-size: 1.12rem; }
+  .choices .key { width: 30px; height: 30px; font-size: .85rem; }
+  .order-item { min-height: 56px; }
+  .opts-word, .flag-word { display: none; }
+  .q-tools .len-pick { flex: 1 1 100%; margin: 0 0 4px; }
+  .flag-box .seg { display: grid; justify-items: start; justify-self: stretch; }
+  .vd-title { font-size: 1.15rem; }
+}
