@@ -1151,6 +1151,112 @@
   mm = await go('#/chance/draw2');
   ok(/dependent events/.test(text(mm.querySelector('#ch-space'))), 'probability: a two-draw experiment explains dependent events');
   }
+  { // calculators, graphing, tools and labs (items 210 to 247)
+  try { localStorage.removeItem('procademy.toolprefs.v1'); localStorage.setItem('procademy.calc.v1', JSON.stringify({ seenHow: true })); } catch (e) {}
+  const Cc = CALCULATOR, tk = t => tick(t || 30);
+  let tm = await go('#/calc');
+  const pk = async ks => { for (const k of ks) { tm.querySelector(`[data-k="${k}"]`).click(); await tk(5); } };
+  await pk(['1', 'div', '3', 'add', '1', 'div', '4', 'enter']);
+  tm.querySelector('[data-x="fd"]').click(); await tk();
+  const asDec = tm.__calc.shown;
+  tm.querySelector('[data-x="fd"]').click(); await tk();
+  ok(asDec === '0.5833333333' && tm.__calc.shown === '7/12', 'calculator: F ◂▸ D shows the answer as a decimal, then as the exact fraction again');
+  await pk(['2', '0']); tm.querySelector('[data-x="pct"]').click(); await pk(['5', '0', 'enter']);
+  ok(tm.__calc.input === '20% of 50' && tm.__calc.shown === '10' && Cc.calc('12.5% of 80').answer.text === '= 10', 'calculator: the % of key works out a percent of a number exactly');
+  await pk(['5', 'sto', 'alpha', 'math', 'enter']);
+  const fnd = tm.querySelector('#cx-find'); fnd.value = 'of'; fnd.dispatchEvent(new Event('input', { bubbles: true })); await tk();
+  ok(tm.querySelectorAll('.cx-hist li').length === 1 && /20% of 50/.test(text(tm.querySelector('.cx-hist'))), 'calculator: the history can be searched');
+  tm.querySelector('[data-he]').click(); await tk();
+  ok(tm.__calc.entry === '20% of 50', 'calculator: a line from the history goes back on the entry line');
+  tm.querySelector('[data-mem="vars"]').click(); await tk();
+  ok(/A\s*5/.test(text(tm.querySelector('.cx-vars'))) && tm.querySelector('[data-use="A"]') && tm.querySelector('[data-unstore="A"]'), 'calculator: a panel shows the numbers stored in letters');
+  tm.querySelector('[data-x="large"]').click(); await tk();
+  ok(tm.querySelector('.cx-page').classList.contains('cx-large') && JSON.parse(localStorage.getItem('procademy.calc.v1')).large === true, 'calculator: large keys, remembered');
+  ok(Cc.forAnswerBox({ q: true, n: 7n, d: 12n }, '7/12') === '7/12' && Cc.forAnswerBox({ q: true, n: -3n, d: 1n }, '−3') === '−3' && Cc.forAnswerBox({ q: true, n: 1n, d: 3n }, '0.3333333333') === '0.3333333333' && Cc.offered().text, 'calculator: its last answer is offered in a form the practice answer box reads');
+  // the graphing engine: values of named functions, pieces, polar and parametric curves, degrees, overlap, words
+  ok(JSON.stringify(Dw.values(['f(x) = x^2 - 1', 'f(3)', 'g(x) = f(x) + 1', 'g(1/2)', 'y = 2'])) === JSON.stringify([null, '= 8', null, '= 1/4', null]) && Dw.lineStatus(['f(x) = x^2', 'f(4)']).join() === 'ok,value', 'graphing: f(x) can be named and evaluated, exactly where it is a fraction');
+  const pwg = Dw.parseGraph('y = {x < 0: -x, 0 <= x < 2: x^2, 1}').items[0];
+  ok(pwg.pieces.length === 3 && pwg.f(-3) === 3 && pwg.f(0) === 0 && pwg.f(1.5) === 2.25 && pwg.f(2) === 1 && pwg.f(7) === 1, 'graphing: a function in pieces, with an “otherwise” piece');
+  const cv2 = Dw.parseGraph('r = 2 sin(3θ)\n(3cos t, 2sin t)').items;
+  ok(cv2.length === 2 && cv2.every(it => it.type === 'curve') && cv2[1].pts.some(q => Math.abs(q[0] - 3) < 1e-9 && Math.abs(q[1]) < 1e-9), 'graphing: polar and parametric curves');
+  const dg = Dw.parseGraph('degrees\ny = sin(x)').items[0], rg = Dw.parseGraph('y = sin(x)').items[0];
+  ok(dg.f(90) === 1 && dg.f(180) === 0 && dg.f(30) === 0.5 && Math.abs(rg.f(Math.PI / 2) - 1) < 1e-12 && Dw.defaultView(Dw.parseGraph('degrees\ny = sin(x)')).x1 === 360, 'graphing: trig in degrees is exact at the special angles, and opens from −360 to 360');
+  ok(Dw.overlaps('y < 2x - 1\ny >= -x - 3') && !Dw.overlaps('y > x + 30\ny < x') && !Dw.overlaps('y < 2x'), 'graphing: where two inequalities are both true is found (and only then)');
+  const wd = Dw.words('y = 2x + 1\ny = x^2 - 4');
+  ok(/y = 2x \+ 1 is a line with slope 2/.test(wd) && /crosses the y-axis at \(0, 1\)/.test(wd) && /minimum at \(0, −4\)/.test(wd) && /meet at \(about −1\.449/.test(wd), 'graphing: each graph is described in words, saying “about” when a number is rounded');
+  ok(JSON.stringify(CALC.pointsFromTable('Hours\tCost\n1\t3.50\n2\t5\n3\t$7.25')) === JSON.stringify({ pts: [[1, 3.5], [2, 5], [3, 7.25]], xl: 'Hours', yl: 'Cost' }) && CALC.pointsFromTable('hello\nthere') === null, 'graphing: a table pasted from a spreadsheet becomes points, with its headers as axis names');
+  try { localStorage.removeItem('procademy.graph.v1'); } catch (e) {}
+  tm = await go('#/graph');
+  const tin = async (i, v) => { const inp = tm.querySelectorAll('.calc-in')[i]; inp.value = v; inp.dispatchEvent(new Event('input', { bubbles: true })); await tk(220); };
+  await tin(0, 'f(x) = x^2 - 1'); await tin(1, 'f(3)');
+  ok(text(tm.querySelector('.calc-row.is-value .calc-val')) === '= 8', 'graphing page: f(3) shows its value beside the line');
+  await tin(2, 'a = 2'); await tin(3, 'y = a x');
+  tm.querySelector('[data-play="2"]').click(); await tk(400);
+  const played = tm.__calc.playing();
+  tm.querySelector('[data-play="2"]').click(); await tk(60);
+  ok(played > 2 && tm.__calc.playing() === null && tm.querySelectorAll('.calc-in')[2].value !== 'a = 2', 'graphing page: Play moves a slider by itself, and stops');
+  tm.querySelector('[data-below="view"]').click(); await tk();
+  tm.querySelector('[data-grid="dense"]').click(); await tk(200);
+  tm.querySelector('[data-below="view"]').click(); await tk();
+  tm.querySelector('[data-angles="deg"]').click(); await tk(200);
+  ok(V.tools.pref('graph').grid === 'dense' && tm.__calc.lines().includes('degrees') && Dw._reg.get(tm.querySelector('#calc-graph .viz').dataset.viz).grid === 'dense', 'graphing page: the grid can be lighter or denser, and angles can be in degrees');
+  const tfig = tm.querySelector('#calc-graph .viz');
+  ok(tfig.querySelector('.viz-plot[tabindex="0"]') && /A graph showing x from/.test(tfig.querySelector('.viz-desc').textContent), 'graphing page: the graph can take the focus, and is described in words');
+  const keyEv = k => ({ key: k, shiftKey: false });
+  Dw.traceKey(tfig, keyEv('ArrowRight')); Dw.traceKey(tfig, keyEv('ArrowRight'));
+  ok(/\(/.test(tfig.querySelector('.viz-say').textContent) && tfig.querySelector('.vz-hover circle'), 'graphing page: the arrow keys trace a curve and read out the point');
+  tm.querySelector('#calc-note').click(); await tk();
+  ok(tm.querySelector('#calc-note-form select') || /Notes go with a lesson/.test(text(tm.querySelector('#calc-send-box'))), 'graphing page: a graph can go into a note on a lesson');
+  try { localStorage.removeItem('procademy.graph.v1'); } catch (e) {}
+  // fractions, integers, tiles, data, shapes
+  ok(FRACTIONS.solve('compare', ['5/8', '3/5', '2/3']).hook.chain === '3/5 < 5/8 < 2/3' && FRACTIONS.solve('compare', ['1/2', '2/4', '3/6']).hook.chain === '1/2 = 2/4 = 3/6' && FRACTIONS.solve('compare', ['5/8', '3/5', '']).hook.cmp === '>', 'fraction lab: three fractions in order on a common denominator');
+  tm = await go('#/integers/mul/-3_2');
+  ok(tm.querySelector('.it-pat tr.on') && /−3 × 2/.test(text(tm.querySelector('.it-pat tr.on'))) && /goes up by 3/.test(text(tm.querySelector('.it-pat').closest('.card'))), 'integer tiles: multiplying shows the pattern that makes a negative times a negative positive');
+  ok(JSON.stringify(TILES.quad('x^2 + 5x + 6')) === JSON.stringify({ a: 1, b: 5, c: 6 }) && TILES.factorings(1, 5, 6).length === 1 && TILES.factorings(1, 5, 6)[0].q * TILES.factorings(1, 5, 6)[0].s === 6 && TILES.factorings(1, 1, 1).length === 0 && TILES.factorings(2, 7, 3).length === 1 && TILES.quad('x^3').error, 'algebra tiles: factoring finds the rectangle’s sides, or says there is none');
+  tm = await go('#/tiles/factor');
+  tm.querySelector('[data-pair="2,3"]').click(); await tk();
+  ok(tm.__factor.right && /\(x \+ 2\)\(x \+ 3\)/.test(text(tm)), 'algebra tiles: the factoring mode checks a rectangle of tiles');
+  ok(JSON.stringify(DATA.columns('Name\tA\tB\nx\t1\t4\ny\t2\t5\nz\t3\t6')) === JSON.stringify([{ name: 'A', text: '1 2 3' }, { name: 'B', text: '4 5 6' }]) && DATA.columns('4 8 15') === null && DATA.widths(40).join() === '2,5,10,20', 'data: columns pasted from a spreadsheet, and bar widths for the histogram slider');
+  const uniq = f => new Set(SHAPES.folded(f, 1).flatMap(x => x.pts.map(q => q.map(v => Math.round(v * 1e6) / 1e6).join(',')))).size;
+  ok(uniq(SHAPES.solve('box', [5, 3, 4]).fold) === 8 && uniq(SHAPES.solve('triprism', [6, 4, 10, 0]).fold) === 6 && uniq(SHAPES.solve('pyramid', [6, 4]).fold) === 5, 'shapes: each net folds up exactly into its solid (8, 6 and 5 corners)');
+  // percents and money, ratios, numbers, geometry games, time
+  const rc = PERCENT.receipt('Burger 12.50\nFries $4.25\nLemonade 2.99\nthank you');
+  ok(rc.cents === 1974 && rc.items.length === 3 && rc.bad.length === 1 && PERCENT.fewest(87).join() === 'quarter,quarter,quarter,dime,penny,penny', 'percent: a receipt adds up in whole cents; the fewest coins for 87¢');
+  tm = await go('#/ratios');
+  const rin = tm.querySelector('.rt-new input[data-row="0"]'); rin.value = '5'; rin.dispatchEvent(new Event('change', { bubbles: true })); await tk();
+  ok(tm.__ratios.found === '7.5' && tm.__ratios.unit === '1.5' && PERCENT.fShow(PERCENT.fRead('7/3')) === '2 1/3', 'ratio table: a missing value found exactly, with the unit rate');
+  tm = await go('#/money');
+  for (const k of ['quarter', 'dime', 'dime', 'penny']) { tm.querySelector(`[data-add="${k}"]`).click(); await tk(5); }
+  ok(tm.__money.total === 46 && /46¢/.test(text(tm.querySelector('#mn-total'))), 'money: coins on the counter add up');
+  ok(NUMBERS.words(1234) === 'one thousand two hundred thirty-four' && NUMBERS.words(90017) === 'ninety thousand seventeen', 'place value: numbers in words');
+  tm = await go('#/numbers/blocks/1234');
+  tm.querySelector('[data-down="h"]').click(); await tk();
+  const traded = tm.__blocks.t === 13 && tm.__blocks.value === 1234;
+  tm.querySelector('[data-up="t"]').click(); await tk();
+  ok(traded && tm.__blocks.t === 3 && tm.__blocks.h === 2 && tm.__blocks.standard, 'place value blocks: trading a hundred for ten tens keeps the value');
+  tm = await go('#/numbers/table');
+  tm.querySelector('[data-rc="6,4"]').click(); await tk(); tm.querySelector('[data-pat="same"]').click(); await tk();
+  ok(tm.__times.lit === 6 && /4 × 6 = 24/.test(text(tm.querySelector('#tt-side'))), 'multiplication table: a fact, its family, and every place the same answer appears');
+  tm = await go('#/geometry/plot');
+  const pq = tm.__geo.q; tm.__geoAnswer({ x: pq.x, y: pq.y }); await tk();
+  ok(tm.__geo.right === 1 && tm.querySelector('.feedback.good'), 'geometry: the plotting game checks a point');
+  tm = await go('#/geometry/angles');
+  const ag = tm.__geo.deg; tm.__geoAnswer(180 - ag); await tk();
+  ok(ag === 90 || (tm.__geo.right === 0 && /other scale/.test(text(tm.querySelector('.feedback')))), 'geometry: the protractor game spots reading the other scale');
+  ok(MEASURE.timeWords(15, 45).past === 'quarter to four' && MEASURE.timeWords(9, 5).digital === 'nine oh five' && MEASURE.between(22 * 60 + 30, 75).words === '2 hours and 45 minutes', 'time: in words, and the time between two times past midnight');
+  tm = await go('#/measure/units');
+  tm.querySelector('#ms-star').click(); await tk();
+  ok(tm.querySelector('[data-fav="0"]') && V.tools.pref('measure').favs.length === 1, 'units: a conversion can be kept at the top');
+  // the Tools page, the how-to, remembered settings
+  tm = await go('#/tools');
+  ok(/Time, money and place value/.test(text(tm)) && tm.querySelector('a.tool[href="#/ratios"]') && tm.querySelector('a.tool[href="#/money"]'), 'tools: the new tools have cards');
+  tm = await go('#/data');
+  ok(tm.querySelector('.tool-how summary') && V.tools.GUIDES.data.length >= 3, 'tools: a short how-to on each tool page');
+  V.tools.pref('fractions', { op: 'mul', ins: ['2/3', '3/4', ''] });
+  tm = await go('#/fractions');
+  ok(tm.__fractions.op === 'mul' && tm.__fractions.a === '2/3', 'tools: a tool opens as it was left');
+  try { localStorage.removeItem('procademy.toolprefs.v1'); localStorage.removeItem('procademy.calc.v1'); } catch (e) {}
+  }
   // the graphing calculator
   try { localStorage.removeItem('procademy.graph.v1'); } catch (e) {}
   m = await go('#/graph');
