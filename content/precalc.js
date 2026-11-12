@@ -469,6 +469,8 @@
       hint2 = `Subtract the angles: ${t1}° − ${t2}° = ${t1 - t2}°${t1 - t2 < 0 ? `; add 360° to get ${mod(t1 - t2)}°` : ''}.`;
       return build({ kind, r1, t1, r2, t2 });
       function build(params) {
+        // backups for when moduli or angles coincide (a modulus of 1, 2 × 2 = 2 + 2, an angle of 0° or 180°): used only if the usual ones repeat
+        opts = opts.concat([[opts[0][0] + 1, opts[0][1]], [opts[0][0], mod(opts[0][1] + 90)], [opts[0][0] + 2, mod(opts[0][1] + 270)]]);
         const html = opts.map(o => polarTxt(N(o[0]), o[1]));
         const ans = html[0], wrong = distinct(ans, html.slice(1), 3);
         params.opts = opts.filter((o, i) => i === 0 || wrong.includes(html[i]));
