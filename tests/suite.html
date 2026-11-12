@@ -309,6 +309,26 @@
   root.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })); await tick();
   ok(root.__session.i === 1, 'player: Enter again moves to the next question');
 
+  /* ---- more courses: SAT and ACT style, competition, personal finance, coding and logic ---- */
+  {
+    const want = { 'sat-act': 'High school', 'competition-math': 'Middle school', 'personal-finance': 'High school', 'coding-logic': 'Middle school' };
+    const cs = Object.keys(want).map(id => A.courseById(id));
+    ok(cs.every(c => c && c.subject === want[c.id] && A.courseSkills(c).length >= 20 && A.courseSkills(c).length <= 30 && c.units.every(u => u.skills.length >= 2)), 'more courses: all four load in their bands, with 20 to 30 skills each');
+    ok(A.courseById('sat-act').units.filter(u => /mixed/i.test(u.title)).length >= 2 && /grade 11/.test(A.courseById('sat-act').blurb) && /grade 7/.test(A.courseById('competition-math').blurb), 'more courses: SAT/ACT has mixed test-style units, and both test-style courses name their grade');
+    // code is shown as escaped text in a code block, never as live markup
+    const cq = A.question('logic.trace-if', 'suite-1'), box = document.createElement('div'); box.innerHTML = cq.prompt;
+    const pre = box.querySelector('pre.code');
+    ok(pre && pre.children.length === 0 && /if /.test(pre.textContent) && /print\(/.test(pre.textContent) && /&gt;|&lt;/.test(cq.prompt), 'more courses: code questions show the code as escaped text in a code block');
+    // money answers are whole cents
+    let cents = true; for (let k = 0; k < 40; k++) for (const sid of ['fin.sales-tax', 'fin.payroll', 'fin.credit-cards', 'fin.discounts']) { const q = A.question(sid, 'c' + k); if (q.type === 'number' && q.unit === '$' && Math.abs(q.answer * 100 - Math.round(q.answer * 100)) > 1e-6) cents = false; }
+    ok(cents, 'more courses: personal finance money answers are whole cents');
+    const mc = await go('#/courses');
+    const band = b => mc.querySelector(`.band-section[data-band="${b}"]`);
+    ok(band('Middle school') && band('Middle school').querySelector('a[href="#/course/competition-math"]') && band('Middle school').querySelector('a[href="#/course/coding-logic"]') && band('High school').querySelector('a[href="#/course/sat-act"]') && band('High school').querySelector('a[href="#/course/personal-finance"]'), 'more courses: the Courses page shows them in the Middle school and High school bands');
+    V.practice(root, 'logic.lists');
+    ok(root.querySelector('.question pre.code') && /nums = \[/.test(text(root.querySelector('.question pre.code'))), 'more courses: a code-reading question renders its code block in the player');
+  }
+
   /* ---- settings ---- */
   await go('#/settings');
   const main = document.getElementById('main');
