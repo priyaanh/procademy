@@ -3374,3 +3374,16 @@ html.pc-focus main { padding-top: 20px; }
 /* phones: the arrow that follows a swipe in from the left edge, for Back */
 .edge-back { position: fixed; z-index: 70; left: -48px; top: 50%; width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; background: var(--surface); color: var(--primary-ink); box-shadow: 0 6px 20px rgba(15, 23, 42, .22); opacity: 0; transform: translate(0, -50%); pointer-events: none; transition: background-color .12s, color .12s; }
 .edge-back.ready { background: var(--primary); color: var(--on-primary); }
+/* a tool on the whole screen (lib/app.js): the menus step aside, and Close brings them back */
+html.tool-full .top, html.tool-full footer, html.tool-full .tabbar, html.tool-full .tutor-fab, html.tool-full main > nav.crumbs, html.tool-full .to-top { display: none !important; }
+html.tool-full body { padding-bottom: 0; }
+html.tool-full main { padding-top: calc(64px + env(safe-area-inset-top, 0px)); }
+.full-close { position: fixed; z-index: 50; top: calc(12px + env(safe-area-inset-top, 0px)); right: max(12px, env(safe-area-inset-right, 0px)); display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 16px 0 12px; border: 0; border-radius: 999px; background: var(--tint); color: var(--primary-ink); font: inherit; font-weight: 600; font-size: .92rem; box-shadow: 0 6px 18px rgba(15, 23, 42, .14); cursor: pointer; }
+.full-close:hover { background: var(--tint-2); }
+.full-close[hidden] { display: none; }
+@media (max-width: 700px) { .crumb-full span { display: none; } .crumb-full { width: 34px; padding: 0; justify-content: center; } }
+/* a practice set left halfway: a gentle note on the next page, with one tap back */
+.left-note { position: fixed; z-index: 46; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); width: max-content; max-width: calc(100vw - 32px); display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 16px; border-radius: 16px; background: var(--surface); color: var(--ink); border: 1px solid var(--card-line); box-shadow: 0 12px 32px rgba(15, 23, 42, .2); font-size: .92rem; }
+.left-note > span { min-width: 0; }
+.left-note .btn { flex: none; }
+@media (max-width: 700px) { .left-note { bottom: calc(80px + env(safe-area-inset-bottom, 0px)); width: auto; left: 12px; right: 12px; transform: none; } }
