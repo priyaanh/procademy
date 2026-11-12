@@ -287,7 +287,7 @@ footer { border-top: 1px solid var(--line); color: var(--muted); font-size: .9re
 .icon.mono:empty, .icon-big.mono:empty, .mono-sm:empty { display: none; }
 .mono.stack { display: inline-flex; flex-direction: column; justify-content: center; align-items: center; gap: 2px; width: 2.6rem; padding: 0; }
 .icon-big.mono.stack { width: 3.4rem; }
-.mono.stack .mono-top { font-size: .6rem; font-weight: 700; letter-spacing: .1em; opacity: .85; }
+.mono.stack .mono-top { font-size: .6rem; font-weight: 700; letter-spacing: .1em; }          /* full strength: small text needs all its contrast */
 .mono.stack .mono-num { font-size: 1.2rem; }
 .icon-big.mono.stack .mono-top { font-size: .72rem; }
 .icon-big.mono.stack .mono-num { font-size: 1.55rem; }
