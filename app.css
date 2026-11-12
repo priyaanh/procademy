@@ -3128,3 +3128,17 @@ html.pc-focus main { padding-top: 20px; }
 .tt-dots { display: block; height: auto; max-width: 100%; }
 .tt-dot { fill: var(--vz1); }
 .tt-grid { width: 100%; max-width: 680px; }
+.gl-prot2 { fill: color-mix(in srgb, var(--primary) 10%, transparent); stroke: var(--primary-ink); stroke-width: .05; }
+.gl-tick.fine { stroke-width: .018; }
+.gl-pt-o { font-size: .4px; font-weight: 700; fill: var(--primary-ink); }
+.gl-pt-i { font-size: .32px; fill: var(--muted); }
+.gl-ray { stroke: var(--ink); stroke-width: .09; stroke-linecap: round; }
+.gl-arc { fill: none; stroke: var(--vz5); stroke-width: .08; }
+.gl-cur { fill: none; stroke: var(--primary); stroke-width: .08; }
+.gl-miss { fill: var(--surface); stroke: var(--bad); stroke-width: .08; }
+.gl-ask { font-size: 1.15rem; margin: 6px 0 4px; }
+.gl-score { margin: 10px 0 2px; }
+.gl-name-form { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 10px 0; }
+.gl-name-form label { display: inline-flex; align-items: center; gap: 6px; }
+.gl-name-form input { width: 4.5em; min-height: 40px; padding: .3rem .5rem; font: 600 1.05rem var(--font); text-align: center; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--surface); color: var(--ink); }
+.gl-svg:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
