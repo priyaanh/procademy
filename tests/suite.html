@@ -2051,6 +2051,172 @@
   S.reset();
   }
 
+  { // the first visit and Home: what to do today, the welcome's choices kept, and Home's sections, Continue and the Today card's extras
+  const until = async (fn, ms) => { const t = Date.now(); while (Date.now() - t < (ms || 3000)) { if (fn()) return true; await tick(20); } return false; };
+  const goHome = async () => { location.hash = '#/settings'; await tick(15); return go('#/'); };
+  const input = (el, v) => { el.value = v; el.dispatchEvent(new Event('input', { bubbles: true })); };
+  const today = S.today();
+  // the welcome: one screen, four choices, practice first
+  S.reset(); VIEWS._browserLang = 'en';
+  m = await goHome();
+  ok(m.querySelectorAll('#welcome [data-mode]').length === 4 && m.querySelector('[data-mode="practice"]').getAttribute('aria-checked') === 'true' && !m.querySelector('.tiles') && !m.querySelector('.empty-saved') && !m.querySelector('#home-arrange'), 'welcome: one screen asks what to do today (practice, homework help, the class lesson, a parent), practice first');
+  ok(!m.querySelector('#wl-try').disabled && m.querySelector('#wl-start').disabled && /saved on this device/.test(text(m.querySelector('.wl-foot'))), 'welcome: one question can be tried at once, and it says where progress is saved');
+  m.querySelector('#wl-try').click(); await tick(80);
+  ok(/^#\/unlimited\/sample\//.test(location.hash) && S.get().profile.wlDraft && S.get().profile.wlDraft.tried && !S.get().profile.welcomed, 'welcome: a question to try before choosing a grade');
+  document.querySelectorAll('.first-badge').forEach(x => x.remove());
+  answerCurrent(document.getElementById('main'), true); await tick(20); document.getElementById('main').querySelector('#next').click();
+  await until(() => S.get().badges.first && document.querySelector('.first-badge'), 5000);
+  ok(document.querySelector('.first-badge') && /first badge/i.test(text(document.querySelector('.first-badge'))) && S.get().badges.first, 'first badge: the very first answer earns it, said with a small card');
+  document.querySelectorAll('.first-badge').forEach(x => x.remove());
+  m = await goHome();
+  ok(m.querySelector('#welcome') && /Welcome back/.test(text(m.querySelector('#wl-h'))) && /tried a question/.test(text(m.querySelector('.wl-intro'))), 'welcome: an unfinished welcome comes back, after the question tried');
+  const age = m.querySelector('#wl-age'); age.value = '12'; age.dispatchEvent(new Event('change'));
+  ok(m.querySelector('[data-level="7"]').getAttribute('aria-checked') === 'true' && /12-year-olds are in 7th grade/.test(text(m.querySelector('#wl-age-note'))) && !m.querySelector('#wl-start').disabled, 'welcome: a grade by age (12 is 7th grade)');
+  const units7 = A.courseById('math-7').units.filter(u => u.skills.some(id => A.skills[id])).length;
+  ok(m.querySelector('#wl-plan .wl-map') && m.querySelectorAll('#wl-plan .wl-units li').length === units7 && m.querySelectorAll('#wl-plan .wl-cells i').length === A.courseSkills(A.courseById('math-7')).length, 'welcome: a look at the course’s skill map before starting');
+  const rng = m.querySelector('#wl-goal'); rng.value = '3'; rng.dispatchEvent(new Event('input'));
+  ok(/50 questions a day, about 25 minutes/.test(text(m.querySelector('#wl-goal-out'))) && m.querySelector('.wl-tick.on[data-goal="50"]') && /25 minutes/.test(rng.getAttribute('aria-valuetext')), 'welcome: the daily goal on a slider that shows the minutes');
+  input(m.querySelector('#wl-name'), 'Ana'); m.querySelector('[data-hue="140"]').click();
+  ok(/A/.test(text(m.querySelector('#wl-av'))) && m.querySelector('#wl-av .avatar').style.getPropertyValue('--av').trim() === '140', 'welcome: a name and an avatar color, shown as they’re chosen');
+  m = await goHome();
+  ok(m.querySelector('[data-level="7"].on') && m.querySelector('#wl-name').value === 'Ana' && m.querySelector('[data-hue="140"].on') && m.querySelector('#wl-goal').value === '3' && !m.querySelector('#wl-plan').hidden, 'welcome: the choices come back just as they were left');
+  m.querySelector('#wl-start').click(); await tick(60);
+  const pa = S.get().profile;
+  ok(location.hash === '#/daily' && pa.name === 'Ana' && pa.avatar.hue === 140 && pa.goal === 50 && pa.grade === 7 && pa.welcomed && !pa.wlDraft, 'welcome: the choices are kept, and the unfinished welcome is put away');
+  // the class lesson from its number
+  S.reset(); m = await goHome();
+  m.querySelector('[data-mode="cpm"]').click();
+  ok(!m.querySelector('[data-pane="cpm"]').hidden && m.querySelector('[data-pane="practice parent"]').hidden, 'welcome: Find my class lesson shows its own box');
+  input(m.querySelector('#wl-lesson'), 'Lesson 3-1-2');
+  ok(m.querySelectorAll('.wl-lesson').length === A.cpm.filter(b => A.cpmLesson(b.id, '3.1.2')).length && m.querySelector('.wl-lesson[data-book="cc2"]'), 'welcome: a typed lesson number finds that lesson in every CPM book');
+  m.querySelector('.wl-lesson[data-book="cc2"]').click(); await tick(30);
+  m = document.getElementById('main');
+  ok(S.get().profile.cpm.book === 'cc2' && S.get().profile.cpm.lesson === '3.1.2' && S.get().profile.enrolled.includes('cpm:cc2') && S.get().profile.grade === 7 && /In class now/.test(text(m)), 'welcome: choosing the book saves the class lesson, and Home shows it');
+  // homework help: straight to the tutor
+  S.reset(); m = await goHome();
+  m.querySelector('[data-mode="tutor"]').click(); m.querySelector('#wl-ask').value = 'How do I add -3 + 5?'; m.querySelector('#wl-tutor').click();
+  await until(() => document.getElementById('ai-text') && document.getElementById('ai-text').value);
+  ok(/^#\/tutor/.test(location.hash) && document.getElementById('ai-text').value === 'How do I add -3 + 5?' && S.get().profile.welcomed, 'welcome: homework help opens the tutor with the question typed in, ready to send');
+  // a parent setting it up
+  S.reset(); m = await goHome();
+  m.querySelector('[data-mode="parent"]').click();
+  ok(/setting it up for/.test(text(m.querySelector('#wl-who'))) && m.querySelector('.wl-go-practice').hidden && !m.querySelector('.wl-go-parent').hidden && m.querySelector('#wl-parent').disabled, 'welcome: a parent’s path asks who it’s for');
+  m.querySelector('[data-level="4"]').click(); input(m.querySelector('#wl-name'), 'Sam'); m.querySelector('#wl-parent').click(); await tick(40);
+  ok(location.hash === '#/family' && S.get().profile.name === 'Sam' && S.get().profile.grade === 4 && S.get().profile.enrolled.includes('math-4') && S.get().profile.parentSetup && S.get().profile.welcomed, 'welcome: the child’s grade, goal and name are saved, then Family and class opens');
+  // the menus in the browser's language, asked once
+  S.reset(); VIEWS._browserLang = 'es-MX'; m = await goHome();
+  ok(m.querySelector('#wl-lang[lang="es"]') && /español/.test(text(m.querySelector('#wl-lang'))), 'welcome: a Spanish browser is offered the menus in Spanish');
+  m.querySelector('[data-wl-lang="no"]').click();
+  ok(!m.querySelector('#wl-lang') && S.get().profile.langAsked && !S.get().profile.lang, 'welcome: No, thanks keeps English');
+  m = await goHome(); ok(!m.querySelector('#wl-lang'), 'welcome: and it isn’t asked again');
+  S.reset(); VIEWS._browserLang = 'hi-IN'; m = await goHome();
+  ok(m.querySelector('#wl-lang[lang="hi"]') && m.querySelector('[data-wl-lang="hi"]'), 'welcome: a Hindi browser is offered Hindi');
+  VIEWS._browserLang = 'en';
+  // Home for a learner
+  S.reset(); S.setProfile({ grade: 7, welcomed: true, seenNews: 'n12', enrolled: ['math-7'], goal: 20 });
+  S.setSkill('math7.add-negatives', { level: 2, tries: 7, right: 5, sets: 1, last: Date.now(), due: S.dayShift(today, 1) }); S.touchRecent('math7.add-negatives');
+  S.logEvent({ kind: 'practice', skill: 'math7.add-negatives', total: 7, right: 5 });
+  S.get().days[today] = { q: 4, right: 3, pts: 45, sec: 360 };
+  m = await goHome();
+  ok(/How Procademy keeps track/.test(text(m.querySelector('#levels-note'))) && /Points/.test(text(m.querySelector('#levels-note'))) && /Badges/.test(text(m.querySelector('#levels-note'))) && /Mastered/.test(text(m.querySelector('#levels-note'))), 'home: after the first set, one card on points, streaks, badges and levels');
+  m.querySelector('#levels-x').click(); ok(!m.querySelector('#levels-note') && S.get().profile.levelsSeen, 'home: Got it puts it away');
+  ok(m.querySelector('#home-go .go-bar') && /7th grade math: \d+% mastered/.test(m.querySelector('#home-go .go-bar').getAttribute('aria-label')), 'home: Continue shows the course’s progress');
+  ok(/6 min practiced/.test(text(m.querySelector('#goal-tile'))) && /about \d+ min left/.test(text(m.querySelector('#goal-tile'))), 'home: the time practiced today, by the goal ring');
+  ok(m.querySelector('#my-courses.one') && m.querySelectorAll('#my-courses [data-drag]').length === 0, 'home: one saved course is a single row, with nothing to drag');
+  const tip = text(m.querySelector('.home-tip')), wd = new Date(today + 'T12:00').getDay();
+  ok(tip.length > 20 && /weekend/i.test(tip) === (wd === 0 || wd === 6), 'home: a tip for the day, one kind on school days and another at the weekend');
+  ok(m.querySelector('#first-week') && m.querySelectorAll('#first-week li').length === 4 && m.querySelectorAll('#first-week li.done').length >= 2 && m.querySelector('#first-week a[href="#/tutor"]'), 'home: a first-week list: practice, the tutor, a puzzle and a goal');
+  m.querySelector('#fw-x').click(); ok(!m.querySelector('#first-week') && S.get().profile.firstWeekDone, 'home: the first-week list can be put away');
+  ok(/This week’s challenge: not solved yet/.test(text(m.querySelector('.today-wk'))), 'home: the weekly challenge’s status');
+  S.setProfile({ weekly: { [E.weekOf()]: { t: Date.now(), first: true } } }); m = await goHome();
+  ok(/This week’s challenge: solved/.test(text(m.querySelector('.today-wk'))), 'home: … solved once it is');
+  ok(!m.querySelector('.today-tmr'), 'home: tomorrow isn’t previewed before today’s practice');
+  S.get().days[today].daily = 1; S.setProfile({ pod: today }); m = await goHome();
+  ok(/Tomorrow: 1 skill to review/.test(text(m.querySelector('.today-tmr'))), 'home: after today’s practice, a look at tomorrow');
+  ok(m.querySelector('.pod-how .question') && /The answer is/.test(m.querySelector('.pod-how').textContent) && m.querySelectorAll('.pod-how .hint').length >= 1, 'home: the problem of the day, once solved, shows how it’s worked out');
+  // a busy day, then back to normal the next day
+  m.querySelector('#busy').click(); await tick(10); m = document.getElementById('main');
+  ok(S.get().profile.goal === 10 && S.get().profile.busy.day === today && /Busy day: today’s goal is 10/.test(text(m.querySelector('.today-card'))), 'home: one tap lowers today’s goal for a busy day');
+  S.setProfile({ busy: { day: S.dayShift(today, -1), goal: 20 } }); m = await goHome();
+  ok(S.get().profile.goal === 20 && !S.get().profile.busy, 'home: the next day the goal is back');
+  // a weekly rest day keeps the streak
+  const rs = m.querySelector('#rest-day'); rs.value = String(new Date(S.dayShift(today, -2) + 'T12:00').getDay()); rs.dispatchEvent(new Event('change')); await tick(10);
+  S.get().days[S.dayShift(today, -1)] = { q: 5, right: 5, pts: 0 }; S.get().days[S.dayShift(today, -3)] = { q: 5, right: 5, pts: 0 }; delete S.get().days[S.dayShift(today, -2)];
+  ok(S.get().profile.restDay === new Date(S.dayShift(today, -2) + 'T12:00').getDay() && S.streak().days === 3, 'home: a weekly rest day keeps the streak going');
+  S.setProfile({ restDay: null }); ok(S.streak().days === 2, 'home: without it, a missed day ends the streak');
+  // homework due, and a test date, from Home
+  m = await goHome();
+  m.querySelector('[data-plan="hw"]').click();
+  m.querySelector('#hw-what').value = 'Problems 1 to 10'; m.querySelector('#hw-due').value = S.dayShift(today, 1); m.querySelector('#hw-form').dispatchEvent(new Event('submit', { cancelable: true })); await tick(10);
+  m = document.getElementById('main');
+  ok(S.get().profile.homework.due === S.dayShift(today, 1) && /Homework due tomorrow: Problems 1 to 10/.test(text(m.querySelector('.today-plan'))), 'home: a homework due date, shown until it’s due');
+  m.querySelector('[data-plan="test"]').click();
+  m.querySelector('#ts-book').value = 'cc2'; m.querySelector('#ts-book').dispatchEvent(new Event('change')); m.querySelector('#ts-ch').value = '3'; m.querySelector('#ts-date').value = S.dayShift(today, 6);
+  m.querySelector('#test-form').dispatchEvent(new Event('submit', { cancelable: true })); await tick(10); m = document.getElementById('main');
+  ok(S.get().profile.prep && S.get().profile.prep.book === 'cc2' && S.get().profile.prep.ch === 3 && m.querySelector('.prep-home') && /chapter 3 test/i.test(text(m.querySelector('.today-plan'))), 'home: a test date added from Home makes a test prep plan');
+  m.querySelector('#hw-clear').click(); ok(!S.get().profile.homework, 'home: homework can be marked handed in');
+  // new skills in a saved course
+  S.setProfile({ courseSeen: { 'math-7': A.courseSkills(A.courseById('math-7')).slice(1) } }); m = await goHome();
+  ok(m.querySelector('#new-in') && text(m.querySelector('#new-in')).includes(A.stripTags(A.skills[A.courseSkills(A.courseById('math-7'))[0]].title)), 'home: skills new in a saved course are noted');
+  m.querySelector('#new-in-x').click(); ok(!m.querySelector('#new-in') && S.get().profile.courseSeen['math-7'].length === A.courseSkills(A.courseById('math-7')).length, 'home: … until Got it');
+  // recent badges
+  S.earnBadges(['first', 'streak3']); m = await goHome();
+  ok(m.querySelectorAll('.badge-tile .mini-medal').length === Math.min(4, Object.keys(S.get().badges).length) && Object.keys(S.get().badges).length >= 2 && m.querySelector('.badge-tile[data-to-badges][href="#/progress"]'), 'home: the latest badges, linking to the badges on Progress');
+  // three good days in a row
+  [-2, -1, 0].forEach(k => { S.get().days[S.dayShift(today, k)] = { q: 25, right: 20, pts: 0 }; }); m = await goHome();
+  ok(/on a roll: three good days in a row/.test(text(m.querySelector('.home-hello'))), 'home: a gentle note after three good days');
+  // what should I do now?
+  S.addMissed('math7.circles', 'w1'); S.setProfile({ prep: null }); m = await goHome();
+  m.querySelector('#home-now').click();
+  ok(!m.querySelector('#now-pick').hidden && /Fix 1 mistake/.test(text(m.querySelector('#now-pick'))) && m.querySelector('#now-pick a').getAttribute('href') === '#/review', 'home: What should I do now? picks the best next thing, and says why');
+  const first = text(m.querySelector('#now-pick b')); m.querySelector('#now-else').click();
+  ok(text(m.querySelector('#now-pick b')) !== first, 'home: Something else offers the next best');
+  // a parent's note: a quick reply
+  S.setProfile({ parentNote: { text: 'Ten minutes before dinner?', by: 'Dad', t: Date.now(), seen: false } }); m = await goHome();
+  m.querySelector('[data-reply="Will do."]').click();
+  ok(S.get().profile.parentNote.seen && S.get().profile.parentNote.reply.text === 'Will do.' && !m.querySelector('.ps-note'), 'home: a reply to a parent’s note is kept with it');
+  // arrange Home: move, hide, a short phone Home, and back
+  m.querySelector('#home-arrange').click(); m = document.getElementById('main');
+  ok(m.querySelectorAll('#arrange [data-k]').length === 6 && document.activeElement && document.activeElement.closest('#arrange'), 'arrange: every Home section listed, with the focus in the panel');
+  m.querySelector('#arrange [data-k="today"] [data-move="1"]').click(); m = document.getElementById('main');
+  ok(S.get().profile.homeLayout.order.slice(0, 2).join() === 'tiles,today' && m.querySelector('.home-sec').dataset.sec === 'tiles', 'arrange: a section moves down');
+  const hide = m.querySelector('#arrange [data-k="courses"] [data-show]'); hide.checked = false; hide.dispatchEvent(new Event('change')); m = document.getElementById('main');
+  ok(!m.querySelector('#my-courses') && S.get().profile.homeLayout.hidden.includes('courses'), 'arrange: a section can be hidden');
+  const cp = m.querySelector('#arr-compact'); cp.checked = true; cp.dispatchEvent(new Event('change')); m = document.getElementById('main');
+  ok(m.querySelector('.home-body.home-compact') && m.querySelector('#home-all'), 'arrange: a short Home for phones, with the rest one tap away');
+  m.querySelector('#arr-reset').click(); m = document.getElementById('main');
+  ok(S.get().profile.homeLayout.order[0] === 'today' && !S.get().profile.homeLayout.hidden.length && m.querySelector('#my-courses'), 'arrange: back to the usual order');
+  m.querySelector('#arr-done').click(); S.setProfile({ homeLayout: null });
+  // Continue: back to the very question a set was left on
+  m = await go('#/practice/math7.circles');
+  answerCurrent(m, true); await tick(); m.querySelector('#next').click(); await tick();
+  answerCurrent(m, true); await tick(); m.querySelector('#next').click(); await tick();
+  m = await go('#/');
+  const hg = m.querySelector('#home-go');
+  ok(S.get().profile.lastSet && S.get().profile.lastSet.key === '#/practice/math7.circles' && hg.getAttribute('href') === '#/practice/math7.circles' && /question 3 of 7/.test(text(hg)), 'continue: a set left halfway is offered, at its question');
+  hg.click(); await until(() => document.getElementById('main').__session && !document.querySelector('#resume') && document.getElementById('main').querySelector('#check'));
+  m = document.getElementById('main');
+  ok(m.__session.i === 2 && m.__session.results[0] && m.__session.results[0].done && !m.querySelector('.resume-card'), 'continue: it opens at that very question');
+  // no course yet: the next step is one tap
+  S.setProfile({ enrolled: [] }); m = await goHome();
+  ok(m.querySelector('#save-mine[data-course="math-7"]') && /Save 7th grade math/.test(text(m.querySelector('#save-mine'))), 'home: with no course saved, the grade’s course is one tap away');
+  m.querySelector('#save-mine').click(); ok(S.get().profile.enrolled.includes('math-7'), 'home: … and saved with it');
+  S.setProfile({ enrolled: [], grade: null }); m = await goHome();
+  m.querySelector('#pick-grade').value = '5'; m.querySelector('#save-grade').click();
+  ok(S.get().profile.grade === 5 && S.get().profile.enrolled.includes('math-5'), 'home: with no grade either, choosing it saves its course');
+  // a tip the first time a tool opens, and the tour again from Settings
+  S.setProfile({ tipsSeen: {} });
+  m = await go('#/numbers'); await until(() => m.querySelector('.tool-tip'));
+  ok(/Tip:/.test(text(m.querySelector('.tool-tip'))) && S.get().profile.tipsSeen.numbers, 'tools: a short tip the first time a tool opens');
+  m = await go('#/'); m = await go('#/numbers'); await tick(30);
+  ok(!m.querySelector('.tool-tip'), 'tools: … and only the first time');
+  m = await go('#/settings');
+  m.querySelector('[data-tour-again]').click(); await until(() => document.querySelector('.tour'));
+  ok(location.hash === '#/' && document.querySelector('.tour'), 'settings: Take the tour again');
+  document.querySelector('#tour-skip').click();
+  S.reset();
+  }
+
   { // questions like a picture, and the grade setting the level of things
   const until = async (fn, ms) => { const t = Date.now(); while (Date.now() - t < (ms || 3000)) { if (fn()) return true; await tick(20); } return false; };
   const title = q => { const id = UNLIMITED.likeThis(q)[0]; return id ? A.stripTags(A.skills[id].title) : ''; };
@@ -2755,10 +2921,20 @@
   m = await goIn('#/');
   ok(!m.querySelector('#install-home'), 'app: … or before a learner has practiced on two different days');
   S.get().days[S.dayShift(S.today(), -1)] = { q: 5, right: 4, pts: 0 }; S.get().days[S.today()] = { q: 3, right: 3, pts: 0 };
+  const visits0 = localStorage.getItem('procademy.visits.v1');
+  localStorage.setItem('procademy.visits.v1', JSON.stringify({ n: 2, at: Date.now() }));
+  m = await goIn('#/');
+  ok(!m.querySelector('#install-home'), 'app: … or before the third visit');
+  localStorage.setItem('procademy.visits.v1', JSON.stringify({ n: 3, at: Date.now() }));
   m = await goIn('#/');
   ok(m.querySelector('#install-home [data-install-act="go"]') && /Get the Procademy app/.test(text(m.querySelector('#install-home'))), 'app: then Home offers to install, with an Install button');
   m.querySelector('#install-home [data-install-act="later"]').click(); await tick(10);
   ok(!m.querySelector('#install-home'), 'app: Not now puts it away');
+  localStorage.setItem('procademy.install.v1', JSON.stringify({ later: Date.now() - 30 * 864e5 }));
+  m = await goIn('#/');
+  ok(!m.querySelector('#install-home'), 'app: Home offers it once: not again after Not now, however long ago');
+  localStorage.removeItem('procademy.install.v1');
+  if (visits0 == null) localStorage.removeItem('procademy.visits.v1'); else localStorage.setItem('procademy.visits.v1', visits0);
   m = await goIn('#/settings');
   ok(m.querySelector('#install-settings [data-install-act="go"]'), 'app: Settings always has it');
   m.querySelector('#install-settings [data-install-act="go"]').click(); await tick(20);

@@ -2793,3 +2793,173 @@ html.pc-focus main { padding-top: 20px; }
   .flag-box .seg { display: grid; justify-items: start; justify-self: stretch; }
   .vd-title { font-size: 1.15rem; }
 }
+
+/* home */
+/* the welcome: what to do today, then who is learning, a goal on a slider, a name and a color */
+.welcome .wl-intro { max-width: 70ch; }
+.wl-lang { margin: 0 0 16px; padding: 12px 14px; border-radius: 14px; background: var(--tint); }
+.wl-lang p { margin: 0 0 8px; font-weight: 600; }
+.wl-lang .btn-row { margin: 0; }
+.wl-modes { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: 10px; margin-top: 6px; }
+.wl-mode { display: flex; align-items: center; gap: 12px; text-align: left; padding: 12px 14px; border-radius: 14px; border: 2px solid var(--line); background: var(--surface); color: var(--ink); font: inherit; cursor: pointer; min-height: 64px; }
+.wl-mode:hover { border-color: var(--primary); }
+.wl-mode.on { border-color: var(--primary); background: var(--primary-soft); }
+.wl-mode > span:last-child { display: grid; gap: 1px; min-width: 0; }
+.wl-mode-ic { flex: none; display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; background: var(--tint); color: var(--primary-ink); }
+.wl-mode.on .wl-mode-ic { background: var(--primary); color: var(--on-primary); }
+.wl-pane { padding-top: 2px; }
+.wl-age { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; margin-top: 10px; font-size: .9rem; }
+.wl-age label { font-weight: 600; }
+.wl-age select, .wl-pane input[type="text"], .wl-pane input:not([type]), .wl-pane textarea { padding: .55rem .75rem; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--surface); color: var(--ink); font: inherit; }
+.wl-pane textarea { width: 100%; resize: vertical; }
+.wl-pane .field { max-width: 640px; }
+.wl-goal-box { max-width: 520px; }
+.wl-goal-out { margin: 0 0 4px; }
+.wl-range { width: 100%; margin: 4px 0 0; accent-color: var(--primary); height: 28px; }
+/* each step's name sits under its place on the slider (the thumb's centre runs from 8px in to 8px from the end) */
+.wl-ticks { position: relative; height: 44px; margin: 0 8px; }
+.wl-tick { position: absolute; top: 0; left: calc(var(--at) * 100%); transform: translateX(-50%); display: grid; justify-items: center; gap: 0; padding: 3px 6px; border: 0; border-radius: 10px; background: none; color: var(--muted); font: inherit; font-size: .8rem; line-height: 1.3; cursor: pointer; white-space: nowrap; }
+.wl-tick b { color: var(--ink); font-size: .86rem; }
+.wl-tick:hover { background: var(--tint); }
+.wl-tick.on b, .wl-tick.on { color: var(--primary-ink); }
+.wl-tick:first-child { transform: translateX(-8px); justify-items: start; } .wl-tick:last-child { transform: translateX(calc(-100% + 8px)); justify-items: end; }
+.wl-me { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 8px 18px; margin-bottom: 16px; }
+.wl-me .field { margin-bottom: 0; }
+.wl-me .wl-name { flex: 0 1 300px; }
+.wl-av { flex: none; padding-bottom: 4px; }
+.wl-av .avatar { width: 44px; height: 44px; font-size: 1.35rem; }
+.wl-me .av-hues { min-height: 40px; align-items: center; }
+.wl-map { margin-top: 10px; }
+.wl-map summary { cursor: pointer; color: var(--primary-ink); font-weight: 600; font-size: .9rem; }
+.wl-units { margin: 10px 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: 6px 20px; counter-reset: unit; }
+.wl-units li { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: .86rem; counter-increment: unit; }
+.wl-units .t { min-width: 0; }
+.wl-units .t::before { content: counter(unit) ". "; color: var(--muted); font-variant-numeric: tabular-nums; }
+.wl-cells { display: flex; flex-wrap: wrap; gap: 3px; flex: none; max-width: 50%; justify-content: flex-end; }
+.wl-cells i { width: 10px; height: 10px; border-radius: 3px; border: 1.5px solid var(--lvl0); }
+.wl-lesson-list { list-style: none; margin: 8px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr)); gap: 8px; }
+.wl-lesson { display: grid; gap: 2px; width: 100%; text-align: left; padding: 10px 12px; border-radius: 12px; border: 2px solid var(--line); background: var(--surface); color: var(--ink); font: inherit; cursor: pointer; }
+.wl-lesson:hover { border-color: var(--primary); background: var(--primary-soft); }
+.wl-foot { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--line); }
+.wl-foot p { margin: 0; flex: 1 1 280px; }
+@container page (max-width: 480px) {
+  main .wl-modes { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  main .wl-mode { flex-direction: column; align-items: flex-start; gap: 6px; padding: 10px 12px; }
+  main .wl-mode .small { display: none; }
+  main .wl-mode-ic { width: 32px; height: 32px; }
+}
+/* Home: Continue with the course's progress, What should I do now?, a tip for the day */
+.home-acts { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 10px; }
+.home-now { min-height: 54px; gap: 8px; }
+.go-course { display: flex; align-items: center; gap: 8px; margin-top: 3px; }
+.go-bar { flex: none; width: 64px; height: 5px; border-radius: 999px; background: color-mix(in srgb, var(--on-primary) 30%, transparent); overflow: hidden; }
+.go-bar > span { display: block; height: 100%; min-width: 3px; border-radius: inherit; background: var(--on-primary); }
+.home-go .go-course small { max-width: 200px; }
+.home-tip { margin: 4px 0 0; color: var(--muted); }
+.now-pick { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 14px; margin: 14px 0 0; padding: 12px 16px; border-radius: var(--radius); background: var(--tint); }
+.now-pick > p { flex: 1 1 280px; margin: 0; min-width: 0; }
+.now-pick .btn-row { margin: 0; }
+.now-ic { flex: none; display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; background: var(--surface); color: var(--primary-ink); }
+/* Home's sections: arranged by the learner; on a phone, optionally Today alone */
+.home-sec { display: contents; }
+.home-foot { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin: 26px 0 0; }
+.home-all { display: none; }
+@container page (max-width: 480px) {
+  main .home-compact:not(.show-all) > .home-sec:not([data-sec="today"]) { display: none; }
+  main .home-body.home-compact:not(.show-all) ~ .home-foot .home-all { display: inline-flex; }
+  main .home-acts { width: 100%; }
+  main .home-acts > .btn { flex: 1 1 100%; justify-content: center; }
+  main .home-acts > .home-go { order: -1; }
+  main .home-go { justify-content: space-between; }
+}
+.arrange { margin-top: 14px; }
+.arr-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.arr-list li { display: flex; align-items: center; gap: 8px; padding: 8px 10px 8px 14px; border-radius: 12px; background: var(--surface-2); }
+.arr-list li.off .arr-name { color: var(--muted); text-decoration: line-through; }
+.arr-name { flex: 1; min-width: 0; font-weight: 600; }
+.arr-show { display: inline-flex; align-items: center; gap: 8px; margin-left: 6px; font-size: .86rem; }
+.arr-compact { display: flex; align-items: center; gap: 12px; margin-top: 14px; }
+.arr-compact > span { display: grid; }
+@container page (max-width: 480px) { main .arr-list li { flex-wrap: wrap; } main .arr-name { flex-basis: 100%; } }
+/* My courses: a new skill noted; one course as a single row; the next step when nothing is saved */
+.new-in { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px 12px; margin: 0 0 12px; padding: 8px 8px 8px 14px; border-radius: 12px; background: var(--tint); }
+.pick-grade { flex: 0 1 200px; }
+@container page (min-width: 621px) {
+  main .my-courses.one { grid-template-columns: minmax(0, 1fr); }
+  main .my-courses.one > .course-card { display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(160px, 260px) auto; grid-template-areas: "icon title meta tools" "icon title bar cta"; align-items: center; column-gap: 20px; row-gap: 6px; padding-top: 16px; padding-bottom: 16px; }
+  main .my-courses.one > .course-card > .row:first-child { display: contents; }
+  main .my-courses.one .course-head { grid-area: icon; }
+  main .my-courses.one .course-art { display: none; }
+  main .my-courses.one .card-tools { grid-area: tools; justify-self: end; }
+  main .my-courses.one h3 { grid-area: title; margin: 0; }
+  main .my-courses.one .course-card > .small { grid-area: meta; margin: 0; }
+  main .my-courses.one .course-card > .pbar { grid-area: bar; margin: 0; }
+  main .my-courses.one .course-card > .continue { grid-area: cta; margin: 0; justify-self: end; max-width: 340px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
+/* the badges tile: the latest few */
+.badge-row { display: flex; align-items: center; gap: 3px; margin-top: 4px; min-width: 0; }
+.mini-medal { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--tint); color: var(--primary-ink); flex: none; }
+.tile-latest { margin-left: 4px; font-size: .78rem; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+/* the Today card: a busy day, a rest day, the first week, the notes, coming up */
+.today-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px 14px; margin-top: 10px; }
+.today-row .week-goal { margin-top: 0; flex: 1 1 260px; }
+.busy-btn { min-height: 32px; }
+.linkish { border: 0; background: none; padding: 0; color: var(--primary-ink); font: inherit; font-weight: 600; cursor: pointer; text-decoration: underline; text-underline-offset: .15em; }
+.rest-pick { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 8px; font-weight: 600; color: var(--ink); }
+.rest-pick select { padding: .3rem .5rem; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--surface); color: var(--ink); font: inherit; }
+.week li.rest i { border-style: dotted; border-color: var(--primary); }
+.first-week { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 14px; margin-top: 12px; padding: 8px 6px 8px 14px; border-radius: 14px; background: var(--tint); }
+.first-week ul { list-style: none; display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 0; padding: 0; flex: 1 1 auto; font-size: .88rem; }
+.first-week li { display: inline-flex; align-items: center; gap: 6px; }
+.first-week li i { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--line-strong); }
+.first-week li.done { color: var(--muted); }
+.first-week li.done .ic { color: var(--ok-ink); }
+.first-week .iconbtn { width: 32px; height: 32px; font-size: .9rem; color: var(--muted); margin-left: auto; order: 2; }
+@container page (max-width: 480px) { main .first-week { padding-top: 4px; } main .first-week .iconbtn { order: 0; } main .first-week ul { order: 1; flex-basis: 100%; padding-bottom: 4px; } }
+.pod-how { margin-top: 6px; }
+.pod-how summary { cursor: pointer; color: var(--primary-ink); font-weight: 600; font-size: .88rem; }
+.pod-how .question { margin: 8px 0 4px; }
+.pod-how .hint { margin-top: 6px; }
+.pod-how p { margin: 4px 0; }
+.today-notes { list-style: none; margin: 14px 0 0; padding: 12px 0 0; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 8px 28px; }
+.today-notes li { display: flex; align-items: flex-start; gap: 8px; margin: 0; flex: 0 1 auto; max-width: 100%; }
+.today-notes li > .ic { flex: none; margin-top: 2px; color: var(--primary-ink); }
+.today-plan { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; margin-top: 12px; }
+.plan-item { display: inline-flex; align-items: flex-start; gap: 8px; max-width: 100%; }
+.plan-item > .ic { flex: none; margin-top: 2px; color: var(--primary-ink); }
+.plan-form { margin-top: 10px; }
+.plan-box { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 4px 14px; padding: 12px 14px; border-radius: 14px; background: var(--surface-2); }
+.plan-box .field { margin-bottom: 6px; flex: 0 1 220px; }
+.plan-box .field:first-child { flex: 1 1 240px; }
+.plan-box input, .plan-box select { padding: .5rem .7rem; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--surface); color: var(--ink); font: inherit; min-width: 0; }
+.plan-box .btn-row { margin: 0 0 6px; }
+.plan-box > p { flex-basis: 100%; }
+/* the one-time note on how Procademy keeps track */
+.how-list { list-style: none; margin: 10px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 8px 16px; }
+.how-list li { display: flex; align-items: flex-start; gap: 10px; }
+.how-ic { flex: none; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--tint); color: var(--primary-ink); }
+.how-h { margin: 16px 0 0; font-size: 1rem; }
+.home-sec > .section-title:first-child { margin-top: 28px; }
+@container page (max-width: 480px) {
+  main .tiles > .goal-tile { grid-column: 1 / -1; }
+  main .tile-latest { display: none; }
+  main .today-plan > .small.muted { flex-basis: 100%; }
+}
+/* a tip the first time a tool opens; the first badge */
+.tool-tip { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; margin: 0 0 16px; padding: 8px 8px 8px 14px; border-radius: 14px; background: var(--tint); }
+.tool-tip p { flex: 1 1 260px; margin: 0; min-width: 0; font-size: .92rem; }
+.tool-tip-ic { flex: none; display: grid; place-items: center; color: var(--primary-ink); }
+.first-badge { position: fixed; z-index: 55; right: 18px; bottom: 84px; width: min(460px, calc(100vw - 32px)); display: flex; align-items: center; gap: 10px 12px; padding: 10px 10px 10px 14px; border-radius: 18px; background: var(--surface); color: var(--ink); border: 1px solid var(--card-line); box-shadow: 0 14px 40px rgba(15, 23, 42, .2); animation: fb-in .25s ease-out; }
+@keyframes fb-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.first-badge p { flex: 1; margin: 0; min-width: 0; font-size: .9rem; }
+.first-badge p span { color: var(--muted); }
+.fb-medal { flex: none; display: grid; place-items: center; width: 42px; height: 42px; border-radius: 50%; background: var(--primary); color: var(--on-primary); }
+@media (max-width: 700px) { .first-badge { left: 16px; right: 16px; width: auto; bottom: calc(80px + env(safe-area-inset-bottom, 0px)); } }
+@media (max-width: 480px) { .first-badge { flex-wrap: wrap; } .first-badge p { flex-basis: calc(100% - 60px); } .first-badge .btn { margin-left: 54px; } }
+:root[data-motion="reduce"] .first-badge { animation: none; }
+/* a parent's note: quick replies, or a short one */
+.ps-replies { display: flex; flex-wrap: wrap; gap: 6px; flex: none; }
+.ps-form { display: flex; gap: 8px; margin: -2px 0 0 46px; }
+.ps-form input { flex: 1 1 200px; min-width: 0; padding: .45rem .7rem; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--surface); color: var(--ink); font: inherit; }
+@container page (max-width: 480px) { main .ps-note { flex-wrap: wrap; } main .ps-note p { flex-basis: calc(100% - 46px); } main .ps-replies { margin-left: 46px; } main .ps-form { margin-left: 0; } }
+.today-list li:has(.pod-how[open]) { align-items: flex-start; }
