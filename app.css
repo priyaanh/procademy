@@ -3290,3 +3290,23 @@ html.pc-focus main { padding-top: 20px; }
 .ck-game:empty { display: none; }
 .ck-ask { font-size: 1.05rem; margin: 12px 0 8px; }
 :root[data-contrast="high"] :is(.calc-play, .rt-pick, .mn-add, .tt-grid td button, .cx-he, .cx-hr) { box-shadow: inset 0 0 0 1.5px var(--primary-ink); }
+/* languages */
+/* Hindi: Devanagari needs a larger size and more line height, for the signs above and below the line */
+.hi { font-family: "Kohinoor Devanagari", "Noto Sans Devanagari", "Nirmala UI", "Mangal", var(--font); font-size: 1.18em; line-height: 1.75; }
+.hi .hi { font-size: 1em; }
+.hi-rom { color: var(--muted); }
+.hi-big { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; }
+.hi-big > .hi { font-size: 1.15em; line-height: 1.6; }
+.hi-say { display: none; }
+html.hi-voice .hi-say { display: inline-flex; }
+.hi-big .hi-say { font-size: .92rem; letter-spacing: 0; }
+.hi-say-it { margin: 0 0 .4rem; color: var(--muted); font-size: .98rem; }
+.choices .hi { font-size: 1.32em; line-height: 1.5; }
+.hi-grid-wrap { display: grid; gap: 8px; justify-items: start; margin: 12px 0 16px; }
+.hi-grid-wrap > .mtable { margin: 0; }
+.hi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; width: 100%; }
+.hi-cell { display: grid; justify-items: center; align-content: center; gap: 2px; padding: 8px 6px 10px; border-radius: 12px; background: var(--tint); text-align: center; }
+.hi-cell .hi { font-size: 1.55rem; line-height: 1.45; }
+.hi-cell .hi-rom { font-size: .85rem; }
+.hi-swatch-row { display: flex; align-items: center; gap: 10px; margin: 10px 0 4px; }
+.hi-swatch { flex: none; }
