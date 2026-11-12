@@ -897,7 +897,7 @@ body.on-ai-page footer { display: none; }
 .ai-plan .bubble { background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-s); }
 .ai-plan-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; margin-bottom: 8px; }
 .ai-plan .pbar { margin-bottom: 8px; }
-.ai-plan-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.ai-msg .bubble .ai-plan-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
 .ai-plan-list li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 12px; padding: 6px 0; border-bottom: 1px solid var(--line); }
 .ai-plan-list li:last-child { border-bottom: 0; }
 .ai-plan-check { display: flex; align-items: flex-start; gap: 10px; flex: 1 1 260px; min-width: 0; cursor: pointer; overflow-wrap: anywhere; }
