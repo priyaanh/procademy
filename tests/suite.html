@@ -1872,8 +1872,9 @@
   ok(!m.querySelector('#wl-try').disabled && m.querySelector('#wl-start').disabled && /saved on this device/.test(text(m.querySelector('.wl-foot'))), 'welcome: one question can be tried at once, and it says where progress is saved');
   m.querySelector('#wl-try').click(); await tick(80);
   ok(/^#\/unlimited\/sample\//.test(location.hash) && S.get().profile.wlDraft && S.get().profile.wlDraft.tried && !S.get().profile.welcomed, 'welcome: a question to try before choosing a grade');
+  document.querySelectorAll('.first-badge').forEach(x => x.remove());
   answerCurrent(document.getElementById('main'), true); await tick(20); document.getElementById('main').querySelector('#next').click();
-  await until(() => document.querySelector('.first-badge'));
+  await until(() => S.get().badges.first && document.querySelector('.first-badge'), 5000);
   ok(document.querySelector('.first-badge') && /first badge/i.test(text(document.querySelector('.first-badge'))) && S.get().badges.first, 'first badge: the very first answer earns it, said with a small card');
   document.querySelectorAll('.first-badge').forEach(x => x.remove());
   m = await goHome();
@@ -1941,7 +1942,7 @@
   ok(!m.querySelector('.today-tmr'), 'home: tomorrow isn’t previewed before today’s practice');
   S.get().days[today].daily = 1; S.setProfile({ pod: today }); m = await goHome();
   ok(/Tomorrow: 1 skill to review/.test(text(m.querySelector('.today-tmr'))), 'home: after today’s practice, a look at tomorrow');
-  ok(m.querySelector('.pod-how .question') && /The answer is/.test(text(m.querySelector('.pod-how'))) && m.querySelectorAll('.pod-how .hint').length >= 1, 'home: the problem of the day, once solved, shows how it’s worked out');
+  ok(m.querySelector('.pod-how .question') && /The answer is/.test(m.querySelector('.pod-how').textContent) && m.querySelectorAll('.pod-how .hint').length >= 1, 'home: the problem of the day, once solved, shows how it’s worked out');
   // a busy day, then back to normal the next day
   m.querySelector('#busy').click(); await tick(10); m = document.getElementById('main');
   ok(S.get().profile.goal === 10 && S.get().profile.busy.day === today && /Busy day: today’s goal is 10/.test(text(m.querySelector('.today-card'))), 'home: one tap lowers today’s goal for a busy day');

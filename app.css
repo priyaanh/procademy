@@ -2732,6 +2732,7 @@ kbd { display: inline-block; min-width: 1.6em; padding: .1em .45em; border-radiu
   main .home-body.home-compact:not(.show-all) ~ .home-foot .home-all { display: inline-flex; }
   main .home-acts { width: 100%; }
   main .home-acts > .btn { flex: 1 1 100%; justify-content: center; }
+  main .home-acts > .home-go { order: -1; }
   main .home-go { justify-content: space-between; }
 }
 .arrange { margin-top: 14px; }
