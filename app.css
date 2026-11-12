@@ -3484,3 +3484,18 @@ html.pc-focus main { padding-top: 20px; }
 .lpart-head[aria-expanded="true"] .lpart-t { display: none; }
 .feedback.ck-miss { background: var(--tint); color: var(--ink); }
 .feedback.ck-miss .ic { color: var(--primary-ink); }
+/* My notes: search, drawings, study later */
+.notes-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: 16px 0 12px; }
+.notes-tools input[type="search"] { flex: 1 1 260px; max-width: 480px; padding: .55rem .9rem; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--surface); }
+.note-item mark { background: var(--tint-2); color: inherit; border-radius: 3px; padding: 0 1px; }
+.sl-item { display: inline-flex; align-items: center; gap: 0; }
+.sl-x { width: 32px; height: 32px; font-size: .85rem; color: var(--muted); }
+/* a worksheet's QR code for its answers, and checking a printed sheet by its set code */
+.ws-foot { display: flex; align-items: center; gap: 12px; }
+.ws-qr:empty { display: none; }
+.ws-qr { display: inline-flex; flex-direction: column; align-items: center; gap: 2px; flex: none; color: #333; font-size: .65rem; }
+.ws-qr svg { width: 76px; height: 76px; display: block; }
+.ws-code { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
+.ws-code input { width: 9rem; min-height: 36px; padding: .3rem .6rem; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--surface); color: var(--ink); font: inherit; text-transform: lowercase; }
+.ws-code input[aria-invalid="true"] { border-color: var(--bad); }
+.ws-check + .ws-sheet[hidden] + .ws-key { break-before: auto; }
