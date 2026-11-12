@@ -27,6 +27,7 @@
     units: [
       { id: 'budgets', title: 'Budgets and banking', blurb: 'What’s left after expenses, budget percentages, and keeping a running balance.', skills: ['fin.budget', 'fin.budget-percents', 'fin.running-balance'] },
       { id: 'shopping', title: 'Smart shopping', blurb: 'Unit prices and better buys, discounts and sales, sales tax, and tips.', skills: ['fin.unit-price', 'fin.discounts', 'fin.sales-tax', 'fin.tips'] },
+      { id: 'interest', title: 'Interest', blurb: 'Simple and compound interest, comparing them and APY, and how long money takes to double.', skills: ['fin.simple-interest', 'fin.compound-interest', 'fin.simple-vs-compound', 'fin.doubling'] },
     ],
   };
   A.course(COURSE);
@@ -240,4 +241,109 @@
       return dl(P.B + bigPct(P.B, P.r * 1000) + tip) === q.answer;
     },
   });
+
+/* ---------- Unit 3: interest ---------- */
+  const COMP = { 1: 'annually', 4: 'quarterly', 12: 'monthly' };
+  const yrs = t => `${N(t)} year${t === 1 ? '' : 's'}`;
+  A.skill({
+    id: 'fin.simple-interest', title: 'Simple interest',
+    learn: p(`<b>Simple interest: ${V('I')} = ${V('P')}${V('r')}${V('t')}</b>, where ${V('P')} is the principal (the starting amount), ${V('r')} is the yearly rate as a decimal, and ${V('t')} is the time in years. The total at the end is ${V('P')} + ${V('I')}.`) +
+      p(`<b>Time must be in years</b>: 9 months is ${F(9, 12)} = 0.75 year. Simple interest is earned only on the principal, so it's the same every year. To find a missing rate or time, solve ${V('I')} = ${V('P')}${V('r')}${V('t')} for it.`) +
+      example('Example', `$2,400 at 3.5% simple interest for 18 months: ${V('I')} = 2,400 × 0.035 × 1.5 = <b>$126.00</b>, so the account ends with $2,526.00.`),
+    make(rng) {
+      const kind = rng.pick(['interest', 'interest', 'total', 'rate', 'time']), P = rng.int(4, 120) * 50, r = rng.pick([1.5, 2, 2.25, 2.5, 3, 3.5, 4, 4.5, 5, 6, 7.5]), months = rng.pick([6, 9, 12, 18, 24, 30, 36, 48, 60]), t = months / 12;
+      const I = Math.round(P * 100 * r * months / 1200);   // cents
+      const tText = months % 12 ? `${months} months` : yrs(t);
+      if (kind === 'interest' || kind === 'total') return { prompt: `${rng.pick(NAMES)} puts ${$(P)} in an account that pays ${N(r)}% simple interest per year. How much ${kind === 'interest' ? 'interest is earned' : 'is in the account'} after ${tText}, in dollars?`, type: 'number', answer: dl(kind === 'interest' ? I : P * 100 + I), unit: '$', params: { kind, P, r, months },
+        hints: [`${V('t')} is in years: ${months % 12 ? `${months} ÷ 12 = ${N(t)}` : N(t)}. ${V('I')} = ${N(P)} × ${N(r / 100)} × ${N(t)}.`, kind === 'interest' ? `${V('I')} = <b>${$(dl(I))}</b>.` : `${V('I')} = ${$(dl(I))}, so the total is ${$(P)} + ${$(dl(I))} = <b>${$(dl(P * 100 + I))}</b>.`] };
+      const y = rng.int(1, 6), I2 = P * r * y / 100;
+      if (kind === 'rate') return { prompt: `A loan of ${$(P)} charges ${$(I2)} in simple interest over ${yrs(y)}. What is the yearly interest rate, as a percent?`, type: 'number', answer: r, unit: '%', params: { kind, P, I: I2, y },
+        hints: [`${V('r')} = ${V('I')} ÷ (${V('P')}${V('t')}) = ${N(I2)} ÷ (${N(P)} × ${y}).`, `= ${N(r / 100)}, which is <b>${N(r)}%</b>.`] };
+      return { prompt: `How many years does it take ${$(P)} to earn ${$(I2)} in simple interest at ${N(r)}% per year?`, type: 'number', answer: y, unit: 'years', params: { kind, P, I: I2, r },
+        hints: [`${V('t')} = ${V('I')} ÷ (${V('P')}${V('r')}) = ${N(I2)} ÷ (${N(P)} × ${N(r / 100)}).`, `= <b>${y}</b> years.`] };
+    },
+    verify(q) {
+      const P = q.params;
+      if (P.kind === 'interest' || P.kind === 'total') { let I = 0; for (let m = 0; m < P.months; m++) I += P.P * P.r / 100 / 12; return centsOk(q.answer, P.kind === 'interest' ? I : P.P + I); }
+      if (P.kind === 'rate') return near(P.P * q.answer / 100 * P.y, P.I, 1e-9);
+      return near(P.P * P.r / 100 * q.answer, P.I, 1e-9);
+    },
+  });
+
+  A.skill({
+    id: 'fin.compound-interest', title: 'Compound interest',
+    learn: p(`With <b>compound interest</b>, the interest is added to the balance, and later interest is earned on it too. <b>${V('A')} = ${V('P')}(1 + ${F(V('r'), V('n'))})<sup>${V('n')}${V('t')}</sup></b>, where ${V('n')} is the number of times per year the interest is compounded: 1 for annually, 4 for quarterly, 12 for monthly.`) +
+      p(`Use a calculator for the power, keep all the digits until the end, and round to the nearest cent at the very end. The <b>interest earned</b> is ${V('A')} − ${V('P')}.`) +
+      example('Example', `$5,000 at 4% compounded quarterly for 3 years: ${V('A')} = 5,000(1 + 0.04 ÷ 4)<sup>12</sup> = 5,000(1.01)<sup>12</sup> ≈ <b>$5,634.13</b>, so $634.13 is interest.`),
+    make(rng) {
+      const P = rng.pick([500, 800, 1000, 1500, 2000, 2500, 4000, 5000, 7500, 10000, 12000]), r = rng.pick([1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 6]), n = rng.pick([1, 4, 12]), t = rng.int(2, 15), ask = rng.pick(['balance', 'interest']);
+      const Av = P * Math.pow(1 + r / 100 / n, n * t), ans = M.round(ask === 'balance' ? Av : Av - P, 2);
+      return { prompt: `${$(P)} is deposited in an account paying ${N(r)}% interest compounded ${COMP[n]}. With no other deposits or withdrawals, ${ask === 'balance' ? 'what is the balance' : 'how much interest has been earned'} after ${yrs(t)}? Round to the nearest cent.`, type: 'number', answer: ans, unit: '$', tolerance: 0.01, params: { P, r, n, t, ask },
+        hints: [`${V('A')} = ${n === 1 ? `${N(P)}(1 + ${N(r / 100)})<sup>${t}</sup>` : `${N(P)}(1 + ${N(r / 100)} ÷ ${n})<sup>${n} × ${t}</sup>`} = ${N(P)}(${N(M.round(1 + r / 100 / n, 6))})<sup>${n * t}</sup>.`, `${V('A')} ≈ ${$(M.round(Av, 2))}.`, ask === 'balance' ? `The balance is <b>${$(ans)}</b>.` : `Interest = ${$(M.round(Av, 2))} − ${$(P)} = <b>${$(ans)}</b>.`] };
+    },
+    verify(q) {
+      const P = q.params; let b = P.P;
+      for (let k = 0; k < P.n * P.t; k++) b += b * (P.r / 100 / P.n);      // one compounding period at a time
+      return centsOk(q.answer, P.ask === 'balance' ? b : b - P.P);
+    },
+  });
+
+  A.skill({
+    id: 'fin.simple-vs-compound', title: 'Simple versus compound interest, and APY',
+    learn: p(`At the same rate, <b>compound interest beats simple interest</b>, and the gap grows with time, because compound interest earns interest on interest.`) +
+      p(`Because compounding more often adds a little, banks report the <b>annual percentage yield (APY)</b>, the true yearly growth: <b>APY = (1 + ${F(V('r'), V('n'))})<sup>${V('n')}</sup> − 1</b>. A 6% rate compounded monthly has an APY of about 6.17%.`) +
+      example('Example', `$3,000 for 10 years at 5%: simple interest gives $4,500.00; compounded annually it gives 3,000(1.05)<sup>10</sup> ≈ $4,886.68. The difference is <b>$386.68</b>.`),
+    make(rng) {
+      const kind = rng.pick(['difference', 'apy', 'which']);
+      if (kind === 'difference') {
+        const P = rng.pick([1000, 2000, 2500, 3000, 5000, 8000]), r = rng.pick([3, 4, 5, 6, 7]), t = rng.int(5, 20), simple = P * (1 + r * t / 100), comp = P * Math.pow(1 + r / 100, t), ans = M.round(comp - simple, 2);
+        return { prompt: `${$(P)} is invested for ${t} years at ${r}% per year. How much more does it earn with interest compounded annually than with simple interest? Round to the nearest cent.`, type: 'number', answer: ans, unit: '$', tolerance: 0.01, params: { kind, P, r, t },
+          hints: [`Simple: ${N(P)}(1 + ${N(r / 100)} × ${t}) = ${$(simple)}. Compound: ${N(P)}(${N(1 + r / 100)})<sup>${t}</sup> ≈ ${$(M.round(comp, 2))}.`, `Difference: <b>${$(ans)}</b>.`] };
+      }
+      if (kind === 'apy') {
+        const r = rng.pick([2, 3, 3.5, 4, 4.5, 5, 6, 8, 12, 18]), n = rng.pick([4, 12, 365]), apy = M.round((Math.pow(1 + r / 100 / n, n) - 1) * 100, 2);
+        return { prompt: `An account pays ${N(r)}% interest compounded ${n === 365 ? 'daily (365 times a year)' : COMP[n]}. What is its annual percentage yield (APY), as a percent rounded to the nearest hundredth?`, type: 'number', answer: apy, unit: '%', tolerance: 0.01, params: { kind, r, n },
+          hints: [`APY = (1 + ${N(r / 100)} ÷ ${n})<sup>${n}</sup> − 1.`, `= ${N(M.round(Math.pow(1 + r / 100 / n, n) - 1, 6))}, which is <b>${N(apy)}%</b>.`] };
+      }
+      let P, r1, r2, t, a, b;
+      do { P = rng.pick([1000, 2000, 5000, 10000]); r1 = rng.pick([4, 4.5, 5, 5.5, 6]); r2 = r1 - rng.pick([0.25, 0.5, 0.75, 1]); t = rng.int(3, 25); a = P * (1 + r1 * t / 100); b = P * Math.pow(1 + r2 / 100, t); } while (Math.abs(a - b) < 5);
+      const opts = [`Account A, with ${N(r1)}% simple interest`, `Account B, with ${N(r2)}% compounded annually`], answer = a > b ? opts[0] : opts[1];
+      return { prompt: `${$(P)} can go into Account A, paying ${N(r1)}% simple interest per year, or Account B, paying ${N(r2)}% compounded annually. Which will hold more after ${t} years?`, type: 'choice', keepOrder: true, answer, choices: opts, params: { kind, P, r1, r2, t },
+        hints: [`A: ${N(P)}(1 + ${N(r1 / 100)} × ${t}) = ${$(a)}. B: ${N(P)}(${N(1 + r2 / 100)})<sup>${t}</sup> ≈ ${$(M.round(b, 2))}.`, `<b>${answer.split(',')[0]}</b> holds more${a > b ? ': here the higher simple rate wins' : ': here compounding makes up for the lower rate'}.`] };
+    },
+    verify(q) {
+      const P = q.params;
+      if (P.kind === 'difference') { let s = P.P, c = P.P; for (let y = 0; y < P.t; y++) { s += P.P * P.r / 100; c += c * P.r / 100; } return centsOk(q.answer, c - s); }
+      if (P.kind === 'apy') { let b = 1; for (let k = 0; k < P.n; k++) b *= 1 + P.r / 100 / P.n; return near(q.answer, (b - 1) * 100, 0.005 + 1e-9); }
+      let s = P.P, c = P.P; for (let y = 0; y < P.t; y++) { s += P.P * P.r1 / 100; c *= 1 + P.r2 / 100; }
+      return q.answer.startsWith(s > c ? 'Account A' : 'Account B');
+    },
+  });
+
+  A.skill({
+    id: 'fin.doubling', title: 'Doubling time and the rule of 72',
+    learn: p(`<b>The rule of 72:</b> money growing at ${V('r')}% a year, compounded, doubles in about <b>72 ÷ ${V('r')}</b> years. At 6%, that's about 12 years; at 9%, about 8.`) +
+      p(`Doubling repeats: in two doubling times the money is about 4 times as much, in three about 8 times. To find the exact number of whole years, multiply by (1 + ${V('r')}) one year at a time until the amount reaches double.`) +
+      example('Example', `At 8%, money doubles in about 72 ÷ 8 = 9 years. So $1,500 grows to about $3,000 in 9 years and about <b>$6,000</b> in 18 years.`),
+    make(rng) {
+      const kind = rng.pick(['rule', 'grow', 'exact']), r = rng.pick([2, 3, 4, 6, 8, 9, 12]);
+      if (kind === 'rule') return { prompt: `Using the rule of 72, about how many years does it take money to double at ${r}% interest compounded annually?`, type: 'number', answer: 72 / r, unit: 'years', params: { kind, r }, hints: [`Divide 72 by the rate.`, `72 ÷ ${r} = <b>${72 / r}</b> years.`] };
+      if (kind === 'grow') {
+        const k = rng.int(1, 4), T = k * 72 / r, P = rng.pick([500, 1000, 1500, 2500, 4000]), ans = P * 2 ** k;
+        return { prompt: `Using the rule of 72, about how much will ${$(P)} grow to in ${T} years at ${r}% interest compounded annually?`, type: 'number', answer: ans, unit: '$', params: { kind, r, T, P },
+          hints: [`It doubles about every 72 ÷ ${r} = ${72 / r} years, so ${T} years is ${k} doubling${k === 1 ? '' : 's'}.`, `${$(P)} × ${2 ** k} = <b>${$(ans)}</b>.`] };
+      }
+      const rr = rng.pick([2, 2.5, 3, 4, 5, 6, 7, 8, 10]); let y = 0, b = 1; while (b < 2) { b *= 1 + rr / 100; y++; }
+      return { prompt: `Money is invested at ${N(rr)}% interest compounded annually. After how many whole years will it first be at least double the starting amount?`, type: 'number', answer: y, unit: 'years', params: { kind, r: rr },
+        hints: [`The rule of 72 estimates 72 ÷ ${N(rr)} ≈ ${N(M.round(72 / rr, 1))} years. Check whole years near that.`, `(${N(1 + rr / 100)})<sup>${y - 1}</sup> ≈ ${N(M.round((1 + rr / 100) ** (y - 1), 3))} is short of 2, and (${N(1 + rr / 100)})<sup>${y}</sup> ≈ ${N(M.round((1 + rr / 100) ** y, 3))} reaches it: <b>${y}</b> years.`] };
+    },
+    verify(q) {
+      const P = q.params;
+      if (P.kind === 'rule') return near(q.answer * P.r, 72, 1e-9) && Math.abs(q.answer - Math.log(2) / Math.log(1 + P.r / 100)) < 0.1 * q.answer;
+      if (P.kind === 'grow') return near(q.answer / P.P, 2 ** (P.T * P.r / 72), 1e-9);
+      const L = Math.log(2) / Math.log(1 + P.r / 100); return q.answer === Math.ceil(L - 1e-12);
+    },
+  });
+
+  
 })();
