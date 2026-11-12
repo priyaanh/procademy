@@ -3142,3 +3142,23 @@ html.pc-focus main { padding-top: 20px; }
 .gl-name-form label { display: inline-flex; align-items: center; gap: 6px; }
 .gl-name-form input { width: 4.5em; min-height: 40px; padding: .3rem .5rem; font: 600 1.05rem var(--font); text-align: center; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--surface); color: var(--ink); }
 .gl-svg:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.ms-favs { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 10px; }
+.ms-favs:empty { display: none; }
+.ms-fav { display: inline-flex; align-items: center; gap: 2px; }
+.ms-star[aria-pressed="true"] { background: var(--primary); color: var(--on-primary); }
+.ms-star[aria-pressed="true"] .ic { fill: currentColor; }
+.ck-card { display: grid; gap: 14px; justify-items: center; }
+.ck-dial { width: min(100%, 300px); touch-action: none; cursor: grab; }
+.ck-svg { display: block; width: 100%; height: auto; }
+.ck-face { fill: var(--surface); stroke: var(--ink); stroke-width: 4; }
+.ck-tick { stroke: var(--muted); stroke-width: 1.5; }
+.ck-tick.big { stroke: var(--ink); stroke-width: 3; }
+.ck-num { font: 700 20px var(--font); fill: var(--ink); }
+.ck-hour { stroke: var(--ink); stroke-width: 8; stroke-linecap: round; }
+.ck-min { stroke: var(--primary); stroke-width: 5; stroke-linecap: round; }
+.ck-hub { fill: var(--ink); }
+.ck-btns { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.ck-until { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.ck-until input { min-height: 40px; padding: .3rem .6rem; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--surface); color: var(--ink); font: inherit; }
+.ck-game:empty { display: none; }
+.ck-ask { font-size: 1.05rem; margin: 12px 0 8px; }
