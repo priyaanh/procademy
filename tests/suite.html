@@ -809,6 +809,157 @@
   S.reset();
   }
 
+  { /* ---- the tutor, easier to use: layout, math, diagrams, follow-ups, checks, ratings, copying, offline and failures,
+         Explain this page, tools, homework plans, printing, subjects, levels, length, text size, the T key, Undo ---- */
+  const untilK = async (fn, ms) => { const t = Date.now(); while (Date.now() - t < (ms || 3000)) { if (fn()) return true; await tick(20); } return false; };
+  const goK = async h => { location.hash = '#/settings'; await tick(15); return go(h); };
+  const kAsked = [], realF = TU.fetch;
+  let kWords = ['Here it is.'], kFail = null;
+  TU.fetch = async (url, init) => {
+    const svc = who(url); kAsked.push({ svc, body: JSON.parse(init.body), t: performance.now() });
+    if (kFail && kFail[svc]) return new Response(JSON.stringify({ error: { message: 'down' } }), { status: kFail[svc], headers: { 'Content-Type': 'application/json' } });
+    return new Response(sse(kWords), { status: 200, headers: { 'Content-Type': 'text/event-stream' } });
+  };
+  const pnl = () => document.getElementById('tutor'), lastK = () => pnl().querySelector('.tmsg.assistant:last-child');
+  const askK = async q => { const n = kAsked.length; pnl().querySelector('#tutor-text').value = q; pnl().querySelector('#tutor-form').dispatchEvent(new Event('submit', { cancelable: true })); await tick(30); for (let k = 0; k < 200 && TU.busy(); k++) await tick(20); await tick(20); return kAsked.slice(n); };
+  try { localStorage.removeItem('procademy.chats.v1'); } catch (e) {}
+  S.reset(); S.setProfile({ welcomed: true, grade: 7, tutor: null, cpm: { book: 'cc2', lesson: '3.1.2' } }); free();
+  // 186, 187: the same layout every time; stacked fractions, exponents and roots
+  const lay = document.createElement('div');
+  lay.innerHTML = TU.render('To add them, find the LCD.\n### Why it works\n1. Find the LCD. It is 12.\n2. **Rewrite** both.\nStep 3: add 3/4 + 1/6 = 11/12, not 11/12/2026, and x^2 and sqrt(2).\n**Try this:** what is 2/3 + 1/4?');
+  ok(lay.querySelector('h4.md-h') && lay.querySelector('li b').textContent === 'Find the LCD.' && /^Step 3:$/.test(lay.querySelector('p b').textContent) && lay.querySelector('.md-try b') && /\*\*Try this:\*\*/.test(TU.SYSTEM) && /in bold/.test(TU.SYSTEM), 'tutor (186): answers get headings, key steps in bold and a “Try this”, the same way every time');
+  ok(lay.querySelectorAll('.frac').length === 5 && /11\/12\/2026/.test(lay.textContent) && lay.querySelector('sup').textContent === '2' && lay.querySelector('.sqrt .rad').textContent === '2' && COACH.text(TU.render('3/4')) === '3/4', 'tutor (187): fractions stack, powers rise and roots get their bar; dates stay as written, and reading aloud still says 3/4');
+  // 188: bar models and shapes, drawn exactly
+  const bm = PICTURES.diagramFromRequest('draw a bar model for 3/5 of 40'), sh = PICTURES.diagramFromRequest('draw a right triangle with legs 6 and 8 cm');
+  const bmEl = document.createElement('div'); bmEl.innerHTML = TU.render('', { viz: bm });
+  ok(bmEl.querySelectorAll('.dg-bars .dg-box').length === 5 && bmEl.querySelectorAll('.dg-box.on').length === 3 && /40/.test(bmEl.textContent) && /right triangle 6 8 cm/.test(sh) && PICTURES.wants('draw a rectangle 8 by 5') === null, 'tutor (188): a bar model and a labeled shape, drawn by Procademy');
+  m = await goK('#/courses'); UI.open(); UI.reset(); await tick(20);
+  let got = await askK('Draw a bar model: the ratio of boys to girls is 3:5 and there are 40 students in all');
+  ok(lastK().querySelector('.dg-bars svg') && /bar model: Boys 3 equal parts; Girls 5 equal parts; total 40/.test(got[0].body.messages[0].content), 'tutor (188): asked for a bar model, it draws one at once and tells the AI what it shows');
+  // 189, 197, 203, 205: under an answer
+  kWords = ['To add 3/4 + 1/6, find a common denominator.\n', '1. Find the LCD. The least common multiple of 4 and 6 is 12.\n', '2. Rewrite each fraction. 3/4 = 9/12 and 1/6 = 2/12.\n', '3. Add the numerators. 9/12 + 2/12 = 11/12, and 2/3 × 3/4 = 1/3.\n', '**Try this:** what is 2/3 + 1/4?'];
+  got = await askK('How do I add 3/4 + 1/6?');
+  const fuK = [...lastK().querySelectorAll('.ai-actions [data-ask]')].map(b => b.textContent);
+  ok(fuK.length === 2 && fuK.some(t => /Try this/.test(t)) && fuK.some(t => /Why step/.test(t)) && UI.followUps({ content: 'Photosynthesis is how plants make food from light.' }, 'What is photosynthesis?').some(f => /Quiz me/.test(f.label)), 'tutor (189): follow-ups fit the answer (its “Try this”, its hardest step; a quiz away from math)');
+  const ver = lastK().querySelector('.ai-verify');
+  ok(ver && ver.classList.contains('bad') && /one doesn’t match/.test(text(ver)) && ver.querySelector('li.no') && /Procademy gets 1\/2/.test(ver.querySelector('li.no').textContent) && UI.history().slice(-1)[0].checks.lines.filter(x => x.ok).length >= 3, 'tutor (197): Procademy redoes the answer’s calculations and flags the slip (2/3 × 3/4 isn’t 1/3)');
+  const ck = UI.checkCalcs('1/3 = 0.33. On 3/4/2026, 2x + 3 = 11 and 2(3) + 1 = 7.');
+  ok(ck.length === 2 && ck.every(x => x.ok) && UI.verify({ content: 'Start by turning 75% into 0.75.' }, { question: 'What is 75% of 300?', steps: ['0.75'] }).checks.grounded === 'step', 'tutor (197): rounded decimals pass, letters and dates are left alone, and an answer built on Procademy’s steps says so');
+  ok(lastK().querySelector('a.ai-tool[href^="#/fractions/add/3-4_1-6"]') && UI.toolsFor('Graph y = 2x + 1')[0].href.startsWith('#/graph/') && UI.toolsFor('Solve 2x + 3 = 11')[0].href.startsWith('#/steps/') && UI.toolsFor('What is 12 × 7 + 5?')[0].href.startsWith('#/calc/'), 'tutor (203): a tool opens already set up: Fraction lab, Graph this, the step checker, the calculator');
+  const terms = [...lastK().querySelectorAll('.term[data-word]')].map(b => b.dataset.word);
+  ok(terms.length >= 1 && terms.length <= 4 && terms.includes('least-common-multiple'), 'tutor (205): a few math words in the answer link to their meaning (' + terms.join(', ') + ')');
+  // 198: the thinking line carries on where it was; a caret while words arrive
+  const th5 = UI.thinkingHtml(Date.now() - 5000), cEl = document.createElement('div'); cEl.innerHTML = '<p>One</p><p>Two</p>'; UI.caret(cEl);
+  ok(/animation-delay:-5/.test(th5) && /thinking-bar/.test(th5) && /Thinking/.test(th5) && cEl.querySelector('p:last-child .ai-caret'), 'tutor (198): a smoother thinking line (a bar that keeps its place) and a caret while the answer is written');
+  // 190, 201: Too long, and ratings that tune the style on this device
+  kWords = ['A long answer. '.repeat(60)];
+  await askK('Tell me everything about fractions');
+  const nTL = kAsked.length; lastK().querySelector('[data-short]').click(); for (let k = 0; k < 100 && TU.busy(); k++) await tick(20); await tick(20);
+  ok(kAsked.length === nTL + 1 && UI.history().slice(-2)[0].content === UI.SHORTER && /keep answers short/.test(UI.tuningText()), 'tutor (190): Too long asks for a shorter answer, and later answers are kept short');
+  lastK().querySelector('[data-rate="down"]').click(); await tick(10);
+  ok(lastK().querySelector('.ai-why [data-why="hard"]'), 'tutor (201): Not helpful asks what was wrong');
+  lastK().querySelector('[data-why="hard"]').click(); await tick(10);
+  ok(/simpler words/.test(UI.plan('help', [], null, []).ctx.tuning) && /ratings of earlier answers/.test(TU.contextText(UI.plan('help', [], null, []).ctx)) && /adjust/.test(text(lastK())), 'tutor (201): a rating tunes how the tutor explains, on this device');
+  UI.setPref({ ratings: [] });
+  // 191: copy as text or as a picture
+  const pa = UI.plainAnswer({ content: '### Steps\n**Bold** 3/4\n```graph\ny = 2x + 1\n```', viz: null });
+  const png = await UI.answerPicture({ content: 'So 3/4 + 1/6 = 11/12.\n```barmodel\nA: 2\nB: 3\n```' }, 'How?');
+  ok(!/\*\*|###/.test(pa) && /\[A drawing/.test(pa) && /3\/4/.test(pa) && png && png.type === 'image/png' && png.size > 2000, 'tutor (191): an answer copies as clean text, or as a picture with its drawing');
+  // 192, 193, 196, 206: the class lesson, what it knows, simpler words by grade, answer length
+  let pc = UI.plan('help', [], null, []).ctx;
+  ok(/3\.1\.2/.test(pc.classLesson) && /Their class is working on/.test(TU.contextText(pc)) && /7th grade\. Use clear, plain words/.test(pc.level), 'tutor (192, 196): every question knows the class lesson, and the level with words to match');
+  ok(/very short sentences/.test(UI.levelLine('2nd grade')) && /simple, everyday words/.test(UI.levelLine('Grades 3–5')) && /very short/.test(TUTORPAGE.contextFor({ about: 'general', level: 'Grades K–2', style: 'steps', lang: 'en', messages: [] }).level), 'tutor (196): younger learners get simpler words');
+  UI.setPref({ length: 'short' }); pc = UI.plan('help', [], null, []).ctx;
+  ok(/^short/.test(pc.length) && /Answer length: short/.test(TU.contextText(pc)), 'tutor (206): an answer length setting');
+  UI.setPref({ length: null });
+  const mc = document.createElement('div'); mc.innerHTML = UI.memoryCard();
+  ok(/What the tutor knows about you/.test(mc.textContent) && /Your class lesson/.test(mc.textContent) && /Your name never does/.test(mc.textContent), 'tutor (193): it says plainly what it knows, where that comes from, and what is sent');
+  // 207: larger text
+  UI.setPref({ textSize: 2 }); UI.applyTextSize();
+  ok(pnl().classList.contains('tutor-fs-2') && parseFloat(getComputedStyle(lastK()).fontSize) > 18, 'tutor (207): larger text in the tutor');
+  UI.setPref({ textSize: 0 }); UI.applyTextSize();
+  // 209: Clear, with Undo
+  const nH = UI.history().length; pnl().querySelector('#tutor-clear').click(); await tick(10);
+  ok(!UI.history().length && document.querySelector('.undo-toast'), 'tutor (209): Clear empties the chat, with Undo');
+  document.querySelector('.undo-toast .undo-btn').click(); await tick(10);
+  ok(UI.history().length === nH && !document.querySelector('.undo-toast'), 'tutor (209): Undo brings the chat back');
+  // 199: a failed service: the other one answers at once if it can; if it is resting, help comes at once (no wait)
+  UI.setPref({ unlimited: false }); TU.local = { state: 'off', progress: { text: '', fraction: 0 }, modelId: null, error: '' };   // nothing on this device to fall back on
+  m = await goK('#/practice/math7.percent-of'); UI.open(); UI.reset(); await tick(20);
+  free(); kFail = { llm7: 500 }; kWords = ['From the other service.'];
+  got = await askK('Give me a hint');
+  ok(got.length === 2 && got[1].svc === 'pollinations' && /other service/.test(UI.history().slice(-1)[0].content), 'tutor (199): when one free service fails, the other answers straight away');
+  TU._nextFree.pollinations = Date.now() + 30000;
+  const tF = performance.now(); got = await askK('Another hint');
+  const fr = UI.history().slice(-1)[0];
+  ok(performance.now() - tF < 1500 && fr.failed && fr.failed.retry === 'pollinations' && lastK().querySelector('[data-retry]') && lastK().querySelector('.tutor-help') && (!(UI.getContext().steps || []).length || /checked first step/.test(text(lastK()))), 'tutor (199): if the other service is resting, it says so at once, with Procademy’s first step and Try again');
+  kFail = null; free(); const nR = kAsked.length;
+  lastK().querySelector('[data-retry]').click(); for (let k = 0; k < 100 && TU.busy(); k++) await tick(20); await tick(20);
+  ok(kAsked.length === nR + 1 && kAsked[nR].svc === 'pollinations' && !UI.history().some(x => x.failed) && UI.history().filter(x => x.content === 'Another hint').length === 1, 'tutor (199): Try again asks the other free service first');
+  // 200: offline
+  Object.defineProperty(navigator, 'onLine', { configurable: true, get: () => false });
+  UI.reset(); await tick(10);
+  ok(/You’re offline/.test(text(pnl().querySelector('#tutor-body'))) && pnl().querySelector('.tutor-help a[href="#/words"]'), 'tutor (200): offline, it says the tutor needs the internet and offers Procademy’s own help');
+  const nO = kAsked.length; await askK('Help me');
+  ok(kAsked.length === nO && UI.history().slice(-1)[0].failed.offline && /needs the internet/.test(text(lastK())), 'tutor (200): a question asked offline gets that help at once, without trying the network');
+  delete navigator.onLine;
+  // 202: Explain this page, everywhere
+  m = await goK('#/settings'); UI.open(); UI.reset(); await tick(20);
+  const pq = pnl().querySelector('#tutor-quick button');
+  ok(pq && pq.textContent === 'Explain this page', 'tutor (202): “Explain this page” on a page with nothing else to ask about');
+  kWords = ['This page holds your settings.']; const nP = kAsked.length; pq.click(); for (let k = 0; k < 100 && TU.busy(); k++) await tick(20); await tick(20);
+  ok(kAsked.length === nP + 1 && /what this page is for/.test(kAsked[nP].body.messages[0].content) && /"Settings"/.test(kAsked[nP].body.messages[0].content), 'tutor (202): it sends what is on the page (its title, sections and buttons), and asks for how to use it');
+  // 208: T opens and closes the tutor (not while typing); the shortcut list says so
+  UI.close(); if (document.activeElement) document.activeElement.blur();
+  document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 't', bubbles: true, cancelable: true })); await tick(10);
+  const openedByT = !pnl().hidden;
+  document.activeElement.blur(); document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 't', bubbles: true, cancelable: true })); await tick(10);
+  const closedByT = pnl().hidden;
+  const inp = document.createElement('input'); document.body.appendChild(inp); inp.focus();
+  inp.dispatchEvent(new KeyboardEvent('keydown', { key: 't', bubbles: true, cancelable: true })); await tick(10);
+  ok(openedByT && closedByT && pnl().hidden && document.getElementById('tutor-fab').getAttribute('aria-keyshortcuts') === 't', 'tutor (208): T opens and closes the tutor, but not while typing');
+  inp.remove();
+  document.body.dispatchEvent(new KeyboardEvent('keydown', { key: '?', bubbles: true })); await tick(20);
+  const kd2 = document.getElementById('keys-dialog');
+  ok(kd2 && /Open or close the tutor/.test(kd2.textContent), 'tutor (208): the list of shortcuts includes T');
+  if (kd2 && kd2.open) kd2.close();
+  // the tutor page: 195 subjects, 204 homework plan, 194 print or save, 209 delete with Undo
+  m = await goK('#/tutor/new');
+  ok(m.querySelectorAll('.ai-subj').length === 6 && m.querySelector('.ai-subj.on').dataset.subj === 'math' && [...m.querySelectorAll('.ai-ex')].some(b => b.textContent === 'Slope') && m.querySelectorAll('.ai-starter:not(.ai-ex)').length === 6, 'tutor page (195): questions to try in each subject, under the six starters');
+  m.querySelector('[data-subj="science"]').click(); await tick(10);
+  ok([...m.querySelectorAll('.ai-ex')].some(b => /photosynthesis/i.test(b.title)), 'tutor page (195): choosing Science shows science questions');
+  m.querySelector('[data-subj="math"]').click(); await tick(10);
+  S.setProfile({ grade: 2 }); ok(UI.starters('math').some(x => /multiplication mean/.test(x[1])), 'tutor (195): younger learners get simpler starters'); S.setProfile({ grade: 7 });
+  ok(FILES.problems('Name: ___\n1. Simplify 3x + 2x.\n2) Solve 2x + 3 = 11.\n   Show your work.\n#3 Find 3/4 of 20.').map(p => p.n).join() === '1,2,3', 'files (204): a worksheet splits into its numbered problems');
+  m = await goK('#/tutor/new');
+  const nPl = kAsked.length, box = m.querySelector('#ai-text');
+  box.value = 'Plan my homework:\n1. Simplify 3x + 2x.\n2. Solve 2x + 3 = 11.\n3. Find 3/4 of 20.'; m.querySelector('#ai-form').dispatchEvent(new Event('submit', { cancelable: true })); await tick(40);
+  m = document.getElementById('main');
+  ok(kAsked.length === nPl && m.querySelectorAll('.ai-plan-list li').length === 3 && /about \d+ minutes/.test(text(m.querySelector('.ai-plan-head'))), 'tutor page (204): Plan my homework breaks the worksheet into steps, right away (no AI needed)');
+  m.querySelector('[data-pdone="1:0"]').click(); await tick(20);
+  ok(TUTORPAGE.load().chats[0].messages[1].hwplan.items[0].done && /1 done/.test(text(document.querySelector('.ai-plan-head'))), 'tutor page (204): ticking a problem off is saved');
+  kWords = ['Start by subtracting 3.']; document.querySelector('[data-pwork="1:1"]').click(); for (let k = 0; k < 100 && TU.busy(); k++) await tick(20); await tick(40);
+  const wReq = kAsked[kAsked.length - 1].body.messages;
+  ok(/Homework mode/.test(wReq[0].content) && /problem 2: Solve 2x \+ 3 = 11/.test(wReq[wReq.length - 1].content), 'tutor page (204): Work on it asks for hints only, on that problem');
+  m = document.getElementById('main');
+  const realPrint = window.print; let printed = 0; window.print = () => { printed++; };
+  m.querySelector('#ai-share-btn').click(); await untilK(() => m.querySelector('#ai-print-go'));
+  m.querySelector('#ai-print-go').click(); await tick(20);
+  window.print = realPrint;
+  const ctext = TUTORPAGE.chatText(TUTORPAGE.load().chats[0]);
+  ok(printed === 1 && m.__printed > 50 && /\[x\] 1\. Simplify/.test(ctext) && /You: Help me with problem 2/.test(ctext) && /Tutor: Start by subtracting 3\./.test(ctext), 'tutor page (194): a chat prints (or saves as a PDF), or saves as a text file');
+  await tick(1100);
+  ok(!document.getElementById('ai-print-view') && !document.body.classList.contains('print-chat'), 'tutor page (194): the print copy is cleared away afterwards');
+  const delId = TUTORPAGE.load().chats[0].id;
+  m.querySelector(`.ai-del[data-del="${delId}"]`).click(); await tick(40);
+  ok(!TUTORPAGE.load().chats.some(c => c.id === delId) && document.querySelector('.undo-toast'), 'tutor page (209): a chat is deleted at once, with Undo');
+  document.querySelector('.undo-toast .undo-btn').click(); await tick(60);
+  ok(TUTORPAGE.load().chats.some(c => c.id === delId) && location.hash === '#/tutor/' + delId, 'tutor page (209): Undo brings the chat back');
+  TU.fetch = realF; free(); UI.close(); UI.reset();
+  try { localStorage.removeItem('procademy.chats.v1'); } catch (e) {}
+  S.reset();
+  }
+
   /* ---- the tutor's own page ---- */
   try { localStorage.removeItem('procademy.chats.v1'); } catch (e) {}
   const tReqs = [];
@@ -1357,7 +1508,7 @@
   m = document.getElementById('main');
   m.querySelector('#pf-grade').value = '7'; m.querySelector('#pf-grade').dispatchEvent(new Event('change'));
   ok(S.get().profile.name === 'Priyaan' && S.get().profile.avatar.hue === 140 && S.get().profile.grade === 7 && document.getElementById('avatar-btn').textContent.trim() === 'P', 'profile: name, grade and avatar color are saved, and the initial shows in the header');
-  ok(TUTORPAGE.contextFor({ about: 'general', level: 'auto', style: 'steps', messages: [] }).level === '7th grade', 'profile: the tutor explains at the grade set here');
+  ok(/^7th grade\b/.test(TUTORPAGE.contextFor({ about: 'general', level: 'auto', style: 'steps', messages: [] }).level), 'profile: the tutor explains at the grade set here');
   ok(TUTOR.clean('### 1️⃣ Choose a thesis 🎉 ✓ checked → next') === '### 1. Choose a thesis ✓ checked → next' && /warm, clear and encouraging tone/.test(TUTOR.SYSTEM) && /use emojis/.test(TUTOR.SYSTEM), 'tutor: replies are warm and clear, with emojis removed (numbered ones become 1.) and notation kept');
   ok(/every school subject/.test(TUTOR.SYSTEM) && /science/.test(TUTOR.SYSTEM) && !/back to math/.test(TUTOR.SYSTEM) && /right for school-age children/.test(TUTOR.SYSTEM), 'tutor: it helps with every subject, kept right for school-age children');
   // computer 1: some progress, then an account
@@ -2958,7 +3109,7 @@
   S.reset();
   m = await goHome();
   m.querySelector('[data-level="adult-algebra"]').click(); m.querySelector('#wl-start').click(); await tick(40);
-  ok(S.get().profile.adult === true && S.get().profile.grade == null && S.get().profile.enrolled.join() === 'algebra-1' && TUTORPAGE.contextFor({ about: 'general', level: 'auto', style: 'steps', messages: [] }).level === 'An adult learner', 'every day: an adult learner gets an adult course, and the tutor explains for an adult');
+  ok(S.get().profile.adult === true && S.get().profile.grade == null && S.get().profile.enrolled.join() === 'algebra-1' && /^An adult learner\b/.test(TUTORPAGE.contextFor({ about: 'general', level: 'auto', style: 'steps', messages: [] }).level), 'every day: an adult learner gets an adult course, and the tutor explains for an adult');
   S.reset();
   m = await goHome();
   m.querySelector('#wl-skip').click(); await tick(20);
