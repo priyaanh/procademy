@@ -29,6 +29,7 @@
       { id: 'shopping', title: 'Smart shopping', blurb: 'Unit prices and better buys, discounts and sales, sales tax, and tips.', skills: ['fin.unit-price', 'fin.discounts', 'fin.sales-tax', 'fin.tips'] },
       { id: 'interest', title: 'Interest', blurb: 'Simple and compound interest, comparing them and APY, and how long money takes to double.', skills: ['fin.simple-interest', 'fin.compound-interest', 'fin.simple-vs-compound', 'fin.doubling'] },
       { id: 'credit', title: 'Loans and credit', blurb: 'Monthly loan payments, the total cost of a loan, credit card interest, and where each payment goes.', skills: ['fin.loan-payment', 'fin.loan-cost', 'fin.credit-cards', 'fin.amortization'] },
+      { id: 'paychecks', title: 'Paychecks and taxes', blurb: 'Gross pay and overtime, payroll taxes and net pay, income tax brackets, and commission.', skills: ['fin.gross-pay', 'fin.payroll', 'fin.tax-brackets', 'fin.commission'] },
     ],
   };
   A.course(COURSE);
@@ -452,4 +453,137 @@
       return dl({ interest: I, principal: P.Mc - I, balance: P.bal - (P.Mc - I) }[P.ask]) === q.answer;
     },
   });
+
+/* ---------- Unit 5: paychecks and taxes ---------- */
+  const SCHED = [['weekly', 52], ['every two weeks (biweekly)', 26], ['twice a month (semimonthly)', 24], ['monthly', 12]];
+  A.skill({
+    id: 'fin.gross-pay', title: 'Gross pay and overtime',
+    learn: p(`<b>Gross pay</b> is what you earn before anything is taken out. For hourly work it's rate × hours. Under US law most hourly workers earn <b>overtime at 1.5 times their rate for hours over 40 in a week</b> ("time and a half").`) +
+      p(`A yearly salary is split across the pay periods: 52 weekly paychecks, 26 every two weeks, 24 twice a month, or 12 monthly. To compare an hourly job with a salary, a full-time year is about 40 × 52 = 2,080 hours.`) +
+      example('Example', `$18.40 an hour for 46 hours: 40 × 18.40 = $736.00, plus 6 overtime hours at 1.5 × 18.40 = $27.60, which is $165.60. Gross pay: <b>$901.60</b>.`),
+    make(rng) {
+      const kind = rng.pick(['overtime', 'overtime', 'per-check', 'annual']), who = rng.pick(NAMES);
+      if (kind === 'overtime') {
+        const h = rng.int(700, 1600) * 2, H = rng.int(41, 54), reg = 40 * h, ot = (H - 40) * h * 3 / 2;
+        return { prompt: `${who} earns ${$(dl(h))} an hour, with time and a half for hours over 40. What is ${who}'s gross pay for a ${H}-hour week, in dollars?`, type: 'number', answer: dl(reg + ot), unit: '$', params: { kind, h, H },
+          hints: [`Regular pay: 40 × ${$(dl(h))} = ${$(dl(reg))}.`, `Overtime: ${H - 40} hours × (1.5 × ${$(dl(h))} = ${$(dl(h * 1.5))}) = ${$(dl(ot))}.`, `Gross pay: <b>${$(dl(reg + ot))}</b>.`] };
+      }
+      if (kind === 'per-check') {
+        const S = rng.int(56, 190) * 500, [sch, k] = rng.pick(SCHED), per = Math.round(S * 100 / k);
+        return { prompt: `${who}'s yearly salary is ${$(S)}, paid ${sch}. What is the gross pay on each paycheck, to the nearest cent?`, type: 'number', answer: dl(per), unit: '$', params: { kind, S, k },
+          hints: [`Paid ${sch}, there are ${k} paychecks a year.`, `${$(S)} ÷ ${k} ≈ <b>${$(dl(per))}</b>.`] };
+      }
+      const h = rng.int(1500, 4500), ann = h * 2080;
+      return { prompt: `A full-time job pays ${$(dl(h))} an hour for 40 hours a week, 52 weeks a year. What is the yearly gross pay, in dollars?`, type: 'number', answer: dl(ann), unit: '$', params: { kind, h },
+        hints: [`Hours in a year: 40 × 52 = 2,080.`, `${$(dl(h))} × 2,080 = <b>${$(dl(ann))}</b>.`] };
+    },
+    verify(q) {
+      const P = q.params, B = BigInt;
+      if (P.kind === 'overtime') { let pay = 0n; for (let hr = 1; hr <= P.H; hr++) pay += hr <= 40 ? B(P.h * 2) : B(P.h * 3); return Number(pay) / 200 === q.answer; }
+      if (P.kind === 'per-check') return centsOk(q.answer, P.S / P.k);
+      return B(P.h) * 40n * 52n === B(ct(q.answer));
+    },
+  });
+
+  A.skill({
+    id: 'fin.payroll', title: 'Payroll taxes and net pay',
+    learn: p(`<b>Net pay</b> (take-home pay) is gross pay minus deductions. Every paycheck pays <b>FICA</b> taxes: <b>Social Security at 6.2%</b> and <b>Medicare at 1.45%</b> of gross pay, 7.65% in all. Federal income tax is withheld too, and often state tax, health insurance and retirement savings.`) +
+      p(`Find each deduction to the nearest cent, add them up, and subtract from gross pay.`) +
+      example('Example', `Gross pay $1,250.00: Social Security 0.062 × 1,250 = $77.50, Medicare 0.0145 × 1,250 = $18.13, and federal withholding $96.00. Net pay: 1,250 − 191.63 = <b>$1,058.37</b>.`),
+    make(rng) {
+      const kind = rng.pick(['ss', 'medicare', 'fica', 'net', 'net']), G = rng.int(40000, 320000), ss = pctOf(G, 6.2), md = pctOf(G, 1.45), who = rng.pick(NAMES);
+      if (kind !== 'net') {
+        const ans = kind === 'ss' ? ss : kind === 'medicare' ? md : ss + md, what = { ss: 'Social Security tax (6.2%)', medicare: 'Medicare tax (1.45%)', fica: 'total FICA tax (Social Security at 6.2% plus Medicare at 1.45%)' }[kind];
+        return { prompt: `${who}'s gross pay for a pay period is ${$(dl(G))}. How much is withheld for ${what}, to the nearest cent?`, type: 'number', answer: dl(ans), unit: '$', params: { kind, G },
+          hints: [kind === 'fica' ? `Social Security: 0.062 × ${$(dl(G))} ≈ ${$(dl(ss))}. Medicare: 0.0145 × ${$(dl(G))} ≈ ${$(dl(md))}.` : `${kind === 'ss' ? '0.062' : '0.0145'} × ${$(dl(G))} = ${N(M.round(G * (kind === 'ss' ? 6.2 : 1.45) / 10000, 4))}.`, kind === 'fica' ? `Total: <b>${$(dl(ans))}</b>.` : `That rounds to <b>${$(dl(ans))}</b>.`] };
+      }
+      const fed = Math.round(G * rng.int(6, 14) / 100 / 100) * 100, stR = rng.pick([0, 3, 4.25, 5]), st = pctOf(G, stR), ins = rng.pick([0, 4500, 6250, 8800]), net = G - ss - md - fed - st - ins;
+      const lines = [['Social Security (6.2%)', ss], ['Medicare (1.45%)', md], ['Federal income tax', fed]].concat(stR ? [[`State income tax (${N(stR)}%)`, st]] : [], ins ? [['Health insurance', ins]] : []);
+      return { prompt: `${who}'s gross pay is ${$(dl(G))}. Federal income tax withheld is ${$(dl(fed))}${stR ? `, state income tax is ${N(stR)}% of gross pay` : ''}${ins ? `, and health insurance costs ${$(dl(ins))} per paycheck` : ''}. With Social Security at 6.2% and Medicare at 1.45%, what is the net pay, in dollars?`, type: 'number', answer: dl(net), unit: '$', params: { kind, G, fed, stR, ins },
+        hints: [`Deductions: ${lines.map(([nm, c]) => `${nm} ${$(dl(c))}`).join('; ')}.`, `Total deductions: ${$(dl(G - net))}.`, `Net pay: ${$(dl(G))} − ${$(dl(G - net))} = <b>${$(dl(net))}</b>.`] };
+    },
+    verify(q) {
+      const P = q.params, ss = bigPct(P.G, 6200), md = bigPct(P.G, 1450);
+      if (P.kind === 'ss') return dl(ss) === q.answer;
+      if (P.kind === 'medicare') return dl(md) === q.answer;
+      if (P.kind === 'fica') return dl(ss + md) === q.answer;
+      return dl(P.G - ss - md - P.fed - (P.stR ? bigPct(P.G, P.stR * 1000) : 0) - P.ins) === q.answer;
+    },
+  });
+
+  // a made-up, simplified bracket table for practice (not real tax law)
+  const BRACKETS = [[0, 12000, 10], [12000, 48000, 15], [48000, 100000, 25], [100000, Infinity, 30]];
+  const bracketTable = M.table(['Taxable income', 'Tax rate on this part'], [['$0 to $12,000', '10%'], ['Over $12,000 up to $48,000', '15%'], ['Over $48,000 up to $100,000', '25%'], ['Over $100,000', '30%']]);
+  const taxOn = T => BRACKETS.reduce((s, [lo, hi, r]) => s + Math.max(0, Math.min(T, hi) - lo) * r / 100, 0);
+  A.skill({
+    id: 'fin.tax-brackets', title: 'Income tax brackets',
+    learn: p(`US income tax is <b>progressive</b>: income is split into brackets, and <b>each rate applies only to the part of income inside its bracket</b>. Moving into a higher bracket never makes your whole income taxed at the higher rate.`) +
+      p(`Your <b>marginal rate</b> is the rate on your last dollar (your top bracket). Your <b>effective rate</b> is total tax ÷ taxable income, which is always lower. Taxable income is usually income minus a deduction. (The practice tables here are simplified and made up, not the real ones.)`) +
+      example('Example', `With brackets of 10% up to $12,000 and 15% from $12,000 to $48,000, a taxable income of $30,000 pays 0.10 × 12,000 + 0.15 × 18,000 = $1,200 + $2,700 = <b>$3,900</b>, an effective rate of 13%.`),
+    make(rng) {
+      const kind = rng.pick(['tax', 'tax', 'marginal', 'effective', 'deduction']);
+      let T = rng.int(300, 3000) * 50, G = null; const ded = 14000;
+      if (kind === 'deduction') { G = T + ded; }
+      const tax = taxOn(T), parts = BRACKETS.filter(([lo]) => T > lo).map(([lo, hi, r]) => [Math.min(T, hi) - lo, r]);
+      const work = parts.map(([amt, r]) => `${N(r / 100)} × ${N(amt)}`).join(' + '), workVals = parts.map(([amt, r]) => $(amt * r / 100)).join(' + ');
+      const intro = `Use this simplified tax table (made up for practice).${bracketTable}`;
+      if (kind === 'marginal') {
+        const opts = ['10%', '15%', '25%', '30%'], answer = `${BRACKETS.find(([lo, hi]) => T > lo && T <= hi)[2]}%`;
+        return { prompt: `${intro}What is the marginal tax rate for a taxable income of ${$(T)}?`, type: 'choice', keepOrder: true, answer, choices: opts, params: { kind, T },
+          hints: [`The marginal rate is the rate on the last dollar earned: find the bracket that holds ${$(T)}.`, `${$(T)} falls in the <b>${answer}</b> bracket.`] };
+      }
+      if (kind === 'effective') {
+        const eff = M.round(tax / T * 100, 1);
+        return { prompt: `${intro}What is the effective tax rate on a taxable income of ${$(T)}, as a percent rounded to the nearest tenth?`, type: 'number', answer: eff, unit: '%', tolerance: 0.05, params: { kind, T },
+          hints: [`Tax: ${work} = ${workVals} = ${$(tax)}.`, `Effective rate: ${N(tax)} ÷ ${N(T)} × 100 ≈ <b>${N(eff)}%</b>.`] };
+      }
+      return { prompt: `${intro}${kind === 'deduction' ? `${rng.pick(NAMES)} earns ${$(G)} and takes a ${$(ded)} deduction. How much income tax is owed, in dollars?` : `How much income tax is owed on a taxable income of ${$(T)}, in dollars?`}`, type: 'number', answer: tax, unit: '$', params: { kind, T, G },
+        hints: [kind === 'deduction' ? `Taxable income: ${$(G)} − ${$(ded)} = ${$(T)}. Then tax each part at its own rate.` : `Tax each part of the income at its own rate.`, `${work} = ${workVals}.`, `Total tax: <b>${$(tax)}</b>.`] };
+    },
+    verify(q) {
+      // walk up the income $50 at a time, taxing each step at the rate of the bracket it falls in
+      const P = q.params, T = P.kind === 'deduction' ? P.G - 14000 : P.T;
+      let tax = 0, top = 0; for (let x = 0; x < T; x += 50) { const r = x < 12000 ? 10 : x < 48000 ? 15 : x < 100000 ? 25 : 30; tax += 50 * r / 100; top = r; }
+      if (P.kind === 'marginal') return q.answer === `${top}%`;
+      if (P.kind === 'effective') return near(tax / T * 100, q.answer, 0.05 + 1e-9);
+      return near(tax, q.answer, 1e-6);
+    },
+  });
+
+  A.skill({
+    id: 'fin.commission', title: 'Commission and other pay',
+    learn: p(`Many sales jobs pay a <b>commission</b>, a percent of sales: <b>commission = rate × sales</b>. Some pay a base salary plus commission, and some pay a higher rate on sales above a target (a tiered commission). <b>Piecework</b> pays a fixed amount for each item made or delivered.`) +
+      p(`To find the sales needed to reach an income goal, subtract the base pay from the goal, then divide by the commission rate.`) +
+      example('Example', `A $1,800 monthly base plus 4% of sales, with $42,500 in sales: 0.04 × 42,500 = $1,700, so the month's pay is <b>$3,500.00</b>.`),
+    make(rng) {
+      const kind = rng.pick(['base-plus', 'tiered', 'needed', 'piecework']), who = rng.pick(NAMES);
+      if (kind === 'base-plus') {
+        const base = rng.int(10, 30) * 100, c = rng.pick([2, 2.5, 3, 4, 5, 6, 8]), S = rng.int(500, 9000) * 10, com = pctOf(S * 100, c);
+        return { prompt: `${who} earns a monthly base salary of ${$(base)} plus ${N(c)}% commission on sales. This month's sales were ${$(S)}. What is ${who}'s pay for the month, in dollars?`, type: 'number', answer: dl(base * 100 + com), unit: '$', params: { kind, base, c, S },
+          hints: [`Commission: ${N(c / 100)} × ${$(S)} = ${$(dl(com))}.`, `Pay: ${$(base)} + ${$(dl(com))} = <b>${$(dl(base * 100 + com))}</b>.`] };
+      }
+      if (kind === 'tiered') {
+        const cut = rng.pick([10000, 20000, 25000]), c1 = rng.pick([3, 4, 5]), c2 = c1 + rng.pick([2, 3]), S = rng.int(cut / 100 + 5, cut / 100 * 4) * 100, com = pctOf(cut * 100, c1) + pctOf((S - cut) * 100, c2);
+        return { prompt: `A salesperson earns ${c1}% commission on the first ${$(cut)} of sales each month and ${c2}% on sales above ${$(cut)}. How much commission is earned on ${$(S)} of sales?`, type: 'number', answer: dl(com), unit: '$', params: { kind, cut, c1, c2, S },
+          hints: [`First ${$(cut)}: ${N(c1 / 100)} × ${N(cut)} = ${$(cut * c1 / 100)}.`, `The other ${$(S - cut)}: ${N(c2 / 100)} × ${N(S - cut)} = ${$((S - cut) * c2 / 100)}.`, `Total: <b>${$(dl(com))}</b>.`] };
+      }
+      if (kind === 'needed') {
+        const base = rng.int(10, 25) * 100, c = rng.pick([2, 4, 5, 8, 10]), S = rng.int(20, 120) * 1000, goal = base + S * c / 100;
+        return { prompt: `${who} earns ${$(base)} a month plus ${c}% commission on sales. How much must ${who} sell in a month to earn ${$(goal)}?`, type: 'number', answer: S, unit: '$', params: { kind, base, c, goal },
+          hints: [`The commission must make up ${$(goal)} − ${$(base)} = ${$(goal - base)}.`, `Sales = ${N(goal - base)} ÷ ${N(c / 100)} = <b>${$(S)}</b>.`] };
+      }
+      const per = rng.pick([0.35, 0.45, 0.6, 0.85, 1.25, 1.4, 2.15]), n = rng.int(120, 900), pay = ct(per) * n;
+      return { prompt: `A worker is paid ${$(per)} for each ${rng.pick(['package delivered', 'shirt sewn', 'box packed', 'circuit board tested'])}. How much does the worker earn for ${n} of them, in dollars?`, type: 'number', answer: dl(pay), unit: '$', params: { kind, per, n },
+        hints: [`Piecework pay = rate × number of pieces.`, `${$(per)} × ${n} = <b>${$(dl(pay))}</b>.`] };
+    },
+    verify(q) {
+      const P = q.params;
+      if (P.kind === 'base-plus') return dl(P.base * 100 + bigPct(P.S * 100, P.c * 1000)) === q.answer;
+      if (P.kind === 'tiered') { let com = 0; for (let d = 100; d <= P.S; d += 100) com += 100 * (d <= P.cut ? P.c1 : P.c2) / 100; return centsOk(q.answer, com); }
+      if (P.kind === 'needed') return near(P.base + q.answer * P.c / 100, P.goal, 1e-6);
+      return BigInt(Math.round(P.per * 100)) * BigInt(P.n) === BigInt(ct(q.answer));
+    },
+  });
+
+  
 })();
