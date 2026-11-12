@@ -11,8 +11,8 @@
   const p = s => `<p>${s}</p>`;
   const example = (title, body) => `<div class="example"><div class="ex-title">${title}</div>${body}</div>`;
   const near = (a, b, tol) => Math.abs(a - b) <= (tol == null ? 1e-9 : tol);
-  /** dollars always with cents: $1,234.50, $12.00 */
-  const $ = x => (x < 0 ? '−' : '') + '$' + N(Math.abs(x), { places: 2, fixed: true });
+  /** dollars with cents ($1,234.50, $12.00), except round amounts of $1,000 or more ($20,000) */
+  const $ = x => { const a = Math.abs(x), whole = Math.abs(a - Math.round(a)) < 1e-9; return (x < 0 ? '−' : '') + '$' + (whole && a >= 1000 ? N(Math.round(a)) : N(a, { places: 2, fixed: true })); };
   /** whole cents from dollars, and back */
   const ct = x => Math.round(x * 100), dl = c => c / 100;
   /** a percent of an amount in cents, rounded to the nearest cent (half a cent rounds up) */
@@ -30,6 +30,7 @@
       { id: 'interest', title: 'Interest', blurb: 'Simple and compound interest, comparing them and APY, and how long money takes to double.', skills: ['fin.simple-interest', 'fin.compound-interest', 'fin.simple-vs-compound', 'fin.doubling'] },
       { id: 'credit', title: 'Loans and credit', blurb: 'Monthly loan payments, the total cost of a loan, credit card interest, and where each payment goes.', skills: ['fin.loan-payment', 'fin.loan-cost', 'fin.credit-cards', 'fin.amortization'] },
       { id: 'paychecks', title: 'Paychecks and taxes', blurb: 'Gross pay and overtime, payroll taxes and net pay, income tax brackets, and commission.', skills: ['fin.gross-pay', 'fin.payroll', 'fin.tax-brackets', 'fin.commission'] },
+      { id: 'investing', title: 'Saving and investing', blurb: 'Savings plans and emergency funds, saving every month with interest, stocks and dividends, and inflation.', skills: ['fin.savings-plan', 'fin.annuity', 'fin.stocks', 'fin.inflation'] },
     ],
   };
   A.course(COURSE);
@@ -365,7 +366,7 @@
     make(rng) {
       const [what, lo, hi] = rng.pick(LOANS), P = rng.int(lo / 500, hi / 500) * 500, r = rng.pick([3.9, 4.5, 5, 5.5, 6, 6.5, 7.2, 8, 9.5]), y = rng.int(2, 6), n = 12 * y, Mv = payment(P, r, n), ans = M.round(Mv, 2), g = Math.pow(1 + r / 1200, n);
       return { prompt: `${AnD(P)} ${$(P)} ${what} has an APR of ${N(r)}% and is repaid in equal monthly payments over ${y} years. What is the monthly payment, to the nearest cent?${`<div class="big">${PMT}</div>`}`, type: 'number', answer: ans, unit: '$', tolerance: 0.01, params: { P, r, n },
-        hints: [`${V('i')} = ${N(r)} ÷ 1200 ≈ ${N(M.round(r / 1200, 7))} (keep every digit on your calculator) and ${V('n')} = ${n}.`, `(1 + ${V('i')})<sup>${n}</sup> ≈ ${N(M.round(g, 5))}.`, `${V('M')} = ${N(P)} × ${N(M.round(r / 1200, 7))} × ${N(M.round(g, 5))} ÷ ${N(M.round(g - 1, 5))} ≈ <b>${$(ans)}</b>.`] };
+        hints: [`${V('i')} = ${N(r)} ÷ 1200 ≈ ${N(M.round(r / 1200, 7))} (keep every digit on your calculator) and ${V('n')} = ${n}.`, `(1 + ${V('i')})<sup>${n}</sup> ≈ ${N(M.round(g, 5))}.`, `${V('M')} = ${N(P)} × (${N(r)} ÷ 1200) × ${N(M.round(g, 5))} ÷ ${N(M.round(g - 1, 5))} ≈ <b>${$(ans)}</b>.`] };
     },
     verify(q) {
       // find the payment that leaves exactly $0 owed, by bisection on a month-by-month simulation
@@ -466,7 +467,7 @@
       if (kind === 'overtime') {
         const h = rng.int(700, 1600) * 2, H = rng.int(41, 54), reg = 40 * h, ot = (H - 40) * h * 3 / 2;
         return { prompt: `${who} earns ${$(dl(h))} an hour, with time and a half for hours over 40. What is ${who}'s gross pay for a ${H}-hour week, in dollars?`, type: 'number', answer: dl(reg + ot), unit: '$', params: { kind, h, H },
-          hints: [`Regular pay: 40 × ${$(dl(h))} = ${$(dl(reg))}.`, `Overtime: ${H - 40} hours × (1.5 × ${$(dl(h))} = ${$(dl(h * 1.5))}) = ${$(dl(ot))}.`, `Gross pay: <b>${$(dl(reg + ot))}</b>.`] };
+          hints: [`Regular pay: 40 × ${$(dl(h))} = ${$(dl(reg))}.`, `Overtime: ${H - 40} hour${H === 41 ? '' : 's'} ×(1.5 × ${$(dl(h))} = ${$(dl(h * 1.5))}) = ${$(dl(ot))}.`, `Gross pay: <b>${$(dl(reg + ot))}</b>.`] };
       }
       if (kind === 'per-check') {
         const S = rng.int(56, 190) * 500, [sch, k] = rng.pick(SCHED), per = Math.round(S * 100 / k);
@@ -586,4 +587,110 @@
   });
 
   
+
+/* ---------- Unit 6: saving and investing ---------- */
+  A.skill({
+    id: 'fin.savings-plan', title: 'Planning to save',
+    learn: p(`A savings plan answers two questions: how much to save each time, and how long it will take. <b>Amount per period = (goal − what you have) ÷ number of periods</b>, rounded <b>up</b> to the next cent so you don't fall short. <b>Periods needed = (goal − what you have) ÷ amount per period</b>, rounded up to a whole period.`) +
+      p(`Many advisers suggest an <b>emergency fund</b> of 3 to 6 months of expenses, saved before investing.`) +
+      example('Example', `To save $1,000 in 7 months starting from $0: 1,000 ÷ 7 = 142.857…, so save <b>$142.86</b> a month. Monthly expenses of $1,900 make a 3-month emergency fund of $5,700.`),
+    make(rng) {
+      const kind = rng.pick(['per-month', 'emergency', 'paycheck']), who = rng.pick(NAMES);
+      if (kind === 'per-month') {
+        const G = rng.int(20, 300) * 25, have = rng.pick([0, 0, 100, 250, 400]), m = rng.int(3, 24), per = Math.ceil((G - have) * 100 / m);
+        if (have >= G) return this.make(rng);
+        return { prompt: `${have ? `${who} has ${$(have)} and wants` : `${who} is starting from nothing and wants`} ${$(G)} in ${m} months. What is the least amount ${who} must save each month, rounded up to the next cent?`, type: 'number', answer: dl(per), unit: '$', params: { kind, G, have, m },
+          hints: [have ? `Still needed: ${$(G)} − ${$(have)} = ${$(G - have)}.` : `The whole ${$(G)} is still needed.`, `${$(G - have)} ÷ ${m} = ${N(M.round((G - have) / m, 5))}${(G - have) * 100 % m ? ', rounded up' : ''}: <b>${$(dl(per))}</b> a month.`] };
+      }
+      if (kind === 'emergency') {
+        const E = rng.int(14, 45) * 100, k = rng.pick([3, 4, 6]), s = rng.int(4, 16) * 50, goal = E * k, months = Math.ceil(goal / s);
+        return { prompt: `${who}'s monthly expenses are ${$(E)}. ${who} wants an emergency fund covering ${k} months of expenses and can save ${$(s)} a month. How many months will it take?`, type: 'number', answer: months, unit: 'months', params: { kind, E, k, s },
+          hints: [`The goal is ${k} × ${$(E)} = ${$(goal)}.`, `${$(goal)} ÷ ${$(s)} = ${N(M.round(goal / s, 3))}${goal % s ? ', rounded up' : ''}: <b>${months}</b> months.`] };
+      }
+      const pc = rng.pick([5, 8, 10, 12, 15]), [sch, k] = rng.pick(SCHED), net = rng.int(45000, 180000), each = pctOf(net, pc), year = each * k;
+      return { prompt: `${who} saves ${pc}% of each paycheck. The paychecks come ${sch}, and each one is ${$(dl(net))} after taxes. How much does ${who} save in a year, in dollars?`, type: 'number', answer: dl(year), unit: '$', params: { kind, pc, k, net },
+        hints: [`Each paycheck: ${N(pc / 100)} × ${$(dl(net))} ≈ ${$(dl(each))}.`, `${k} paychecks: ${k} × ${$(dl(each))} = <b>${$(dl(year))}</b>.`] };
+    },
+    verify(q) {
+      const P = q.params;
+      if (P.kind === 'per-month') { const c = ct(q.answer); return c * P.m >= (P.G - P.have) * 100 && (c - 1) * P.m < (P.G - P.have) * 100; }
+      if (P.kind === 'emergency') { let s = 0, m = 0; while (s < P.E * P.k) { s += P.s; m++; } return m === q.answer; }
+      let s = 0n; for (let i = 0; i < P.k; i++) s += BigInt(bigPct(P.net, P.pc * 1000)); return s === BigInt(ct(q.answer));
+    },
+  });
+
+  const FV = `${V('F')} = ${V('D')} · ${F(`(1 + ${V('i')})<sup>${V('n')}</sup> − 1`, V('i'))}`;
+  A.skill({
+    id: 'fin.annuity', title: 'Saving every month with interest',
+    learn: p(`If you deposit the same amount ${V('D')} at the end of every month into an account earning interest compounded monthly, the balance after ${V('n')} deposits is <b>${FV}</b>, with ${V('i')} = APR ÷ 12. This is the future value of an <b>annuity</b>.`) +
+      p(`The interest earned is the final balance minus the total you put in (${V('D')} × ${V('n')}). Starting early matters most: the first deposits have the longest time to grow.`) +
+      example('Example', `$200 a month for 10 years at 6%: ${V('i')} = 0.005, ${V('n')} = 120, and (1.005)<sup>120</sup> ≈ 1.81940. ${V('F')} = 200 × 0.81940 ÷ 0.005 ≈ <b>$32,775.87</b>, of which $24,000 was deposited.`),
+    make(rng) {
+      const D = rng.pick([25, 50, 75, 100, 150, 200, 250, 300, 500]), r = rng.pick([3, 4, 5, 6, 7, 8]), y = rng.pick([5, 10, 15, 20, 25, 30, 40]), n = 12 * y, i = r / 1200, g = Math.pow(1 + i, n), Fv = D * (g - 1) / i, ask = rng.pick(['balance', 'interest']);
+      const ans = M.round(ask === 'balance' ? Fv : Fv - D * n, 2);
+      return { prompt: `${rng.pick(NAMES)} deposits ${$(D)} at the end of every month into an account earning ${r}% interest compounded monthly. ${ask === 'balance' ? 'What is the balance' : 'How much of the balance is interest'} after ${y} years? Round to the nearest cent.<div class="big">${FV}</div>`, type: 'number', answer: ans, unit: '$', tolerance: 0.01, params: { D, r, n, ask },
+        hints: [`${V('i')} = ${r} ÷ 1200 ≈ ${N(M.round(i, 7))} and ${V('n')} = ${n}; (1 + ${V('i')})<sup>${n}</sup> ≈ ${N(M.round(g, 5))}.`, `${V('F')} = ${D} × ${N(M.round(g - 1, 5))} ÷ (${r} ÷ 1200) ≈ ${$(M.round(Fv, 2))}.`, ask === 'balance' ? `The balance is <b>${$(ans)}</b>.` : `Deposits total ${D} × ${n} = ${$(D * n)}, so interest is <b>${$(ans)}</b>.`] };
+    },
+    verify(q) {
+      const P = q.params; let b = 0;
+      for (let k = 0; k < P.n; k++) b = b * (1 + P.r / 1200) + P.D;      // a month of interest, then the deposit
+      return centsOk(q.answer, P.ask === 'balance' ? b : b - P.D * P.n);
+    },
+  });
+
+  A.skill({
+    id: 'fin.stocks', title: 'Stocks, dividends and returns',
+    learn: p(`A share of stock is a small piece of a company. <b>Gain or loss = (selling price − buying price) × number of shares</b>. Some companies pay <b>dividends</b>, a cash amount per share, often every quarter.`) +
+      p(`<b>Total return</b> adds dividends to the price gain: percent return = (price gain + dividends) ÷ amount invested × 100. <b>Dividend yield</b> = yearly dividend per share ÷ price per share × 100. Stock prices can fall as well as rise.`) +
+      example('Example', `Buy 40 shares at $52.25 and sell at $58.10: the gain is 40 × 5.85 = <b>$234.00</b>. A $1.36 yearly dividend on a $68.00 share is a yield of 2%.`),
+    make(rng) {
+      const kind = rng.pick(['gain', 'return', 'yield', 'dividends']), who = rng.pick(NAMES), n = rng.int(5, 200), p1 = rng.int(1500, 25000), p2 = p1 + rng.int(-p1 / 3, p1 / 2) | 0;
+      if (kind === 'gain') { const g = (p2 - p1) * n; return { prompt: `${who} buys ${n} shares of a stock at ${$(dl(p1))} per share and later sells them at ${$(dl(p2))} per share. What is the gain (use a negative number for a loss), in dollars?`, type: 'number', answer: dl(g), unit: '$', params: { kind, n, p1, p2 }, hints: [`Change per share: ${$(dl(p2))} − ${$(dl(p1))} = ${$(dl(p2 - p1))}.`, `Times ${n} shares: <b>${$(dl(g))}</b>${g < 0 ? ', a loss' : ''}.`] }; }
+      if (kind === 'return') {
+        const div = rng.int(0, 400), pr = M.round(((p2 - p1) + div) / p1 * 100, 1);
+        return { prompt: `A share bought for ${$(dl(p1))} is sold a year later for ${$(dl(p2))}, after paying ${$(dl(div))} in dividends. What is the total percent return, rounded to the nearest tenth of a percent?`, type: 'number', answer: pr, unit: '%', tolerance: 0.05, params: { kind, p1, p2, div },
+          hints: [`Total gain: (${$(dl(p2))} − ${$(dl(p1))}) + ${$(dl(div))} = ${$(dl(p2 - p1 + div))}.`, `${N(dl(p2 - p1 + div))} ÷ ${N(dl(p1))} × 100 ≈ <b>${N(pr)}%</b>.`] };
+      }
+      if (kind === 'yield') { const d = rng.int(Math.round(p1 * 0.005), Math.round(p1 * 0.06)), y = M.round(d / p1 * 100, 2); return { prompt: `A stock trades at ${$(dl(p1))} per share and pays ${$(dl(d))} per share in dividends each year. What is its dividend yield, as a percent rounded to the nearest hundredth?`, type: 'number', answer: y, unit: '%', tolerance: 0.01, params: { kind, p1, d }, hints: [`Yield = yearly dividend ÷ price × 100 = ${N(dl(d))} ÷ ${N(dl(p1))} × 100.`, `≈ <b>${N(y)}%</b>.`] }; }
+      const q4 = rng.int(8, 120), inc = q4 * n * 4;
+      return { prompt: `${who} owns ${n} shares of a stock that pays a dividend of ${$(dl(q4))} per share every quarter. How much does ${who} receive in dividends in a year, in dollars?`, type: 'number', answer: dl(inc), unit: '$', params: { kind, n, q4 },
+        hints: [`Each quarter: ${n} × ${$(dl(q4))} = ${$(dl(q4 * n))}.`, `Four quarters: 4 × ${$(dl(q4 * n))} = <b>${$(dl(inc))}</b>.`] };
+    },
+    verify(q) {
+      const P = q.params, B = BigInt;
+      if (P.kind === 'gain') return B(P.p2) * B(P.n) - B(P.p1) * B(P.n) === B(ct(q.answer));
+      if (P.kind === 'return') return near(q.answer, (P.p2 + P.div - P.p1) / P.p1 * 100, 0.05 + 1e-9);
+      if (P.kind === 'yield') return near(q.answer, P.d / P.p1 * 100, 0.005 + 1e-9);
+      let s = 0n; for (let k = 0; k < 4; k++) s += B(P.q4) * B(P.n); return s === B(ct(q.answer));
+    },
+  });
+
+  A.skill({
+    id: 'fin.inflation', title: 'Inflation and buying power',
+    learn: p(`<b>Inflation</b> is the general rise in prices over time. At an inflation rate of ${V('r')} per year, something costing ${V('P')} today costs about <b>${V('P')}(1 + ${V('r')})<sup>${V('t')}</sup></b> after ${V('t')} years: inflation compounds like interest.`) +
+      p(`The flip side is <b>buying power</b>: a fixed amount of cash buys less each year. ${V('A')} dollars ${V('t')} years from now is worth about ${V('A')} ÷ (1 + ${V('r')})<sup>${V('t')}</sup> in today's dollars. That's why savings need to earn more than the inflation rate to grow in real terms.`) +
+      example('Example', `At 3% inflation, a $40.00 item costs 40(1.03)<sup>5</sup> ≈ <b>$46.37</b> in 5 years, and $1,000 in 5 years buys what about $862.61 buys today.`),
+    make(rng) {
+      const kind = rng.pick(['future-price', 'buying-power', 'rate']), r = rng.pick([2, 2.5, 3, 3.5, 4, 5, 6]), t = rng.int(2, 20);
+      if (kind === 'future-price') {
+        const [item, lo, hi] = rng.pick([['a movie ticket', 900, 1800], ['a pair of jeans', 3000, 9000], ['a tank of gas', 3500, 7000], ['a month of groceries', 30000, 80000], ['a large pizza', 1200, 2600]]), pr = dl(rng.int(lo, hi)), v = M.round(pr * Math.pow(1 + r / 100, t), 2);
+        return { prompt: `${item[0].toUpperCase() + item.slice(1)} costs ${$(pr)} today. If prices rise ${N(r)}% a year, about how much will it cost in ${t} years? Round to the nearest cent.`, type: 'number', answer: v, unit: '$', tolerance: 0.01, params: { kind, pr, r, t },
+          hints: [`Multiply by ${N(1 + r / 100)} once for each year: ${N(pr)}(${N(1 + r / 100)})<sup>${t}</sup>.`, `≈ <b>${$(v)}</b>.`] };
+      }
+      if (kind === 'buying-power') {
+        const amt = rng.pick([1000, 5000, 10000, 25000, 50000, 100000]), v = M.round(amt / Math.pow(1 + r / 100, t), 2);
+        return { prompt: `With inflation of ${N(r)}% a year, what will ${$(amt)} received ${t} years from now be worth in today's dollars? Round to the nearest cent.`, type: 'number', answer: v, unit: '$', tolerance: 0.01, params: { kind, amt, r, t },
+          hints: [`Divide by (1 + ${N(r / 100)})<sup>${t}</sup> = ${N(M.round(Math.pow(1 + r / 100, t), 5))}.`, `${N(amt)} ÷ ${N(M.round(Math.pow(1 + r / 100, t), 5))} ≈ <b>${$(v)}</b>.`] };
+      }
+      const a = rng.int(150, 9000), b = Math.round(a * (1 + rng.int(10, 90) / 1000)), pc = M.round((b - a) / a * 100, 1), item = rng.pick(['a gallon of milk', 'a loaf of bread', 'a bus ticket', 'a haircut', 'a dozen eggs']);
+      return { prompt: `The price of ${item} rose from ${$(dl(a))} to ${$(dl(b))} in one year. What was the inflation rate for that item, as a percent rounded to the nearest tenth?`, type: 'number', answer: pc, unit: '%', tolerance: 0.05, params: { kind, a, b },
+        hints: [`The increase is ${$(dl(b))} − ${$(dl(a))} = ${$(dl(b - a))}.`, `${N(dl(b - a))} ÷ ${N(dl(a))} × 100 ≈ <b>${N(pc)}%</b>.`] };
+    },
+    verify(q) {
+      const P = q.params;
+      if (P.kind === 'future-price') { let v = P.pr; for (let y = 0; y < P.t; y++) v += v * P.r / 100; return centsOk(q.answer, v); }
+      if (P.kind === 'buying-power') { let v = P.amt; for (let y = 0; y < P.t; y++) v /= 1 + P.r / 100; return centsOk(q.answer, v); }
+      return near(q.answer, (P.b / P.a - 1) * 100, 0.05 + 1e-9);
+    },
+  });
 })();
