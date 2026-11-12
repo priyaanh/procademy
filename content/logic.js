@@ -29,6 +29,7 @@
       { id: 'puzzles', title: 'Logic puzzles', blurb: 'Truth-tellers and liars, ordering puzzles, matching puzzles, and if-then reasoning.', skills: ['logic.truth-tellers', 'logic.ordering', 'logic.matching', 'logic.if-then'] },
       { id: 'truth-tables', title: 'Truth tables', blurb: 'AND, OR and NOT, truth tables, equivalent expressions, and if-then statements.', skills: ['logic.and-or-not', 'logic.truth-table-rows', 'logic.equivalent', 'logic.conditionals'] },
       { id: 'patterns', title: 'Sequences and patterns', blurb: 'What comes next, finding the nth term, repeating patterns, and growing patterns.', skills: ['logic.next-term', 'logic.nth-term', 'logic.repeating', 'logic.growing'] },
+      { id: 'reading-code', title: 'Reading code', blurb: 'Tracing variables, if and else, for loops, while loops, nested loops, lists, and functions, all by reading code without running it.', skills: ['logic.trace-variables', 'logic.trace-if', 'logic.for-loops', 'logic.while-loops', 'logic.nested-loops', 'logic.lists', 'logic.functions'] },
     ],
   };
   A.course(COURSE);
@@ -457,5 +458,277 @@
       if (P.ask === 'which') return count(q.answer) === P.T && count(q.answer - 1) < P.T;
       return count(P.n) === q.answer;
     },
+  });
+
+  /* ---------- Unit 4: reading code ---------- */
+  /** Reads the Python-style lines used in this unit and returns what they print. It understands numbers, True and
+      False, lists, + − * // %, comparisons, and/or/not, assignment (=, +=, −=, *=, //=), list items and append,
+      len(), print(), if/elif/else, for … in range(…), for … in a list, while, and def/return. Only verify() uses it. */
+  function runCode(src) {
+    const out = [], lines = src.split('\n').filter(l => l.trim()).map(l => ({ ind: l.length - l.trimStart().length, text: l.trim() }));
+    let pos = 0, steps = 0;
+    const tick = () => { if (++steps > 200000) throw new Error('too many steps'); };
+    function parseBlock(ind) {
+      const body = [];
+      while (pos < lines.length && lines[pos].ind === ind) {
+        const node = { text: lines[pos++].text };
+        if (node.text.endsWith(':')) { if (pos >= lines.length || lines[pos].ind <= ind) throw new Error('empty block'); node.body = parseBlock(lines[pos].ind); }
+        body.push(node);
+      }
+      if (pos < lines.length && lines[pos].ind > ind) throw new Error('unexpected indent');
+      return body;
+    }
+    const prog = parseBlock(0);
+    if (pos !== lines.length) throw new Error('bad indentation');
+    const globals = Object.create(null), funcs = Object.create(null);
+    const get = (env, k) => { if (k in env) return env[k]; if (k in globals) return globals[k]; throw new Error('unknown name ' + k); };
+    function evalExpr(text, env) {
+      const toks = text.match(/\d+|[A-Za-z_]\w*|\/\/|==|!=|<=|>=|[-+*%<>()[\],]/g) || [];
+      if (toks.join('') !== text.replace(/\s+/g, '')) throw new Error('cannot read ' + text);
+      let i = 0;
+      const peek = () => toks[i], next = () => toks[i++], expect = t => { if (toks[i++] !== t) throw new Error(t + ' expected'); };
+      const list = close => { const a = []; if (peek() !== close) { a.push(orE()); while (peek() === ',') { next(); a.push(orE()); } } expect(close); return a; };
+      function orE() { let a = andE(); while (peek() === 'or') { next(); const b = andE(); a = a || b; } return a; }
+      function andE() { let a = notE(); while (peek() === 'and') { next(); const b = notE(); a = a && b; } return a; }
+      function notE() { if (peek() === 'not') { next(); return !notE(); } return cmpE(); }
+      function cmpE() {
+        const a = addE(), op = peek();
+        if (!['==', '!=', '<', '<=', '>', '>='].includes(op)) return a;
+        next(); const b = addE();
+        return { '==': a === b, '!=': a !== b, '<': a < b, '<=': a <= b, '>': a > b, '>=': a >= b }[op];
+      }
+      function addE() { let a = mulE(); while (peek() === '+' || peek() === '-') { const op = next(), b = mulE(); a = op === '+' ? a + b : a - b; } return a; }
+      function mulE() { let a = unE(); while (['*', '//', '%'].includes(peek())) { const op = next(), b = unE(); a = op === '*' ? a * b : op === '//' ? Math.floor(a / b) : ((a % b) + b) % b; } return a; }
+      function unE() { if (peek() === '-') { next(); return -unE(); } let v = atom(); while (peek() === '[') { next(); const k = orE(); expect(']'); v = v[k < 0 ? v.length + k : k]; if (v === undefined) throw new Error('no such item'); } return v; }
+      function atom() {
+        const t = next();
+        if (t === undefined) throw new Error('unexpected end');
+        if (/^\d+$/.test(t)) return Number(t);
+        if (t === '(') { const v = orE(); expect(')'); return v; }
+        if (t === '[') return list(']');
+        if (t === 'True' || t === 'False') return t === 'True';
+        if (/^[A-Za-z_]\w*$/.test(t)) { if (peek() === '(') { next(); return call(t, list(')')); } return get(env, t); }
+        throw new Error('unexpected ' + t);
+      }
+      const v = orE(); if (i !== toks.length) throw new Error('extra text in ' + text); return v;
+    }
+    function call(name, args) {
+      if (name === 'len') return args[0].length;
+      const f = funcs[name]; if (!f) throw new Error('unknown function ' + name);
+      const env = Object.create(null); f.params.forEach((p, k) => { env[p] = args[k]; });
+      const r = runBlock(f.body, env); return r ? r.value : null;
+    }
+    function loop(env, name, values, body) { for (const v of values) { tick(); env[name] = v; const r = runBlock(body, env); if (r) return r; } return null; }
+    function runBlock(body, env) {
+      for (let k = 0; k < body.length; k++) {
+        tick();
+        const st = body[k], t = st.text; let m, r;
+        if ((m = t.match(/^def (\w+)\((.*)\):$/))) { funcs[m[1]] = { params: m[2].split(',').map(s => s.trim()).filter(Boolean), body: st.body }; continue; }
+        if ((m = t.match(/^return (.+)$/))) return { value: evalExpr(m[1], env) };
+        if ((m = t.match(/^print\((.+)\)$/))) { out.push(evalExpr(m[1], env)); continue; }
+        if ((m = t.match(/^for (\w+) in range\((.+)\):$/))) {
+          const a = evalExpr(`[${m[2]}]`, env), [from, to, by] = a.length === 1 ? [0, a[0], 1] : [a[0], a[1], a[2] || 1], vals = [];
+          for (let v = from; by > 0 ? v < to : v > to; v += by) vals.push(v);
+          if ((r = loop(env, m[1], vals, st.body))) return r; continue;
+        }
+        if ((m = t.match(/^for (\w+) in (.+):$/))) { if ((r = loop(env, m[1], evalExpr(m[2], env).slice(), st.body))) return r; continue; }
+        if ((m = t.match(/^while (.+):$/))) { while (evalExpr(m[1], env)) { tick(); if ((r = runBlock(st.body, env))) return r; } continue; }
+        if ((m = t.match(/^if (.+):$/))) {
+          let done = !!evalExpr(m[1], env);
+          if (done && (r = runBlock(st.body, env))) return r;
+          while (k + 1 < body.length && /^(elif .+|else):$/.test(body[k + 1].text)) {
+            const nx = body[++k], em = nx.text.match(/^elif (.+):$/);
+            if (!done && (!em || evalExpr(em[1], env))) { done = true; if ((r = runBlock(nx.body, env))) return r; }
+          }
+          continue;
+        }
+        if ((m = t.match(/^(\w+)\.append\((.+)\)$/))) { get(env, m[1]).push(evalExpr(m[2], env)); continue; }
+        if ((m = t.match(/^(\w+)\[(.+)\] = (.+)$/))) { const arr = get(env, m[1]), idx = evalExpr(m[2], env); arr[idx < 0 ? arr.length + idx : idx] = evalExpr(m[3], env); continue; }
+        if ((m = t.match(/^(\w+) (\+|-|\*|\/\/)= (.+)$/))) { const a = get(env, m[1]), b = evalExpr(m[3], env); env[m[1]] = m[2] === '+' ? a + b : m[2] === '-' ? a - b : m[2] === '*' ? a * b : Math.floor(a / b); continue; }
+        if ((m = t.match(/^(\w+) = (.+)$/))) { env[m[1]] = evalExpr(m[2], env); continue; }
+        throw new Error('cannot read the line: ' + t);
+      }
+      return null;
+    }
+    runBlock(prog, globals);
+    return out;
+  }
+  const CODE_Q = 'What does this code print?';
+  const codeQ = (code, extra) => `${extra || CODE_Q}${M.pre(code)}`;
+  const lastPrint = code => { const o = runCode(code); return o[o.length - 1]; };
+  const codeVerify = q => lastPrint(q.params.code) === q.answer;
+  const PY = p(`The code in this course is written in <b>Python</b>, a popular first programming language. The computer runs it one line at a time, from the top down, and indented lines belong to the line above them that ends with a colon.`);
+
+  A.skill({
+    id: 'logic.trace-variables', title: 'Tracing variables',
+    learn: PY + p(`<b>= means "store"</b>, not "equals": ${M.code('x = x + 3')} takes the value in x, adds 3, and stores the result back in x. A variable keeps only its newest value. ${M.code('x += 3')} is a shortcut for the same thing. To trace code, <b>keep a little table of every variable and update it line by line</b>.`) +
+      example('Example', `${M.pre('a = 5\nb = a + 3\na = b * 2\nprint(a - b)')}After line 2, b is 8. Line 3 makes a = 16. The code prints 16 − 8 = <b>8</b>.`),
+    make(rng) {
+      if (rng.chance(0.3)) {
+        const x = rng.int(2, 9), y = rng.int(1, 9), k = rng.pick([10, 2, 3]);
+        const code = [`x = ${x}`, `y = ${y}`, 'temp = x', 'x = y', 'y = temp', `print(x * ${k} + y)`].join('\n'), ans = y * k + x;
+        return { prompt: codeQ(code), type: 'number', answer: ans, params: { code }, hints: [`The three middle lines swap x and y: now x is ${y} and y is ${x}.`, `${y} × ${k} + ${x} = <b>${ans}</b>.`] };
+      }
+      const env = { a: rng.int(2, 9) }, lines = [`a = ${env.a}`], track = [];
+      const b0 = rng.pick([['b = a + ', v => env.a + v], ['b = a * ', v => env.a * v], ['b = a - ', v => env.a - v]]), bv = rng.int(2, 6);
+      lines.push(b0[0] + bv); env.b = b0[1](bv); track.push(`b = ${N(env.b)}`);
+      const steps = rng.int(2, 3);
+      for (let s = 0; s < steps; s++) {
+        const pick = rng.int(0, 5), k = rng.int(2, 5);
+        if (pick === 0) { lines.push('a = a + b'); env.a = env.a + env.b; track.push(`a = ${N(env.a)}`); }
+        else if (pick === 1) { lines.push(`b = b * ${k}`); env.b = env.b * k; track.push(`b = ${N(env.b)}`); }
+        else if (pick === 2) { lines.push('a = b - a'); env.a = env.b - env.a; track.push(`a = ${N(env.a)}`); }
+        else if (pick === 3) { lines.push(`a += ${k}`); env.a = env.a + k; track.push(`a = ${N(env.a)}`); }
+        else if (pick === 4) { lines.push(`b = b // ${k}`); env.b = Math.floor(env.b / k); track.push(`b = ${N(env.b)}`); }
+        else { lines.push(`b = a % ${k + 1}`); env.b = ((env.a % (k + 1)) + (k + 1)) % (k + 1); track.push(`b = ${N(env.b)}`); }
+      }
+      const which = rng.pick(['a', 'b', 'a + b', 'a * b']), ans = which === 'a' ? env.a : which === 'b' ? env.b : which === 'a + b' ? env.a + env.b : env.a * env.b;
+      lines.push(`print(${which})`);
+      const code = lines.join('\n');
+      return { prompt: codeQ(code), type: 'number', answer: ans, params: { code },
+        hints: [`Track the values line by line: a starts at ${lines[0].slice(4)}; then ${track.join(', then ')}.`, `At the end a is ${N(env.a)} and b is ${N(env.b)}, so ${which} is <b>${N(ans)}</b>.`] };
+    },
+    verify: codeVerify,
+  });
+
+  A.skill({
+    id: 'logic.trace-if', title: 'If, elif and else',
+    learn: PY + p(`An <b>if</b> statement runs its indented lines only when its condition is true. With <b>elif</b> ("else if") and <b>else</b>, Python checks the conditions <b>from the top down and runs only the first one that's true</b>; else runs when none are. ${M.code('==')} asks "is equal?", ${M.code('!=')} asks "is not equal?", and ${M.code('%')} gives the remainder.`) +
+      example('Example', `${M.pre('score = 84\nif score >= 90:\n    grade = 4\nelif score >= 80:\n    grade = 3\nelse:\n    grade = 2\nprint(grade)')}84 ≥ 90 is false; 84 ≥ 80 is true, so grade = 3 and the rest is skipped. It prints <b>3</b>.`),
+    make(rng) {
+      const kind = rng.pick(['grade', 'even-odd', 'range']);
+      if (kind === 'grade') {
+        const cuts = [90, 80, 70], s = rng.int(55, 100), g = s >= 90 ? 4 : s >= 80 ? 3 : s >= 70 ? 2 : 1;
+        const code = [`score = ${s}`, 'if score >= 90:', '    points = 4', 'elif score >= 80:', '    points = 3', 'elif score >= 70:', '    points = 2', 'else:', '    points = 1', 'print(points * 10 + score % 10)'].join('\n'), ans = g * 10 + s % 10;
+        return { prompt: codeQ(code), type: 'number', answer: ans, params: { code, kind },
+          hints: [`Check from the top: ${cuts.map(c => `${M.code(`${s} >= ${c}`)} is ${s >= c ? 'true' : 'false'}`).slice(0, cuts.findIndex(c => s >= c) + 1 || 3).join('; ')}. So points is ${g}.`, `${M.code(`${s} % 10`)} is ${s % 10}, so it prints ${g} × 10 + ${s % 10} = <b>${ans}</b>.`] };
+      }
+      if (kind === 'even-odd') {
+        const n = rng.int(3, 60), lim = rng.pick([10, 20, 25]), even = n % 2 === 0, ans = even && n > lim ? n / 2 : n * 3 + 1;
+        const code = [`n = ${n}`, `if n % 2 == 0 and n > ${lim}:`, '    n = n // 2', 'else:', '    n = n * 3 + 1', 'print(n)'].join('\n');
+        return { prompt: codeQ(code), type: 'number', answer: ans, params: { code, kind },
+          hints: [`${M.code('n % 2 == 0')} is ${even ? 'true' : 'false'} and ${M.code(`n > ${lim}`)} is ${n > lim ? 'true' : 'false'}; with ${M.code('and')}, both must be true.`, even && n > lim ? `So n = ${n} // 2 = <b>${ans}</b>.` : `So the else part runs: ${n} × 3 + 1 = <b>${ans}</b>.`] };
+      }
+      const t = rng.int(-5, 40), lo = rng.pick([0, 5, 10]), hi = rng.pick([25, 30]), ans = t < lo || t > hi ? (t < lo ? 1 : 3) : 2;
+      const code = [`temp = ${t}`, `if temp < ${lo} or temp > ${hi}:`, `    if temp < ${lo}:`, '        level = 1', '    else:', '        level = 3', 'else:', '    level = 2', 'print(level)'].join('\n');
+      return { prompt: codeQ(code), type: 'number', answer: ans, params: { code, kind },
+        hints: [`${M.code(`temp < ${lo} or temp > ${hi}`)}: ${N(t)} &lt; ${lo} is ${t < lo ? 'true' : 'false'}, ${N(t)} &gt; ${hi} is ${t > hi ? 'true' : 'false'}; ${M.code('or')} needs just one to be true.`, ans === 2 ? `Neither is true, so the outer else runs: level is <b>2</b>.` : `So the inner if runs: level is <b>${ans}</b>.`] };
+    },
+    verify: codeVerify,
+  });
+
+  A.skill({
+    id: 'logic.for-loops', title: 'For loops',
+    learn: PY + p(`A <b>for loop</b> repeats its indented lines once for each value. <b>${M.code('range(1, 6)')} gives 1, 2, 3, 4, 5: it stops before the second number.</b> ${M.code('range(5)')} gives 0 to 4, and ${M.code('range(2, 11, 3)')} counts by 3: 2, 5, 8.`) +
+      p(`To trace a loop, write the loop variable and every changing variable in a table, one row per pass.`) +
+      example('Example', `${M.pre('total = 0\nfor i in range(1, 5):\n    total = total + i\nprint(total)')}i takes the values 1, 2, 3, 4, so total becomes 1, 3, 6, 10. It prints <b>10</b>.`),
+    make(rng) {
+      const kind = rng.pick(['sum', 'step', 'double', 'count']);
+      if (kind === 'sum') { const a = rng.int(0, 5), b = a + rng.int(3, 9), vals = Array.from({ length: b - a }, (_, i) => a + i), ans = vals.reduce((s, x) => s + x, 0);
+        const code = ['total = 0', `for i in range(${a}, ${b}):`, '    total = total + i', 'print(total)'].join('\n');
+        return { prompt: codeQ(code), type: 'number', answer: ans, params: { code }, hints: [`range(${a}, ${b}) gives ${vals.join(', ')} (it stops before ${b}).`, `Their sum is <b>${ans}</b>.`] }; }
+      if (kind === 'step') { const a = rng.int(1, 5), s = rng.int(2, 5), b = a + s * rng.int(3, 6) + rng.int(0, s - 1), vals = []; for (let v = a; v < b; v += s) vals.push(v); const m = rng.pick([1, 2, 10]), ans = vals.reduce((t, x) => t + x * m, 0);
+        const code = ['total = 0', `for i in range(${a}, ${b}, ${s}):`, `    total += ${m === 1 ? 'i' : `i * ${m}`}`, 'print(total)'].join('\n');
+        return { prompt: codeQ(code), type: 'number', answer: ans, params: { code }, hints: [`range(${a}, ${b}, ${s}) starts at ${a} and counts by ${s}, stopping before ${b}: ${vals.join(', ')}.`, `${m === 1 ? 'Add them' : `Add ${m} times each`}: <b>${ans}</b>.`] }; }
+      if (kind === 'double') { const n = rng.int(3, 8), x0 = rng.int(1, 5), f = rng.pick([2, 3]), ans = x0 * f ** n;
+        const code = [`x = ${x0}`, `for i in range(${n}):`, `    x = x * ${f}`, 'print(x)'].join('\n');
+        return { prompt: codeQ(code), type: 'number', answer: ans, params: { code }, hints: [`range(${n}) gives ${n} values (0 to ${n - 1}), so the loop runs ${n} times.`, `${x0} multiplied by ${f}, ${n} times: ${x0} × ${f}<sup>${n}</sup> = <b>${N(ans)}</b>.`] }; }
+      const n = rng.int(10, 40), k = rng.int(2, 7), ans = Math.floor(n / k);
+      const code = ['count = 0', `for i in range(1, ${n + 1}):`, `    if i % ${k} == 0:`, '        count = count + 1', 'print(count)'].join('\n');
+      return { prompt: codeQ(code), type: 'number', answer: ans, params: { code }, hints: [`i runs from 1 to ${n}, and count goes up when i is a multiple of ${k}.`, `The multiples of ${k} up to ${n} are ${Array.from({ length: ans }, (_, j) => (j + 1) * k).join(', ')}: <b>${ans}</b> of them.`] };
+    },
+    verify: codeVerify,
+  });
+
+  A.skill({
+    id: 'logic.while-loops', title: 'While loops',
+    learn: PY + p(`A <b>while loop</b> repeats as long as its condition is true. It checks the condition <b>before each pass</b>, so it might run many times or not at all, and something inside must change, or it never stops.`) +
+      p(`Trace it like a for loop, but check the condition each time: when it becomes false, skip to the first line after the loop. ${M.code('//')} divides and drops the remainder, and ${M.code('n % 10')} is the last digit of n.`) +
+      example('Example', `${M.pre('n = 40\ncount = 0\nwhile n > 1:\n    n = n // 2\n    count += 1\nprint(count)')}n goes 40, 20, 10, 5, 2, 1: five passes, then 1 > 1 is false. It prints <b>5</b>.`),
+    make(rng) {
+      const kind = rng.pick(['halve', 'grow', 'digits', 'countdown']);
+      if (kind === 'halve') { const n0 = rng.int(20, 1000), seq = [n0]; while (seq[seq.length - 1] > 1) seq.push(Math.floor(seq[seq.length - 1] / 2));
+        const code = [`n = ${n0}`, 'count = 0', 'while n > 1:', '    n = n // 2', '    count += 1', 'print(count)'].join('\n');
+        return { prompt: codeQ(code), type: 'number', answer: seq.length - 1, params: { code }, hints: [`n goes ${seq.join(', ')}.`, `That's <b>${seq.length - 1}</b> passes before ${M.code('n > 1')} is false.`] }; }
+      if (kind === 'grow') { const x0 = rng.int(1, 9), f = rng.pick([2, 3]), lim = rng.int(50, 1000), seq = [x0]; while (seq[seq.length - 1] < lim) seq.push(seq[seq.length - 1] * f);
+        const code = [`x = ${x0}`, `while x < ${lim}:`, `    x = x * ${f}`, 'print(x)'].join('\n');
+        return { prompt: codeQ(code), type: 'number', answer: seq[seq.length - 1], params: { code }, hints: [`x goes ${seq.join(', ')}.`, `${M.code(`${seq[seq.length - 1]} < ${lim}`)} is false, so the loop stops. It prints <b>${N(seq[seq.length - 1])}</b>.`] }; }
+      if (kind === 'digits') { const n0 = rng.int(100, 99999), ds = String(n0).split('').map(Number), ans = ds.reduce((s, d) => s + d, 0);
+        const code = [`n = ${n0}`, 'total = 0', 'while n > 0:', '    total = total + n % 10', '    n = n // 10', 'print(total)'].join('\n');
+        return { prompt: codeQ(code), type: 'number', answer: ans, params: { code }, hints: [`Each pass adds the last digit (n % 10) to total, then chops it off (n // 10).`, `So total is the digit sum: ${ds.join(' + ')} = <b>${ans}</b>.`] }; }
+      const n0 = rng.int(20, 80), s = rng.int(3, 9), seq = [n0]; while (seq[seq.length - 1] > 0) seq.push(seq[seq.length - 1] - s);
+      const ask = rng.bool() ? 'n' : 'steps', code = [`n = ${n0}`, 'steps = 0', 'while n > 0:', `    n = n - ${s}`, '    steps += 1', `print(${ask})`].join('\n'), ans = ask === 'n' ? seq[seq.length - 1] : seq.length - 1;
+      return { prompt: codeQ(code), type: 'number', answer: ans, params: { code }, hints: [`n goes ${seq.map(N).join(', ')}: the loop stops once n is no longer greater than 0.`, `That took ${seq.length - 1} passes, and n ended at ${N(seq[seq.length - 1])}. It prints <b>${N(ans)}</b>.`] };
+    },
+    verify: codeVerify,
+  });
+
+  A.skill({
+    id: 'logic.nested-loops', title: 'Nested loops',
+    learn: PY + p(`A loop inside a loop is a <b>nested loop</b>. <b>The inner loop runs all the way through for every single pass of the outer loop</b>, so 4 outer passes of a 3-pass inner loop make 4 × 3 = 12 inner passes.`) +
+      p(`When the inner loop depends on the outer variable, as in ${M.code('for j in range(i)')}, count the passes for each value of i and add them up.`) +
+      example('Example', `${M.pre('count = 0\nfor i in range(4):\n    for j in range(i):\n        count += 1\nprint(count)')}For i = 0, 1, 2, 3 the inner loop runs 0, 1, 2, 3 times: 0 + 1 + 2 + 3 = <b>6</b>.`),
+    make(rng) {
+      const kind = rng.pick(['grid', 'triangle', 'pairs', 'sum']);
+      if (kind === 'grid') { const a = rng.int(2, 9), b = rng.int(2, 9), code = ['count = 0', `for i in range(${a}):`, `    for j in range(${b}):`, '        count += 1', 'print(count)'].join('\n');
+        return { prompt: codeQ(code), type: 'number', answer: a * b, params: { code }, hints: [`The outer loop runs ${a} times, and each time the inner loop runs ${b} times.`, `${a} × ${b} = <b>${a * b}</b>.`] }; }
+      if (kind === 'triangle') { const n = rng.int(3, 9), plus = rng.bool(), parts = Array.from({ length: n }, (_, i) => plus ? i + 1 : i), ans = parts.reduce((s, x) => s + x, 0);
+        const code = ['count = 0', `for i in range(${n}):`, `    for j in range(${plus ? 'i + 1' : 'i'}):`, '        count += 1', 'print(count)'].join('\n');
+        return { prompt: codeQ(code), type: 'number', answer: ans, params: { code }, hints: [`For i = 0 to ${n - 1}, the inner loop runs ${plus ? 'i + 1' : 'i'} times: ${parts.join(', ')}.`, `${parts.join(' + ')} = <b>${ans}</b>.`] }; }
+      if (kind === 'pairs') { const a = rng.int(3, 7), b = rng.int(3, 7); let ans = 0; for (let i = 1; i <= a; i++) for (let j = 1; j <= b; j++) if (i < j) ans++;
+        const code = ['count = 0', `for i in range(1, ${a + 1}):`, `    for j in range(1, ${b + 1}):`, '        if i < j:', '            count += 1', 'print(count)'].join('\n');
+        return { prompt: codeQ(code), type: 'number', answer: ans, params: { code }, hints: [`For each i from 1 to ${a}, count the j from 1 to ${b} that are bigger than i: ${Array.from({ length: a }, (_, k) => Math.max(0, b - (k + 1))).join(', ')}.`, `Add them: <b>${ans}</b>.`] }; }
+      const a = rng.int(2, 5), b = rng.int(2, 5); let ans = 0; for (let i = 1; i <= a; i++) for (let j = 1; j <= b; j++) ans += i * j;
+      const code = ['total = 0', `for i in range(1, ${a + 1}):`, `    for j in range(1, ${b + 1}):`, '        total += i * j', 'print(total)'].join('\n');
+      return { prompt: codeQ(code), type: 'number', answer: ans, params: { code }, hints: [`For each i, the inner loop adds i × (1 + 2 + … + ${b}) = i × ${b * (b + 1) / 2}.`, `(1 + … + ${a}) × ${b * (b + 1) / 2} = ${a * (a + 1) / 2} × ${b * (b + 1) / 2} = <b>${ans}</b>.`] };
+    },
+    verify: codeVerify,
+  });
+
+  A.skill({
+    id: 'logic.lists', title: 'Lists and indexes',
+    learn: PY + p(`A <b>list</b> holds several values in order: ${M.code('nums = [4, 9, 2]')}. <b>Positions (indexes) start at 0</b>, so ${M.code('nums[0]')} is 4 and ${M.code('nums[2]')} is 2. ${M.code('len(nums)')} is how many items there are, so the last index is len(nums) − 1.`) +
+      p(`${M.code('nums.append(7)')} adds 7 to the end, and ${M.code('nums[1] = 5')} replaces the item at index 1. ${M.code('for x in nums:')} visits each item in order.`) +
+      example('Example', `${M.pre('nums = [4, 9, 2, 7]\nnums[1] = nums[0] + nums[3]\nprint(nums[1])')}nums[0] is 4 and nums[3] is 7, so nums[1] becomes 11. It prints <b>11</b>.`),
+    make(rng) {
+      const kind = rng.pick(['index', 'change', 'filter-sum', 'append', 'max']), n = rng.int(4, 7), nums = Array.from({ length: n }, () => rng.int(1, 20)), L = `nums = [${nums.join(', ')}]`;
+      if (kind === 'index') { const i = rng.int(0, n - 1), j = rng.int(0, n - 1), last = rng.bool(), code = [L, last ? `print(nums[len(nums) - 1] + nums[${i}])` : `print(nums[${i}] * nums[${j}])`].join('\n'), ans = last ? nums[n - 1] + nums[i] : nums[i] * nums[j];
+        return { prompt: codeQ(code), type: 'number', answer: ans, params: { code }, hints: [`Indexes start at 0: ${nums.map((v, k) => `nums[${k}] = ${v}`).join(', ')}.`, last ? `len(nums) − 1 = ${n - 1}, so it's ${nums[n - 1]} + ${nums[i]} = <b>${ans}</b>.` : `${nums[i]} × ${nums[j]} = <b>${ans}</b>.`] }; }
+      if (kind === 'change') { const a = rng.int(0, n - 1), b = rng.int(0, n - 1), c = rng.int(0, n - 1), arr = nums.slice(); arr[a] = arr[b] + arr[c]; const d = rng.int(0, n - 1), ans = arr[a] + arr[d];
+        const code = [L, `nums[${a}] = nums[${b}] + nums[${c}]`, `print(nums[${a}] + nums[${d}])`].join('\n');
+        return { prompt: codeQ(code), type: 'number', answer: ans, params: { code }, hints: [`nums[${b}] + nums[${c}] = ${nums[b]} + ${nums[c]} = ${arr[a]}, which replaces nums[${a}].`, `Now nums is [${arr.join(', ')}], so it prints ${arr[a]} + ${arr[d]} = <b>${ans}</b>.`] }; }
+      if (kind === 'filter-sum') { const lim = rng.int(5, 14), keep = nums.filter(x => x > lim), ans = keep.reduce((s, x) => s + x, 0);
+        const code = [L, 'total = 0', 'for x in nums:', `    if x > ${lim}:`, '        total = total + x', 'print(total)'].join('\n');
+        return { prompt: codeQ(code), type: 'number', answer: ans, params: { code }, hints: [`The loop adds only the items greater than ${lim}: ${keep.length ? keep.join(', ') : 'none'}.`, `The total is <b>${ans}</b>.`] }; }
+      if (kind === 'append') { const extra = rng.int(1, 3), adds = Array.from({ length: extra }, () => rng.int(1, 9)), arr = nums.concat(adds), ask = rng.bool() ? 'len' : 'last';
+        const code = [L].concat(adds.map(v => `nums.append(${v})`), [ask === 'len' ? 'print(len(nums) + nums[0])' : 'print(nums[len(nums) - 1] * 2)']).join('\n'), ans = ask === 'len' ? arr.length + arr[0] : arr[arr.length - 1] * 2;
+        return { prompt: codeQ(code), type: 'number', answer: ans, params: { code }, hints: [`After the append${extra === 1 ? '' : 's'}, nums is [${arr.join(', ')}], with ${arr.length} items.`, ask === 'len' ? `${arr.length} + ${arr[0]} = <b>${ans}</b>.` : `The last item is ${arr[arr.length - 1]}, so it prints <b>${ans}</b>.`] }; }
+      const best = Math.max(...nums), code = [L, 'best = nums[0]', 'for x in nums:', '    if x > best:', '        best = x', 'print(best)'].join('\n');
+      return { prompt: codeQ(code), type: 'number', answer: best, params: { code }, hints: [`best starts as the first item and is replaced whenever a bigger item comes along.`, `So it ends as the largest item: <b>${best}</b>.`] };
+    },
+    verify: codeVerify,
+  });
+
+  A.skill({
+    id: 'logic.functions', title: 'Functions',
+    learn: PY + p(`A <b>function</b> is a named recipe: ${M.code('def double(x):')} defines it, and its indented lines say what to do with the input x. <b>Calling</b> it, as in ${M.code('double(5)')}, runs those lines with x = 5, and ${M.code('return')} sends a value back to where it was called.`) +
+      p(`For calls inside calls, such as ${M.code('f(f(3))')}, <b>work from the inside out</b>: find f(3) first, then use that as the new input.`) +
+      example('Example', `${M.pre('def f(x):\n    return 2 * x + 1\n\nprint(f(f(3)))')}f(3) = 7, then f(7) = 15. It prints <b>15</b>.`),
+    make(rng) {
+      const kind = rng.pick(['nested', 'two-args', 'branch', 'loop']);
+      if (kind === 'nested') { const m = rng.int(2, 4), b = rng.int(-3, 5), x = rng.int(1, 6), f = v => m * v + b, ans = f(f(x));
+        const code = ['def f(x):', `    return ${m} * x${b ? ` ${b < 0 ? '-' : '+'} ${Math.abs(b)}` : ''}`, '', `print(f(f(${x})))`].join('\n');
+        return { prompt: codeQ(code), type: 'number', answer: ans, params: { code }, hints: [`Inside first: f(${x}) = ${f(x)}.`, `Then f(${f(x)}) = <b>${ans}</b>.`] }; }
+      if (kind === 'two-args') { const [w1, h1, w2, h2] = [rng.int(2, 9), rng.int(2, 9), rng.int(2, 9), rng.int(2, 9)], ans = w1 * h1 + w2 * h2;
+        const code = ['def area(w, h):', '    return w * h', '', `print(area(${w1}, ${h1}) + area(${w2}, ${h2}))`].join('\n');
+        return { prompt: codeQ(code), type: 'number', answer: ans, params: { code }, hints: [`area(${w1}, ${h1}) = ${w1 * h1} and area(${w2}, ${h2}) = ${w2 * h2}.`, `${w1 * h1} + ${w2 * h2} = <b>${ans}</b>.`] }; }
+      if (kind === 'branch') { const [a, b, c, d] = [rng.int(1, 20), rng.int(1, 20), rng.int(1, 20), rng.int(1, 20)], big2 = (x, y) => x > y ? x : y, ans = big2(a, b) - big2(c, d);
+        const code = ['def bigger(a, b):', '    if a > b:', '        return a', '    return b', '', `print(bigger(${a}, ${b}) - bigger(${c}, ${d}))`].join('\n');
+        return { prompt: codeQ(code), type: 'number', answer: ans, params: { code }, hints: [`bigger returns the larger input (once it returns, the function stops): bigger(${a}, ${b}) = ${big2(a, b)} and bigger(${c}, ${d}) = ${big2(c, d)}.`, `${big2(a, b)} − ${big2(c, d)} = <b>${N(ans)}</b>.`] }; }
+      const n = rng.int(3, 10), k = rng.int(1, 3), ans = Array.from({ length: n }, (_, i) => (i + 1) * k).reduce((s, x) => s + x, 0);
+      const code = ['def total(n):', '    s = 0', '    for i in range(1, n + 1):', `        s = s + i${k > 1 ? ` * ${k}` : ''}`, '    return s', '', `print(total(${n}))`].join('\n');
+      return { prompt: codeQ(code), type: 'number', answer: ans, params: { code }, hints: [`total(${n}) adds ${k > 1 ? `${k} × i` : 'i'} for i = 1 to ${n}.`, `${Array.from({ length: n }, (_, i) => (i + 1) * k).join(' + ')} = <b>${ans}</b>.`] };
+    },
+    verify: codeVerify,
   });
 })();
