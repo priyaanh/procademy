@@ -31,6 +31,7 @@
       { id: 'patterns', title: 'Sequences and patterns', blurb: 'What comes next, finding the nth term, repeating patterns, and growing patterns.', skills: ['logic.next-term', 'logic.nth-term', 'logic.repeating', 'logic.growing'] },
       { id: 'reading-code', title: 'Reading code', blurb: 'Tracing variables, if and else, for loops, while loops, nested loops, lists, and functions, all by reading code without running it.', skills: ['logic.trace-variables', 'logic.trace-if', 'logic.for-loops', 'logic.while-loops', 'logic.nested-loops', 'logic.lists', 'logic.functions'] },
       { id: 'bases', title: 'Binary and number bases', blurb: 'Reading and writing binary, other bases such as hexadecimal, bits and bytes, and adding in binary.', skills: ['logic.binary-to-decimal', 'logic.decimal-to-binary', 'logic.other-bases', 'logic.bits'] },
+      { id: 'algorithms', title: 'Algorithms', blurb: 'Sorting step by step, linear and binary search, Euclid’s algorithm, and following an algorithm’s steps.', skills: ['logic.sorting', 'logic.searching', 'logic.euclid', 'logic.follow-steps'] },
     ],
   };
   A.course(COURSE);
@@ -810,4 +811,109 @@
   });
 
   
+
+/* ---------- Unit 6: algorithms ---------- */
+  const showList = a => `[${a.join(', ')}]`;
+  const bubblePass = a => { const b = a.slice(); for (let i = 0; i + 1 < b.length; i++) if (b[i] > b[i + 1]) [b[i], b[i + 1]] = [b[i + 1], b[i]]; return b; };
+  const selectPass = (a, k) => { const b = a.slice(); for (let i = 0; i < k; i++) { let m = i; for (let j = i + 1; j < b.length; j++) if (b[j] < b[m]) m = j; [b[i], b[m]] = [b[m], b[i]]; } return b; };
+  A.skill({
+    id: 'logic.sorting', title: 'Sorting step by step',
+    learn: p(`<b>Bubble sort</b> walks through the list comparing neighbors, and swaps any pair that's in the wrong order. After one full pass, the largest value has "bubbled" to the end. It repeats passes until no swaps are needed.`) +
+      p(`<b>Selection sort</b> finds the smallest value and swaps it into the first place, then the smallest of the rest into the second place, and so on. Tracing an algorithm by hand, one step at a time, is how programmers check it works.`) +
+      example('Example', `Bubble sort, one pass on [5, 2, 9, 1]: swap 5 and 2 → [2, 5, 9, 1]; 5 and 9 are fine; swap 9 and 1 → <b>[2, 5, 1, 9]</b>.`),
+    make(rng) {
+      const kind = rng.pick(['bubble', 'selection', 'swaps']), n = rng.int(5, 6); let a;
+      do { a = rng.sample([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 17, 20], n); } while (bubblePass(a).join() === a.slice().sort((x, y) => x - y).join());
+      const sorted = a.slice().sort((x, y) => x - y);
+      if (kind === 'swaps') {
+        let b = a.slice(), sw = 0; for (let pass = 0; pass < n; pass++) for (let i = 0; i + 1 < n; i++) if (b[i] > b[i + 1]) { [b[i], b[i + 1]] = [b[i + 1], b[i]]; sw++; }
+        return { prompt: `Bubble sort is used to put this list in order from least to greatest. How many swaps does it make in all?${big(showList(a))}`, type: 'number', answer: sw, params: { kind, a },
+          hints: [`Each swap fixes exactly one pair that's out of order. Count the pairs (not just neighbors) where a bigger number comes before a smaller one.`, `There are <b>${sw}</b> such pairs, so bubble sort makes ${sw} swaps.`] };
+      }
+      const right = kind === 'bubble' ? bubblePass(a) : selectPass(a, 2);
+      const cands = kind === 'bubble' ? [sorted, bubblePass(bubblePass(a)), selectPass(a, 1), (() => { const b = a.slice(); for (let i = 0; i + 1 < b.length; i++) if (b[i] > b[i + 1]) { [b[i], b[i + 1]] = [b[i + 1], b[i]]; break; } return b; })()] : [selectPass(a, 1), selectPass(a, 3), sorted, bubblePass(a)];
+      const answer = showList(right);
+      let choices = options(answer, cands.map(showList)), guard = 0;
+      while (choices.length < 4 && guard++ < 20) choices = options(answer, choices.slice(1).concat([showList(rng.shuffle(a))]));
+      return { prompt: kind === 'bubble' ? `What does this list look like after <b>one full pass</b> of bubble sort (from least to greatest)?${big(showList(a))}` : `What does this list look like after <b>two passes</b> of selection sort (from least to greatest)?${big(showList(a))}`, type: 'choice', answer, choices, params: { kind, a },
+        hints: [kind === 'bubble' ? `Compare each pair of neighbors from left to right, swapping when the left one is bigger.` : `Pass 1 swaps the smallest value into place 1; pass 2 swaps the smallest of the rest into place 2.`, `The list becomes <b>${answer}</b>.`] };
+    },
+    verify(q) {
+      const P = q.params, a = P.a.slice();
+      if (P.kind === 'swaps') { let inv = 0; for (let i = 0; i < a.length; i++) for (let j = i + 1; j < a.length; j++) if (a[i] > a[j]) inv++; return inv === q.answer; }
+      if (P.kind === 'bubble') { for (let i = 0; i < a.length - 1; i++) { if (a[i] > a[i + 1]) { const t = a[i]; a[i] = a[i + 1]; a[i + 1] = t; } } return q.answer === showList(a); }
+      for (let pass = 0; pass < 2; pass++) { const rest = a.slice(pass), m = pass + rest.indexOf(Math.min(...rest)); const t = a[pass]; a[pass] = a[m]; a[m] = t; }
+      return q.answer === showList(a);
+    },
+  });
+
+  A.skill({
+    id: 'logic.searching', title: 'Searching: linear and binary',
+    learn: p(`<b>Linear search</b> checks items one at a time from the start. <b>Binary search</b> works only on a sorted list: check the middle item; if it's too big, keep only the left half, and if it's too small, keep only the right half. Repeat on what's left.`) +
+      p(`Each binary-search check cuts the list in half, so it's very fast: a sorted list of 1,000 items needs at most 10 checks, because 2<sup>10</sup> = 1,024. Here, "middle" means position (low + high) ÷ 2, rounded down, counting positions from 0.`) +
+      example('Example', `Find 23 in [3, 8, 12, 17, 23, 31, 40]: check the middle, 17 (too small), keep [23, 31, 40]; its middle is 31 (too big), keep [23]; check 23, found. That's <b>3 checks</b>.`),
+    make(rng) {
+      const kind = rng.pick(['binary', 'binary', 'linear', 'most']);
+      if (kind === 'most') { const n = rng.pick([7, 15, 31, 50, 100, 500, 1000, 5000, 1000000]); let c = 0, m = n; while (m > 0) { m = Math.floor(m / 2); c++; }
+        return { prompt: `A sorted list has ${N(n)} items. What is the greatest number of checks binary search could need to find an item in it?`, type: 'number', answer: c, params: { kind, n }, hints: [`Each check at least halves what's left: ${N(n)}, ${N(Math.floor(n / 2))}, ${N(Math.floor(n / 4))}, … down to 1.`, `Count the halvings until nothing is left: <b>${c}</b> checks.`] }; }
+      const len = rng.pick([7, 11, 15]), list = rng.sample(Array.from({ length: 60 }, (_, i) => i + 1), len).sort((x, y) => x - y), ti = rng.int(0, len - 1), target = list[ti];
+      if (kind === 'linear') return { prompt: `Linear search looks for ${target} in this list, checking from the left. How many items does it check?${big(showList(list))}`, type: 'number', answer: ti + 1, params: { kind, list, target }, hints: [`It checks items one at a time from the start until it reaches ${target}.`, `${target} is item number ${ti + 1}, so it makes <b>${ti + 1}</b> check${ti ? 's' : ''}.`] };
+      let lo = 0, hi = len - 1; const seen = []; while (lo <= hi) { const mid = Math.floor((lo + hi) / 2); seen.push(list[mid]); if (list[mid] === target) break; if (list[mid] < target) lo = mid + 1; else hi = mid - 1; }
+      return { prompt: `Binary search looks for ${target} in this sorted list. Counting the check that finds it, how many items does it check?${big(showList(list))}`, type: 'number', answer: seen.length, params: { kind, list, target },
+        hints: [`Check the middle item, then keep only the half that could hold ${target}.`, `It checks ${seen.join(', then ')}.`, `That's <b>${seen.length}</b> check${seen.length === 1 ? '' : 's'}.`] };
+    },
+    verify(q) {
+      const P = q.params;
+      if (P.kind === 'most') { let c = 0; while (2 ** c <= P.n) c++; return c === q.answer; }
+      if (P.kind === 'linear') { let c = 0; for (const x of P.list) { c++; if (x === P.target) break; } return c === q.answer; }
+      const go = (lo, hi, c) => { const mid = (lo + hi) >> 1; return P.list[mid] === P.target ? c + 1 : P.list[mid] < P.target ? go(mid + 1, hi, c + 1) : go(lo, mid - 1, c + 1); };   // the same search, written recursively
+      return go(0, P.list.length - 1, 0) === q.answer;
+    },
+  });
+
+  A.skill({
+    id: 'logic.euclid', title: 'Euclid’s algorithm',
+    learn: p(`Euclid's algorithm, more than 2,000 years old, finds the greatest common factor (GCF) of two numbers quickly: <b>divide the larger by the smaller and keep the remainder; then divide the smaller number by that remainder; repeat until the remainder is 0. The last nonzero remainder is the GCF.</b>`) +
+      p(`It works because any number that divides both numbers also divides the remainder. It's one of the oldest algorithms still used in computers today.`) +
+      example('Example', `GCF of 84 and 36: 84 ÷ 36 leaves 12; 36 ÷ 12 leaves 0. The GCF is <b>12</b>, found in 2 steps.`),
+    make(rng) {
+      const g = rng.int(1, 15); let a, b; do { a = g * rng.int(3, 40); b = g * rng.int(2, 30); } while (a <= b || a % b === 0 && rng.chance(0.7));
+      const st = []; let x = a, y = b; while (y) { st.push(`${x} ÷ ${y} leaves ${x % y}`); [x, y] = [y, x % y]; }
+      const ask = rng.pick(['gcf', 'gcf', 'steps']);
+      return { prompt: ask === 'gcf' ? `Use Euclid's algorithm to find the greatest common factor of ${a} and ${b}.` : `How many divisions does Euclid's algorithm take to find the greatest common factor of ${a} and ${b}? (Count the last one, which leaves a remainder of 0.)`, type: 'number', answer: ask === 'gcf' ? x : st.length, params: { a, b, ask },
+        hints: [`Divide, keep the remainder, and repeat: ${st.join('; ')}.`, ask === 'gcf' ? `The last nonzero remainder (the last divisor) is <b>${x}</b>.` : `That's <b>${st.length}</b> division${st.length === 1 ? '' : 's'}, and the GCF is ${x}.`] };
+    },
+    verify(q) {
+      const P = q.params;
+      if (P.ask === 'gcf') { let best = 1; for (let d = 1; d <= P.b; d++) if (P.a % d === 0 && P.b % d === 0) best = d; return best === q.answer; }
+      const count = (x, y) => y === 0 ? 0 : 1 + count(y, x % y); return count(P.a, P.b) === q.answer;
+    },
+  });
+
+  const rev = n => Number(String(n).split('').reverse().join(''));
+  const isPal = n => String(n) === String(n).split('').reverse().join('');
+  A.skill({
+    id: 'logic.follow-steps', title: 'Following an algorithm',
+    learn: p(`An <b>algorithm</b> is a list of exact steps. Following one carefully, and keeping count, is the heart of programming. <b>Write down each value as you go</b>, so you can check your work and spot when to stop.`) +
+      p(`Some famous ones: the <b>3n + 1 process</b> (if n is even, halve it; if odd, multiply by 3 and add 1, until you reach 1), and <b>reverse and add</b> (add a number to its digits reversed until you get a palindrome, a number that reads the same both ways).`) +
+      example('Example', `3n + 1 from 6: 6 → 3 → 10 → 5 → 16 → 8 → 4 → 2 → 1. That's <b>8 steps</b> to reach 1.`),
+    make(rng) {
+      const kind = rng.pick(['collatz', 'collatz', 'reverse-add', 'digital-root']);
+      if (kind === 'collatz') { let n0; const seq = []; do { n0 = rng.int(3, 40); seq.length = 0; let v = n0; seq.push(v); while (v !== 1) { v = v % 2 ? 3 * v + 1 : v / 2; seq.push(v); } } while (seq.length - 1 > 22);
+        return { prompt: `Start with ${n0}. If the number is even, divide it by 2; if it's odd, multiply it by 3 and add 1. Repeat until you reach 1. How many steps does it take?`, type: 'number', answer: seq.length - 1, params: { kind, n0 },
+          hints: [`Write each number: ${seq.join(' → ')}.`, `Count the arrows: <b>${seq.length - 1}</b> steps.`] }; }
+      if (kind === 'reverse-add') { let n0, seq; do { n0 = rng.int(12, 98); seq = [n0]; while (!isPal(seq[seq.length - 1]) || seq.length === 1) { seq.push(seq[seq.length - 1] + rev(seq[seq.length - 1])); if (seq.length > 6) break; } } while (seq.length > 5 || isPal(n0) || n0 % 10 === 0);
+        return { prompt: `Start with ${n0}. Add it to the number formed by reversing its digits. Repeat with the result until you get a palindrome (a number that reads the same forward and backward). What palindrome do you reach?`, type: 'number', answer: seq[seq.length - 1], params: { kind, n0 },
+          hints: [`First step: ${n0} + ${rev(n0)} = ${seq[1]}.`, `Keep going: ${seq.join(' → ')}.`, `The palindrome is <b>${seq[seq.length - 1]}</b>.`] }; }
+      const n0 = rng.int(100, 99999); let v = n0; const seq = [v]; while (v >= 10) { v = String(v).split('').reduce((s, d) => s + Number(d), 0); seq.push(v); }
+      return { prompt: `Start with ${N(n0)}. Add its digits. If the result has more than one digit, add its digits again. Repeat until one digit is left. What is that digit?`, type: 'number', answer: v, params: { kind, n0 },
+        hints: [`Add the digits: ${seq.map(N).join(' → ')}.`, `The single digit left is <b>${v}</b>.`] };
+    },
+    verify(q) {
+      const P = q.params;
+      if (P.kind === 'collatz') { let v = P.n0, c = 0; while (v > 1) { v = (v & 1) ? v * 3 + 1 : v >> 1; c++; } return c === q.answer; }
+      if (P.kind === 'reverse-add') { let v = P.n0; do { v += Number([...String(v)].reverse().join('')); } while ([...String(v)].reverse().join('') !== String(v)); return v === q.answer; }
+      return q.answer === 1 + (P.n0 - 1) % 9;   // the digital root shortcut: the remainder after dividing by 9
+    },
+  });
 })();
