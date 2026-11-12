@@ -3047,3 +3047,44 @@ html.pc-focus main { padding-top: 20px; }
 .sh-fold-r { display: inline-flex; align-items: center; gap: 10px; color: var(--muted); }
 .sh-fold-r input { width: 180px; accent-color: var(--primary); }
 .sh-fold-face { stroke: var(--ink); stroke-width: 1.4; stroke-linejoin: round; fill-opacity: .82; }
+.pc-receipt { margin: 12px 0 0; }
+.pc-receipt summary { cursor: pointer; width: max-content; max-width: 100%; color: var(--primary-ink); }
+.pc-receipt label { display: block; margin: 8px 0 6px; }
+.pc-receipt textarea { width: 100%; max-width: 420px; font: inherit; font-family: var(--mono); padding: .5rem .7rem; border: 1px solid var(--line-strong); border-radius: 12px; background: var(--surface); color: var(--ink); }
+.rt-start { align-items: flex-end; }
+.rt-start .sh-field input[type=text] { width: 6em; }
+.rt-start .sh-field.wide input[type=text] { width: 100%; }
+.rt-colon { font-size: 1.6rem; font-weight: 800; padding-bottom: .35rem; }
+.rt-ex { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 12px 0 0; }
+.rt-table { border-collapse: separate; border-spacing: 0; font-variant-numeric: tabular-nums; }
+.rt-table th, .rt-table td { padding: 8px 12px; text-align: center; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.rt-table tbody th { text-align: left; font-weight: 650; max-width: 12em; white-space: normal; }
+.rt-table tbody td { font-size: 1.15rem; font-weight: 700; border-left: 1px solid var(--line); }
+.rt-table td.on { background: var(--tint); }
+.rt-pick { border: 0; border-radius: 999px; padding: .25rem .65rem; min-height: 32px; font: 600 .82rem var(--font); background: transparent; color: var(--primary-ink); cursor: pointer; white-space: nowrap; }
+.rt-pick:hover { background: var(--tint); }
+.rt-pick.on { background: var(--primary); color: var(--on-primary); }
+.rt-newh { color: var(--muted); font-size: .82rem; }
+.rt-new input { width: 5.5em; min-height: 38px; text-align: center; font: 700 1.05rem var(--font); border: 1px dashed var(--line-strong); border-radius: 10px; background: var(--surface); color: var(--ink); }
+.rt-ops { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 14px 0 0; }
+.rt-by { display: inline-flex; align-items: center; gap: 6px; }
+.rt-by input { width: 4.5em; min-height: 36px; padding: .3rem .5rem; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--surface); color: var(--ink); font: inherit; }
+.mn-bank { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 10px; margin-top: 10px; }
+.mn-add { display: grid; justify-items: center; align-content: center; gap: 6px; min-height: 92px; padding: 10px 6px; border: 1px solid transparent; border-radius: 14px; background: var(--tint); color: var(--primary-ink); font-weight: 650; cursor: pointer; }
+.mn-add:hover { background: var(--tint-2); }
+.mn-tray { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-height: 64px; margin: 10px 0 6px; padding: 10px; border-radius: 14px; background: var(--surface-2); }
+.mn-on { border: 0; padding: 0; background: transparent; cursor: pointer; line-height: 0; border-radius: 8px; }
+.mn-on:hover { transform: translateY(-2px); }
+.mn-coin.cu { fill: #c98a52; stroke: #8f5b2e; stroke-width: 2; }
+.mn-coin.ag { fill: #d3d7de; stroke: #8b93a1; stroke-width: 2; }
+.mn-rim { fill: none; stroke: rgba(0, 0, 0, .18); stroke-width: 1.2; }
+.mn-bill { fill: #cfe6cf; stroke: #4f7f52; stroke-width: 2; }
+.mn-bill-in { fill: none; stroke: #4f7f52; stroke-width: 1; opacity: .6; }
+.mn-lab { font: 800 13px var(--font); fill: #1f2328; }
+.mn-total { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; margin: 4px 0 0; }
+.mn-total b { font-size: 1.6rem; }
+.mn-game:empty { display: none; }
+.mn-game { margin-top: 12px; }
+.mn-ask { font-size: 1.1rem; margin: 0 0 8px; }
+.mn-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.mn-form input { flex: 0 1 220px; min-width: 0; min-height: 40px; padding: .4rem .7rem; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--surface); color: var(--ink); font: inherit; }
