@@ -632,7 +632,7 @@
         return { prompt: codeQ(code), type: 'number', answer: ans, params: { code }, hints: [`range(${a}, ${b}) gives ${vals.join(', ')} (it stops before ${b}).`, `Their sum is <b>${ans}</b>.`] }; }
       if (kind === 'step') { const a = rng.int(1, 5), s = rng.int(2, 5), b = a + s * rng.int(3, 6) + rng.int(0, s - 1), vals = []; for (let v = a; v < b; v += s) vals.push(v); const m = rng.pick([1, 2, 10]), ans = vals.reduce((t, x) => t + x * m, 0);
         const code = ['total = 0', `for i in range(${a}, ${b}, ${s}):`, `    total += ${m === 1 ? 'i' : `i * ${m}`}`, 'print(total)'].join('\n');
-        return { prompt: codeQ(code), type: 'number', answer: ans, params: { code }, hints: [`range(${a}, ${b}, ${s}) starts at ${a} and counts by ${s}, stopping before ${b}: ${vals.join(', ')}.`, `${m === 1 ? 'Add them' : `Add ${m} times each`}: <b>${ans}</b>.`] }; }
+        return { prompt: codeQ(code), type: 'number', answer: ans, params: { code }, hints: [`range(${a}, ${b}, ${s}) starts at ${a} and counts by ${s}, stopping before ${b}: ${vals.join(', ')}.`, `${m === 1 ? 'Add them up' : `Add up each value times ${m}`}: <b>${ans}</b>.`] }; }
       if (kind === 'double') { const n = rng.int(3, 8), x0 = rng.int(1, 5), f = rng.pick([2, 3]), ans = x0 * f ** n;
         const code = [`x = ${x0}`, `for i in range(${n}):`, `    x = x * ${f}`, 'print(x)'].join('\n');
         return { prompt: codeQ(code), type: 'number', answer: ans, params: { code }, hints: [`range(${n}) gives ${n} values (0 to ${n - 1}), so the loop runs ${n} times.`, `${x0} multiplied by ${f}, ${n} times: ${x0} × ${f}<sup>${n}</sup> = <b>${N(ans)}</b>.`] }; }
