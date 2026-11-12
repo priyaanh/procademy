@@ -28,6 +28,7 @@
     units: [
       { id: 'puzzles', title: 'Logic puzzles', blurb: 'Truth-tellers and liars, ordering puzzles, matching puzzles, and if-then reasoning.', skills: ['logic.truth-tellers', 'logic.ordering', 'logic.matching', 'logic.if-then'] },
       { id: 'truth-tables', title: 'Truth tables', blurb: 'AND, OR and NOT, truth tables, equivalent expressions, and if-then statements.', skills: ['logic.and-or-not', 'logic.truth-table-rows', 'logic.equivalent', 'logic.conditionals'] },
+      { id: 'patterns', title: 'Sequences and patterns', blurb: 'What comes next, finding the nth term, repeating patterns, and growing patterns.', skills: ['logic.next-term', 'logic.nth-term', 'logic.repeating', 'logic.growing'] },
     ],
   };
   A.course(COURSE);
@@ -340,6 +341,121 @@
       if (P.form === 'same') return W.every(w => val([['p', true], ['q', true]], w) === val([ia, ib], w)) && q.choices.filter(ch => W.every(w => val(read(ch), w) === val([['p', true], ['q', true]], w))).length === 1;
       const want = { converse: [['q', true], ['p', true]], inverse: [['p', false], ['q', false]], contrapositive: [['q', false], ['p', false]] }[P.form];
       return JSON.stringify([ia, ib]) === JSON.stringify(want);
+    },
+  });
+
+  /* ---------- Unit 3: sequences and patterns ---------- */
+  const SEQ = {
+    arith: { make: rng => ({ a: rng.int(-10, 30), d: rng.nz(-9, 12) }), step: (P, t) => t.concat(t[t.length - 1] + P.d), first: P => [P.a], rule: P => `Each term ${P.d > 0 ? 'adds' : 'subtracts'} ${Math.abs(P.d)}.`, at: (P, i) => P.a + i * P.d },
+    geo: { make: rng => ({ a: rng.pick([1, 2, 3, 5]), r: rng.pick([2, 3, -2, 4]) }), step: (P, t) => t.concat(t[t.length - 1] * P.r), first: P => [P.a], rule: P => `Each term is multiplied by ${N(P.r)}.`, at: (P, i) => P.a * P.r ** i },
+    squares: { make: rng => ({ k: rng.int(1, 9) }), step: (P, t) => t.concat((P.k + t.length) ** 2), first: P => [P.k ** 2], rule: P => `These are square numbers: ${P.k}², ${P.k + 1}², ${P.k + 2}², …`, at: (P, i) => (P.k + i) ** 2 },
+    triangular: { make: rng => ({ k: rng.int(1, 6) }), step: (P, t) => t.concat(t[t.length - 1] + P.k + t.length), first: P => [P.k * (P.k + 1) / 2], rule: P => `The amount added goes up by 1 each time: +${P.k + 1}, +${P.k + 2}, +${P.k + 3}, …`, at: (P, i) => (P.k + i) * (P.k + i + 1) / 2 },
+    fib: { make: rng => ({ a: rng.int(1, 5), b: rng.int(1, 8) }), step: (P, t) => t.concat(t[t.length - 1] + t[t.length - 2]), first: P => [P.a, P.b], rule: () => 'Each term is the sum of the two before it.', at: (P, i) => { let x = P.a, y = P.b; for (let k = 0; k < i; k++) [x, y] = [y, x + y]; return x; } },
+    second: { make: rng => ({ a: rng.int(1, 20), d: rng.int(1, 6), c: rng.pick([2, 3]) }), step: (P, t) => t.concat(t[t.length - 1] + P.d + (t.length - 1) * P.c), first: P => [P.a], rule: P => `The amount added grows by ${P.c} each time: +${P.d}, +${P.d + P.c}, +${P.d + 2 * P.c}, …`, at: (P, i) => P.a + i * P.d + P.c * i * (i - 1) / 2 },
+    affine: { make: rng => { const m = rng.pick([2, 3]), b = rng.pick([1, -1, 2]); let a = rng.int(1, 5); if (a * (m - 1) + b === 0) a++; return { a, m, b }; }, step: (P, t) => t.concat(P.m * t[t.length - 1] + P.b), first: P => [P.a], rule: P => `Each term is ${P.m} times the one before, ${P.b > 0 ? 'plus' : 'minus'} ${Math.abs(P.b)}.`, at: (P, i) => { const f = P.b / (P.m - 1); return (P.a + f) * P.m ** i - f; } },
+    alternate: { make: rng => ({ a1: rng.int(1, 9), d1: rng.int(1, 5), a2: rng.int(10, 40), d2: rng.pick([5, 10, -3, -4]) }), step: (P, t) => { const i = t.length; return t.concat(i % 2 ? P.a2 + (i - 1) / 2 * P.d2 : P.a1 + i / 2 * P.d1); }, first: P => [P.a1], rule: P => `Two patterns take turns: ${P.a1}, ${P.a1 + P.d1}, ${P.a1 + 2 * P.d1}, … and ${P.a2}, ${P.a2 + P.d2}, ${P.a2 + 2 * P.d2}, …`, at: (P, i) => i % 2 ? P.a2 + (i - 1) / 2 * P.d2 : P.a1 + i / 2 * P.d1 },
+  };
+  const termsOf = (kind, P, n) => { let t = SEQ[kind].first(P); while (t.length < n) t = SEQ[kind].step(P, t); return t.slice(0, n); };
+  A.skill({
+    id: 'logic.next-term', title: 'What comes next?',
+    learn: p(`To continue a number pattern, <b>look at how each term changes into the next</b>. Check the differences first (adding the same amount? an amount that grows?), then ratios (multiplying?), then other ideas: squares, adding the two previous terms, or two patterns taking turns.`) +
+      p(`Programs often build lists exactly this way, with a rule that makes each new value from the ones before it. Test your rule on every term you're given, not just the first two.`) +
+      example('Example', `3, 5, 9, 15, 23, …: the differences are 2, 4, 6, 8, growing by 2, so the next difference is 10 and the next term is <b>33</b>.`),
+    make(rng) {
+      const kind = rng.pick(Object.keys(SEQ)), P = SEQ[kind].make(rng), shown = kind === 'alternate' ? 6 : kind === 'geo' ? 4 : 5, t = termsOf(kind, P, shown + 1);
+      return { prompt: `What number comes next?${big(t.slice(0, shown).map(N).join(', ') + ', ?')}`, type: 'number', answer: t[shown], params: { kind, P, shown },
+        hints: [`Look at how each term turns into the next.`, SEQ[kind].rule(P), `The next term is <b>${N(t[shown])}</b>.`] };
+    },
+    verify(q) { const { kind, P, shown } = q.params; return near(SEQ[kind].at(P, shown), q.answer, 1e-9) && termsOf(kind, P, shown).every((v, i) => near(v, SEQ[kind].at(P, i), 1e-9)); },
+  });
+
+  A.skill({
+    id: 'logic.nth-term', title: 'Finding the nth term',
+    learn: p(`In a pattern that adds the same amount ${V('d')} each time, the ${V('n')}th term is <b>first term + (${V('n')} − 1) × ${V('d')}</b>. Written as a rule, that's ${V('d')}${V('n')} + (first term − ${V('d')}).`) +
+      p(`A rule lets you jump straight to the 100th term without listing 99 terms first, the way a program uses a formula instead of a slow loop. To find <b>which</b> term has a certain value, work backward: subtract the first term, divide by ${V('d')}, and add 1.`) +
+      example('Example', `7, 11, 15, 19, …: ${V('d')} = 4, so the ${V('n')}th term is 4${V('n')} + 3. The 50th term is 4 × 50 + 3 = <b>203</b>, and 103 is the (103 − 7) ÷ 4 + 1 = 25th term.`),
+    make(rng) {
+      const kind = rng.pick(['term', 'rule', 'position']), a = rng.int(-5, 20), d = rng.nz(-6, 9), t = [0, 1, 2, 3].map(i => a + i * d), b = a - d, list = big(t.map(N).join(', ') + ', …');
+      if (kind === 'term') { const n = rng.pick([20, 25, 30, 50, 75, 100]), v = a + (n - 1) * d; return { prompt: `What is the ${M.ordinal(n)} term of this pattern?${list}`, type: 'number', answer: v, params: { kind, t, n }, hints: [`Each term ${d > 0 ? 'adds' : 'subtracts'} ${Math.abs(d)}. From the 1st term to the ${M.ordinal(n)} is ${n - 1} steps.`, `${N(a)} + ${n - 1} × ${d < 0 ? `(${N(d)})` : N(d)} = <b>${N(v)}</b>.`] }; }
+      if (kind === 'rule') {
+        const rule = (m, c) => `${M.poly([m, c], 'n')}`, answer = rule(d, b);
+        const choices = options(answer, [rule(b === 0 ? d + 1 : b, d), rule(d, a), rule(d, b + 2 * Math.sign(d || 1)), rule(-d, b), rule(d + 1, b - 1)]);
+        return { prompt: `Which rule gives the ${V('n')}th term of this pattern?${list}`, type: 'choice', answer, choices, params: { kind, t, rules: choices.map(c => A.stripTags(c)) },
+          hints: [`The pattern ${d > 0 ? 'adds' : 'subtracts'} ${Math.abs(d)} each time, so the rule starts with ${M.term(d, 'n')}.`, `For ${V('n')} = 1 it must give ${N(a)}: ${N(d)} ${b < 0 ? '−' : '+'} ${N(Math.abs(b))} = ${N(a)}. So <b>${answer}</b>.`] };
+      }
+      const n = rng.int(12, 80), v = a + (n - 1) * d;
+      return { prompt: `In this pattern, which term is ${N(v)}? (For example, ${N(t[1])} is the 2nd term.)${list}`, type: 'number', answer: n, params: { kind, t, v }, hints: [`Steps from the first term: (${N(v)} − ${N(a)}) ÷ ${N(d)} = ${n - 1}.`, `Add 1 for the first term itself: it is term number <b>${n}</b>.`] };
+    },
+    verify(q) {
+      const P = q.params, d = P.t[1] - P.t[0];
+      if (P.kind === 'term') { let v = P.t[0]; for (let i = 1; i < P.n; i++) v += d; return v === q.answer; }
+      if (P.kind === 'position') { let v = P.t[0], i = 1; while (v !== P.v && i < 1000) { v += d; i++; } return i === q.answer; }
+      // evaluate each rule (text like "4n + 3", "−2n − 1") at n = 1…4 and compare with the pattern
+      const evalRule = (r, n) => { const m = r.replace(/−/g, '-').replace(/\s+/g, '').match(/^(-?\d*)n([+-]\d+)?$/); if (!m) return NaN; const k = m[1] === '' ? 1 : m[1] === '-' ? -1 : Number(m[1]); return k * n + (m[2] ? Number(m[2]) : 0); };
+      const ok = P.rules.filter(r => P.t.every((v, i) => evalRule(r, i + 1) === v));
+      return ok.length === 1 && ok[0] === A.stripTags(q.answer);
+    },
+  });
+
+  const PATTERNS = ['ABC', 'ABCD', 'AABB', 'ABBC', 'ABCCD', 'ABACD', 'XYZZY', 'RGBGR', 'ABCDE', 'AABAC'];
+  A.skill({
+    id: 'logic.repeating', title: 'Repeating patterns',
+    learn: p(`A repeating pattern cycles through the same block again and again. <b>To find the ${V('n')}th item, divide ${V('n')} by the block length and look at the remainder</b>: remainder 1 is the block's first item, remainder 2 the second, and remainder 0 the last.`) +
+      p(`To count how often something appears, count it in one block, multiply by the number of full blocks, then add any in the leftover piece. Programmers use the remainder (the % operator) the same way to wrap around a list.`) +
+      example('Example', `ABCCD repeats. The block has 5 letters, and 23 = 4 × 5 + 3, so the 23rd letter is the block's 3rd: <b>C</b>. In the first 23 letters there are 4 × 2 + 1 = 9 C's.`),
+    make(rng) {
+      const pat = rng.pick(PATTERNS), L = pat.length, n = rng.int(20, 300), kind = rng.pick(['which', 'which', 'count']), seq = (pat + pat + pat).split('').join(' ') + ' …';
+      if (kind === 'which') {
+        const answer = pat[(n - 1) % L], letters = [...new Set(pat.split(''))];
+        return { prompt: `The letters ${pat} repeat over and over. What is the ${M.ordinal(n)} letter?${big(seq)}`, type: 'choice', keepOrder: true, answer, choices: letters, params: { kind, pat, n },
+          hints: [`The block ${pat} has ${L} letters. ${n} = ${L} × ${Math.floor(n / L)} + ${n % L}.`, n % L ? `Remainder ${n % L} means the ${M.ordinal(n % L)} letter of the block: <b>${answer}</b>.` : `Remainder 0 means the last letter of the block: <b>${answer}</b>.`] };
+      }
+      const ch = rng.pick([...new Set(pat.split(''))]), per = pat.split(ch).length - 1, full = Math.floor(n / L), rest = pat.slice(0, n % L).split(ch).length - 1, ans = full * per + rest;
+      return { prompt: `The letters ${pat} repeat over and over. How many times does ${ch} appear in the first ${n} letters?${big(seq)}`, type: 'number', answer: ans, params: { kind, pat, n, ch },
+        hints: [`Each block of ${L} has ${per} ${ch}${per === 1 ? '' : "'s"}, and ${n} letters make ${full} full block${full === 1 ? '' : 's'} plus ${n % L} more.`, `${full} × ${per}${n % L ? ` + ${rest}` : ''} = <b>${ans}</b>.`] };
+    },
+    verify(q) {
+      const P = q.params; let s = ''; while (s.length < P.n) s += P.pat; s = s.slice(0, P.n);
+      return P.kind === 'which' ? q.answer === s[P.n - 1] : s.split('').filter(c => c === P.ch).length === q.answer;
+    },
+  });
+
+  // growing tile patterns: the grid cells of figure n, and the matching rule
+  const GROW = {
+    stairs: { cells: n => { const c = []; for (let x = 0; x < n; x++) for (let y = 0; y <= x; y++) c.push([x, n - 1 - y]); return c; }, rule: n => n * (n + 1) / 2, say: 'a staircase', how: 'Figure n adds a column of n tiles: 1 + 2 + … + n = n(n + 1) ÷ 2.' },
+    ell: { cells: n => { const c = []; for (let y = 0; y <= n; y++) c.push([0, y]); for (let x = 1; x <= n; x++) c.push([x, n]); return c; }, rule: n => 2 * n + 1, say: 'an L shape', how: 'Each new figure adds 2 tiles (one up, one across): 2n + 1.' },
+    square1: { cells: n => { const c = []; for (let x = 0; x < n; x++) for (let y = 0; y < n; y++) c.push([x, y]); c.push([n, n - 1]); return c; }, rule: n => n * n + 1, say: 'a square with one extra tile', how: 'An n-by-n square plus 1 tile: n² + 1.' },
+    rect: { cells: n => { const c = []; for (let x = 0; x <= n; x++) for (let y = 0; y < n; y++) c.push([x, y]); return c; }, rule: n => n * (n + 1), say: 'a rectangle', how: 'An n-by-(n + 1) rectangle: n(n + 1).' },
+    cross: { cells: n => { const c = [[n, n]]; for (let k = 1; k <= n; k++) c.push([n + k, n], [n - k, n], [n, n + k], [n, n - k]); return c; }, rule: n => 4 * n + 1, say: 'a plus sign', how: 'A center tile and four arms of n tiles: 4n + 1.' },
+    border: { cells: n => { const c = [], s = n + 2; for (let x = 0; x < s; x++) for (let y = 0; y < s; y++) if (x === 0 || y === 0 || x === s - 1 || y === s - 1) c.push([x, y]); return c; }, rule: n => 4 * n + 4, say: 'a square frame', how: 'The frame around an n-by-n hole: 4n + 4.' },
+  };
+  function growPic(kind, upto) {
+    const s = 11, gap = 22; let x0 = 6, g = ''; const H = Math.max(...[1, 2, 3].map(n => { const c = GROW[kind].cells(n); return Math.max(...c.map(([, y]) => y)) + 1; })) * s;
+    for (let n = 1; n <= upto; n++) {
+      const c = GROW[kind].cells(n), w = (Math.max(...c.map(([x]) => x)) + 1) * s, h = (Math.max(...c.map(([, y]) => y)) + 1) * s;
+      c.forEach(([x, y]) => { g += `<rect class="fill" x="${x0 + x * s}" y="${8 + H - h + y * s}" width="${s}" height="${s}" stroke-width="1"/>`; });
+      g += `<text x="${x0 + w / 2}" y="${H + 26}" font-size="11" text-anchor="middle">Figure ${n}</text>`;
+      x0 += w + gap;
+    }
+    return `<svg class="figure" viewBox="0 0 ${x0 - gap + 12} ${H + 34}" width="${x0 - gap + 12}" role="img" aria-label="figures 1 to ${upto} of a growing tile pattern">${g}</svg>`;
+  }
+  A.skill({
+    id: 'logic.growing', title: 'Growing patterns',
+    learn: p(`A growing pattern changes by a rule from one figure to the next. <b>Count the tiles in the first few figures, look at how the count changes, and connect the change to the picture</b>: what gets added each time, and where?`) +
+      p(`If the same number of tiles is added each time, the rule is linear (like 2${V('n')} + 1). If the amount added keeps growing, look for squares or rectangles, as in ${V('n')}² + 1 or ${V('n')}(${V('n')} + 1).`) +
+      example('Example', `An L shape uses 3, 5, 7 tiles in figures 1, 2, 3. Each figure adds one tile up and one across, so figure ${V('n')} uses 2${V('n')} + 1, and figure 20 uses <b>41</b> tiles.`),
+    make(rng) {
+      const kind = rng.pick(Object.keys(GROW)), G = GROW[kind], counts = [1, 2, 3].map(G.rule), linear = ['ell', 'cross', 'border'].includes(kind), ask = linear && rng.chance(0.35) ? 'which' : 'count';
+      if (ask === 'which') { const n = rng.int(8, 40), T = G.rule(n); return { prompt: `The pattern below keeps growing the same way. Which figure uses exactly ${T} tiles?${growPic(kind, 3)}`, type: 'number', answer: n, params: { kind, T, ask }, hints: [`Count: figures 1, 2, 3 use ${counts.join(', ')} tiles. ${G.how}`, `Solve the rule for ${T}: figure <b>${n}</b>.`] }; }
+      const n = rng.pick([6, 8, 10, 12, 15, 20, 25]);
+      return { prompt: `The pattern below keeps growing the same way. How many tiles does figure ${n} use?${growPic(kind, 3)}`, type: 'number', answer: G.rule(n), params: { kind, n, ask },
+        hints: [`Count: figures 1, 2, 3 use ${counts.join(', ')} tiles.`, G.how, `Figure ${n} uses <b>${G.rule(n)}</b> tiles.`] };
+    },
+    verify(q) {
+      // count the drawn cells of the figure (no repeats), rather than using the formula
+      const P = q.params, count = n => new Set(GROW[P.kind].cells(n).map(c => c.join(','))).size;
+      if (P.ask === 'which') return count(q.answer) === P.T && count(q.answer - 1) < P.T;
+      return count(P.n) === q.answer;
     },
   });
 })();
