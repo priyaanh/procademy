@@ -100,6 +100,7 @@
 <script src="../lib/install.js"></script>
 <script src="../lib/family.js"></script>
 <script src="../lib/quicksearch.js"></script>
+<script src="../lib/help.js"></script>
 <script src="../lib/lang.js"></script>
 <script src="../lib/app.js"></script>
 <script>
@@ -2996,7 +2997,7 @@
   m = await go('#/unlimited');
   ok(tb && [...tb.querySelectorAll('a')].map(a => text(a)).join(',') === 'Home,Practice,Courses,Tutor' && tb.querySelector('a.active[data-nav="unlimited"][aria-current="page"]'), 'tab bar: Home, Practice, Courses and Tutor, with the current page marked');
   moreB.click(); await tick(10);
-  ok(!sheet.hidden && moreB.getAttribute('aria-expanded') === 'true' && [...sheet.querySelectorAll('a')].map(a => a.getAttribute('href')).join(' ') === '#/cpm #/tools #/progress #/family #/profile #/settings #/sitemap', 'tab bar: More opens CPM books, Tools, Progress, Family and class, Profile, Settings and All pages');
+  ok(!sheet.hidden && moreB.getAttribute('aria-expanded') === 'true' && [...sheet.querySelectorAll('.more-page')].map(a => a.getAttribute('href')).join(' ') === '#/cpm #/tools #/progress #/family #/profile #/settings #/help #/sitemap', 'tab bar: More opens CPM books, Tools, Progress, Family and class, Profile, Settings, Help and All pages');
   sheet.querySelector('a[href="#/tools"]').click(); await tick(60);
   ok(location.hash === '#/tools' && sheet.hidden && moreB.classList.contains('active') && !tb.querySelector('a.active'), 'tab bar: a page chosen from More opens, More closes, and More is marked as where you are');
   moreB.click(); await tick(10); document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await tick(10);
