@@ -3317,10 +3317,10 @@ html[data-motion="reduce"] .ex .hints .hint.hint-in, html[data-motion="reduce"] 
 .hint-pic.open { padding: 12px 14px; border-radius: 12px; background: var(--surface-2); }
 .hint-pic .hn { font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
 .hint-pic p { margin: 0; }
-.mdl-svg { width: 100%; max-width: 540px; height: auto; color: var(--ink); overflow: visible; }
-.mdl-svg text { fill: currentColor; font-size: 14px; font-family: var(--font); }
+.mdl-svg { width: 100%; max-width: 440px; height: auto; color: var(--ink); overflow: visible; }
+.mdl-svg text { fill: currentColor; font-size: 15px; font-family: var(--font); }
 .mdl-svg .mdl-lab { font-weight: 700; }
-.mdl-svg .mdl-in { font-size: 13px; }
+.mdl-svg .mdl-in { font-size: 14px; }
 .mdl-svg .mdl-zero { font-weight: 800; }
 .mdl-axis, .mdl-tick { stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; }
 .mdl-jump { fill: none; stroke: var(--primary); stroke-width: 2.5; stroke-linecap: round; }
@@ -3367,8 +3367,10 @@ mark.key-hl { background: none; color: inherit; text-decoration: underline 2px v
 #side-btn[aria-pressed="true"] { color: var(--primary-ink); background: var(--tint); }
 .coach-note .sign-show { padding: .1rem .55rem; border-radius: 999px; background: var(--surface); }
 .coach-note > span:last-child { flex: 1 1 240px; min-width: 0; }
+.side-link { display: none; margin-top: 14px; }
 @container page (max-width: 560px) {
-  .side-word { display: none; }
+  #side-btn { display: none; }
+  .side-link { display: inline-block; }
   .choices .why-not { margin-left: 8px; }
   .hint-acts { gap: 4px 14px; }
 }
