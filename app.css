@@ -3302,7 +3302,9 @@ html.hi-voice .hi-say { display: inline-flex; }
 .hi-big .hi-say { font-size: .92rem; letter-spacing: 0; }
 .hi-say-it { margin: 0 0 .4rem; color: var(--muted); font-size: .98rem; }
 .choices .hi { font-size: 1.32em; line-height: 1.6; }
-.learn .mtable .hi, .fc-term.hi { line-height: 1.6; }
+.learn .mtable .hi { line-height: 1.6; }
+.flashcard .fc-term.hi { line-height: 1.5; }
+.flashcard .fc-term.hi:not(.small) { font-size: 2.4rem; }
 .hi-grid-wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 12px 0 16px; }
 .hi-grid-wrap > .mtable { margin: 0; flex-basis: 100%; }
 .hi-grid { display: flex; flex-wrap: wrap; gap: 8px; }
