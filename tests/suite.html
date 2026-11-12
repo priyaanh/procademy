@@ -2309,7 +2309,7 @@
   E.journal('math7.add-negatives', S.get().missed[0].seed, { note: 'Look at the bigger size first.', why: 'unknown' });
   ok(E.journal('math7.add-negatives', S.get().missed[0].seed).why === 'unknown' && E.journalAll().length === 1, 'journal (156, 160): a note and a tag are kept with a mistake');
   S.addMissed('math7.circles', 'old1'); S.get().missed.find(x => x.seed === 'old1').t = Date.now() - 70 * 864e5; S.save();
-  ok(E.archiveOld() === 1 && !S.get().missed.some(x => x.seed === 'old1') && S.get().profile.archived.length === 1, 'archive (164): a mistake not missed again in 60 days moves to the archive');
+  ok(E.archiveOld() === 1 && !S.get().missed.some(x => x.seed === 'old1') && S.get().profile.oldMistakes.length === 1, 'archive (164): a mistake not missed again in 60 days moves to the archive');
   // the Review page
   ['math7.circles', 'math7.percent-of', 'math7.order-ops-negatives', 'math7.unit-rate', 'math7.circles', 'math7.percent-of'].forEach((id, k) => { S.addMissed(id, 'rp' + k, k % 2 ? 'sign' : null); S.get().missed[0].t = Date.now() - (10 - k) * 3600e3; });
   S.save();
@@ -2323,7 +2323,7 @@
   ok(text(m.querySelector('#rv-cal-list')).includes(COACH.text(A.skills['math7.circles'].title)) && /3 days/.test(m.querySelector('.rv-how-sr').textContent), 'calendar (154, 163): a day lists its skills, and spaced review is explained in plain words');
   m.querySelector('[data-sort="new"]').click(); await tick();
   const firstFind = m.querySelector('.rv-item').dataset.find, newest = S.get().missed.slice().sort((a, b) => (b.last || b.t) - (a.last || a.t))[0];
-  ok(m.querySelector('.rv-flat') && S.get().profile.review.sort === 'new' && firstFind.includes(COACH.text(A.question(newest.skill, newest.seed).prompt).toLowerCase().slice(0, 12)), 'sort (159): newest first, remembered');
+  ok(m.querySelector('.rv-flat') && S.get().profile.reviewPrefs.sort === 'new' && firstFind.includes(COACH.text(A.question(newest.skill, newest.seed).prompt).toLowerCase().slice(0, 12)), 'sort (159): newest first, remembered');
   m.querySelector('#rv-find').value = 'circle'; m.querySelector('#rv-find').dispatchEvent(new Event('input')); await tick();
   const vis = [...m.querySelectorAll('.rv-item')].filter(li => !li.hidden);
   ok(vis.length >= 1 && vis.length < nMissed && vis.every(li => li.dataset.find.includes('circle')), 'search (165): the list narrows to matching mistakes');
@@ -2360,7 +2360,7 @@
   rr.seen();
   ok(!V.reviewReminder(), 'reminder (158): once seen, quiet for the rest of the day');
   m.querySelector('#rv-unarchive').click(); await tick();
-  ok(S.get().missed.some(x => x.seed === 'old1') && !(S.get().profile.archived || []).length, 'archive (164): Bring them back returns them to Review');
+  ok(S.get().missed.some(x => x.seed === 'old1') && !(S.get().profile.oldMistakes || []).length, 'archive (164): Bring them back returns them to Review');
   clearDevR(); S.reset();
   }
 
