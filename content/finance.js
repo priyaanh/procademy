@@ -28,6 +28,7 @@
       { id: 'budgets', title: 'Budgets and banking', blurb: 'What’s left after expenses, budget percentages, and keeping a running balance.', skills: ['fin.budget', 'fin.budget-percents', 'fin.running-balance'] },
       { id: 'shopping', title: 'Smart shopping', blurb: 'Unit prices and better buys, discounts and sales, sales tax, and tips.', skills: ['fin.unit-price', 'fin.discounts', 'fin.sales-tax', 'fin.tips'] },
       { id: 'interest', title: 'Interest', blurb: 'Simple and compound interest, comparing them and APY, and how long money takes to double.', skills: ['fin.simple-interest', 'fin.compound-interest', 'fin.simple-vs-compound', 'fin.doubling'] },
+      { id: 'credit', title: 'Loans and credit', blurb: 'Monthly loan payments, the total cost of a loan, credit card interest, and where each payment goes.', skills: ['fin.loan-payment', 'fin.loan-cost', 'fin.credit-cards', 'fin.amortization'] },
     ],
   };
   A.course(COURSE);
@@ -123,6 +124,9 @@
   const sizeName = (q, unit) => unit === 'bar' ? `The ${q}-bar box` : `The ${q}-${unit.replace(' ', '-')} size`;
   /** "a" or "an" before a number said aloud */
   const an = n => [8, 11, 18].includes(n) || (n >= 80 && n < 90) ? 'an' : 'a';
+  /** "a" or "an" before a dollar amount said aloud: an $8.99 item, an $11,000.00 loan */
+  const anD = x => { const d = String(Math.floor(Math.abs(x))); return /^8/.test(d) || (d.length % 3 === 2 && /^1[18]/.test(d)) ? 'an' : 'a'; };
+  const AnD = x => anD(x) === 'an' ? 'An' : 'A';
   const Word = n => ['Zero', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten'][n] || N(n);
   /** a price in cents for q units whose price per unit isn't close to a half cent (so "nearest cent" is clear) */
   function clearPrice(rng, q, lo, hi) { let c; do { c = rng.int(lo, hi); } while (Math.abs((c / q) % 1 - 0.5) < 0.06); return c; }
@@ -176,7 +180,7 @@
       }
       if (kind === 'percent-off') { const O = rng.int(4, 40) * 5, S = O * (100 - pc) / 100; return { prompt: `A ${item} that usually costs ${$(O)} is on sale for ${$(S)}. What percent off is that?`, type: 'number', answer: pc, unit: '%', params: { kind, O, S }, hints: [`The discount is ${$(O)} − ${$(S)} = ${$(O - S)}.`, `${$(O - S)} ÷ ${$(O)} × 100 = <b>${pc}%</b> off.`] }; }
       const dOff = rng.int(5, 40), save = pctOf(P, pc), tie = save === dOff * 100, opts = [`The ${$(dOff)}-off coupon`, `The ${pc}% discount`, 'Both save the same amount'], answer = tie ? opts[2] : save > dOff * 100 ? opts[1] : opts[0];
-      return { prompt: `For a ${$(price)} ${item}, you can use either a ${$(dOff)}-off coupon or a ${pc}% discount, but not both. Which saves more?`, type: 'choice', keepOrder: true, answer, choices: opts, params: { kind, P, pc, dOff },
+      return { prompt: `For ${anD(price)} ${$(price)} ${item}, you can use either ${anD(dOff)} ${$(dOff)}-off coupon or a ${pc}% discount, but not both. Which saves more?`, type: 'choice', keepOrder: true, answer, choices: opts, params: { kind, P, pc, dOff },
         hints: [`The ${pc}% discount saves ${N(pc / 100)} × ${$(price)} = ${$(dl(save))}. The coupon saves ${$(dOff)}.`, tie ? `They're equal: <b>both save the same amount</b>.` : `<b>${answer}</b> saves more.`] };
     },
     verify(q) {
@@ -203,11 +207,11 @@
       const list = items.length === 1 ? `an item priced at ${$(items[0])}` : `items priced at ${M.list(items.map($))}`;
       if (kind === 'total' || kind === 'tax') return { prompt: `${rng.pick(NAMES)} buys ${list}. The sales tax rate is ${N(r)}%. What is the ${kind === 'tax' ? 'sales tax' : 'total cost including tax'}, in dollars?`, type: 'number', answer: dl(kind === 'tax' ? tax : sub + tax), unit: '$', params: { kind, sub, r },
         hints: [`${items.length > 1 ? `Subtotal: ${$(dl(sub))}. ` : ''}Tax: ${N(r / 100)} × ${$(dl(sub))} = ${N(M.round(sub * r / 10000, 5))}, which rounds to ${$(dl(tax))}.`, kind === 'tax' ? `The tax is <b>${$(dl(tax))}</b>.` : `Total: ${$(dl(sub))} + ${$(dl(tax))} = <b>${$(dl(sub + tax))}</b>.`] };
-      if (kind === 'rate') { const ans = M.round(tax / sub * 100, 2); return { prompt: `The tax on a ${$(dl(sub))} purchase is ${$(dl(tax))}. What is the tax rate, as a percent, to the nearest hundredth?`, type: 'number', answer: ans, unit: '%', tolerance: 0.01, params: { kind, sub, tax }, hints: [`Rate = tax ÷ price × 100 = ${N(dl(tax))} ÷ ${N(dl(sub))} × 100.`, `≈ <b>${N(ans)}%</b>.`] }; }
+      if (kind === 'rate') { const ans = M.round(tax / sub * 100, 2); return { prompt: `The tax on ${anD(dl(sub))} ${$(dl(sub))} purchase is ${$(dl(tax))}. What is the tax rate, as a percent, to the nearest hundredth?`, type: 'number', answer: ans, unit: '%', tolerance: 0.01, params: { kind, sub, tax }, hints: [`Rate = tax ÷ price × 100 = ${N(dl(tax))} ÷ ${N(dl(sub))} × 100.`, `≈ <b>${N(ans)}%</b>.`] }; }
       if (kind === 'before-tax') return { prompt: `${rng.pick(NAMES)} paid ${$(dl(sub + tax))} for a purchase, including ${N(r)}% sales tax. What was the price before tax, in dollars?`, type: 'number', answer: dl(sub), unit: '$', params: { kind, total: sub + tax, r },
         hints: [`Price × ${N(1 + r / 100)} = ${$(dl(sub + tax))}.`, `Price = ${$(dl(sub + tax))} ÷ ${N(1 + r / 100)} ≈ <b>${$(dl(sub))}</b>.`] };
       const pc = rng.pick([10, 20, 25, 30, 40]), sale = sub - pctOf(sub, pc), t2 = pctOf(sale, r);
-      return { prompt: `A ${$(dl(sub))} item is ${pc}% off, and then ${N(r)}% sales tax is added to the sale price. What is the total, in dollars?`, type: 'number', answer: dl(sale + t2), unit: '$', params: { kind, sub, pc, r },
+      return { prompt: `${AnD(dl(sub))} ${$(dl(sub))} item is ${pc}% off, and then ${N(r)}% sales tax is added to the sale price. What is the total, in dollars?`, type: 'number', answer: dl(sale + t2), unit: '$', params: { kind, sub, pc, r },
         hints: [`Sale price: ${$(dl(sub))} − ${$(dl(pctOf(sub, pc)))} = ${$(dl(sale))}.`, `Tax on the sale price: ${N(r / 100)} × ${$(dl(sale))} ≈ ${$(dl(t2))}.`, `Total: <b>${$(dl(sale + t2))}</b>.`] };
     },
     verify(q) {
@@ -228,7 +232,7 @@
       const kind = rng.pick(['tip', 'total', 'split', 'pre-tax']), bill = rng.int(1800, 16000) / 100, B = ct(bill), tp = rng.pick([15, 18, 20, 22, 25]), tip = pctOf(B, tp);
       if (kind === 'tip' || kind === 'total') return { prompt: `A restaurant bill is ${$(bill)}. How much is ${kind === 'tip' ? `${an(tp)} ${tp}% tip` : `the total with ${an(tp)} ${tp}% tip`}, in dollars?`, type: 'number', answer: dl(kind === 'tip' ? tip : B + tip), unit: '$', params: { kind, B, tp },
         hints: [`Tip: ${N(tp / 100)} × ${$(bill)} = ${N(M.round(B * tp / 10000, 4))} ≈ ${$(dl(tip))}.`, kind === 'tip' ? `The tip is <b>${$(dl(tip))}</b>.` : `Total: ${$(bill)} + ${$(dl(tip))} = <b>${$(dl(B + tip))}</b>.`] };
-      if (kind === 'split') { const n = rng.int(2, 6), each = Math.round((B + tip) / n); return { prompt: `${Word(n)} friends share a ${$(bill)} bill and add ${an(tp)} ${tp}% tip. If they split the total evenly, about how much does each person pay, to the nearest cent?`, type: 'number', answer: dl(each), unit: '$', params: { kind, B, tp, n }, hints: [`Total with tip: ${$(bill)} + ${$(dl(tip))} = ${$(dl(B + tip))}.`, `${$(dl(B + tip))} ÷ ${n} = ${N(M.round((B + tip) / n / 100, 4))}, about <b>${$(dl(each))}</b> each.`] }; }
+      if (kind === 'split') { const n = rng.int(2, 6), each = Math.round((B + tip) / n); return { prompt: `${Word(n)} friends share ${anD(bill)} ${$(bill)} bill and add ${an(tp)} ${tp}% tip. If they split the total evenly, about how much does each person pay, to the nearest cent?`, type: 'number', answer: dl(each), unit: '$', params: { kind, B, tp, n }, hints: [`Total with tip: ${$(bill)} + ${$(dl(tip))} = ${$(dl(B + tip))}.`, `${$(dl(B + tip))} ÷ ${n} = ${N(M.round((B + tip) / n / 100, 4))}, about <b>${$(dl(each))}</b> each.`] }; }
       const r = rng.pick(RATES), tax = pctOf(B, r);
       return { prompt: `A meal costs ${$(bill)} before tax. The sales tax is ${N(r)}%, and ${rng.pick(NAMES)} leaves ${an(tp)} ${tp}% tip on the pre-tax amount. What is the total, in dollars?`, type: 'number', answer: dl(B + tax + tip), unit: '$', params: { kind, B, tp, r },
         hints: [`Tax: ${N(r / 100)} × ${$(bill)} ≈ ${$(dl(tax))}. Tip: ${N(tp / 100)} × ${$(bill)} ≈ ${$(dl(tip))}.`, `Total: ${$(bill)} + ${$(dl(tax))} + ${$(dl(tip))} = <b>${$(dl(B + tax + tip))}</b>.`] };
@@ -346,4 +350,106 @@
   });
 
   
+
+/* ---------- Unit 4: loans and credit ---------- */
+  /** the monthly payment that pays off principal P (dollars) at APR r (percent) in n months */
+  const payment = (P, r, n) => { const i = r / 1200; return P * i * Math.pow(1 + i, n) / (Math.pow(1 + i, n) - 1); };
+  const PMT = `${V('M')} = ${V('P')} · ${F(`${V('i')}(1 + ${V('i')})<sup>${V('n')}</sup>`, `(1 + ${V('i')})<sup>${V('n')}</sup> − 1`)}`;
+  const LOANS = [['car loan', 8000, 32000], ['student loan', 5000, 25000], ['loan for a used car', 4000, 15000], ['home improvement loan', 6000, 20000]];
+  A.skill({
+    id: 'fin.loan-payment', title: 'Monthly loan payments',
+    learn: p(`Most loans are paid back in equal monthly payments that cover both interest and principal. The payment is <b>${PMT}</b>, where ${V('P')} is the amount borrowed, ${V('i')} is the monthly rate (the APR ÷ 12, as a decimal), and ${V('n')} is the number of monthly payments.`) +
+      p(`Work it step by step on a calculator: find ${V('i')}, then (1 + ${V('i')})<sup>${V('n')}</sup>, then the fraction, and round the payment to the nearest cent at the end.`) +
+      example('Example', `$12,000 at 6% APR for 4 years: ${V('i')} = 0.005, ${V('n')} = 48, and (1.005)<sup>48</sup> ≈ 1.27049. ${V('M')} = 12,000 × 0.005 × 1.27049 ÷ 0.27049 ≈ <b>$281.82</b> a month.`),
+    make(rng) {
+      const [what, lo, hi] = rng.pick(LOANS), P = rng.int(lo / 500, hi / 500) * 500, r = rng.pick([3.9, 4.5, 5, 5.5, 6, 6.5, 7.2, 8, 9.5]), y = rng.int(2, 6), n = 12 * y, Mv = payment(P, r, n), ans = M.round(Mv, 2), g = Math.pow(1 + r / 1200, n);
+      return { prompt: `${AnD(P)} ${$(P)} ${what} has an APR of ${N(r)}% and is repaid in equal monthly payments over ${y} years. What is the monthly payment, to the nearest cent?${`<div class="big">${PMT}</div>`}`, type: 'number', answer: ans, unit: '$', tolerance: 0.01, params: { P, r, n },
+        hints: [`${V('i')} = ${N(r)} ÷ 1200 ≈ ${N(M.round(r / 1200, 7))} (keep every digit on your calculator) and ${V('n')} = ${n}.`, `(1 + ${V('i')})<sup>${n}</sup> ≈ ${N(M.round(g, 5))}.`, `${V('M')} = ${N(P)} × ${N(M.round(r / 1200, 7))} × ${N(M.round(g, 5))} ÷ ${N(M.round(g - 1, 5))} ≈ <b>${$(ans)}</b>.`] };
+    },
+    verify(q) {
+      // find the payment that leaves exactly $0 owed, by bisection on a month-by-month simulation
+      const P = q.params, owed = m => { let b = P.P; for (let k = 0; k < P.n; k++) b = b * (1 + P.r / 1200) - m; return b; };
+      let lo = 0, hi = P.P; for (let it = 0; it < 80; it++) { const mid = (lo + hi) / 2; if (owed(mid) > 0) lo = mid; else hi = mid; }
+      return centsOk(q.answer, lo);
+    },
+  });
+
+  A.skill({
+    id: 'fin.loan-cost', title: 'The total cost of a loan',
+    learn: p(`<b>Total paid = monthly payment × number of payments</b> (plus any down payment). The <b>finance charge</b>, the total interest, is the total paid minus the amount borrowed.`) +
+      p(`A longer loan has a smaller monthly payment but usually costs much more in interest. A <b>down payment</b> lowers the amount you borrow: borrow the price minus the down payment.`) +
+      example('Example', `A $9,000 loan paid with 36 payments of $273.81 costs 36 × 273.81 = $9,857.16 in all, so the finance charge is <b>$857.16</b>.`),
+    make(rng) {
+      const kind = rng.pick(['finance-charge', 'total-with-down', 'longer-term', 'down-payment']), [what, lo, hi] = rng.pick(LOANS), P = rng.int(lo / 500, hi / 500) * 500, r = rng.pick([4.5, 5, 6, 6.5, 7.2, 8, 9.5]), y = rng.int(2, 6), n = 12 * y, Mc = ct(payment(P, r, n));
+      if (kind === 'finance-charge') return { prompt: `${AnD(P)} ${$(P)} ${what} is repaid with ${n} monthly payments of ${$(dl(Mc))}. What is the finance charge (the total interest paid), in dollars?`, type: 'number', answer: dl(Mc * n - P * 100), unit: '$', params: { kind, P, n, Mc },
+        hints: [`Total paid: ${n} × ${$(dl(Mc))} = ${$(dl(Mc * n))}.`, `Finance charge: ${$(dl(Mc * n))} − ${$(P)} = <b>${$(dl(Mc * n - P * 100))}</b>.`] };
+      if (kind === 'total-with-down') {
+        const down = rng.pick([500, 1000, 1500, 2000, 2500]), price = P + down;
+        return { prompt: `${rng.pick(NAMES)} buys ${anD(price)} ${$(price)} car with ${$(down)} down and ${n} monthly payments of ${$(dl(Mc))}. What is the total cost of the car, in dollars?`, type: 'number', answer: dl(down * 100 + Mc * n), unit: '$', params: { kind, down, n, Mc },
+          hints: [`Payments: ${n} × ${$(dl(Mc))} = ${$(dl(Mc * n))}.`, `Add the down payment: ${$(dl(Mc * n))} + ${$(down)} = <b>${$(dl(down * 100 + Mc * n))}</b>.`] };
+      }
+      if (kind === 'longer-term') {
+        const n2 = n + 24, M2 = ct(payment(P, r, n2)), i1 = Mc * n - P * 100, i2 = M2 * n2 - P * 100;
+        return { prompt: `${AnD(P)} ${$(P)} ${what} at ${N(r)}% APR can be repaid with ${n} payments of ${$(dl(Mc))} or ${n2} payments of ${$(dl(M2))}. How much more interest does the longer loan cost, in dollars?`, type: 'number', answer: dl(i2 - i1), unit: '$', params: { kind, P, n, Mc, n2, M2 },
+          hints: [`Interest on the shorter loan: ${n} × ${$(dl(Mc))} − ${$(P)} = ${$(dl(i1))}. On the longer loan: ${n2} × ${$(dl(M2))} − ${$(P)} = ${$(dl(i2))}.`, `Difference: <b>${$(dl(i2 - i1))}</b> more, even though each payment is smaller.`] };
+      }
+      const price = rng.int(16, 60) * 500, pc = rng.pick([10, 15, 20, 25]), down = pctOf(price * 100, pc);
+      return { prompt: `A car costs ${$(price)}. The buyer makes a ${pc}% down payment and borrows the rest. How much is borrowed, in dollars?`, type: 'number', answer: dl(price * 100 - down), unit: '$', params: { kind, price, pc },
+        hints: [`Down payment: ${N(pc / 100)} × ${$(price)} = ${$(dl(down))}.`, `Borrowed: ${$(price)} − ${$(dl(down))} = <b>${$(dl(price * 100 - down))}</b>.`] };
+    },
+    verify(q) {
+      const P = q.params, B = x => BigInt(x);
+      if (P.kind === 'finance-charge') return B(P.Mc) * B(P.n) - B(P.P) * 100n === B(ct(q.answer));
+      if (P.kind === 'total-with-down') return B(P.down) * 100n + B(P.Mc) * B(P.n) === B(ct(q.answer));
+      if (P.kind === 'longer-term') return (B(P.M2) * B(P.n2)) - (B(P.Mc) * B(P.n)) === B(ct(q.answer));
+      return B(P.price) * 100n - B(bigPct(P.price * 100, P.pc * 1000)) === B(ct(q.answer));
+    },
+  });
+
+  const APRS = [17.99, 19.99, 21.99, 22.49, 24.99, 26.99, 29.99];
+  /** a month's interest in cents on a balance in cents at an APR (percent, two decimals): balance × APR ÷ 12, nearest cent */
+  const monthInt = (cents, apr) => Math.round(cents * Math.round(apr * 100) / 120000);
+  A.skill({
+    id: 'fin.credit-cards', title: 'Credit card interest',
+    learn: p(`A credit card's interest rate is given as an <b>APR</b> (annual percentage rate). Each month, interest is roughly the balance times the <b>monthly rate, APR ÷ 12</b>: at 24% APR that's 2% a month. Card rates are high, so a balance that isn't paid off grows fast.`) +
+      p(`Cards ask for a <b>minimum payment</b>, often a small percent of the balance or a fixed amount, whichever is greater. Paying only the minimum keeps most of the balance on the card, still collecting interest.`) +
+      example('Example', `A $1,850.00 balance at 21.99% APR: one month's interest is 1,850 × 0.2199 ÷ 12 ≈ <b>$33.90</b>.`),
+    make(rng) {
+      const kind = rng.pick(['interest', 'minimum', 'new-balance']), apr = rng.pick(APRS), bal = rng.int(30000, 600000), who = rng.pick(NAMES);
+      if (kind === 'interest') { const I = monthInt(bal, apr); return { prompt: `${who}'s credit card has a balance of ${$(dl(bal))} and an APR of ${N(apr)}%. How much interest is charged for one month, to the nearest cent?`, type: 'number', answer: dl(I), unit: '$', params: { kind, bal, apr }, hints: [`Monthly rate: ${N(apr)}% ÷ 12 ≈ ${N(M.round(apr / 12, 4))}%.`, `${N(dl(bal))} × ${N(apr / 100)} ÷ 12 = ${N(M.round(bal * apr / 120000, 4))} ≈ <b>${$(dl(I))}</b>.`] }; }
+      if (kind === 'minimum') {
+        const pc = rng.pick([2, 3]), floor = rng.pick([25, 35]), b2 = rng.chance(0.3) ? rng.int(30000, floor * 100 * 100 / pc) : bal, m = Math.max(floor * 100, pctOf(b2, pc));
+        return { prompt: `A credit card's minimum payment is ${pc}% of the balance or ${$(floor)}, whichever is greater. What is the minimum payment on a balance of ${$(dl(b2))}?`, type: 'number', answer: dl(m), unit: '$', params: { kind, bal: b2, pc, floor },
+          hints: [`${pc}% of ${$(dl(b2))} is ${$(dl(pctOf(b2, pc)))}.`, `The greater of ${$(dl(pctOf(b2, pc)))} and ${$(floor)} is <b>${$(dl(m))}</b>.`] };
+      }
+      const pay = rng.int(50, Math.max(60, Math.floor(bal / 200))) * 100, I = monthInt(bal, apr), buys = rng.pick([0, 0, rng.int(1500, 20000)]), nb = bal + I - pay + buys;
+      return { prompt: `${who}'s card has a balance of ${$(dl(bal))} at ${N(apr)}% APR. This month the card adds one month's interest on that balance, ${who} pays ${$(dl(pay))}${buys ? `, and makes new purchases of ${$(dl(buys))}` : ''}. What is the new balance, in dollars?`, type: 'number', answer: dl(nb), unit: '$', params: { kind, bal, apr, pay, buys },
+        hints: [`Interest: ${N(dl(bal))} × ${N(apr / 100)} ÷ 12 ≈ ${$(dl(I))}.`, `${$(dl(bal))} + ${$(dl(I))} − ${$(dl(pay))}${buys ? ` + ${$(dl(buys))}` : ''} = <b>${$(dl(nb))}</b>.`] };
+    },
+    verify(q) {
+      const P = q.params, half = (num, den) => Number((2n * num + den) / (2n * den));
+      const I = () => half(BigInt(P.bal) * BigInt(Math.round(P.apr * 100)), 120000n);
+      if (P.kind === 'interest') return dl(I()) === q.answer;
+      if (P.kind === 'minimum') return dl(Math.max(P.floor * 100, bigPct(P.bal, P.pc * 1000))) === q.answer;
+      return dl(P.bal + I() - P.pay + P.buys) === q.answer;
+    },
+  });
+
+  A.skill({
+    id: 'fin.amortization', title: 'Inside a loan payment',
+    learn: p(`Each loan payment is split in two. First, <b>interest for the month = balance × APR ÷ 12</b>. The <b>rest of the payment goes to principal</b> and lowers the balance. So the new balance = old balance − (payment − interest).`) +
+      p(`Early on, much of each payment is interest; as the balance shrinks, more goes to principal. A table of these splits month by month is an <b>amortization schedule</b>.`) +
+      example('Example', `A $15,000 balance at 6% APR with a $290.00 payment: interest is 15,000 × 0.06 ÷ 12 = $75.00, principal is $215.00, and the new balance is <b>$14,785.00</b>.`),
+    make(rng) {
+      const [what, lo, hi] = rng.pick(LOANS), bal = rng.int(lo / 10, hi / 10) * 1000 + rng.pick([0, 0, 2550, 7525]), r = rng.pick([3.6, 4.2, 4.8, 5.4, 6, 6.6, 7.2, 8.4]), Mc = Math.ceil(ct(payment(bal / 100, r, 12 * rng.int(3, 6))) / 100) * 100;
+      const I = monthInt(bal, r), prin = Mc - I, nb = bal - prin, ask = rng.pick(['interest', 'principal', 'balance']), ans = { interest: I, principal: prin, balance: nb }[ask];
+      const what2 = { interest: 'how much of the next payment goes to interest', principal: 'how much of the next payment goes to principal', balance: 'what is the balance after the next payment' }[ask];
+      return { prompt: `A ${what} has a balance of ${$(dl(bal))} at ${N(r)}% APR, with monthly payments of ${$(dl(Mc))}. To the nearest cent, ${what2}?`, type: 'number', answer: dl(ans), unit: '$', params: { bal, r, Mc, ask },
+        hints: [`Interest: ${N(dl(bal))} × ${N(r / 100)} ÷ 12 ≈ ${$(dl(I))}.`, `Principal: ${$(dl(Mc))} − ${$(dl(I))} = ${$(dl(prin))}.${ask === 'balance' ? ` New balance: ${$(dl(bal))} − ${$(dl(prin))} = ${$(dl(nb))}.` : ''}`, `<b>${$(dl(ans))}</b>.`] };
+    },
+    verify(q) {
+      const P = q.params, I = Number((2n * BigInt(P.bal) * BigInt(Math.round(P.r * 100)) + 120000n) / 240000n);
+      return dl({ interest: I, principal: P.Mc - I, balance: P.bal - (P.Mc - I) }[P.ask]) === q.answer;
+    },
+  });
 })();
