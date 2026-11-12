@@ -30,6 +30,7 @@
       { id: 'truth-tables', title: 'Truth tables', blurb: 'AND, OR and NOT, truth tables, equivalent expressions, and if-then statements.', skills: ['logic.and-or-not', 'logic.truth-table-rows', 'logic.equivalent', 'logic.conditionals'] },
       { id: 'patterns', title: 'Sequences and patterns', blurb: 'What comes next, finding the nth term, repeating patterns, and growing patterns.', skills: ['logic.next-term', 'logic.nth-term', 'logic.repeating', 'logic.growing'] },
       { id: 'reading-code', title: 'Reading code', blurb: 'Tracing variables, if and else, for loops, while loops, nested loops, lists, and functions, all by reading code without running it.', skills: ['logic.trace-variables', 'logic.trace-if', 'logic.for-loops', 'logic.while-loops', 'logic.nested-loops', 'logic.lists', 'logic.functions'] },
+      { id: 'bases', title: 'Binary and number bases', blurb: 'Reading and writing binary, other bases such as hexadecimal, bits and bytes, and adding in binary.', skills: ['logic.binary-to-decimal', 'logic.decimal-to-binary', 'logic.other-bases', 'logic.bits'] },
     ],
   };
   A.course(COURSE);
@@ -731,4 +732,82 @@
     },
     verify: codeVerify,
   });
+
+/* ---------- Unit 5: binary and number bases ---------- */
+  const DIG = '0123456789ABCDEF';
+  /** a whole number written in base b, by repeated division (the way you'd do it by hand) */
+  const toBase = (n, b) => { if (n === 0) return '0'; let s = ''; while (n > 0) { s = DIG[n % b] + s; n = Math.floor(n / b); } return s; };
+  /** a numeral in base b back to a number, by place values (used by verify) */
+  const fromBase = (s, b) => String(s).toUpperCase().split('').reduce((v, ch) => { const d = DIG.indexOf(ch); if (d < 0 || d >= b) return NaN; return v * b + d; }, 0);
+  const subB = (s, b) => `${s}<sub>${b === 16 ? 'sixteen' : b === 10 ? 'ten' : b === 2 ? 'two' : b === 8 ? 'eight' : b === 5 ? 'five' : 'three'}</sub>`;
+  const places = (s, b) => s.split('').map((ch, i) => `${DIG.indexOf(ch)} × ${b}<sup>${s.length - 1 - i}</sup>`).join(' + ');
+  A.skill({
+    id: 'logic.binary-to-decimal', title: 'Reading binary numbers',
+    learn: p(`Computers store everything with two digits, 0 and 1: <b>binary</b>, or base two. In base ten each place is worth 10 times the place to its right; <b>in binary each place is worth 2 times the place to its right</b>: 1, 2, 4, 8, 16, 32, 64, 128, …`) +
+      p(`To read a binary number, <b>add up the place values that have a 1</b>. Each binary digit is called a <b>bit</b>.`) +
+      example('Example', `${subB('101101', 2)}: the 1s are in the 32, 8, 4 and 1 places, so it is 32 + 8 + 4 + 1 = <b>45</b>.`),
+    make(rng) {
+      const n = rng.int(5, rng.pick([63, 255, 1023])), s = toBase(n, 2), ones = s.split('').map((c, i) => c === '1' ? 2 ** (s.length - 1 - i) : 0).filter(Boolean);
+      return { prompt: `What is the binary number ${subB(s, 2)} in base ten?`, type: 'number', answer: n, params: { s },
+        hints: [`Place values from the right: ${s.split('').map((_, i) => 2 ** (s.length - 1 - i)).join(', ')}.`, `Add the places with a 1: ${ones.join(' + ')} = <b>${n}</b>.`] };
+    },
+    verify(q) { let v = 0; q.params.s.split('').reverse().forEach((c, i) => { if (c === '1') v += 2 ** i; }); return v === q.answer; },
+  });
+
+  A.skill({
+    id: 'logic.decimal-to-binary', title: 'Writing numbers in binary',
+    learn: p(`To write a number in binary, <b>find the biggest power of 2 that fits, put a 1 in that place, subtract, and repeat</b>, putting 0 in the places you skip. Or divide by 2 again and again: the remainders, read from the last to the first, are the binary digits.`) +
+      p(`Check your answer by adding the place values back up. Don't start a binary number with 0.`) +
+      example('Example', `45: 32 fits (13 left), 16 doesn't, 8 fits (5 left), 4 fits (1 left), 2 doesn't, 1 fits. So 45 = <b>101101</b> in binary.`),
+    make(rng) {
+      const n = rng.int(5, rng.pick([63, 127, 255])), s = toBase(n, 2), parts = s.split('').map((c, i) => c === '1' ? 2 ** (s.length - 1 - i) : 0).filter(Boolean);
+      return { prompt: `Write ${n} in binary (base two).`, type: 'text', answer: s, accept: [s.padStart(8, '0')], help: 'Type only 0s and 1s.', params: { n },
+        hints: [`The powers of 2 up to ${n}: ${Array.from({ length: s.length }, (_, i) => 2 ** (s.length - 1 - i)).join(', ')}.`, `${n} = ${parts.join(' + ')}.`, `Put a 1 in each of those places: <b>${s}</b>.`] };
+    },
+    verify(q) { return /^1[01]*$/.test(q.answer) && fromBase(q.answer, 2) === q.params.n; },
+  });
+
+  A.skill({
+    id: 'logic.other-bases', title: 'Other number bases',
+    learn: p(`The same idea works in any base. <b>In base ${V('b')}, the places are worth 1, ${V('b')}, ${V('b')}², ${V('b')}³, …</b> and the digits go from 0 to ${V('b')} − 1. Base eight (octal) uses 0–7. <b>Base sixteen (hexadecimal)</b> needs 16 digits, so it uses A = 10, B = 11, C = 12, D = 13, E = 14, F = 15; programmers use it for colors and memory addresses.`) +
+      p(`To convert to base ten, multiply each digit by its place value and add. To convert from base ten, divide by the base again and again and read the remainders from last to first.`) +
+      example('Example', `${subB('2F', 16)} = 2 × 16 + 15 = <b>47</b>. And 47 in base five: 47 = 1 × 25 + 4 × 5 + 2, so it's ${subB('142', 5)}.`),
+    make(rng) {
+      const b = rng.pick([3, 5, 8, 16, 16]), n = rng.int(b + 1, b === 3 ? 80 : b === 5 ? 200 : 500), s = toBase(n, b), dir = rng.bool() ? 'to-ten' : 'from-ten';
+      if (dir === 'to-ten') return { prompt: `What is ${subB(s, b)} in base ten?`, type: 'number', answer: n, params: { b, s, dir },
+        hints: [b === 16 ? `In base sixteen, A to F stand for 10 to 15. Each place is worth 16 times the one to its right.` : `In base ${b}, each place is worth ${b} times the one to its right.`, `${places(s, b)} = <b>${n}</b>.`] };
+      return { prompt: `Write the base-ten number ${n} in base ${b === 16 ? 'sixteen (hexadecimal)' : b === 8 ? 'eight' : b === 5 ? 'five' : 'three'}.`, type: 'text', answer: s, help: b === 16 ? 'Use the digits 0 to 9 and the letters A to F.' : `Use only the digits 0 to ${b - 1}.`, params: { b, n, dir },
+        hints: [`Place values in base ${b}: ${Array.from({ length: s.length }, (_, i) => b ** (s.length - 1 - i)).join(', ')}.`, `${n} = ${places(s, b)}.`, `So it's <b>${s}</b>.`] };
+    },
+    verify(q) { const P = q.params; return P.dir === 'to-ten' ? fromBase(P.s, P.b) === q.answer : fromBase(q.answer, P.b) === P.n && !/^0/.test(q.answer); },
+  });
+
+  A.skill({
+    id: 'logic.bits', title: 'Bits, bytes and binary addition',
+    learn: p(`With ${V('n')} bits you can make <b>2<sup>${V('n')}</sup> different patterns</b>, so ${V('n')} bits can store the numbers 0 to 2<sup>${V('n')}</sup> − 1. A <b>byte</b> is 8 bits: 256 patterns, 0 to 255.`) +
+      p(`<b>Adding in binary</b> works like adding in base ten, but 1 + 1 = 10 (write 0, carry 1), and 1 + 1 + 1 = 11 (write 1, carry 1).`) +
+      example('Example', `${M.pre('  1011\n+  110\n------\n 10001')}11 + 6 = 17, and 10001 in binary is 16 + 1 = 17. A 5-bit number can be at most 2<sup>5</sup> − 1 = <b>31</b>.`),
+    make(rng) {
+      const kind = rng.pick(['patterns', 'largest', 'needed', 'add', 'add']);
+      if (kind === 'patterns') { const n = rng.int(2, 16); return { prompt: `How many different patterns of 0s and 1s can be made with ${n} bits?`, type: 'number', answer: 2 ** n, params: { kind, n }, hints: [`Each bit has 2 choices, so multiply 2 by itself ${n} times.`, `2<sup>${n}</sup> = <b>${N(2 ** n)}</b>.`] }; }
+      if (kind === 'largest') { const n = rng.int(3, 16); return { prompt: `What is the largest whole number that can be stored in ${n} bits?`, type: 'number', answer: 2 ** n - 1, params: { kind, n }, hints: [`The largest has every bit set to 1: ${'1'.repeat(n)}.`, `That's 2<sup>${n}</sup> − 1 = <b>${N(2 ** n - 1)}</b> (the patterns start at 0).`] }; }
+      if (kind === 'needed') { const v = rng.int(3, 5000), bits = toBase(v, 2).length; return { prompt: `What is the smallest number of bits needed to write ${N(v)} in binary?`, type: 'number', answer: bits, params: { kind, v }, hints: [`${bits - 1} bits reach only up to 2<sup>${bits - 1}</sup> − 1 = ${N(2 ** (bits - 1) - 1)}.`, `${bits} bits reach ${N(2 ** bits - 1)}, which is enough: <b>${bits}</b> bits.`] }; }
+      const a = rng.int(5, 60), b = rng.int(3, 40), sa = toBase(a, 2), sb = toBase(b, 2), sum = toBase(a + b, 2);
+      return { prompt: `Add these binary numbers. Give the answer in binary.${big(`${sa} + ${sb}`)}`, type: 'text', answer: sum, help: 'Type only 0s and 1s.', params: { kind, sa, sb },
+        hints: [`Line up the digits on the right and add column by column: 1 + 1 = 10 (write 0, carry 1).`, `Check in base ten: ${sa} is ${a} and ${sb} is ${b}, and ${a} + ${b} = ${a + b}.`, `${a + b} in binary is <b>${sum}</b>.`] };
+    },
+    verify(q) {
+      const P = q.params;
+      if (P.kind === 'patterns') { let c = 0; for (let m = 0; m < 2 ** P.n; m++) c++; return c === q.answer; }
+      if (P.kind === 'largest') return fromBase('1'.repeat(P.n), 2) === q.answer;
+      if (P.kind === 'needed') { let bits = 0, v = P.v; while (v > 0) { v = Math.floor(v / 2); bits++; } return bits === q.answer; }
+      // add column by column with carries, the way it's done by hand
+      const x = P.sa.split('').reverse(), y = P.sb.split('').reverse(); let carry = 0, out = '';
+      for (let i = 0; i < Math.max(x.length, y.length); i++) { const t = Number(x[i] || 0) + Number(y[i] || 0) + carry; out = (t % 2) + out; carry = t >> 1; }
+      if (carry) out = '1' + out;
+      return out === q.answer;
+    },
+  });
+
+  
 })();
