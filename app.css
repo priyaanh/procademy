@@ -3361,3 +3361,16 @@ html.pc-focus main { padding-top: 20px; }
 .help-steps { margin: 18px 0 22px; padding-left: 1.4rem; display: grid; gap: 12px; line-height: 1.55; }
 .help-steps li::marker { color: var(--primary); font-weight: 700; }
 .help-next { margin-top: 22px; }
+/* phones: the page's name in the header once its heading has scrolled away (lib/app.js) */
+.top-title { display: none; }
+@media (max-width: 700px) {
+  .top.show-title:not(.qs-open) .brand .word { display: none; }
+  .top.show-title:not(.qs-open) .top-title { display: block; flex: 1 1 auto; min-width: 0; font-weight: 700; font-size: 1.02rem; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; animation: top-title-in .18s ease-out; }
+  .top.show-title:not(.qs-open) .search-open { margin-left: 4px; }
+}
+@keyframes top-title-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+:root[data-motion="reduce"] .top-title { animation: none !important; }
+@media (prefers-reduced-motion: reduce) { .top-title { animation: none !important; } }
+/* phones: the arrow that follows a swipe in from the left edge, for Back */
+.edge-back { position: fixed; z-index: 70; left: -48px; top: 50%; width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; background: var(--surface); color: var(--primary-ink); box-shadow: 0 6px 20px rgba(15, 23, 42, .22); opacity: 0; transform: translate(0, -50%); pointer-events: none; transition: background-color .12s, color .12s; }
+.edge-back.ready { background: var(--primary); color: var(--on-primary); }
