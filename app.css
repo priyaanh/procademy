@@ -794,6 +794,11 @@ details.ai-verify > p.tiny { margin: 4px 12px 8px; }
 .undo-btn { border: 0; border-radius: 999px; padding: .35rem .9rem; font: inherit; font-weight: 700; background: var(--primary); color: var(--on-primary); cursor: pointer; }
 /* the tutor's settings: answer length and text size */
 .seg-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; margin: 6px 0; }
+/* in the tutor page's narrow details card: full-width choices */
+.ai-status .tutor-answers { margin: 8px 0; padding: 0; background: none; }
+.ai-status .tutor-answers .seg-row { display: grid; justify-content: stretch; gap: 4px; }
+.ai-status .tutor-answers .seg { display: flex; width: 100%; flex-wrap: nowrap; }
+.ai-status .tutor-answers .seg button { flex: 1 1 0; min-width: 0; padding-left: .3rem; padding-right: .3rem; font-size: .84rem; }
 .mem-dl { margin: 8px 0; display: grid; gap: 6px; }
 .mem-dl dt { color: var(--muted); font-size: .8rem; }
 .mem-dl dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
