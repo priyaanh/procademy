@@ -68,7 +68,7 @@
   const lnFact = n => { while (LNF.length <= n) LNF.push(LNF[LNF.length - 1] + Math.log(LNF.length)); return LNF[n]; };
 
   A.course({
-    id: 'calculus-bc', title: 'Calculus BC', subject: 'High school', grade: 12, icon: 'BC', hue: 100,
+    id: 'calculus-bc', title: 'Calculus BC', subject: 'High school', added: '2026-11-09', grade: 12, icon: 'BC', hue: 100,
     blurb: 'After Calculus: L’Hôpital’s rule, integration by parts and partial fractions, improper integrals, differential equations, parametric and polar curves, and infinite series with Taylor polynomials.',
     units: [
       { id: 'techniques', title: 'Limits and integration techniques', blurb: 'L’Hôpital’s rule, integration by parts, partial fractions, and improper integrals.', skills: ['bc.lhopital', 'bc.integration-by-parts', 'bc.partial-fractions', 'bc.improper-integrals'] },

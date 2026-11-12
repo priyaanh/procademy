@@ -79,7 +79,7 @@
   }
 
   A.course({
-    id: 'trigonometry', title: 'Trigonometry', subject: 'High school', grade: 11, icon: 'Trig', hue: 175,
+    id: 'trigonometry', title: 'Trigonometry', subject: 'High school', added: '2026-11-09', grade: 11, icon: 'Trig', hue: 175,
     blurb: 'Right-triangle ratios, radians and the unit circle, graphs of sine, cosine and tangent, identities, trig equations, solving any triangle, and polar coordinates.',
     units: [
       { id: 'right-triangles', title: 'Right-triangle trigonometry', blurb: 'Sine, cosine and tangent as ratios of sides, and using them to find sides, angles and heights.', skills: ['trig.ratios', 'trig.missing-side', 'trig.missing-angle', 'trig.elevation'] },

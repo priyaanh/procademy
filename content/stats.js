@@ -38,7 +38,7 @@
   const pc = x => `${N(x)}%`;
 
   A.course({
-    id: 'statistics', title: 'Statistics and probability', subject: 'High school', grade: 11, icon: 'Stat', hue: 70,
+    id: 'statistics', title: 'Statistics and probability', subject: 'High school', added: '2026-11-09', grade: 11, icon: 'Stat', hue: 70,
     blurb: 'Describing data, the normal distribution, scatterplots and regression lines, sampling and experiments, probability, random variables, and confidence intervals and significance tests.',
     units: [
       { id: 'one-variable', title: 'Exploring one-variable data', blurb: 'Center and spread, outliers, standard deviation, z-scores, and the shape of a distribution.', skills: ['stat.center-spread', 'stat.outliers', 'stat.standard-deviation', 'stat.z-scores', 'stat.distribution-shape'] },

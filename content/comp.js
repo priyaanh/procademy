@@ -26,7 +26,7 @@
   /** the subsets of {0, …, n−1}, as bit masks */
   const popcount = m => { let c = 0; while (m) { c += m & 1; m >>= 1; } return c; };
   const COURSE = {
-    id: 'competition-math', title: 'Competition math', subject: 'Middle school', grade: 7, icon: 'Comp', hue: 280,
+    id: 'competition-math', title: 'Competition math', subject: 'Middle school', area: 'prep', added: '2026-11-11', grade: 7, icon: 'Comp', hue: 280,
     blurb: 'New problems in the style of middle school contests such as MATHCOUNTS: clever counting, number theory, equation shortcuts, geometry and probability. For strong students in grades 6 to 8, listed at grade 7.',
     units: [
       { id: 'counting', title: 'Counting', blurb: 'The multiplication principle, arrangements, choosing groups, overlaps, grid paths and page numbers.', skills: ['comp.multiplication-principle', 'comp.arrangements', 'comp.choosing', 'comp.overlaps', 'comp.paths-pages'] },

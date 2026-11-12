@@ -22,7 +22,7 @@
   /** is x a whole number of cents within half a cent of the exact value? */
   const centsOk = (x, exact) => near(x * 100, Math.round(x * 100), 1e-6) && Math.abs(x - exact) <= 0.005 + 1e-9;
   const COURSE = {
-    id: 'personal-finance', title: 'Personal finance math', subject: 'High school', grade: 9, icon: 'Fin', hue: 152,
+    id: 'personal-finance', title: 'Personal finance math', subject: 'High school', area: 'money', added: '2026-11-11', grade: 9, icon: 'Fin', hue: 152,
     blurb: 'Money math for everyday life, in US dollars: budgets, unit prices, discounts and sales tax, simple and compound interest, loans and credit cards, paychecks and taxes, and saving and investing.',
     units: [
       { id: 'budgets', title: 'Budgets and banking', blurb: 'What’s left after expenses, budget percentages, and keeping a running balance.', skills: ['fin.budget', 'fin.budget-percents', 'fin.running-balance'] },
