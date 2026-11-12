@@ -436,9 +436,10 @@
     const s = 11, gap = 22; let x0 = 6, g = ''; const H = Math.max(...[1, 2, 3].map(n => { const c = GROW[kind].cells(n); return Math.max(...c.map(([, y]) => y)) + 1; })) * s;
     for (let n = 1; n <= upto; n++) {
       const c = GROW[kind].cells(n), w = (Math.max(...c.map(([x]) => x)) + 1) * s, h = (Math.max(...c.map(([, y]) => y)) + 1) * s;
-      c.forEach(([x, y]) => { g += `<rect class="fill" x="${x0 + x * s}" y="${8 + H - h + y * s}" width="${s}" height="${s}" stroke-width="1"/>`; });
-      g += `<text x="${x0 + w / 2}" y="${H + 26}" font-size="11" text-anchor="middle">Figure ${n}</text>`;
-      x0 += w + gap;
+      const slot = Math.max(w, 52), left = x0 + (slot - w) / 2;     // wide enough for its label
+      c.forEach(([x, y]) => { g += `<rect class="fill" x="${left + x * s}" y="${8 + H - h + y * s}" width="${s}" height="${s}" stroke-width="1"/>`; });
+      g += `<text x="${x0 + slot / 2}" y="${H + 26}" font-size="11" text-anchor="middle">Figure ${n}</text>`;
+      x0 += slot + gap;
     }
     return `<svg class="figure" viewBox="0 0 ${x0 - gap + 12} ${H + 34}" width="${x0 - gap + 12}" role="img" aria-label="figures 1 to ${upto} of a growing tile pattern">${g}</svg>`;
   }
@@ -563,8 +564,8 @@
 
   A.skill({
     id: 'logic.trace-variables', title: 'Tracing variables',
-    learn: PY + p(`<b>= means "store"</b>, not "equals": ${M.code('x = x + 3')} takes the value in x, adds 3, and stores the result back in x. A variable keeps only its newest value. ${M.code('x += 3')} is a shortcut for the same thing. To trace code, <b>keep a little table of every variable and update it line by line</b>.`) +
-      example('Example', `${M.pre('a = 5\nb = a + 3\na = b * 2\nprint(a - b)')}After line 2, b is 8. Line 3 makes a = 16. The code prints 16 − 8 = <b>8</b>.`),
+    learn: p(`In code, <b>the = sign means “store”</b>, not “equals”: ${M.code('x = x + 3')} takes the value in x, adds 3, and stores the result back in x. A variable keeps only its newest value. ${M.code('x += 3')} is a shortcut for the same thing. To trace code, <b>keep a little table of every variable and update it line by line</b>.`) +
+      PY + example('Example', `${M.pre('a = 5\nb = a + 3\na = b * 2\nprint(a - b)')}After line 2, b is 8. Line 3 makes a = 16. The code prints 16 − 8 = <b>8</b>.`),
     make(rng) {
       if (rng.chance(0.3)) {
         const x = rng.int(2, 9), y = rng.int(1, 9), k = rng.pick([10, 2, 3]);
@@ -595,8 +596,8 @@
 
   A.skill({
     id: 'logic.trace-if', title: 'If, elif and else',
-    learn: PY + p(`An <b>if</b> statement runs its indented lines only when its condition is true. With <b>elif</b> ("else if") and <b>else</b>, Python checks the conditions <b>from the top down and runs only the first one that's true</b>; else runs when none are. ${M.code('==')} asks "is equal?", ${M.code('!=')} asks "is not equal?", and ${M.code('%')} gives the remainder.`) +
-      example('Example', `${M.pre('score = 84\nif score >= 90:\n    grade = 4\nelif score >= 80:\n    grade = 3\nelse:\n    grade = 2\nprint(grade)')}84 ≥ 90 is false; 84 ≥ 80 is true, so grade = 3 and the rest is skipped. It prints <b>3</b>.`),
+    learn: p(`An <b>if</b> statement runs its indented lines only when its condition is true. With <b>elif</b> ("else if") and <b>else</b>, Python checks the conditions <b>from the top down and runs only the first one that's true</b>; else runs when none are. ${M.code('==')} asks "is equal?", ${M.code('!=')} asks "is not equal?", and ${M.code('%')} gives the remainder.`) +
+      PY + example('Example', `${M.pre('score = 84\nif score >= 90:\n    grade = 4\nelif score >= 80:\n    grade = 3\nelse:\n    grade = 2\nprint(grade)')}84 ≥ 90 is false; 84 ≥ 80 is true, so grade = 3 and the rest is skipped. It prints <b>3</b>.`),
     make(rng) {
       const kind = rng.pick(['grade', 'even-odd', 'range']);
       if (kind === 'grade') {
@@ -621,9 +622,9 @@
 
   A.skill({
     id: 'logic.for-loops', title: 'For loops',
-    learn: PY + p(`A <b>for loop</b> repeats its indented lines once for each value. <b>${M.code('range(1, 6)')} gives 1, 2, 3, 4, 5: it stops before the second number.</b> ${M.code('range(5)')} gives 0 to 4, and ${M.code('range(2, 11, 3)')} counts by 3: 2, 5, 8.`) +
+    learn: p(`A <b>for loop</b> repeats its indented lines once for each value in a list or range. In Python, <b>${M.code('range(1, 6)')} gives 1, 2, 3, 4, 5: it stops before the second number.</b> ${M.code('range(5)')} gives 0 to 4, and ${M.code('range(2, 11, 3)')} counts by 3: 2, 5, 8.`) +
       p(`To trace a loop, write the loop variable and every changing variable in a table, one row per pass.`) +
-      example('Example', `${M.pre('total = 0\nfor i in range(1, 5):\n    total = total + i\nprint(total)')}i takes the values 1, 2, 3, 4, so total becomes 1, 3, 6, 10. It prints <b>10</b>.`),
+      PY + example('Example', `${M.pre('total = 0\nfor i in range(1, 5):\n    total = total + i\nprint(total)')}i takes the values 1, 2, 3, 4, so total becomes 1, 3, 6, 10. It prints <b>10</b>.`),
     make(rng) {
       const kind = rng.pick(['sum', 'step', 'double', 'count']);
       if (kind === 'sum') { const a = rng.int(0, 5), b = a + rng.int(3, 9), vals = Array.from({ length: b - a }, (_, i) => a + i), ans = vals.reduce((s, x) => s + x, 0);
@@ -644,9 +645,9 @@
 
   A.skill({
     id: 'logic.while-loops', title: 'While loops',
-    learn: PY + p(`A <b>while loop</b> repeats as long as its condition is true. It checks the condition <b>before each pass</b>, so it might run many times or not at all, and something inside must change, or it never stops.`) +
+    learn: p(`A <b>while loop</b> repeats as long as its condition is true. It checks the condition <b>before each pass</b>, so it might run many times or not at all, and something inside must change, or it never stops.`) +
       p(`Trace it like a for loop, but check the condition each time: when it becomes false, skip to the first line after the loop. ${M.code('//')} divides and drops the remainder, and ${M.code('n % 10')} is the last digit of n.`) +
-      example('Example', `${M.pre('n = 40\ncount = 0\nwhile n > 1:\n    n = n // 2\n    count += 1\nprint(count)')}n goes 40, 20, 10, 5, 2, 1: five passes, then 1 > 1 is false. It prints <b>5</b>.`),
+      PY + example('Example', `${M.pre('n = 40\ncount = 0\nwhile n > 1:\n    n = n // 2\n    count += 1\nprint(count)')}n goes 40, 20, 10, 5, 2, 1: five passes, then 1 > 1 is false. It prints <b>5</b>.`),
     make(rng) {
       const kind = rng.pick(['halve', 'grow', 'digits', 'countdown']);
       if (kind === 'halve') { const n0 = rng.int(20, 1000), seq = [n0]; while (seq[seq.length - 1] > 1) seq.push(Math.floor(seq[seq.length - 1] / 2));
@@ -667,9 +668,9 @@
 
   A.skill({
     id: 'logic.nested-loops', title: 'Nested loops',
-    learn: PY + p(`A loop inside a loop is a <b>nested loop</b>. <b>The inner loop runs all the way through for every single pass of the outer loop</b>, so 4 outer passes of a 3-pass inner loop make 4 × 3 = 12 inner passes.`) +
+    learn: p(`A loop inside a loop is a <b>nested loop</b>. <b>The inner loop runs all the way through for every single pass of the outer loop</b>, so 4 outer passes of a 3-pass inner loop make 4 × 3 = 12 inner passes.`) +
       p(`When the inner loop depends on the outer variable, as in ${M.code('for j in range(i)')}, count the passes for each value of i and add them up.`) +
-      example('Example', `${M.pre('count = 0\nfor i in range(4):\n    for j in range(i):\n        count += 1\nprint(count)')}For i = 0, 1, 2, 3 the inner loop runs 0, 1, 2, 3 times: 0 + 1 + 2 + 3 = <b>6</b>.`),
+      PY + example('Example', `${M.pre('count = 0\nfor i in range(4):\n    for j in range(i):\n        count += 1\nprint(count)')}For i = 0, 1, 2, 3 the inner loop runs 0, 1, 2, 3 times: 0 + 1 + 2 + 3 = <b>6</b>.`),
     make(rng) {
       const kind = rng.pick(['grid', 'triangle', 'pairs', 'sum']);
       if (kind === 'grid') { const a = rng.int(2, 9), b = rng.int(2, 9), code = ['count = 0', `for i in range(${a}):`, `    for j in range(${b}):`, '        count += 1', 'print(count)'].join('\n');
@@ -689,9 +690,9 @@
 
   A.skill({
     id: 'logic.lists', title: 'Lists and indexes',
-    learn: PY + p(`A <b>list</b> holds several values in order: ${M.code('nums = [4, 9, 2]')}. <b>Positions (indexes) start at 0</b>, so ${M.code('nums[0]')} is 4 and ${M.code('nums[2]')} is 2. ${M.code('len(nums)')} is how many items there are, so the last index is len(nums) − 1.`) +
+    learn: p(`A <b>list</b> holds several values in order: ${M.code('nums = [4, 9, 2]')}. <b>Positions (indexes) start at 0</b>, so ${M.code('nums[0]')} is 4 and ${M.code('nums[2]')} is 2. ${M.code('len(nums)')} is how many items there are, so the last index is len(nums) − 1.`) +
       p(`${M.code('nums.append(7)')} adds 7 to the end, and ${M.code('nums[1] = 5')} replaces the item at index 1. ${M.code('for x in nums:')} visits each item in order.`) +
-      example('Example', `${M.pre('nums = [4, 9, 2, 7]\nnums[1] = nums[0] + nums[3]\nprint(nums[1])')}nums[0] is 4 and nums[3] is 7, so nums[1] becomes 11. It prints <b>11</b>.`),
+      PY + example('Example', `${M.pre('nums = [4, 9, 2, 7]\nnums[1] = nums[0] + nums[3]\nprint(nums[1])')}nums[0] is 4 and nums[3] is 7, so nums[1] becomes 11. It prints <b>11</b>.`),
     make(rng) {
       const kind = rng.pick(['index', 'change', 'filter-sum', 'append', 'max']), n = rng.int(4, 7), nums = Array.from({ length: n }, () => rng.int(1, 20)), L = `nums = [${nums.join(', ')}]`;
       if (kind === 'index') { const i = rng.int(0, n - 1), j = rng.int(0, n - 1), last = rng.bool(), code = [L, last ? `print(nums[len(nums) - 1] + nums[${i}])` : `print(nums[${i}] * nums[${j}])`].join('\n'), ans = last ? nums[n - 1] + nums[i] : nums[i] * nums[j];
@@ -713,9 +714,9 @@
 
   A.skill({
     id: 'logic.functions', title: 'Functions',
-    learn: PY + p(`A <b>function</b> is a named recipe: ${M.code('def double(x):')} defines it, and its indented lines say what to do with the input x. <b>Calling</b> it, as in ${M.code('double(5)')}, runs those lines with x = 5, and ${M.code('return')} sends a value back to where it was called.`) +
+    learn: p(`A <b>function</b> is a named recipe: ${M.code('def double(x):')} defines it, and its indented lines say what to do with the input x. <b>Calling</b> it, as in ${M.code('double(5)')}, runs those lines with x = 5, and ${M.code('return')} sends a value back to where it was called.`) +
       p(`For calls inside calls, such as ${M.code('f(f(3))')}, <b>work from the inside out</b>: find f(3) first, then use that as the new input.`) +
-      example('Example', `${M.pre('def f(x):\n    return 2 * x + 1\n\nprint(f(f(3)))')}f(3) = 7, then f(7) = 15. It prints <b>15</b>.`),
+      PY + example('Example', `${M.pre('def f(x):\n    return 2 * x + 1\n\nprint(f(f(3)))')}f(3) = 7, then f(7) = 15. It prints <b>15</b>.`),
     make(rng) {
       const kind = rng.pick(['nested', 'two-args', 'branch', 'loop']);
       if (kind === 'nested') { const m = rng.int(2, 4), b = rng.int(-3, 5), x = rng.int(1, 6), f = v => m * v + b, ans = f(f(x));

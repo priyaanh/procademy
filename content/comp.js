@@ -237,7 +237,7 @@
 
   A.skill({
     id: 'comp.gcd-lcm', title: 'GCF and LCM puzzles',
-    learn: p(`Look for the question behind the story. <b>"Together again", "at the same time", "smallest number that both divide" → least common multiple (LCM).</b> <b>"Largest equal groups", "biggest square tiles", "split with nothing left over" → greatest common factor (GCF).</b>`) +
+    learn: p(`Look for the question behind the story. Words like “together again”, “at the same time” or “the smallest number both divide” point to the <b>least common multiple (LCM)</b>. Words like “largest equal groups”, “biggest square tiles” or “split with nothing left over” point to the <b>greatest common factor (GCF)</b>.`) +
       p(`A useful fact: for any two positive whole numbers, <b>GCF × LCM = the product of the two numbers</b>.`) +
       example('Example', `Two lights blink every 12 and 18 seconds and blink together now. They next blink together after LCM(12, 18) = <b>36</b> seconds. A 48 × 60 floor takes square tiles up to GCF(48, 60) = 12 on a side.`),
     make(rng) {
