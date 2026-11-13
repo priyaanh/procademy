@@ -749,10 +749,12 @@
 
   A.skill({
     id: 'alg1.function-notation', title: 'Evaluating and interpreting functions',
-    learn: p(`A <b>function</b> gives exactly one output for each input. In <b>function notation</b>, ${V('f')}(${X}) names the output when the input is ${X}. So ${V('f')}(3) means "replace every ${X} with 3 and evaluate"; it does not mean ${V('f')} times 3.`) +
-      p(`Read ${V('f')}(${V('a')}) = ${V('b')} as "the input ${V('a')} gives the output ${V('b')}". Going the other way, to solve ${V('f')}(${X}) = 10, set the rule equal to 10 and solve for ${X}.`) +
-      p('In a real situation, the input and output have units. If h(t) is a height in meters after t seconds, h(2) = 15 says that after 2 seconds the height is 15 meters.') +
-      example('Example', `${V('f')}(${X}) = ${M.poly([2, -3, 1])}. ${V('f')}(−2) = 2(−2)² − 3(−2) + 1 = 8 + 6 + 1 = <b>15</b>.`),
+    learn: p(`A <b>function</b> is a rule that gives exactly one output for each input. In <b>function notation</b>, ${V('f')}(${X}) names the output when the input is ${X}. So ${V('f')}(3) means “replace every ${X} with 3 and work it out”; it doesn’t mean ${V('f')} times 3.`) +
+      p(`Read ${V('f')}(${V('a')}) = ${V('b')} as “the input ${V('a')} gives the output ${V('b')}.” Going the other way, to solve ${V('f')}(${X}) = 10, set the rule equal to 10 and solve for ${X}. In a table, ${V('f')}(3) is the output in the row where ${X} = 3.`) +
+      p(`In a real situation, the input and output have units. If ${V('h')}(${V('t')}) is a height in meters after ${V('t')} seconds, ${V('h')}(2) = 15 says that after 2 seconds the height is 15 meters.`) +
+      example('Example 1: evaluating', `${V('f')}(${X}) = ${M.poly([2, -3, 1])}. ${V('f')}(−2) = 2(−2)² − 3(−2) + 1 = 8 + 6 + 1 = <b>15</b>.`) +
+      example('Example 2: finding the input', `${V('f')}(${X}) = 4${X} − 7. For what ${X} is ${V('f')}(${X}) = 13? Set 4${X} − 7 = 13, add 7 to get 4${X} = 20, and divide: <b>${X} = 5</b>.`) +
+      example('Example 3: what it means', `${V('C')}(${V('n')}) is the cost, in dollars, of ${V('n')} concert tickets. ${V('C')}(4) = 38 means <b>4 tickets cost $38 in total</b>, not $38 each.`),
     make(rng) {
       const kind = rng.pick(['eval', 'eval', 'solve', 'table', 'interpret']), f = rng.pick(fnName());
       if (kind === 'interpret') {
@@ -795,9 +797,11 @@
   A.skill({
     id: 'alg1.domain-range', title: 'Domain and range',
     learn: p(`The <b>domain</b> of a function is the set of inputs it accepts (the ${X}-values). The <b>range</b> is the set of outputs it actually produces (the ${Y}-values).`) +
-      p(`For a list of ordered pairs, the domain is the set of first coordinates and the range is the set of second coordinates, each listed once. A linear function on a limited domain has a range running between the outputs at the two ends. A square root needs a non-negative number inside, so √(${X} − 3) has domain ${X} ≥ 3.`) +
-      p(`A parabola ${Y} = ${V('a')}(${X} − ${V('h')})² + ${V('k')} accepts every ${X}, but its outputs stop at the vertex: ${Y} ≥ ${V('k')} when it opens up, ${Y} ≤ ${V('k')} when it opens down.`) +
-      example('Example', `${V('f')}(${X}) = 3${X} − 2 for 1 ≤ ${X} ≤ 4. ${V('f')}(1) = 1 and ${V('f')}(4) = 10, so the range is <b>1 ≤ ${Y} ≤ 10</b>.`),
+      p(`For a list of ordered pairs, the domain is the set of first coordinates and the range is the set of second coordinates, each listed once. A linear function on a limited domain has a range running between its outputs at the two ends. A square root needs a number inside that isn’t negative, so √(${X} − 3) has domain ${X} ≥ 3.`) +
+      p(`A parabola ${Y} = ${V('a')}(${X} − ${V('h')})² + ${V('k')} accepts every ${X}, but its outputs stop at the <b>vertex</b>, the turning point ${M.pt(V('h'), V('k'))}: the range is ${Y} ≥ ${V('k')} when it opens up and ${Y} ≤ ${V('k')} when it opens down.`) +
+      example('Example 1: ordered pairs', `${big(`{${M.pt(2, 5)}, ${M.pt(-1, 3)}, ${M.pt(4, 5)}}`)}Domain: the first coordinates, <b>{−1, 2, 4}</b>. Range: the second coordinates, listed once each, <b>{3, 5}</b>.`) +
+      example('Example 2: a line on a limited domain', `${V('f')}(${X}) = −2${X} + 5 for −1 ≤ ${X} ≤ 3. ${V('f')}(−1) = 7 and ${V('f')}(3) = −1, so with the smaller number first the range is <b>−1 ≤ ${Y} ≤ 7</b>.`) +
+      example('Example 3: a parabola and a square root', `${Y} = −2(${X} − 1)² + 6 opens down (−2 is negative) with vertex ${M.pt(1, 6)}, so its range is <b>${Y} ≤ 6</b>. For ${V('g')}(${X}) = ${M.sqrt(`${X} + 4`)} − 1, the inside can’t be negative: ${X} + 4 ≥ 0, so the domain is <b>${X} ≥ −4</b>.`),
     make(rng) {
       const kind = rng.pick(['pairs', 'linear', 'quad', 'sqrt']);
       if (kind === 'pairs') {
@@ -853,9 +857,11 @@
 
   A.skill({
     id: 'alg1.rate-of-change', title: 'Average rate of change',
-    learn: p(`The <b>average rate of change</b> of a function from ${X} = ${V('a')} to ${X} = ${V('b')} is <b>(${V('f')}(${V('b')}) − ${V('f')}(${V('a')})) ÷ (${V('b')} − ${V('a')})</b>: the change in output divided by the change in input. It is the slope of the straight line joining the two points on the graph.`) +
-      p('For a line it is the same over every interval. For a curve such as a parabola, it depends on which interval you pick. In a real situation the answer carries units, like meters per second.') +
-      example('Example', `${V('f')}(${X}) = ${M.sup(X, 2)} from ${X} = 1 to ${X} = 4: ${V('f')}(4) = 16 and ${V('f')}(1) = 1, so the rate is ${F('16 − 1', '4 − 1', { raw: true })} = <b>5</b>.`),
+    learn: p(`The <b>average rate of change</b> of a function from ${X} = ${V('a')} to ${X} = ${V('b')} is <b>(${V('f')}(${V('b')}) − ${V('f')}(${V('a')})) ÷ (${V('b')} − ${V('a')})</b>: the change in output divided by the change in input. It’s the slope of the straight line joining those two points on the graph.`) +
+      p('For a line, it’s the same over every <b>interval</b> (stretch of inputs). For a curve such as a parabola, it depends on which interval you pick. In a real situation the answer has units, like meters per second, and a negative rate means the amount is going down.') +
+      example('Example 1: from a rule', `${V('f')}(${X}) = ${M.sup(X, 2)} from ${X} = 1 to ${X} = 4: ${V('f')}(4) = 16 and ${V('f')}(1) = 1, so the rate is ${F('16 − 1', '4 − 1', { raw: true })} = <b>5</b>.`) +
+      example('Example 2: from a table', `A table shows ${V('f')}(1) = 7 and ${V('f')}(4) = −2. The average rate of change from ${X} = 1 to ${X} = 4 is ${F('−2 − 7', '4 − 1', { raw: true })} = ${F('−9', '3', { raw: true })} = <b>−3</b>.`) +
+      example('Example 3: in a situation', `A rain barrel held 80 liters 2 minutes after a tap was opened and 20 liters at 6 minutes. The rate is ${F('20 − 80', '6 − 2', { raw: true })} = <b>−15 liters per minute</b>: it lost 15 liters each minute on average.`),
     make(rng) {
       const kind = rng.pick(['formula', 'formula', 'table', 'context']);
       if (kind === 'context') {
@@ -893,10 +899,13 @@
 
   A.skill({
     id: 'alg1.sequences', title: 'Arithmetic and geometric sequences',
-    learn: p(`In an <b>arithmetic sequence</b> you add the same number, the <b>common difference</b> ${V('d')}, to get from one term to the next: 4, 7, 10, 13, … has ${V('d')} = 3. Its explicit formula is <b>${an} = ${M.sub(V('a'), 1)} + ${V('d')}(${V('n')} − 1)</b>.`) +
-      p(`In a <b>geometric sequence</b> you multiply by the same number, the <b>common ratio</b> ${V('r')}: 3, 6, 12, 24, … has ${V('r')} = 2, and <b>${an} = ${M.sub(V('a'), 1)} · ${V('r')}<sup>${V('n')} − 1</sup></b>.`) +
-      p(`The (${V('n')} − 1) is there because the first term has had no steps added yet. A <b>recursive</b> rule instead says how to get each term from the one before, like ${V('a')}(${V('n')}) = ${V('a')}(${V('n')} − 1) + 3.`) +
-      example('Example', `Find the 20th term of 5, 9, 13, 17, … The difference is 4, so ${V('a')}(20) = 5 + 4(19) = <b>81</b>.`),
+    learn: p(`A <b>sequence</b> is a list of numbers in order; each number is a <b>term</b>, and ${an} names the ${V('n')}th term. In an <b>arithmetic sequence</b> you add the same number, the <b>common difference</b> ${V('d')}, to get from one term to the next: 4, 7, 10, 13, … has ${V('d')} = 3. Its <b>explicit formula</b>, which gives any term directly, is <b>${an} = ${M.sub(V('a'), 1)} + ${V('d')}(${V('n')} − 1)</b>.`) +
+      p(`In a <b>geometric sequence</b> you multiply by the same number, the <b>common ratio</b> ${V('r')}: 3, 6, 12, 24, … has ${V('r')} = 2, and <b>${an} = ${M.sub(V('a'), 1)} · ${V('r')}<sup>${V('n')} − 1</sup></b>. The (${V('n')} − 1) is there because the first term hasn’t had any steps yet.`) +
+      p(`A <b>recursive</b> rule says how to get each term from the one before, like ${V('a')}(${V('n')}) = ${V('a')}(${V('n')} − 1) + 3. To tell which kind a list is, check the differences between neighbors: all equal means arithmetic. If not, divide each term by the one before: equal ratios mean geometric. Otherwise it’s neither.`) +
+      example('Example 1: a term far down the list', `Find the 20th term of 5, 9, 13, 17, … The difference is 4, so ${V('a')}(20) = 5 + 4(19) = <b>81</b>.`) +
+      example('Example 2: writing the formula', `For 7, 4, 1, −2, … the first term is 7 and the difference is 4 − 7 = −3, so <b>${an} = 7 − 3(${V('n')} − 1)</b>. Check: ${V('n')} = 1 gives 7.`) +
+      example('Example 3: a geometric term', `Find the 6th term of 2, 6, 18, 54, … The ratio is 6 ÷ 2 = 3, so ${V('a')}(6) = 2 · 3<sup>5</sup> = 2 · 243 = <b>486</b>.`) +
+      example('Example 4: a recursive rule', `${V('a')}(1) = 5 and ${V('a')}(${V('n')}) = 2 · ${V('a')}(${V('n')} − 1). Each term doubles the one before: 5, 10, 20, 40, so <b>${V('a')}(4) = 40</b>.`),
     make(rng) {
       const kind = rng.pick(['arith-nth', 'arith-formula', 'geo-nth', 'classify', 'recursive']);
       if (kind === 'classify') {
@@ -953,9 +962,10 @@
   const solH = (u, w) => `${X} = ${N(Math.min(u, w))} or ${X} = ${N(Math.max(u, w))}`;
   A.skill({
     id: 'alg1.absolute-value-equations', title: 'Absolute value equations',
-    learn: p(`|${V('A')}| = ${V('c')} means ${V('A')} is ${V('c')} units from zero, so <b>${V('A')} = ${V('c')} or ${V('A')} = −${V('c')}</b>. That is why an absolute value equation usually has two solutions.`) +
-      p(`First <b>isolate the absolute value</b>: undo anything added to it or multiplying it. Then split into the two cases and solve each one. If the isolated absolute value equals a <b>negative</b> number, there is <b>no solution</b>, because a distance cannot be negative. If it equals 0, there is just one.`) +
-      example('Example', `${big(`2|${X} − 3| + 1 = 9`)}Subtract 1 and divide by 2: |${X} − 3| = 4. So ${X} − 3 = 4 or ${X} − 3 = −4, giving <b>${X} = 7 or ${X} = −1</b>.`),
+    learn: p(`The <b>absolute value</b> |${V('A')}| is the distance of ${V('A')} from zero, so it’s never negative. |${V('A')}| = ${V('c')} means ${V('A')} is ${V('c')} units from zero, so <b>${V('A')} = ${V('c')} or ${V('A')} = −${V('c')}</b>. That’s why an absolute value equation usually has two solutions.`) +
+      p(`First <b>isolate the absolute value</b>: get it by itself on one side by undoing anything added to it or multiplying it. Then split into the two cases and solve each one. If the isolated absolute value equals a <b>negative</b> number, there’s <b>no solution</b>, because a distance can’t be negative. If it equals 0, there’s just one solution.`) +
+      example('Example 1: two solutions', `${big(`2|${X} − 3| + 1 = 9`)}Subtract 1 and divide by 2: |${X} − 3| = 4. So ${X} − 3 = 4 or ${X} − 3 = −4, giving <b>${X} = −1 or ${X} = 7</b>.`) +
+      example('Example 2: no solution', `${big(`3|${X} + 2| + 10 = 4`)}Subtract 10: 3|${X} + 2| = −6. Divide by 3: |${X} + 2| = −2. An absolute value can’t be negative, so there’s <b>no solution</b>.`),
     make(rng) {
       const a = rng.pick([1, 1, 2, 3]); let d = rng.int(1, 8); if ((a * d) % 2) d += 1;
       const c = a * d / 2, s1 = rng.int(-6, 8), s2 = s1 - d, b = c - a * s1, m = rng.pick([1, 1, 2, 3]), k = rng.int(-9, 9), none = rng.chance(0.25);
@@ -981,9 +991,10 @@
 
   A.skill({
     id: 'alg1.piecewise-functions', title: 'Piecewise and absolute value functions',
-    learn: p(`A <b>piecewise function</b> uses different rules on different parts of its domain. To evaluate it, first <b>find which condition the input satisfies</b>, then use only that piece's rule. Watch the endpoints: "${X} &lt; 2" leaves 2 out, while "${X} ≥ 2" includes it.`) +
-      p(`The absolute value function ${V('g')}(${X}) = ${V('a')}|${X} − ${V('h')}| + ${V('k')} is a V-shaped piecewise function. Its <b>vertex</b> is ${M.pt(V('h'), V('k'))}; it opens up when ${V('a')} &gt; 0 and down when ${V('a')} &lt; 0. As with parabolas, the sign inside is the opposite of ${V('h')}.`) +
-      example('Example', `${V('f')}(${X}) = ${X} + 4 if ${X} &lt; 1, and 3${X} if ${X} ≥ 1. For ${V('f')}(1), the input 1 fits ${X} ≥ 1, so ${V('f')}(1) = 3(1) = <b>3</b>.`),
+    learn: p(`A <b>piecewise function</b> uses different rules on different parts of its domain. To evaluate it, first <b>find which condition the input satisfies</b>, then use only that piece’s rule. Watch the endpoints: “${X} &lt; 2” leaves 2 out, while “${X} ≥ 2” includes it.`) +
+      p(`The absolute value function ${V('g')}(${X}) = ${V('a')}|${X} − ${V('h')}| + ${V('k')} is a V-shaped piecewise function. Its <b>vertex</b>, the point of the V, is ${M.pt(V('h'), V('k'))}. It opens up when ${V('a')} &gt; 0 and down when ${V('a')} &lt; 0. As with parabolas, the number inside the bars has the opposite sign of ${V('h')}: |${X} + 3| has ${V('h')} = −3.`) +
+      example('Example 1: evaluating a piecewise function', `${V('f')}(${X}) = ${X} + 4 if ${X} &lt; 1, and 3${X} if ${X} ≥ 1. For ${V('f')}(1), the input 1 fits ${X} ≥ 1 (not ${X} &lt; 1), so ${V('f')}(1) = 3(1) = <b>3</b>.`) +
+      example('Example 2: an absolute value function', `${V('g')}(${X}) = −2|${X} + 3| + 5. The bars are zero at ${X} = −3, so the vertex is <b>${M.pt(-3, 5)}</b>, and the V opens down because −2 &lt; 0. To evaluate: ${V('g')}(1) = −2|4| + 5 = <b>−3</b>.`),
     make(rng) {
       const kind = rng.pick(['eval', 'eval', 'abs-vertex', 'abs-eval']);
       if (kind === 'eval') {
