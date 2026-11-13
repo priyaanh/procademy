@@ -10,7 +10,7 @@
   --tint: color-mix(in srgb, var(--primary) 10%, var(--surface)); --tint-2: color-mix(in srgb, var(--primary) 18%, var(--surface));   /* every button is a shade of the one blue */
   --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  --vz1: #2d6fe0; --vz2: #d2403a; --vz3: #23894a; --vz4: #7448d0; --vz5: #dd7410; --vz6: #2a2e38;
+  --vz1: #2c65d3; --vz2: #b82a24; --vz3: #1f894a; --vz4: #5d0493; --vz5: #db730b; --vz6: #2a2e38;   /* chart colors: any two stay apart for red-green and blue-yellow color blindness */
   --pc-a: #2d6fe0; --pc-b: #dd7410;   /* the percent tool's two series, checked for colour-blind separation */
   --fs: 16px;
   color-scheme: light;
@@ -23,7 +23,7 @@
     --primary: #6ea0ff; --primary-ink: #8db3ff; --primary-soft: #1f2d4a; --on-primary: #0c1324;
     --ok: #3ccf7a; --ok-ink: #3ccf7a; --ok-soft: #173426; --bad: #ff7b72; --bad-soft: #3c1f1f; --warn: #ffc166; --warn-soft: #3a2f16;
     --lvl1: #ffa94d; --lvl2: #a99cf0; --lvl3: #8b73ee; --lvl4: #6a4fd8; --lvl0: #434a58;
-    --vz1: #6ea0ff; --vz2: #ff7b72; --vz3: #4cd07d; --vz4: #b49cff; --vz5: #ffab5c; --vz6: #e8eaf0;
+    --vz1: #7b9bfc; --vz2: #ef6f63; --vz3: #52e099; --vz4: #d69ce0; --vz5: #fca959; --vz6: #e8eaf0;
     --pc-a: #5a8cf0; --pc-b: #c97a2a;
     --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 4px 14px rgba(0, 0, 0, .25); --shadow-s: 0 1px 2px rgba(0, 0, 0, .3); --card-line: #2b303a;
     color-scheme: dark;
@@ -34,7 +34,7 @@
   --primary: #6ea0ff; --primary-ink: #8db3ff; --primary-soft: #1f2d4a; --on-primary: #0c1324;
   --ok: #3ccf7a; --ok-ink: #3ccf7a; --ok-soft: #173426; --bad: #ff7b72; --bad-soft: #3c1f1f; --warn: #ffc166; --warn-soft: #3a2f16;
   --lvl1: #ffa94d; --lvl2: #a99cf0; --lvl3: #8b73ee; --lvl4: #6a4fd8; --lvl0: #434a58;
-  --vz1: #6ea0ff; --vz2: #ff7b72; --vz3: #4cd07d; --vz4: #b49cff; --vz5: #ffab5c; --vz6: #e8eaf0;
+  --vz1: #7b9bfc; --vz2: #ef6f63; --vz3: #52e099; --vz4: #d69ce0; --vz5: #fca959; --vz6: #e8eaf0;
   --pc-a: #5a8cf0; --pc-b: #c97a2a;
   --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 4px 14px rgba(0, 0, 0, .25); --shadow-s: 0 1px 2px rgba(0, 0, 0, .3); --card-line: #2b303a;
   color-scheme: dark;
@@ -4753,3 +4753,76 @@ footer { padding-bottom: max(16px, env(safe-area-inset-bottom, 0px)); }
 .race-flag path { fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; }
 .race-score { font-weight: 700; margin: 0 0 6px; font-variant-numeric: tabular-nums; }
 @media (max-width: 440px) { .race-lane { grid-template-columns: 70px minmax(0, 1fr); } }
+
+/* access and speed */
+/* screen readers: a fraction is read "3 over 4", a power "to the power 2", a mixed number "2 and 3 over 4" (the words
+   are for the reader only; nothing changes on screen) */
+.frac > .num::after { content: "" / " over "; }
+.mixed > .frac::before { content: "" / " and "; }
+sup::before { content: "" / " to the power "; }
+sub::before { content: "" / " sub "; }
+/* charts: the parts of a mastery bar are kept apart by a thin line, so neighbors never rely on color alone */
+.mbar span + span { box-shadow: inset 2px 0 0 var(--surface); }
+/* skip links: the answer box's link sits beside Skip to content */
+.skip-ans:focus { left: 8px; top: 52px; }
+/* line spacing and word spacing (Settings, Reading and access) */
+:root[data-lines="more"] { --lh: 1.8; }
+:root[data-lines="most"] { --lh: 2.1; }
+:root[data-lines] body, :root[data-lines] :is(p, li, dd, dt, td, th, blockquote, label, .question, .learn, .learn-body, .feedback, .hint, .set-help, .small, .tiny, .muted, .tmsg, .help-steps, .lead, .vd-detail) { line-height: var(--lh); }
+:root[data-lines] :is(h1, h2, h3, h4) { line-height: calc(var(--lh) - .45); }
+:root[data-lines] :is(.learn-body, .question, .help-article, .tmsg) p { margin-bottom: calc(var(--lh) * .5em); }
+:root[data-words="more"] body { word-spacing: .16em; }
+:root[data-words="most"] body { word-spacing: .32em; }
+/* a bigger focus outline: thick, with a soft halo, in the site's blue */
+:root[data-focus="strong"] :focus-visible { outline: 4px solid var(--primary-ink) !important; outline-offset: 3px !important; box-shadow: 0 0 0 9px color-mix(in srgb, var(--primary) 28%, transparent) !important; }
+:root[data-focus="strong"][data-contrast="high"] :focus-visible { outline-color: var(--ink) !important; }
+/* fewer extras on screen: the streak and points, tips, pop-ups, the week in review and the footer step aside */
+:root[data-clutter="less"] :is(#stats, footer, .tool-tip, .wn-pop, .first-badge, .home-sec > .recap, .home-sec > .levels-note, .home-sec > .tiles, .ex-streak, .ex-keys) { display: none !important; }
+:root[data-clutter="less"] .home-sec:has(> .recap, > .levels-note, > .tiles) { display: none !important; }
+/* the reading ruler: a band across the screen at the line being read */
+.reading-ruler { position: fixed; left: 0; right: 0; top: 0; height: 2.6rem; z-index: 38; pointer-events: none; background: color-mix(in srgb, var(--primary) 9%, transparent); border-block: 2px solid color-mix(in srgb, var(--primary) 55%, transparent); will-change: transform; }
+:root[data-motion="reduce"] .reading-ruler { transition: none; }
+/* what's being read aloud, as text */
+.speak-cap { position: fixed; z-index: 47; left: 50%; transform: translateX(-50%); bottom: calc(20px + env(safe-area-inset-bottom, 0px)); width: min(640px, calc(100vw - 32px)); display: flex; align-items: center; gap: 10px 12px; padding: 10px 10px 10px 16px; border-radius: var(--radius-s); background: var(--surface); color: var(--ink); border: 1px solid var(--line); box-shadow: var(--shadow); }
+.speak-cap .sc-ic { flex: none; display: grid; place-items: center; color: var(--primary-ink); }
+.speak-cap .sc-text { flex: 1; min-width: 0; margin: 0; max-height: 28vh; overflow-y: auto; font-size: 1rem; line-height: 1.5; }
+.speak-cap .btn { flex: none; }
+/* a message that stays until it's put away (a timer that ended, storage that's full) */
+.app-notice { position: fixed; z-index: 58; left: 50%; transform: translateX(-50%); top: calc(76px + env(safe-area-inset-top, 0px)); width: min(620px, calc(100vw - 32px)); display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; padding: 12px 12px 12px 16px; border-radius: var(--radius-s); background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-left: 4px solid var(--primary); box-shadow: var(--shadow); }
+.app-notice .an-ic { flex: none; display: grid; place-items: center; color: var(--primary-ink); }
+.app-notice p { flex: 1 1 260px; margin: 0; min-width: 0; font-weight: 600; }
+.app-notice .an-acts { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
+.app-notice + .app-notice { top: calc(176px + env(safe-area-inset-top, 0px)); }
+@media (max-width: 700px) {
+  .speak-cap { bottom: calc(78px + env(safe-area-inset-bottom, 0px)); }
+  .app-notice { top: calc(64px + env(safe-area-inset-top, 0px)); }
+}
+/* Settings: Reading and access, and This device */
+.ac-links { display: flex; flex-wrap: wrap; gap: 8px; }
+.dv-what { margin-top: 4px; }
+.dv-what summary { cursor: pointer; width: fit-content; font-size: .85rem; font-weight: 600; color: var(--primary-ink); }
+.dv-list { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 4px; max-width: 360px; font-size: .88rem; }
+.dv-list li { display: flex; justify-content: space-between; gap: 12px; padding: 3px 0; border-bottom: 1px solid var(--line); }
+.dv-list b { font-weight: 650; white-space: nowrap; }
+.dv-acts { margin: 0; flex-wrap: wrap; justify-content: flex-end; }
+/* drawings and questions far down a long page (a worksheet, a cheat sheet, review) are drawn only as they come near */
+@media screen { :is(.ws-q, .cheat-item, .sample-list > li, .rv-item) { content-visibility: auto; contain-intrinsic-size: auto 220px; } }
+/* Safari on iPhone and iPad: 100vh is taller than the screen while its toolbars show, so full-height panels use the
+   visible height; a text box under 16px makes Safari zoom in when it's selected; the prefixed name for user-select */
+@supports (height: 100dvh) {
+  .ai-page { height: calc(100dvh - 110px); }
+  .wb-board, .crop-card { max-height: calc(100dvh - 32px); }
+  .zoom-dlg { max-height: 92dvh; }
+  .zoom-body svg { max-height: 76dvh; }
+  @container page (max-width: 820px) { .ai-page { height: auto; } .ai-main { height: calc(100dvh - 150px); } }
+  @media (max-width: 700px) { .more-sheet:not([hidden]) { max-height: calc(100dvh - 150px); } }
+}
+@supports (-webkit-touch-callout: none) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]), select, textarea { font-size: max(16px, 1em); }
+}
+body.tutor-resizing, .crop-stage { -webkit-user-select: none; }
+/* links inside the help steps' sentences are underlined, so they don't rely on color alone */
+.help-steps a:not([class]), .help-article p a:not([class]) { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 2px; }
+/* a practice set's dots: a missed question is striped and one right with help half filled, so they don't rely on color */
+.dots span.wrong { background: repeating-linear-gradient(135deg, var(--bad) 0 3px, color-mix(in srgb, var(--bad) 28%, var(--surface)) 3px 6px); }
+.dots span.hinted { background: linear-gradient(90deg, var(--warn) 50%, color-mix(in srgb, var(--warn) 22%, var(--surface)) 50%); }
