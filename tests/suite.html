@@ -3749,7 +3749,7 @@
   ACCOUNT.useBackend(dev(true));
   m = await goS('#/profile');
   m.querySelector('#ac-link-email').value = 'kid@example.com'; m.querySelector('#ac-link').dispatchEvent(new Event('submit', { cancelable: true }));
-  await until(() => srv.links.length);
+  await until(() => srv.links.length && /We sent a link/.test(text(m.querySelector('#ac-link .ac-msg'))));
   ok(srv.links[0] === 'kid@example.com' && /We sent a link/.test(text(m.querySelector('#ac-link .ac-msg'))), 'email link: the link is emailed once asked for');
   ok(await ACCOUNT.finishLink(null, 'https://example.test/?apiKey=k&mode=signIn&oobCode=good') === 'uploaded' && ACCOUNT.user().via === 'link' && !ACCOUNT.lock.locked(), 'email link: opening it on the same device signs in, with no password to ask for');
   m = await goS('#/profile');
