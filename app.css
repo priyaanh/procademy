@@ -4144,3 +4144,36 @@ html.tool-full main { padding-top: calc(64px + env(safe-area-inset-top, 0px)); }
 .set-merge { margin: 10px 0 8px; padding-left: 1.1rem; display: grid; gap: 4px; }
 .install-sub .install-steps { margin-bottom: 4px; }
 @media (max-width: 700px) { .set-find { max-width: none; flex-basis: 100%; } .rm-week #rm-add { margin-left: 0; } }
+/* Profile: avatar shapes and symbols, the avatar builder, devices, a sign-in link, two copies side by side */
+.avatar[data-shape="square"] { border-radius: 28%; }
+.avatar[data-shape="hex"] { border-radius: 0; clip-path: polygon(25% 3%, 75% 3%, 100% 50%, 75% 97%, 25% 97%, 0 50%); }
+.avatar[data-shape="blob"] { border-radius: 58% 42% 55% 45% / 46% 56% 44% 54%; }
+.av-glyph { font-weight: 800; line-height: 1; font-family: Georgia, "Times New Roman", serif; }
+.profile-fav { margin-top: 6px; }
+.avb-main { display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: center; }
+.avb-now { flex: none; }
+.avb-now .avatar.big { width: 72px; height: 72px; font-size: 2.2rem; }
+.avb-parts { display: grid; gap: 12px; min-width: 0; }
+.avb-part { display: grid; gap: 4px; }
+.avb-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.avb-btn { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 2px solid transparent; border-radius: 12px; background: none; cursor: pointer; }
+.avb-btn:hover { background: var(--tint); }
+.avb-btn[aria-checked="true"] { border-color: var(--primary); background: var(--primary-soft); }
+.avb-btn .avatar { width: 32px; height: 32px; font-size: 1rem; }
+.av-hue[aria-checked="true"] { border-color: var(--ink); }
+.ac-devices { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
+.ac-devices h3 { margin: 0 0 8px; font-size: 1rem; }
+.ac-devices ul { list-style: none; margin: 0 0 6px; padding: 0; display: grid; gap: 6px; max-width: 560px; }
+.ac-devices li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 12px; padding: 8px 12px; border-radius: 10px; background: var(--tint); }
+.ac-devices .chip { margin-left: 6px; font-size: .75rem; }
+.ac-how { margin-top: 12px; max-width: 640px; }
+.ac-how summary { cursor: pointer; }
+.ac-link { max-width: 420px; margin-top: 4px; }
+.ac-link-h { margin: 12px 0 4px; font-size: 1rem; }
+.ac-link p.small { margin: 4px 0 8px; }
+.ac-link-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.ac-link-row input { flex: 1 1 200px; min-width: 0; min-height: 44px; padding: .5rem .8rem; border: 1px solid var(--line-strong); border-radius: 12px; background: var(--surface); color: var(--ink); font: inherit; }
+.mg-copies { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 10px; margin: 12px 0; max-width: 640px; }
+.mg-copy { display: grid; gap: 2px; padding: 12px 14px; border-radius: 12px; background: var(--tint); }
+#ac-del-sure .field input { width: 100%; max-width: 300px; }
+@container page (min-width: 760px) { main .profile-grid { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); } main .profile-grid > .card:first-child { grid-row: span 2; } main .profile-grid > .reminder { grid-column: auto; } }
