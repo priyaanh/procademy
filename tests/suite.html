@@ -324,7 +324,9 @@
     ok(cents, 'more courses: personal finance money answers are whole cents');
     const mc = await go('#/courses');
     const band = b => mc.querySelector(`.band-section[data-band="${b}"]`);
-    ok(band('Middle school') && band('Middle school').querySelector('a[href="#/course/competition-math"]') && band('Middle school').querySelector('a[href="#/course/coding-logic"]') && band('High school').querySelector('a[href="#/course/sat-act"]') && band('High school').querySelector('a[href="#/course/personal-finance"]'), 'more courses: the Courses page shows them in the Middle school and High school bands');
+    const cardOf = id => mc.querySelector(`a[href="#/course/${id}"]`).closest('.course-card');
+    ok(band('area-prep').querySelector('a[href="#/course/competition-math"]') && band('area-prep').querySelector('a[href="#/course/sat-act"]') && band('area-money').querySelector('a[href="#/course/personal-finance"]') && band('area-coding').querySelector('a[href="#/course/coding-logic"]')
+      && cardOf('competition-math').dataset.band === 'Middle school' && cardOf('coding-logic').dataset.band === 'Middle school' && cardOf('sat-act').dataset.band === 'High school' && cardOf('personal-finance').dataset.band === 'High school', 'more courses: the Courses page groups them by subject, and the Middle school and High school tabs still find them');
     V.practice(root, 'logic.lists');
     ok(root.querySelector('.question pre.code') && /nums = \[/.test(text(root.querySelector('.question pre.code'))), 'more courses: a code-reading question renders its code block in the player');
   }
