@@ -3328,7 +3328,7 @@
   ok(plan.length === c7.units.length && plan.every((x, k) => x.unitId === c7.units[k].id && x.skillId === c7.units[k].skills.filter(id => A.skills[id]).slice(-1)[0]), 'placement: one question per unit, in order, from the end of each unit');
   ok(E.placementPlan({ id: 'big', units: Array.from({ length: 30 }, (_, k) => ({ id: 'u' + k, skills: ['math7.add-negatives'] })) }).length === 15, 'placement: a course with many units is checked with at most 15 questions, spread evenly');
   m = await goPl('#/course/math-7');
-  ok(/New to this course\?/.test(text(m.querySelector('.place-call'))) && m.querySelector('.place-call a[href="#/placement/math-7"]'), 'placement: the course page offers to find the starting point');
+  ok(/Start where I’m ready/.test(text(m.querySelector('.start-choice'))) && m.querySelector('.start-choice a.start-opt[href="#/placement/math-7"]') && m.querySelector('.start-choice a.start-opt[href^="#/skill/"]'), 'placement: the course page offers to find the starting point, or to start at the beginning');
   S.setSkill(plan[7].skillId, { level: 3, tries: 7, right: 7 });
   const missed0 = S.get().missed.length;
   const fp = drive(E.start('placement', { courseId: 'math-7' }), (it, k) => (k === 5 || k === 7 || k === 9 ? 'skip' : 'right'));
