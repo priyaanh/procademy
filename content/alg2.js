@@ -285,9 +285,9 @@
       example('Example 1: a difference of cubes', `${big(P([8, 0, 0, -27]))}8${X}³ = (2${X})³ and 27 = 3³, so ${V('a')} = 2${X} and ${V('b')} = 3. Then (2${X} − 3)((2${X})² + 2${X} · 3 + 3²) = <b>(${P([2, -3])})(${P([4, 6, 9])})</b>.`) +
       example('Example 2: a sum of cubes', `${big(P([1, 0, 0, 64]))}${V('a')} = ${X} and ${V('b')} = 4, since 64 = 4³. Same sign, then opposite, then always positive: <b>(${P([1, 4])})(${P([1, -4, 16])})</b>.`),
     make(rng) {
-      const m = rng.pick([1, 1, 2, 3, 4]);
-      let k = rng.int(1, 6);
-      while (M.gcd(m, k) !== 1) k = rng.int(1, 6);
+      const m = rng.pick([1, 1, 2, 3, 4, 5]);
+      let k = rng.int(1, 7);
+      while (M.gcd(m, k) !== 1) k = rng.int(1, 7);
       const s = rng.sign();
       const shown = P([m ** 3, 0, 0, s * k ** 3]);
       const f = (bs, mid) => `(${P([m, bs * k])})(${P([m * m, mid, k * k])})`;
@@ -528,15 +528,15 @@
     make(rng) {
       const kind = rng.pick(['eval', 'eval', 'to-root', 'to-exp', 'simplify']);
       if (kind === 'eval') {
-        const q = rng.pick([2, 2, 3, 3, 4]);
+        const q = rng.pick([2, 2, 3, 3, 4, 5]);
         const k = q === 2 ? rng.int(2, 10) : q === 3 ? rng.int(2, 5) : rng.int(2, 3);
-        let pw = rng.pick(q === 2 ? [1, 3] : q === 3 ? [1, 2] : [1, 3]);
+        let pw = rng.pick(q === 2 ? [1, 3] : q === 3 ? [1, 2] : q === 5 ? [1, 2] : [1, 3]);
         if (q === 2 && k > 5) pw = 1;
         const neg = rng.chance(0.3), base = k ** q, val = k ** pw;
         const ans = neg ? 1 / val : val;
         const shown = `${N(base)}<sup>${neg ? '−' : ''}${pw === 1 ? 1 : pw}/${q}</sup>`;
         return { prompt: `Evaluate.${neg ? ' Give a fraction.' : ''}${big(shown)}`, type: 'number', answer: ans, answerText: neg ? M.fracText(1, val) : undefined, params: { kind, base, pw, q, neg },
-          hints: [`The denominator ${q} means a ${q === 2 ? 'square' : q === 3 ? 'cube' : 'fourth'} root: ${root(q, N(base))} = ${k}, because ${k}<sup>${q}</sup> = ${N(base)}.`, pw > 1 ? `The numerator ${pw} is a power: ${k}<sup>${pw}</sup> = ${N(val)}.` : `The numerator is 1, so there is no further power.`].concat(neg ? [`The negative exponent means the reciprocal: 1 ÷ ${N(val)}.`] : []).concat([`<b>${neg ? M.fracText(1, val) : N(val)}</b>.`]) };
+          hints: [`The denominator ${q} means a ${['', '', 'square', 'cube', 'fourth', 'fifth'][q]} root: ${root(q, N(base))} = ${k}, because ${k}<sup>${q}</sup> = ${N(base)}.`, pw > 1 ? `The numerator ${pw} is a power: ${k}<sup>${pw}</sup> = ${N(val)}.` : `The numerator is 1, so there is no further power.`].concat(neg ? [`The negative exponent means the reciprocal: 1 ÷ ${N(val)}.`] : []).concat([`<b>${neg ? M.fracText(1, val) : N(val)}</b>.`]) };
       }
       if (kind === 'to-root' || kind === 'to-exp') {
         let m = rng.int(2, 5), n = rng.int(2, 5);
@@ -552,7 +552,7 @@
         return { prompt: `Write the radical as a power of ${X}.${big(rad(m, n))}`, type: 'choice', choices: [answer, ex(`${n}/${m}`), ex(m * n), ex(m + n)], answer, params: { kind, m, n },
           hints: [`The index of the root (${n}) becomes the denominator of the exponent.`, `The power inside (${m}) becomes the numerator.`, `<b>${rad(m, n)} = ${answer}</b>.`] };
       }
-      const b = rng.pick([2, 3, 5, 6, 7, 10]), s = rng.int(2, 8), n = s * s * b;
+      const b = rng.pick([2, 3, 5, 6, 7, 10, 11, 13]), s = rng.int(2, 9), n = s * s * b;
       const rt = (c, inner) => `${c}${M.sqrt(inner)}`;
       const answer = rt(s, b);
       const parts = [];
@@ -1059,7 +1059,7 @@
       example('Example 2: an exact value', `${big(`sin ${piTxt(5, 4)}`)}${unitCircleSvg(225, { point: '(−√2/2, −√2/2)', ref: '45°', label: 'unit circle with an angle θ of 225 degrees in standard position, ending in the third quadrant at the point (−√2/2, −√2/2), with a reference angle of 45 degrees to the negative x-axis' })}5π/4 = 225°, which ends in the third quadrant with a reference angle of 45°. sin 45° = √2/2, and sine is negative below the ${X}-axis: <b>−√2/2</b>.`),
     make(rng) {
       const kind = rng.pick(['to-deg', 'to-rad', 'value', 'value']);
-      const d = rng.pick([2, 3, 4, 6, 6]);
+      const d = rng.pick([2, 3, 4, 6, 6, 5, 9, 10, 12, 18]);   // 180/d is a whole number of degrees
       let n = rng.int(1, 2 * d - 1); while (M.gcd(n, d) !== 1) n = rng.int(1, 2 * d - 1);
       const deg = 180 * n / d;
       if (kind === 'to-deg') return { prompt: `Convert to degrees.${big(`${piTxt(n, d)} radians`)}`, type: 'number', answer: deg, unit: '°', params: { kind, n, d },
