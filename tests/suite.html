@@ -3808,7 +3808,7 @@
   ok(m.__data.sets[0].n === 3 && /“x” isn’t a number/.test(text(m)), 'data: something that isn’t a number is left out, and it says so');
 
   m = await go10('#/tools');
-  ok(m.querySelectorAll('.tool:not(.again)').length === 25 && m.querySelector('.tool[href="#/geometry"]') && m.querySelector('.tool[href="#/measure"]') && m.querySelector('.tool[href="#/unlimited"]') && m.querySelector('.tool[href="#/calc"]') && m.querySelector('.tool[href="#/numbers"]') && m.querySelector('.tool[href="#/data"]'), 'tools: every tool on one page');
+  ok(m.querySelectorAll('.tool:not(.again)').length === 26 && m.querySelector('.tool[href="#/typing"]') && m.querySelector('.tool[href="#/geometry"]') && m.querySelector('.tool[href="#/measure"]') && m.querySelector('.tool[href="#/unlimited"]') && m.querySelector('.tool[href="#/calc"]') && m.querySelector('.tool[href="#/numbers"]') && m.querySelector('.tool[href="#/data"]'), 'tools: every tool on one page');
   m = await go10('#/skill/g6.gcf-lcm');
   ok(m.querySelector('.hero a[href="#/numbers/12-18"]'), 'tools: the GCF and LCM skill offers the number explorer');
   m = await go10('#/skill/g6.spread');
