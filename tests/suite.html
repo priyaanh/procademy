@@ -1709,6 +1709,187 @@
   ok(tm.__fractions.op === 'mul' && tm.__fractions.a === '2/3', 'tools: a tool opens as it was left');
   try { localStorage.removeItem('procademy.toolprefs.v1'); localStorage.removeItem('procademy.calc.v1'); } catch (e) {}
   }
+  { // puzzles: Target, Cages and the cross-number checked by code, the daily three, Factor grab, past puzzles, the difficulty and the grade's pick; Leap's number lines, keys and hints; Balance in words; badges' bars, the week, a welcome back; the trophy room, certificates, the map, leagues, races and avatar looks
+  const snapP = JSON.stringify(S.get()), PK = ['procademy.puzzles.v1', 'procademy.leap.v1', 'procademy.balance.v1', 'procademy.sprints.v1'], keptP = {};
+  PK.forEach(k => { keptP[k] = localStorage.getItem(k); localStorage.removeItem(k); });
+  const goP = async h => { location.hash = '#/settings'; await tick(15); return go(h); };
+  const keyP = k => document.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, cancelable: true }));
+  const P = PUZZLES, t0 = S.today();
+  S.reset(); S.setProfile({ welcomed: true, seenNews: 'n12', name: 'Pia', grade: 7, enrolled: ['math-7'] });
+  let badP = 0;
+  for (let st = 1; st <= 5; st++) for (let d = 1; d <= 12; d++) {
+    const seed = '2026-10-' + String(d).padStart(2, '0');
+    const tg = P.makeTarget(seed, st); if (!P.wayFrom(tg.nums.map(n => P.Q(n)), tg.target, tg.T) || tg.nums.includes(tg.target)) badP++;
+    const cg = P.makeCages(seed, st); if (!cg || P.cageSolve(cg.n, cg.cages, 2).count !== 1) badP++;
+    if (!P.checkCross(P.makeCross(seed, st, P.season(seed)))) badP++;
+  }
+  ok(!badP && JSON.stringify(P.makeCages('2026-11-01', 3)) === JSON.stringify(P.makeCages('2026-11-01', 3)) && P.makeThree('2026-11-01', 3).length === 3, 'puzzles: every Target has a way, every Cages grid exactly one answer, every cross-number clue works out to its entry, and a day’s puzzle is the same for everyone');
+  // Target: hints in steps, then solved by combining two numbers at a time
+  let pm = await goP('#/puzzles/target');
+  const tgt = pm.__target, tway = P.wayFrom(tgt.nums.map(n => P.Q(n)), tgt.target, P.TARGET_STEPS[tgt.step]);
+  pm.querySelector('#tg-hint').click(); await tick(5);
+  ok(pm.__target.paid === 0 && /last step/.test(text(pm.querySelector('#pz-status'))), 'target: the first hint is a nudge about the last step, and free');
+  pm.querySelector('#tg-hint').click(); await tick(5);
+  ok(pm.__target.paid === 1 && /One way finishes with/.test(text(pm.querySelector('#pz-status'))), 'target: the second tells the last step, for a star');
+  for (const s of tway.steps) {
+    const [, a, op, b] = s.match(/^(\S+) (\S) (\S+) = /), tiles = () => [...pm.querySelectorAll('.tg-tile')], ia = tiles().findIndex(x => x.textContent.slice(1) === a);
+    if (!tiles()[ia].classList.contains('sel')) tiles()[ia].click();
+    pm.querySelector(`[data-op="${op}"]`).click();
+    tiles().find((x, k) => k !== ia && x.textContent.slice(1) === b).click(); await tick(2);
+  }
+  ok(pm.__target.won && pm.__target.stars === 2 && P.doneOn(t0).target === 2 && pm.querySelector('.lp-explain') && /As one expression/.test(text(pm.querySelector('#pz-status'))), 'target: reaching the target wins, with its stars kept for the day and how it works');
+  // Cages: a free nudge, then the grid filled from the keyboard and the keypad
+  pm = await goP('#/puzzles/cages');
+  const cgs = pm.__cages;
+  pm.querySelector('#cg-hint').click(); await tick(5);
+  ok(pm.__cages.paid === 0 && /cage|corner/.test(text(pm.querySelector('#pz-status'))), 'cages: the first hint points to a cage and what it can hold, for free');
+  pm.querySelector('.cg-cell[data-i="0"]').click(); keyP(String(cgs.sol[0])); await tick(2);
+  ok(pm.__cages.vals[0] === cgs.sol[0] && document.activeElement === pm.querySelector('.cg-cell[data-i="0"]'), 'cages: a number key fills the selected cell');
+  keyP('ArrowRight'); await tick(2);
+  ok(pm.__cages.cur === 1, 'cages: the arrow keys move between cells');
+  cgs.sol.forEach((v, i) => { if (i) { pm.querySelector(`.cg-cell[data-i="${i}"]`).click(); pm.querySelector(`[data-put="${v}"]`).click(); } });
+  ok(pm.__cages.won && pm.__cages.stars === 3 && /can only be/.test(text(pm.querySelector('.lp-explain'))) && P.doneOn(t0).cages === 3, 'cages: a full, right grid wins, and the explanation shows what each cage could hold');
+  // the cross-number
+  pm = await goP('#/puzzles/cross');
+  const cxs = pm.__cross;
+  ok(cxs.entries.length >= 4 && cxs.entries.every(e => e.cells.map(i => cxs.digits[i]).join('') === String(e.value)) && pm.querySelectorAll('.cn-clue').length === cxs.entries.length, 'cross-number: every entry reads off the grid’s digits, with a clue for each');
+  cxs.digits.forEach((d, i) => { if (d != null) { pm.querySelector(`.cn-cell[data-i="${i}"]`).click(); pm.querySelector(`[data-put="${d}"]`).click(); } });
+  ok(pm.__cross.won && /Across:/.test(text(pm.querySelector('.lp-explain'))) && P.doneOn(t0).cross === 3, 'cross-number: filling every digit wins, and every clue is worked out');
+  // the daily three
+  pm = await goP('#/puzzles/three');
+  pm.__three.items.forEach((it, k) => { const box = pm.querySelector(`.th-item[data-k="${k}"]`); if (it.kind === 'compare') box.querySelector(`[data-pick="${it.a}"]`).click(); else { box.querySelector('input').value = String(it.a).replace('-', '−'); box.querySelector('form').dispatchEvent(new Event('submit', { cancelable: true })); } });
+  ok(pm.__three.score === 3 && P.load().three[t0] === 3 && /All three right/.test(text(pm.querySelector('#th-sum'))) && pm.querySelectorAll('.th-res b').length === 3, 'daily three: three quick questions, each explained, with the score kept for the day');
+  // Factor grab, for two
+  pm = await goP('#/puzzles/duel');
+  pm.querySelector('#fg-a').value = 'Ana'; pm.querySelector('#fg-b').value = 'Ben'; pm.querySelector('#fg-n').value = '20';
+  pm.querySelector('#fg-form').dispatchEvent(new Event('submit', { cancelable: true })); await tick(5);
+  ok(pm.querySelector('.fg-n[data-n="1"]').disabled && !pm.querySelector('.fg-n[data-n="12"]').disabled, 'factor grab: a number needs a factor on the board to be taken');
+  pm.querySelector('.fg-n[data-n="12"]').click(); await tick(5);
+  ok(pm.__duel.score[0] === 12 && pm.__duel.score[1] === 16 && pm.__duel.turn === 1 && /Ben’s turn/.test(text(pm.querySelector('#fg-status'))), 'factor grab: taking 12 scores 12, and the other player gets 1, 2, 3, 4 and 6');
+  for (let g = 0; g < 40 && !pm.__duel.over; g++) { const b = pm.querySelector('.fg-n:not([disabled])'); if (!b) break; b.click(); await tick(1); }
+  ok(pm.__duel.over && /wins|tie/.test(text(pm.querySelector('#fg-status'))) && P.load().duel.games === 1, 'factor grab: the game ends when no number has a factor left, and says who won');
+  // past puzzles, and a past day's puzzle
+  pm = await goP('#/puzzles/archive');
+  const today0 = pm.querySelector('.pz-day.today');
+  ok(pm.querySelectorAll('.pz-day').length === 14 && today0 && today0.querySelectorAll('.pz-got').length === 4 && pm.querySelector(`a[href="#/leap/day/${S.dayShift(t0, -1)}"]`) && pm.querySelector(`a[href="#/puzzles/cages/${S.dayShift(t0, -3)}"]`), 'past puzzles: two weeks of days, every kind of puzzle on each, and today’s solved ones marked');
+  pm.querySelector('#arch-more').click(); await tick(5);
+  ok(pm.querySelectorAll('.pz-day').length === 28, 'past puzzles: two more weeks on request');
+  pm = await goP('#/leap/day/' + S.dayShift(t0, -2));
+  ok(pm.__leap.date === S.dayShift(t0, -2) && /Puzzle for/.test(text(pm.querySelector('#lp-title'))), 'past puzzles: an old Leap puzzle of the day opens by its date');
+  // the difficulty: one choice for every daily puzzle
+  pm = await goP('#/puzzles/cages');
+  const n0 = pm.__cages.n;
+  pm.querySelector('[data-diff="harder"]').click(); await tick(5);
+  ok(P.diff() === 'harder' && pm.__cages.n === n0 + 1 && pm.querySelector('[data-diff="harder"]').getAttribute('aria-pressed') === 'true', 'difficulty: Harder makes a bigger grid, and is remembered');
+  S.setProfile({ grade: 4 });
+  ok(LEAP.dailyLevel() === 9 && LEAP.dailyLevel('easier') === 1 && BALANCE.dailyLevel() === 12 && LEAP.dailySeed('2026-11-01', 'harder') !== LEAP.dailySeed('2026-11-01', 'normal'), 'difficulty: the daily Leap and Balance follow it too');
+  P.setDiff('normal');
+  // the grade picks the puzzles: on Home and in Tools
+  S.setProfile({ grade: 1 });
+  ok(P.forGrade()[0] === 'target' && !P.forGrade().includes('cross'), 'grade: a young learner’s puzzles start gently, without the cross-number');
+  pm = await goP('#/tools');
+  const playOrder = () => { const h = [...pm.querySelectorAll('.section-title h2')].find(x => /Practice and play/.test(text(x))); return [...h.parentElement.nextElementSibling.querySelectorAll('a.tool')].map(a => a.getAttribute('href')); };
+  ok(playOrder()[1] === '#/sprint' && playOrder().includes('#/puzzles'), 'tools: for a young learner, Practice and play leads with the facts sprint');
+  S.setProfile({ grade: 10 }); ok(P.forGrade()[0] === 'cages', 'grade: high school starts with the grids');
+  S.setProfile({ grade: 7 });
+  pm = await goP('#/tools');
+  ok(playOrder().slice(0, 4).join() === '#/unlimited,#/puzzles,#/leap,#/balance' && /For 7th grade today/.test(text(pm.querySelector('a.tool[href="#/puzzles"]').closest('.tool-card'))), 'tools: the Puzzles card names the one picked for the grade today');
+  pm = await goP('#/');
+  const pick = P.todayPick(), pzLi = [...pm.querySelectorAll('.today-list li')].find(li => /Puzzle of the day/.test(text(li)));
+  ok(pzLi && pzLi.classList.contains('done') && text(pzLi).includes(`Today’s ${pick.name} puzzle`) && pzLi.querySelector(`a[href="${pick.href}"]`) && P.forGrade().includes(pick.kind), 'home: the puzzle of the day suits the grade, and any daily puzzle solved today counts');
+  // Leap's other number lines, the keyboard, and the explanation after a win
+  let badL = 0;
+  for (const pk of Object.keys(LEAP.PACKS)) for (let l = 1; l <= LEAP.PACK_LEVELS; l++) { const pz = LEAP.make(l, null, pk); if (!pz || !LEAP.finish(pz, pz.start, pz.cards.map((_, i) => i))) badL++; }
+  ok(!badL && LEAP.make(5, null, 'fractions').cards.some(c => c.v[1] > 1) && LEAP.make(5, null, 'negatives').cards.some(c => c.v[0] < 0) && LEAP.show([7, 10], true) === '0.7', 'leap: the negatives, fractions and decimals lines have a way through every level');
+  pm = await goP('#/leap/decimals');
+  const lz = LEAP.make(pm.__leap.level, null, 'decimals'), safe = lz.cards.findIndex(c => !lz.holes.some(h => LEAP.apply(lz.start, c).join() === h.join()));
+  ok(pm.__leap.pack === 'decimals' && /Leap: Decimals/.test(text(pm.querySelector('h1'))) && /card 1: (plus|minus|times|divided by)/i.test(pm.querySelector('.lp-card').getAttribute('aria-label')), 'leap: the decimals line, with each card read out in words');
+  keyP(String(safe + 1)); await tick(5);
+  ok(pm.__leap.used === 1, 'leap: a number key plays that card');
+  keyP('u'); await tick(5);
+  ok(pm.__leap.used === 0, 'leap: U undoes it');
+  for (const i of pm.__leap.solution) { pm.querySelector(`[data-card="${i}"]`).click(); await tick(5); }
+  ok(pm.__leap.won && pm.querySelectorAll('.lp-explain li').length === pm.__leap.cards.length && JSON.parse(localStorage.getItem(LEAP.KEY)).packs.decimals.level === 2, 'leap: a win explains every jump, and opens the next level of that line');
+  // Balance: described in words, hints in steps, the keyboard, why it balances
+  pm = await goP('#/balance/1');
+  ok(/The beam tips down on the (left|right)/.test(pm.querySelector('#bl-said').textContent) && /Left side/.test(pm.querySelector('#bl-said').textContent), 'balance: the beam is described in words for screen readers');
+  pm.querySelector('#bl-hint').click(); await tick(5);
+  ok(pm.__balance.hintStep === 1 && pm.__balance.slips === 0 && /heavier by/.test(text(pm.querySelector('#bl-status'))), 'balance: the first hint says how far off the beam is, for free');
+  keyP('1'); await tick(5);
+  ok(pm.querySelector('.bl-chip.sel') && document.activeElement && document.activeElement.classList.contains('bl-peg'), 'balance: a number key chooses a card, and the keyboard moves on to the pegs');
+  pm.querySelector(`.bl-peg[data-peg="${pm.__balance.solution[0].p}"]`).click(); await tick(5);
+  ok(pm.__balance.won && /Both sides turn the beam/.test(text(pm.querySelector('.lp-explain'))), 'balance: a level beam explains why it balances');
+  // badges: a bar toward each, a welcome back after a break, the week's summary
+  S.reset(); S.setProfile({ welcomed: true, seenNews: 'n12', name: 'Pia', grade: 7, enrolled: ['math-7'], weekGoal: 2 });
+  S.get().days[S.dayShift(t0, -9)] = { q: 30, right: 25, pts: 300 }; S.save();
+  pm = await goP('#/');
+  ok(/Welcome back/.test(text(pm.querySelector('#goal-tile'))) && BADGES.backToday(), 'welcome back: after a break, Home offers a boost for the first answer');
+  const pts0 = S.get().points; S.countAnswer(true); BADGES.check();
+  ok(S.get().points === pts0 + BADGES.BOOST && S.get().profile.backBoost === t0 && !BADGES.backToday(), 'welcome back: the first answer earns the bonus points, once');
+  S.setProfile({ weekGoal: 1 }); BADGES.check();
+  ok(S.get().profile.weekMet === BADGES.week().mon && /Weekly goal met/.test(BADGES.weekSummary()), 'week: meeting the weekly goal brings the week’s summary');
+  pm = await goP('#/progress');
+  ok(pm.querySelector('.badge:not(.got) .bdg-bar') && BADGES.progress('q100').now === 31 && BADGES.nearest(3).length === 3 && BADGES.nearest(3)[0].prog.pct >= BADGES.nearest(3)[2].prog.pct, 'badges: a bar shows how far along each badge is, the closest first');
+  // the trophy room: stickers, the streak calendar with a saved day, the week, certificates, a picture
+  S.reset(); S.setProfile({ welcomed: true, seenNews: 'n12', name: 'Pia', grade: 7, enrolled: ['math-7'] });
+  [-3, -2, 0].forEach(k => { S.get().days[S.dayShift(t0, k)] = { q: 20, right: 18, pts: 200 }; });
+  S.get().savers.used[S.dayShift(t0, -1)] = true;
+  const u7 = A.courseById('math-7').units[0];
+  u7.skills.forEach(id => S.setSkill(id, { level: 3, tries: 5, right: 5 }));
+  ok(TROPHIES.longest() === 3 && /class="kept/.test(TROPHIES.calendar(S.dayShift(t0, -1).slice(0, 7))), 'streak calendar: a day a streak saver kept is marked, and doesn’t break the streak');
+  pm = await goP('#/trophies');
+  ok(pm.__trophies.stickers.includes('q50') && pm.querySelectorAll('.tr-stickers li').length === TROPHIES.STICKERS.length && pm.__trophies.certificates.includes(`#/certificate/unit/math-7/${u7.id}`) && pm.querySelector('#week .wk-sum') && pm.querySelector('.sc-cal td.did'), 'trophy room: stickers, the week, the streak calendar and a certificate ready to print');
+  pm.querySelector('#pic-make').click(); await tick(20);
+  ok(pm.__picture > 1000 && pm.querySelector('#pic-out img') && pm.querySelector('#pic-out a[download]'), 'trophy room: a picture of it all, made on this device, to save or share');
+  pm = await goP(`#/certificate/unit/math-7/${u7.id}`);
+  ok(/Certificate of completion/i.test(text(pm.querySelector('.cert'))) && text(pm.querySelector('#cert-who')) === 'Pia' && pm.querySelector('#cert-print'), 'certificate: a finished unit has a certificate with the learner’s name, ready to print');
+  pm.querySelector('#cert-name').value = 'Pia H'; pm.querySelector('#cert-name').dispatchEvent(new Event('input'));
+  ok(text(pm.querySelector('#cert-who')) === 'Pia H', 'certificate: the name on it can be changed before printing');
+  pm = await goP('#/certificate/course/math-7');
+  ok(/Not quite finished/.test(text(pm)) && pm.querySelectorAll('.cert-left li').length > 0, 'certificate: an unfinished course says what is left');
+  pm = await goP('#/map');
+  ok(pm.__map.course === 'math-7' && pm.__map.units[0].done && !pm.__map.all && pm.querySelectorAll('.tm-wide .tm-stop').length === pm.__map.units.length && pm.querySelector('.tm-wide .tm-stop.done .tm-x'), 'treasure map: an island for each unit, with an X on a finished one');
+  // a family league, by link
+  pm = await goP('#/league');
+  pm.querySelector('#lg-name').value = 'Our family'; pm.querySelector('#lg-me').value = 'Pia';
+  pm.querySelector('#lg-new').dispatchEvent(new Event('submit', { cancelable: true })); await tick(5);
+  const lg = S.get().profile.league, mon = BADGES.week().mon;
+  ok(lg && lg.name === 'Our family' && pm.__league.rows.length === 1 && S.get().badges.league && /#\/league\/./.test(TROPHIES.linkFor()), 'league: a family league is started, with the learner in it and a link to send');
+  const other = { v: 1, k: 'lg', id: lg.id, name: 'Our family', from: 'zzzz9999', rows: [{ m: 'zzzz9999', n: 'Dad', w: mon, p: 5000, d: 3, q: 80, z: 2, s: { times: 41 }, t: Date.now() - 1000 }] };
+  pm = await goP('#/league/' + DRAW.encode(JSON.stringify(other)));
+  ok(location.hash === '#/league' && pm.__league.rows.length === 2 && pm.__league.rows[0].n === 'Dad', 'league: a member’s link adds them to this week’s table, most points first');
+  const older = JSON.parse(JSON.stringify(other)); older.rows[0].p = 10; older.rows[0].t = Date.now() - 5000;
+  ok(TROPHIES.merge(TROPHIES.readLink(DRAW.encode(JSON.stringify(older)))) === 0 && TROPHIES.table()[0].n === 'Dad', 'league: an older link never replaces a newer one');
+  const sneaky = JSON.parse(JSON.stringify(other)); sneaky.rows[0].n = '<img src=x onerror=1>Dad'; sneaky.rows.push({ m: 'bad', n: 'X', w: mon, p: -5 });
+  const sr = TROPHIES.readLink(DRAW.encode(JSON.stringify(sneaky)));
+  ok(sr && sr.rows.length === 1 && !/[<>]/.test(sr.rows[0].n) && !TROPHIES.readLink('not-a-link'), 'league: a link is checked field by field');
+  pm = await goP('#/sprint');
+  ok(pm.querySelector('.sp-fam-card') && /Dad/.test(text(pm.querySelector('#sp-fam-box'))) && /41/.test(text(pm.querySelector('#sp-fam-box'))), 'sprints: family standings include the league’s best scores');
+  S.setProfile({ league: Object.assign({}, S.get().profile.league, { week: S.dayShift(mon, -7), rows: { zzzz9999: Object.assign({}, other.rows[0], { w: S.dayShift(mon, -7) }) } }) });
+  ok(TROPHIES.rollWeek() && S.get().profile.league.last.rows[0].n === 'Dad' && S.get().profile.league.remind, 'league: a new week keeps last week’s table, and reminds');
+  pm = await goP('#/league');
+  ok(/A new league week has started/.test(text(pm.querySelector('.lg-remind'))) && /Dad came first/.test(text(pm.querySelector('.lg-remind'))) && pm.querySelector('.lg-last'), 'league: the reminder says who came first last week');
+  // race the computer
+  pm = await goP('#/sprint/times/race');
+  pm.querySelector('[data-speed="hard"]').click(); pm.querySelector('#rc-go').click(); await tick(10);
+  const rc = pm.__race, rin = pm.querySelector('#sp-in');
+  rin.value = String(rc.cur.a); rin.dispatchEvent(new Event('input')); await tick(5);
+  ok(rc.me === 1 && /You 1/.test(text(pm.querySelector('#rc-score'))), 'race: a right answer moves you along the track');
+  const sp0 = S.get().points; rc.me = SPRINT.GOAL; rc.finish(); await tick(5);
+  ok(/You won the race/.test(text(pm)) && JSON.parse(localStorage.getItem('procademy.sprints.v1')).times.race.hard === 1 && S.get().badges.racer && S.get().points > sp0, 'race: beating the computer is kept, with points and a badge');
+  // avatar looks earned with points and practice, and a banner earned by mastery
+  S.get().points = 700; S.setSkill('math7.add-negatives', { level: 4, tries: 5, right: 5 });
+  pm = await goP('#/profile');
+  pm.querySelector('[data-look="frame"][data-id="double"]').click(); await tick(5);
+  ok(!(S.get().profile.avatar || {}).frame && /1,200 points to unlock/.test(text(document.querySelector('.toast'))), 'avatar looks: one not yet earned says what earns it');
+  pm.querySelector('[data-look="frame"][data-id="ring"]').click(); await tick(5);
+  pm.querySelector('[data-look="shade"][data-id="sky"]').click(); await tick(5);
+  pm.querySelector('[data-look="banner"][data-id="dots"]').click(); await tick(5);
+  ok(S.get().profile.avatar.frame === 'ring' && S.get().profile.avatar.shade === 'sky' && document.querySelector('#avatar-btn .avatar.av-f-ring.av-sh-sky') && document.getElementById('avatar-btn').textContent.trim() === 'P' && pm.querySelector('.profile-head.bn-dots') && pm.querySelector('details.lk[open]'), 'avatar looks: a frame and a blue shade earned with points, and a banner earned by mastery');
+  P.setDiff('normal');
+  PK.forEach(k => { if (keptP[k] == null) localStorage.removeItem(k); else localStorage.setItem(k, keptP[k]); });
+  S.replace(JSON.parse(snapP), { quiet: true });
+  }
   // the graphing calculator
   try { localStorage.removeItem('procademy.graph.v1'); } catch (e) {}
   m = await go('#/graph');
