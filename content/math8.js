@@ -56,10 +56,12 @@
   /* ---------- Unit 1: Numbers and operations ---------- */
   A.skill({
     id: 'math8.exponent-properties', title: 'Exponent properties',
-    learn: p(`An exponent counts repeated multiplication: ${S(X, 4)} means ${X} · ${X} · ${X} · ${X}. Three rules follow from that counting, and they only apply when the <b>bases are the same</b>.`) +
-      p(`<b>Product rule:</b> ${S(X, 'm')} × ${S(X, 'n')} = ${S(X, 'm + n')} — add the exponents.<br><b>Quotient rule:</b> ${S(X, 'm')} ÷ ${S(X, 'n')} = ${S(X, 'm − n')} — subtract the exponents.<br><b>Power of a power:</b> (${S(X, 'm')})${S('', 'n')} = ${S(X, 'mn')} — multiply the exponents.`) +
-      p(`The base never changes: ${S(3, 4)} × ${S(3, 2)} is ${S(3, 6)}, not ${S(9, 6)}. Check small cases if you forget a rule: ${S(2, 3)} × ${S(2, 2)} = 8 × 4 = 32 = ${S(2, 5)}.`) +
-      example('Example', `${big(`${S(5, 7)} ÷ ${S(5, 3)}`)}Same base, a division, so subtract the exponents: 7 − 3 = 4. The answer is <b>${S(5, 4)}</b>.`),
+    learn: p(`In ${S(X, 4)}, the <b>base</b> is ${X}, the number being multiplied, and the <b>exponent</b> is 4, the small raised number that counts how many times: ${S(X, 4)} means ${X} · ${X} · ${X} · ${X}. Three shortcuts follow from that counting, and they only work when the <b>bases are the same</b>.`) +
+      p(`<b>Product rule:</b> ${S(X, 'm')} × ${S(X, 'n')} = ${S(X, 'm + n')}. When you multiply, add the exponents.<br><b>Quotient rule:</b> ${S(X, 'm')} ÷ ${S(X, 'n')} = ${S(X, 'm − n')}. When you divide, subtract them.<br><b>Power of a power:</b> (${S(X, 'm')})${S('', 'n')} = ${S(X, 'mn')}. When a power is raised to another power, multiply them.`) +
+      p(`The base never changes: ${S(3, 4)} × ${S(3, 2)} is ${S(3, 6)}, not ${S(9, 6)}. If you forget a rule, try a small case: ${S(2, 3)} × ${S(2, 2)} = 8 × 4 = 32, and 32 is ${S(2, 5)}.`) +
+      example('Example: multiplying', `${big(`${S(X, 3)} × ${S(X, 5)}`)}Same base, and you’re multiplying, so add the exponents: 3 + 5 = 8. Three ${X}’s times five more ${X}’s is eight ${X}’s in a row, so the answer is <b>${S(X, 8)}</b>.`) +
+      example('Example: dividing', `${big(`${S(5, 7)} ÷ ${S(5, 3)}`)}Same base, and you’re dividing, so subtract the exponents: 7 − 3 = 4. The answer is <b>${S(5, 4)}</b>.`) +
+      example('Example: a power of a power', `${big(`(${S(2, 4)})${S('', 3)}`)}This is ${S(2, 4)} used three times, so multiply the exponents: 4 × 3 = 12. The answer is <b>${S(2, 12)}</b>. (Adding them, 4 + 3 = 7, is the usual slip.)`),
     make(rng) {
       const rule = rng.pick(['product', 'quotient', 'power']);
       const base = rng.pick(['2', '3', '5', '7', '10', 'x', 'x', 'y', 'a']);
@@ -96,9 +98,12 @@
 
   A.skill({
     id: 'math8.negative-exponents', title: 'Negative exponents',
-    learn: p(`A negative exponent means “one over”: <b>${S(X, '−n')} = ${fracH('1', S(X, 'n'))}</b>. So ${S(2, '−3')} = ${F(1, 8)} and ${S(10, '−2')} = ${F(1, 100, { raw: true })} = 0.01. The result is small, but it is still positive.`) +
-      p(`Here is why. The quotient rule says ${S(2, 2)} ÷ ${S(2, 5)} = ${S(2, '−3')}, and working it out directly gives 4 ÷ 32 = ${F(1, 8)}. For a fraction, flipping it makes the exponent positive: (${F(2, 3)})${S('', '−2')} = (${F(3, 2)})${S('', 2)} = ${F(9, 4)}.`) +
-      example('Example', `${big(S(5, '−2'))}${S(5, '−2')} = 1 ÷ ${S(5, 2)} = 1 ÷ 25 = <b>${F(1, 25)}</b>, which is 0.04.`),
+    learn: p(`A negative exponent means “one over”: <b>${S(X, '−n')} = ${fracH('1', S(X, 'n'))}</b>. So ${S(2, '−3')} = ${F(1, 8)} and ${S(10, '−2')} = ${F(1, 100, { raw: true })} = 0.01. The result is small, but it’s still positive. The negative sign tells you to divide, not to make the answer negative.`) +
+      p(`Here’s why. The quotient rule says ${S(2, 2)} ÷ ${S(2, 5)} = ${S(2, '−3')}, and working it out directly gives 4 ÷ 32 = ${F(1, 8)}. For a fraction, flip it over (use its <b>reciprocal</b>, the fraction turned upside down) and the exponent becomes positive: (${F(2, 3)})${S('', '−2')} = (${F(3, 2)})${S('', 2)} = ${F(9, 4)}.`) +
+      example('Example: a whole number', `${big(S(5, '−2'))}${S(5, '−2')} = 1 ÷ ${S(5, 2)} = 1 ÷ 25 = <b>${F(1, 25)}</b>, which is 0.04.`) +
+      example('Example: a power of ten', `${big(S(10, '−3'))}${S(10, '−3')} = 1 ÷ ${S(10, 3)} = 1 ÷ 1,000. Dividing by 1,000 moves the decimal point 3 places left, so the value is <b>0.001</b>.`) +
+      example('Example: a fraction', `${big(`(${F(3, 4)})${S('', '−2')}`)}Flip the fraction to make the exponent positive: (${F(4, 3)})${S('', 2)}. Square the top and the bottom: ${S(4, 2)} = 16 and ${S(3, 2)} = 9, so the value is <b>${F(16, 9)}</b>.`) +
+      example('Example: a product', `${big(`${S(3, 2)} × ${S(3, '−5')}`)}Same base, so add the exponents: 2 + (−5) = −3. Then ${S(3, '−3')} = 1 ÷ ${S(3, 3)} = <b>${F(1, 27)}</b>.`),
     make(rng) {
       const kind = rng.pick(['plain', 'plain', 'ten', 'frac', 'product']);
       if (kind === 'ten') {
@@ -137,7 +142,9 @@
     learn: p(`<b>Scientific notation</b> writes a number as a value from 1 up to (but not including) 10, times a power of ten: 3,600,000 = ${sci(3.6, 6)} and 0.00042 = ${sci(4.2, -4)}. The exponent tells how many places the decimal point moved: positive for big numbers, negative for small ones.`) +
       p(`<b>To write a number in scientific notation</b>, move the decimal point until exactly one non-zero digit is in front of it, and count the places. <b>To write it out</b>, move the point back: a positive exponent moves it right, a negative exponent moves it left, filling with zeros.`) +
       p(`<b>To multiply</b>, multiply the front numbers and add the exponents: (${sci(2, 3)})(${sci(4, 5)}) = ${sci(8, 8)}. If the front number comes out 10 or more, slide the point one more place and add 1 to the exponent: ${sci(24, 8)} becomes ${sci(2.4, 9)}.`) +
-      example('Example', `${big('Write 0.00075 in scientific notation.')}Move the point 4 places right to get 7.5, so the exponent is −4: <b>${sci(7.5, -4)}</b>.`),
+      example('Example: a small number', `${big('Write 0.00075 in scientific notation.')}Move the point 4 places right to get 7.5. The number is small, so the exponent is negative: <b>${sci(7.5, -4)}</b>.`) +
+      example('Example: writing it out', `${big(sci(6.02, 4))}The exponent is positive, so move the point 4 places right, filling with zeros: 6.02 → 60.2 → 602 → 6,020 → <b>60,200</b>.`) +
+      example('Example: multiplying', `${big(`(${sci(4, 3)}) × (${sci(5, 6)})`)}Multiply the front numbers: 4 × 5 = 20. Add the exponents: 3 + 6 = 9. That gives ${sci(20, 9)}, but 20 isn’t between 1 and 10, so write 20 as ${sci(2, 1)} and add 1 to the exponent: <b>${sci(2, 10)}</b>.`),
     make(rng) {
       const kind = rng.pick(['in', 'in', 'out', 'multiply', 'multiply']);
       const mants = [1.2, 1.5, 2, 2.4, 3, 3.6, 4.2, 4.5, 5, 5.8, 6.3, 7, 7.5, 8.1, 9, 9.6];
@@ -181,10 +188,12 @@
 
   A.skill({
     id: 'math8.roots', title: 'Square roots and cube roots',
-    learn: p(`The <b>square root</b> of a number is the number that, squared, gives it back: ${M.sqrt(49)} = 7 because ${S(7, 2)} = 49. The <b>cube root</b> undoes cubing: ${cbrt(64)} = 4 because ${S(4, 3)} = 64. A cube root can be negative (${cbrt('−8')} = −2), but ${M.sqrt(X)} always means the positive root.`) +
-      p(`Learn the perfect squares up to 15² = 225 and the cubes up to 10³ = 1000; most problems use them. A square with area 81 cm² has sides of ${M.sqrt(81)} = 9 cm; a cube with volume 125 cm³ has edges of ${cbrt(125)} = 5 cm.`) +
-      p(`When a number is <b>not</b> a perfect square, its square root lies between two whole numbers. Find the perfect squares on either side: 36 < 40 < 49, so 6 < ${M.sqrt(40)} < 7, and because 40 is closer to 36 the root is a bit above 6 (it is about 6.3).`) +
-      example('Example', `${big(M.sqrt(144))}Which number times itself is 144? 12 × 12 = 144, so ${M.sqrt(144)} = <b>12</b>.`),
+    learn: p(`The <b>square root</b> of a number is the number that, multiplied by itself, gives it back: ${M.sqrt(49)} = 7 because ${S(7, 2)} = 7 × 7 = 49. The <b>cube root</b> undoes cubing (using a number three times in a product): ${cbrt(64)} = 4 because ${S(4, 3)} = 4 × 4 × 4 = 64. A cube root can be negative (${cbrt('−8')} = −2, since (−2) × (−2) × (−2) = −8), but ${M.sqrt(X)} always means the positive root.`) +
+      p(`A <b>perfect square</b> is a whole number times itself (1, 4, 9, 16, 25, …), and a <b>perfect cube</b> is a whole number used three times (1, 8, 27, 64, …). Learn the squares up to ${S(15, 2)} = 225 and the cubes up to ${S(10, 3)} = 1,000; most problems use them. A square with area 81 cm² has sides of ${M.sqrt(81)} = 9 cm, and a cube with volume 125 cm³ has edges of ${cbrt(125)} = 5 cm.`) +
+      p(`When a number is <b>not</b> a perfect square, its square root lies between two whole numbers. Find the perfect squares on either side: 36 &lt; 40 &lt; 49, so 6 &lt; ${M.sqrt(40)} &lt; 7. Because 40 is closer to 36, the root is a bit above 6 (it’s about 6.3).`) +
+      example('Example: a square root', `${big(M.sqrt(144))}Which number times itself is 144? 12 × 12 = 144, so ${M.sqrt(144)} = <b>12</b>.`) +
+      example('Example: a negative cube root', `${big(cbrt('−27'))}Which number, used three times, gives −27? 3 × 3 × 3 = 27, and an odd number of negatives makes a negative, so (−3) × (−3) × (−3) = −27. The answer is <b>−3</b>.`) +
+      example('Example: between two whole numbers', `${big(M.sqrt(75))}75 isn’t a perfect square. The squares on either side are ${S(8, 2)} = 64 and ${S(9, 2)} = 81, and 64 &lt; 75 &lt; 81. So ${M.sqrt(75)} is between <b>8 and 9</b>, a little closer to 9.`),
     make(rng) {
       const kind = rng.pick(['square', 'square', 'cube', 'area', 'volume', 'estimate', 'estimate']);
       if (kind === 'square') {
@@ -232,9 +241,10 @@
 
   A.skill({
     id: 'math8.variables-both-sides', title: 'Equations with variables on both sides',
-    learn: p(`When ${X} appears on both sides, first gather the ${X}-terms on one side and the plain numbers on the other. <b>Whatever you do to one side, do to the other</b>, so the equation stays balanced.`) +
-      p(`A good habit: subtract the smaller ${X}-term from both sides, so the ${X}-coefficient left over is positive. Then it is an ordinary two-step equation. Finish by checking: put your answer back into <b>both</b> sides and make sure they match.`) +
-      example('Example', `${big(`5${X} − 4 = 2${X} + 11`)}Subtract 2${X} from both sides: 3${X} − 4 = 11. Add 4: 3${X} = 15. Divide by 3: <b>${X} = 5</b>. Check: 5(5) − 4 = 21 and 2(5) + 11 = 21. ✓`),
+    learn: p(`When ${X} appears on both sides, first gather the <b>${X}-terms</b> (the parts with ${X} in them, such as 5${X}) on one side and the plain numbers on the other. <b>Whatever you do to one side, do to the other</b>, so the equation stays balanced.`) +
+      p(`The number in front of ${X} is its <b>coefficient</b>: in 5${X} it’s 5. A good habit is to take away the ${X}-term with the smaller coefficient from both sides, so the one left over is positive. Then it’s an ordinary two-step equation. Finish by checking: put your answer back into <b>both</b> sides and make sure they match.`) +
+      example('Example: gather on the left', `${big(`5${X} − 4 = 2${X} + 11`)}Subtract 2${X} from both sides: 3${X} − 4 = 11. Add 4: 3${X} = 15. Divide by 3: <b>${X} = 5</b>. Check: 5(5) − 4 = 21 and 2(5) + 11 = 21. ✓`) +
+      example('Example: gather on the right', `${big(`2${X} + 9 = 6${X} + 17`)}The smaller ${X}-term is on the left, so subtract 2${X} from both sides: 9 = 4${X} + 17. Subtract 17: −8 = 4${X}. Divide by 4: <b>${X} = −2</b>. Check: 2(−2) + 9 = 5 and 6(−2) + 17 = 5. ✓`),
     make(rng) {
       const x = rng.int(-10, 10);
       let a = rng.nz(-9, 9), c = rng.nz(-9, 9);
@@ -257,8 +267,10 @@
   A.skill({
     id: 'math8.distributive-equations', title: 'Equations with parentheses',
     learn: p(`When an equation has parentheses, use the <b>distributive property</b> first: multiply the number outside by <b>every</b> term inside. 3(${X} − 4) = 3${X} − 12, and −2(${X} + 5) = −2${X} − 10 (the negative multiplies both terms).`) +
-      p(`Then combine like terms on each side, gather the ${X}-terms on one side, and solve as usual. The most common slip is multiplying only the first term inside the parentheses.`) +
-      example('Example', `${big(`4(${X} − 3) = 2${X} + 6`)}Distribute: 4${X} − 12 = 2${X} + 6. Subtract 2${X}: 2${X} − 12 = 6. Add 12: 2${X} = 18. So <b>${X} = 9</b>.`),
+      p(`Then combine <b>like terms</b> on each side (terms of the same kind, such as 3${X} and 5${X}, or 10 and −7), gather the ${X}-terms on one side, and solve as usual. The most common slip is multiplying only the first term inside the parentheses.`) +
+      example('Example: a number on the other side', `${big(`−3(${X} + 4) = 6`)}Distribute −3 to both terms: −3${X} − 12 = 6. Add 12: −3${X} = 18. Divide by −3: <b>${X} = −6</b>. Check: −3(−6 + 4) = −3(−2) = 6. ✓`) +
+      example(`Example: ${X} on both sides`, `${big(`4(${X} − 3) = 2${X} + 6`)}Distribute: 4${X} − 12 = 2${X} + 6. Subtract 2${X}: 2${X} − 12 = 6. Add 12: 2${X} = 18. So <b>${X} = 9</b>.`) +
+      example('Example: combine first', `${big(`2(${X} + 5) − 7 = 5${X} + 9`)}Distribute: 2${X} + 10 − 7 = 5${X} + 9. Combine 10 − 7: 2${X} + 3 = 5${X} + 9. Subtract 2${X}: 3 = 3${X} + 9. Subtract 9: −6 = 3${X}, so <b>${X} = −2</b>.`),
     make(rng) {
       const x = rng.int(-9, 9), form = rng.pick(['a(x+b)=c', 'a(x+b)=cx+d', 'a(x+b)+e=cx+d']);
       const a = rng.pick([-5, -4, -3, -2, 2, 3, 4, 5, 6]), b = rng.nz(-8, 8);
@@ -283,7 +295,9 @@
     id: 'math8.number-of-solutions', title: 'Number of solutions to equations',
     learn: p(`Simplify both sides completely, then compare. If the ${X}-terms are <b>different</b>, the equation has <b>exactly one solution</b>.`) +
       p(`If the ${X}-terms are the same, they cancel when you subtract. What is left decides it: a true statement such as 6 = 6 means <b>infinitely many solutions</b> (every ${X} works, because the two sides are the same expression); a false statement such as 6 = 2 means <b>no solution</b> (no ${X} can make it true).`) +
-      example('Example', `${big(`3(${X} + 2) = 3${X} + 2`)}Distribute: 3${X} + 6 = 3${X} + 2. Subtract 3${X}: 6 = 2, which is false. <b>No solution.</b>`),
+      example('Example: no solution', `${big(`3(${X} + 2) = 3${X} + 2`)}Distribute: 3${X} + 6 = 3${X} + 2. Subtract 3${X}: 6 = 2, which is false. <b>No solution.</b>`) +
+      example('Example: infinitely many', `${big(`2(${X} − 3) + ${X} = 3${X} − 6`)}Distribute and combine: 2${X} − 6 + ${X} = 3${X} − 6, so 3${X} − 6 = 3${X} − 6. Subtract 3${X}: −6 = −6, which is always true. <b>Infinitely many solutions.</b>`) +
+      example('Example: exactly one', `${big(`4(${X} + 1) = 2${X} + 10`)}Distribute: 4${X} + 4 = 2${X} + 10. The ${X}-terms are different (4${X} and 2${X}), so they don’t cancel: 2${X} = 6 and ${X} = 3. <b>Exactly one solution.</b>`),
     make(rng) {
       const kind = rng.pick(['one', 'none', 'many']);
       const pp = rng.pick([2, 3, 4, 5, -2, -3]), qq = rng.nz(-6, 6), r = rng.int(-3, 3);   // left: p(x + q) + r·x
@@ -313,7 +327,9 @@
     id: 'math8.slope', title: 'Slope and rate of change',
     learn: p(`The <b>slope</b> of a line says how steep it is: how much ${Y} changes for each step of 1 in ${X}. From two points, <b>slope = (change in ${Y}) ÷ (change in ${X}) = (${M.sub(Y, 2)} − ${M.sub(Y, 1)}) ÷ (${M.sub(X, 2)} − ${M.sub(X, 1)})</b>. Subtract in the same order on top and bottom.`) +
       p(`A positive slope rises from left to right, a negative slope falls, and a horizontal line has slope 0. In a word problem the slope is the <b>rate of change</b>, with units such as dollars per hour or centimeters per day.`) +
-      example('Example', `${big(`${PT(1, 2)} and ${PT(5, 10)}`)}Change in ${Y}: 10 − 2 = 8. Change in ${X}: 5 − 1 = 4. Slope = 8 ÷ 4 = <b>2</b>.`),
+      example('Example: two points', `${big(`${PT(1, 2)} and ${PT(5, 10)}`)}Change in ${Y}: 10 − 2 = 8. Change in ${X}: 5 − 1 = 4. Slope = 8 ÷ 4 = <b>2</b>.`) +
+      example('Example: a table', `${M.table([X, Y], [[N(-2), N(5)], [N(4), N(1)]], { compact: true })}Change in ${Y}: 1 − 5 = −4. Change in ${X}: 4 − (−2) = 6. Slope = −4 ÷ 6 = <b>−${F(2, 3)}</b>. It’s negative, so the line falls from left to right.`) +
+      example('Example: a rate of change', `After 2 hours a candle is 18 cm tall, and after 6 hours it’s 12 cm tall. The rate of change is (12 − 18) ÷ (6 − 2) = −6 ÷ 4 = <b>−1.5 cm per hour</b>. It’s negative because the candle is getting shorter.`),
     make(rng) {
       const kind = rng.pick(['points', 'points', 'table', 'word']);
       if (kind === 'word') return slopeWord(rng);
@@ -351,9 +367,10 @@
 
   A.skill({
     id: 'math8.slope-intercept-form', title: 'Writing slope-intercept equations',
-    learn: p(`<b>Slope-intercept form</b> is ${Y} = ${V('m')}${X} + ${V('b')}, where ${V('m')} is the slope and ${V('b')} is the ${Y}-intercept (where the line crosses the ${Y}-axis, at ${X} = 0).`) +
+    learn: p(`<b>Slope-intercept form</b> is ${Y} = ${V('m')}${X} + ${V('b')}, where ${V('m')} is the slope and ${V('b')} is the <b>${Y}-intercept</b>: the ${Y}-value where the line crosses the ${Y}-axis, at ${X} = 0.`) +
       p(`If you know the slope and one point, put them into ${Y} = ${V('m')}${X} + ${V('b')} and solve for ${V('b')}. If you know two points, find the slope first, then use either point.`) +
-      example('Example', `${big(`Slope 3, through ${PT(2, 1)}`)}1 = 3(2) + ${V('b')}, so 1 = 6 + ${V('b')} and ${V('b')} = −5. The equation is <b>${eqn(3, -5)}</b>.`),
+      example('Example: a slope and a point', `${big(`Slope 3, through ${PT(2, 1)}`)}Put ${X} = 2 and ${Y} = 1 into ${Y} = 3${X} + ${V('b')}: 1 = 3(2) + ${V('b')}, so 1 = 6 + ${V('b')} and ${V('b')} = −5. The equation is <b>${eqn(3, -5)}</b>.`) +
+      example('Example: two points', `${big(`Through ${PT(-1, 7)} and ${PT(2, -2)}`)}Slope first: (−2 − 7) ÷ (2 − (−1)) = −9 ÷ 3 = −3. Then use ${PT(-1, 7)}: 7 = −3(−1) + ${V('b')}, so 7 = 3 + ${V('b')} and ${V('b')} = 4. The equation is <b>${eqn(-3, 4)}</b>.`),
     make(rng) {
       const kind = rng.pick(['slope-point', 'two-points']);
       const m = rng.nz(-5, 5), b = rng.int(-9, 9);
@@ -379,9 +396,10 @@
 
   A.skill({
     id: 'math8.recognize-functions', title: 'Recognizing functions',
-    learn: p(`A <b>function</b> is a rule that gives <b>exactly one output for each input</b>. In a table or a list of ordered pairs, look at the inputs (the ${X}-values): if the same ${X} ever appears with two <b>different</b> ${Y}-values, it is not a function.`) +
-      p(`Repeated <b>outputs</b> are fine. ${PT(1, 5)} and ${PT(2, 5)} can both belong to a function: two inputs share an output, but each input still has only one. A repeated pair like ${PT(3, 4)} written twice is also fine — it is the same input with the same output.`) +
-      example('Example', `${big(`${PT(1, 4)}, ${PT(2, 6)}, ${PT(1, 8)}`)}The input 1 is paired with both 4 and 8. <b>Not a function.</b>`),
+    learn: p(`A <b>relation</b> is any set of input-output pairs, like a table or a list of ordered pairs. A <b>function</b> is a relation that gives <b>exactly one output for each input</b>. So look at the inputs (the ${X}-values): if the same ${X} ever appears with two <b>different</b> ${Y}-values, it’s not a function.`) +
+      p(`Repeated <b>outputs</b> are fine. ${PT(1, 5)} and ${PT(2, 5)} can both belong to a function: two inputs share an output, but each input still has only one. A repeated pair like ${PT(3, 4)} written twice is also fine, because it’s the same input with the same output.`) +
+      example('Example: not a function', `${big(`${PT(1, 4)}, ${PT(2, 6)}, ${PT(1, 8)}`)}The input 1 is paired with both 4 and 8. <b>Not a function.</b>`) +
+      example('Example: a function', `${M.table([`Input ${X}`, `Output ${Y}`], [[N(-1), 4], [0, 6], [2, 4], [3, 9]], { compact: true })}The inputs −1, 0, 2 and 3 are all different, so each one has just one output. The output 4 shows up twice, and that’s allowed. <b>It’s a function.</b>`),
     make(rng) {
       const isFn = rng.bool(), form = rng.pick(['table', 'pairs']);
       const xs = rng.sample([-4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7], 5);
@@ -408,9 +426,10 @@
 
   A.skill({
     id: 'math8.linear-nonlinear', title: 'Linear and nonlinear functions',
-    learn: p(`A function is <b>linear</b> when its rate of change is constant: every time ${X} goes up by the same step, ${Y} changes by the same amount. Its graph is a straight line, and its equation can be written ${Y} = ${V('m')}${X} + ${V('b')}.`) +
+    learn: p(`A function is <b>linear</b> when its rate of change is <b>constant</b> (always the same): every time ${X} goes up by the same step, ${Y} changes by the same amount. Its graph is a straight line, and its equation can be written ${Y} = ${V('m')}${X} + ${V('b')}.`) +
       p(`To test a table, find the change in ${Y} between rows and divide by the change in ${X}. If that rate is the same everywhere, the function is linear and the rate is its slope. If it changes (as with ${Y} = ${S(X, 2)} or a quantity that doubles), the function is <b>nonlinear</b>.`) +
-      example('Example', `${M.table([X, Y], [[0, 1], [2, 7], [4, 13], [6, 19]], { compact: true })}${X} goes up by 2 each row and ${Y} goes up by 6 each row. The rate of change is 6 ÷ 2 = 3 every time, so it is <b>linear</b> with rate of change 3.`),
+      example('Example: linear', `${M.table([X, Y], [[0, 1], [2, 7], [4, 13], [6, 19]], { compact: true })}${X} goes up by 2 each row and ${Y} goes up by 6 each row. The rate of change is 6 ÷ 2 = 3 every time, so it’s <b>linear</b> with rate of change 3.`) +
+      example('Example: nonlinear', `${M.table([X, Y], [[0, 1], [1, 2], [2, 5], [3, 10]], { compact: true })}${X} goes up by 1 each row, but ${Y} goes up by 1, then 3, then 5. The changes aren’t the same, so it’s <b>nonlinear</b>. (These are ${S(X, 2)} + 1, a curve.)`),
     make(rng) {
       const linear = rng.bool(), step = rng.pick([1, 1, 2]), x0 = rng.int(-2, 2);
       const xs = [0, 1, 2, 3].map(i => x0 + i * step);
@@ -440,9 +459,10 @@
   /* ---------- Unit 4: Systems of equations ---------- */
   A.skill({
     id: 'math8.solve-systems', title: 'Solving systems of equations',
-    learn: p(`A <b>system</b> is two equations that must both be true at once. Its solution is the ordered pair ${PT('x', 'y').replace('x', X).replace('y', Y)} that works in <b>both</b> — the point where the two lines cross.`) +
+    learn: p(`A <b>system of equations</b> is two equations that must both be true at once. Its solution is the ordered pair ${PT('x', 'y').replace('x', X).replace('y', Y)} that works in <b>both</b>: the point where the two lines cross.`) +
       p(`<b>Substitution:</b> if one equation already says ${Y} = …, replace ${Y} in the other equation with that expression and solve for ${X}. <b>Elimination:</b> add or subtract the equations (multiplying one first if needed) so that one variable cancels. Either way, find the second variable by putting the first back into an equation, and check the pair in both.`) +
-      example('Example', `${big(`${Y} = 2${X} + 1 and 3${X} + ${Y} = 16`)}Substitute: 3${X} + (2${X} + 1) = 16, so 5${X} = 15 and ${X} = 3. Then ${Y} = 2(3) + 1 = 7. The solution is <b>${PT(3, 7)}</b>.`),
+      example('Example: substitution', `${big(`${Y} = 2${X} + 1 and 3${X} + ${Y} = 16`)}Substitute: 3${X} + (2${X} + 1) = 16, so 5${X} + 1 = 16, 5${X} = 15 and ${X} = 3. Then ${Y} = 2(3) + 1 = 7. The solution is <b>${PT(3, 7)}</b>.`) +
+      example('Example: elimination', `${big(`2${X} + ${Y} = 11 and 3${X} − ${Y} = 4`)}The ${Y}-terms are +${Y} and −${Y}, so adding the equations cancels ${Y}: 5${X} = 15 and ${X} = 3. Put it into the first: 2(3) + ${Y} = 11, so ${Y} = 5. Check the second: 3(3) − 5 = 4. ✓ The solution is <b>${PT(3, 5)}</b>. (If the ${Y}-terms were the same, such as +${Y} and +${Y}, you would subtract instead.)`),
     make(rng) {
       const x = rng.int(-6, 6), y = rng.int(-6, 6), form = rng.pick(['sub', 'elim']), ask = rng.pick(['x', 'pair', 'pair']);
       let e1, e2, coef, hints;
@@ -487,9 +507,11 @@
 
   A.skill({
     id: 'math8.systems-solutions', title: 'Number of solutions to systems of equations',
-    learn: p(`Two lines in a plane can meet in three ways. Different slopes: they cross once, so <b>exactly one solution</b>. Same slope, different ${Y}-intercepts: they are parallel and never meet, so <b>no solution</b>. Same slope and same intercept: they are the same line, so <b>infinitely many solutions</b>.`) +
+    learn: p(`Two lines can meet in three ways. Different slopes: they cross once, so <b>exactly one solution</b>. Same slope, different ${Y}-intercepts: they’re <b>parallel</b> (always the same distance apart) and never meet, so <b>no solution</b>. Same slope and same intercept: they’re the same line, so <b>infinitely many solutions</b>.`) +
       p(`So rewrite both equations in slope-intercept form ${Y} = ${V('m')}${X} + ${V('b')} and compare ${V('m')} first, then ${V('b')}. To rewrite 4${X} + 2${Y} = 6, subtract 4${X} and divide by 2: ${Y} = −2${X} + 3.`) +
-      example('Example', `${big(`${Y} = 3${X} − 2 and 6${X} − 2${Y} = 4`)}The second becomes −2${Y} = −6${X} + 4, so ${Y} = 3${X} − 2. The same line: <b>infinitely many solutions</b>.`),
+      example('Example: the same line', `${big(`${Y} = 3${X} − 2 and 6${X} − 2${Y} = 4`)}Subtract 6${X} from both sides of the second: −2${Y} = −6${X} + 4. Divide by −2: ${Y} = 3${X} − 2. It’s the same line: <b>infinitely many solutions</b>.`) +
+      example('Example: parallel lines', `${big(`${Y} = 2${X} + 1 and 4${X} − 2${Y} = 6`)}The second becomes −2${Y} = −4${X} + 6, so ${Y} = 2${X} − 3. Both slopes are 2, but the intercepts are 1 and −3: parallel lines, so <b>no solution</b>.`) +
+      example('Example: lines that cross', `${big(`${Y} = −${X} + 4 and 3${X} + ${Y} = 2`)}The second becomes ${Y} = −3${X} + 2. The slopes are −1 and −3, which are different, so the lines cross once: <b>exactly one solution</b>.`),
     make(rng) {
       const kind = rng.pick(['one', 'none', 'many']);
       const m1 = rng.nz(-4, 4), b1 = rng.int(-7, 7), k = rng.pick([1, 2, 3, -1, -2]);
