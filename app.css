@@ -4224,3 +4224,50 @@ html.tool-full main { padding-top: calc(64px + env(safe-area-inset-top, 0px)); }
 .mt-side .lab-check { margin-bottom: 16px; }
 .nc-setup .lab-ctl { margin-bottom: 14px; }
 @media (max-width: 480px) { .pn-tabs .tab { padding-left: .7rem; padding-right: .7rem; } }
+/* the merit badge tracker */
+.sc-intro { margin: -4px 0 16px; }
+.sc-grid { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); align-items: start; }
+@media (min-width: 900px) { .sc-grid { grid-template-columns: minmax(260px, 1fr) minmax(0, 2fr); } }
+.sc-grid > .card + .card { margin-top: 0; }
+.sc-list h2, .sc-detail h2 { margin: 0; }
+.sc-list .row { margin-bottom: 12px; }
+.sc-badges { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.sc-b { display: grid; gap: 6px; padding: 10px 12px; border-radius: 12px; color: var(--ink); }
+.sc-b:hover { background: var(--tint); text-decoration: none; }
+.sc-b.on { background: var(--primary-soft); }
+.sc-b-name { font-weight: 700; }
+.sc-bar { display: block; height: 8px; border-radius: 999px; background: var(--tint-2); overflow: hidden; }
+.sc-bar.big { height: 10px; margin: 10px 0 16px; }
+.sc-bar i { display: block; height: 100%; background: var(--primary); border-radius: inherit; }
+.sc-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.sc-head p { margin: 4px 0 0; }
+.sc-pct { font-size: 1.6rem; font-weight: 800; color: var(--primary-ink); }
+.sc-detail .field { max-width: none; margin-bottom: 14px; }
+.sc-detail input[type="text"], .sc-detail input[type="date"], .sc-detail textarea { padding: .55rem .75rem; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--surface); color: var(--ink); font: inherit; width: 100%; box-sizing: border-box; }
+.sc-two { display: grid; gap: 0 14px; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 600px) { .sc-two { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+.sc-reqs { list-style: none; margin: 0 0 8px; padding: 0; }
+.sc-r { padding: 10px 0; border-top: 1px solid var(--line); }
+.sc-r:first-child { border-top: 0; }
+.sc-r.lv1 { padding-left: 28px; }
+.sc-tick { display: grid; grid-template-columns: auto auto minmax(0, 1fr); gap: 10px; align-items: start; cursor: pointer; }
+.sc-tick input { width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--primary); }
+.sc-lab { font-weight: 800; min-width: 1.8em; color: var(--primary-ink); }
+.sc-r.done .sc-text { color: var(--muted); }
+.sc-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; margin: 4px 0 0 30px; }
+.sc-r.lv1 .sc-meta { margin-left: 30px; }
+.sc-meta input[type="date"] { width: auto; padding: .2rem .4rem; margin-left: 4px; }
+.sc-note { color: var(--ink); }
+.sc-note-edit { display: flex; gap: 8px; margin: 8px 0 0 30px; }
+.sc-note-edit input { flex: 1; min-width: 0; }
+.sc-more { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); }
+.sc-more summary { cursor: pointer; font-weight: 600; color: var(--primary-ink); margin-bottom: 12px; }
+.sc-actions { margin-top: 16px; }
+.sc-sure { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.sc-copytext { width: 100%; font: inherit; font-size: .85rem; margin-top: 8px; }
+.sc-row { display: flex; align-items: flex-start; gap: 8px; }
+.sc-row .sc-tick { flex: 1; min-width: 0; }
+.sc-note-btn { width: 32px; height: 32px; flex: none; color: var(--muted); }
+.sc-note-btn:hover { color: var(--primary-ink); }
+.sc-sum { margin: -4px 0 10px; }
+.sc-list .row { margin-bottom: 8px; }
