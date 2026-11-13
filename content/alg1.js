@@ -18,6 +18,8 @@
   const SOFT = { '<': '≤', '>': '≥', '≤': '<', '≥': '>' };
   const holds = (l, o, r) => (o === '<' ? l < r : o === '>' ? l > r : o === '≤' ? l <= r + 1e-12 : l >= r - 1e-12);
   /** HTML back to plain text with real signs and ASCII minus, for verify() parsers */
+  /** HTML as plain words for a drawing's text alternative: tags dropped, nothing else changed */
+  const flat = h => String(h).replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
   const plain = h => A.stripTags(String(h)).replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').replace(/−/g, '-').replace(/(\d),(?=\d{3})/g, '$1').replace(/\s+/g, ' ').trim();
 
   /** candidate distractors that differ from the answer and from each other once tags are stripped */
@@ -693,7 +695,8 @@
         const m = rng.nz(-4, 4), b = rng.int(-6, 6), solid = rng.bool(), above = rng.bool();
         const op = above ? (solid ? '≥' : '>') : (solid ? '≤' : '<');
         const choices = ['<', '≤', '>', '≥'].map(o => ineqH(m, b, o)), answer = ineqH(m, b, op);
-        return { prompt: `A graph shows the line ${lineEq(m, 1, b)} drawn <b>${solid ? 'solid' : 'dashed'}</b>, with the region <b>${above ? 'above' : 'below'}</b> the line shaded. Which inequality does it show?`, type: 'choice', choices, keepOrder: true, answer, params: { kind, m, b, solid, above },
+        const fig = grid({ lines: [{ pts: [0, b, 1, b + m], dash: !solid }], shade: halfPlane(m, b, above), label: `The ${solid ? 'solid' : 'dashed'} line ${flat(lineEq(m, 1, b))} on a coordinate grid, with the region ${above ? 'above' : 'below'} the line shaded` });
+        return { prompt: `The graph shows the line ${lineEq(m, 1, b)} drawn <b>${solid ? 'solid' : 'dashed'}</b>, with the region <b>${above ? 'above' : 'below'}</b> the line shaded. Which inequality does it show?${fig}`, type: 'choice', choices, keepOrder: true, answer, params: { kind, m, b, solid, above },
           hints: [`${above ? 'Shading above the line means ' + Y + ' is greater than the line: &gt; or ≥.' : 'Shading below the line means ' + Y + ' is less than the line: &lt; or ≤.'}`, `${solid ? 'A solid line is included, so the sign has the "or equal to" bar.' : 'A dashed line is not included, so the sign is strict.'}`, `<b>${answer}</b>.`] };
       }
       if (kind === 'words') {
