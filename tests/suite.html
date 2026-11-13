@@ -3518,7 +3518,7 @@
   const sat = A.courseById('sat-act'), wasAdded = sat.added; sat.added = today;
   m = await go('#/courses');
   const subj = [...m.querySelectorAll('.subject-row [data-subject]')].map(b => b.dataset.subject);
-  ok(subj.join() === 'all,math,prep,money,coding', 'courses: a subject filter with only the subjects that have courses (' + subj.join(', ') + ')');
+  ok(subj.join() === 'all,math,prep,money,coding,science,music', 'courses: a subject filter with only the subjects that have courses (' + subj.join(', ') + ')');
   m.querySelector('[data-subject="coding"]').click(); await tick(10);
   const shownC = [...m.querySelectorAll('.course-card')].filter(cd => !cd.hidden).map(cd => text(cd.querySelector('h3')));
   ok(shownC.join() === 'Coding and logic' && localStorage.getItem('procademy.ui.subject') === 'coding' && m.querySelector('#rec-course').hidden, 'courses: choosing a subject shows just its courses');
