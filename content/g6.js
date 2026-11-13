@@ -20,6 +20,8 @@
   }
   /** a fraction n/d (or a whole number) printed as a mixed number when it is bigger than 1 */
   const MX = (n, d) => M.mixed(n, d);
+  /** the same number as plain text for a drawing (no HTML inside an <svg>): 5/2 → "2 1/2", 3/4 → "3/4", 6/2 → "3" */
+  const mixTxt = (n, d) => { const [a, b] = M.simp(n, d), w = Math.floor(a / b), r = a % b; return r === 0 ? String(w) : w ? `${w} ${r}/${b}` : `${r}/${b}`; };
 
   A.course({
     id: 'math-6', title: '6th grade math', subject: 'Middle school', grade: 6, icon: '6', hue: 165,
@@ -810,15 +812,19 @@
 
   /* ---------- Unit 9: Geometry ---------- */
   const shoelace = pts => Math.abs(pts.reduce((s, [x, y], i) => { const [x2, y2] = pts[(i + 1) % pts.length]; return s + x * y2 - x2 * y; }, 0)) / 2;
-  const svgShape = (poly, extra, label) => `<svg class="figure" viewBox="0 0 300 190" width="300" role="img" aria-label="${label}"><polygon class="fill" points="${poly}"/>${extra}<text x="296" y="186" text-anchor="end" font-size="9" fill="var(--muted)">not to scale</text></svg>`;
+  const svgShape = (poly, extra, label, w) => `<svg class="figure" viewBox="0 0 300 190" width="${w || 300}" role="img" aria-label="${label}"><polygon class="fill" points="${poly}"/>${extra}<text x="296" y="186" text-anchor="end" font-size="9" fill="var(--muted)">not to scale</text></svg>`;
   const dash = (x1, y1, x2, y2) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="5 4"/><path class="stroke" d="M${x2},${y2 - 10} h10 v10" style="stroke-width:1"/>`;
   const lab = (x, y, t, anchor) => `<text x="${x}" y="${y}" text-anchor="${anchor || 'middle'}" font-size="13">${t}</text>`;
   A.skill({
     id: 'g6.area', title: 'Area of triangles, parallelograms, trapezoids, and composite shapes',
-    learn: p(`<b>Parallelogram:</b> ${V('A')} = base × height. Cut a triangle off one end, slide it to the other, and you have a rectangle. The <b>height</b> is the straight-up distance (the dashed line), not the slanted side.`) +
-      p(`<b>Triangle:</b> ${V('A')} = ${F(1, 2)} × base × height, because a triangle is half of a parallelogram. <b>Trapezoid:</b> ${V('A')} = ${F(1, 2)} × (base 1 + base 2) × height, the average of the two parallel sides times the height.`) +
+    learn: p(`The <b>area</b> of a shape is how many unit squares it covers, so it is measured in square units such as cm². The <b>base</b> is the side the shape sits on, and the <b>height</b> is the straight-up distance from the base to the top: the dashed line in the pictures, not a slanted side.`) +
+      p(`<b>Parallelogram</b> (a four-sided shape whose opposite sides are parallel): ${V('A')} = base × height. Cut a triangle off one end, slide it to the other, and you have a rectangle.`) +
+      p(`<b>Triangle:</b> ${V('A')} = ${F(1, 2)} × base × height, because a triangle is half of a parallelogram. <b>Trapezoid</b> (a four-sided shape with just one pair of parallel sides, called its bases): ${V('A')} = ${F(1, 2)} × (base 1 + base 2) × height.`) +
       p('A <b>composite shape</b> is made of simpler shapes. Split it into rectangles and triangles, find each area, and add. Or find a big rectangle and subtract the missing piece.') +
-      example('Example', `${big('A trapezoid with bases 6 cm and 10 cm and height 4 cm')}${F(1, 2)} × (6 + 10) × 4 = ${F(1, 2)} × 16 × 4 = <b>32 cm²</b>.`),
+      example('Example: parallelogram', `${svgShape('20,150 200,150 270,40 90,40', dash(90, 40, 90, 150) + lab(110, 172, '9 cm') + lab(96, 100, '4 cm', 'start') + lab(240, 96, '5 cm', 'start'), 'parallelogram with a base of 9 cm, a slanted side of 5 cm and a dashed height of 4 cm', 250)}The height is the dashed line, 4 cm, not the slanted 5 cm side. ${V('A')} = 9 × 4 = <b>36 cm²</b>.`) +
+      example('Example: triangle', `${svgShape('30,150 250,150 100,30', dash(100, 30, 100, 150) + lab(140, 172, '10 m') + lab(106, 96, '6 m', 'start'), 'triangle with a base of 10 m and a dashed height of 6 m', 250)}${V('A')} = ${F(1, 2)} × 10 × 6 = ${F(1, 2)} × 60 = <b>30 m²</b>. Working backward: if you knew the area was 30 m² and the base was 10 m, then ${F(1, 2)} × 10 = 5, and the height is 30 ÷ 5 = <b>6 m</b>.`) +
+      example('Example: trapezoid', `${svgShape('20,150 270,150 200,40 80,40', dash(80, 40, 80, 150) + lab(145, 172, '10 cm') + lab(140, 32, '6 cm') + lab(86, 100, '4 cm', 'start'), 'trapezoid with parallel bases of 10 cm and 6 cm and a dashed height of 4 cm', 250)}Add the bases, then take half of that times the height: ${F(1, 2)} × (6 + 10) × 4 = ${F(1, 2)} × 16 × 4 = <b>32 cm²</b>.`) +
+      example('Example: composite shape', `${svgShape('40,160 250,160 250,90 150,90 150,30 40,30', lab(145, 178, '10 ft') + lab(34, 100, '8 ft', 'end') + lab(95, 24, '6 ft') + lab(256, 130, '5 ft', 'start'), 'an L-shaped figure: the bottom is 10 ft long, the left side is 8 ft tall, the top is 6 ft long, and the short right side is 5 ft tall', 250)}The full rectangle would be 10 × 8 = 80 ft². The missing corner is 10 − 6 = 4 ft wide and 8 − 5 = 3 ft tall, so it is 4 × 3 = 12 ft². The area is 80 − 12 = <b>68 ft²</b>.`),
     make(rng) {
       const kind = rng.pick(['tri', 'para', 'trap', 'house', 'L', 'missing']);
       const u = rng.pick(['cm', 'm', 'in', 'ft']), U = s => `${s} ${u}`;
@@ -826,7 +832,7 @@
       const ask = `What is the area of this ${{ tri: 'triangle', para: 'parallelogram', trap: 'trapezoid', house: 'shape', L: 'shape' }[kind]}?`;
       if (kind === 'tri' || kind === 'missing') {
         const b = rng.int(4, 16), h = rng.int(3, 12);
-        fig = svgShape('30,150 250,150 100,30', dash(100, 30, 100, 150) + lab(140, 172, U(b)) + lab(106, 96, kind === 'missing' ? '?' : U(h), 'start'), 'triangle');
+        fig = svgShape('30,150 250,150 100,30', dash(100, 30, 100, 150) + lab(140, 172, U(b)) + lab(106, 96, kind === 'missing' ? '?' : U(h), 'start'), `triangle with a base of ${U(b)} and a dashed height of ${kind === 'missing' ? 'unknown length' : U(h)}`);
         if (kind === 'missing') {
           const area = b * h / 2;
           return { prompt: `This triangle has an area of ${N(area)} ${u}² and a base of ${U(b)}. What is its height?${fig}`, type: 'number', answer: h, unit: u, params: { kind, area, b },
@@ -836,22 +842,22 @@
         hints = [`${V('A')} = ${F(1, 2)} × base × height.`, `${F(1, 2)} × ${b} × ${h} = ${F(1, 2)} × ${b * h}.`, `The area is <b>${N(ans)} ${u}²</b>.`];
       } else if (kind === 'para') {
         const b = rng.int(4, 15), h = rng.int(3, 10), side = h + rng.int(1, 4);
-        fig = svgShape('20,150 200,150 270,40 90,40', dash(90, 40, 90, 150) + lab(110, 172, U(b)) + lab(96, 100, U(h), 'start') + lab(240, 96, U(side), 'start'), 'parallelogram');
+        fig = svgShape('20,150 200,150 270,40 90,40', dash(90, 40, 90, 150) + lab(110, 172, U(b)) + lab(96, 100, U(h), 'start') + lab(240, 96, U(side), 'start'), `parallelogram with a base of ${U(b)}, a slanted side of ${U(side)} and a dashed height of ${U(h)}`);
         ans = b * h; pts = [[0, 0], [b, 0], [b + 3, h], [3, h]];
         hints = [`${V('A')} = base × height. The height is the dashed line, ${U(h)}, not the slanted side.`, `${b} × ${h} = <b>${ans} ${u}²</b>.`];
       } else if (kind === 'trap') {
         const b1 = rng.int(6, 16), b2 = rng.int(2, b1 - 2), h = rng.int(2, 10);
-        fig = svgShape('20,150 270,150 200,40 80,40', dash(80, 40, 80, 150) + lab(145, 172, U(b1)) + lab(140, 32, U(b2)) + lab(86, 100, U(h), 'start'), 'trapezoid');
+        fig = svgShape('20,150 270,150 200,40 80,40', dash(80, 40, 80, 150) + lab(145, 172, U(b1)) + lab(140, 32, U(b2)) + lab(86, 100, U(h), 'start'), `trapezoid with parallel bases of ${U(b1)} and ${U(b2)} and a dashed height of ${U(h)}`);
         ans = (b1 + b2) * h / 2; pts = [[0, 0], [b1, 0], [1 + b2, h], [1, h]];
         hints = [`${V('A')} = ${F(1, 2)} × (base 1 + base 2) × height.`, `Add the bases: ${b1} + ${b2} = ${b1 + b2}. Then ${F(1, 2)} × ${b1 + b2} × ${h} = ${F(1, 2)} × ${(b1 + b2) * h}.`, `The area is <b>${N(ans)} ${u}²</b>.`];
       } else if (kind === 'house') {
         const w = rng.int(4, 12), h1 = rng.int(3, 9), h2 = rng.int(2, 6);
-        fig = svgShape('50,160 250,160 250,85 150,20 50,85', dash(150, 20, 150, 85) + lab(150, 178, U(w)) + lab(44, 126, U(h1), 'end') + lab(156, 60, U(h2), 'start'), 'a rectangle with a triangle on top');
+        fig = svgShape('50,160 250,160 250,85 150,20 50,85', dash(150, 20, 150, 85) + lab(150, 178, U(w)) + lab(44, 126, U(h1), 'end') + lab(156, 60, U(h2), 'start'), `a rectangle ${U(w)} wide and ${U(h1)} tall with a triangle on top whose dashed height is ${U(h2)}`);
         ans = w * h1 + w * h2 / 2; pts = [[0, 0], [w, 0], [w, h1], [w / 2, h1 + h2], [0, h1]];
         hints = [`Split the shape into a rectangle (${w} by ${h1}) and a triangle on top (base ${w}, height ${h2}).`, `Rectangle: ${w} × ${h1} = ${w * h1}. Triangle: ${F(1, 2)} × ${w} × ${h2} = ${N(w * h2 / 2)}.`, `Total: ${w * h1} + ${N(w * h2 / 2)} = <b>${N(ans)} ${u}²</b>.`];
       } else {
         const W = rng.int(7, 15), H = rng.int(6, 12), cw = rng.int(2, W - 3), ch = rng.int(2, H - 2);
-        fig = svgShape('40,160 250,160 250,90 150,90 150,30 40,30', lab(145, 178, U(W)) + lab(34, 100, U(H), 'end') + lab(95, 24, U(W - cw)) + lab(256, 130, U(H - ch), 'start'), 'L-shaped figure');
+        fig = svgShape('40,160 250,160 250,90 150,90 150,30 40,30', lab(145, 178, U(W)) + lab(34, 100, U(H), 'end') + lab(95, 24, U(W - cw)) + lab(256, 130, U(H - ch), 'start'), `an L-shaped figure: the bottom is ${U(W)} long, the left side is ${U(H)} tall, the top is ${U(W - cw)} long, and the short right side is ${U(H - ch)} tall`);
         ans = W * H - cw * ch; pts = [[0, 0], [W, 0], [W, H - ch], [W - cw, H - ch], [W - cw, H], [0, H]];
         hints = [`Imagine the full rectangle: ${W} by ${H}, area ${W * H}. A corner piece is missing.`, `The missing piece is ${W} − ${W - cw} = ${cw} wide and ${H} − ${H - ch} = ${ch} tall, so its area is ${cw * ch}.`, `${W * H} − ${cw * ch} = <b>${ans} ${u}²</b>.`];
       }
@@ -864,12 +870,71 @@
     },
   });
 
+  /** a box drawn in 3-D: the front, the top and the right side, with dashed hidden edges and its three edges labeled.
+      labs = [length, width, height] as plain text; opts.grid = [along the length, the width, the height] draws the small
+      cubes on the faces; opts.exact keeps the true proportions (otherwise a thin side is drawn a bit thicker, not to scale) */
+  function boxSvg(l, w, h, labs, label, opts) {
+    opts = opts || {};
+    const m = Math.max(l, w, h), fit = v => opts.exact ? v : 0.4 + 0.6 * v / m;
+    const kx = 0.52, ky = 0.3;                                          // the depth goes up and to the right
+    let L = fit(l), W = fit(w), H = fit(h);
+    const s = Math.min(205 / (L + W * kx), 140 / (H + W * ky));
+    L *= s; H *= s; const dx = W * s * kx, dy = W * s * ky, x0 = 64, y0 = 14 + dy;
+    const pt = a => a.map(([x, y]) => `${M.round(x, 1)},${M.round(y, 1)}`).join(' ');
+    const r = v => M.round(v, 1), line = (x1, y1, x2, y2, extra) => `<line x1="${r(x1)}" y1="${r(y1)}" x2="${r(x2)}" y2="${r(y2)}" ${extra}/>`;
+    let g = `<polygon class="fill" points="${pt([[x0, y0], [x0 + L, y0], [x0 + L, y0 + H], [x0, y0 + H]])}"/>`;
+    g += `<polygon class="fill" style="fill:var(--surface)" points="${pt([[x0, y0], [x0 + dx, y0 - dy], [x0 + L + dx, y0 - dy], [x0 + L, y0]])}"/>`;
+    g += `<polygon class="fill" style="fill:var(--tint-2)" points="${pt([[x0 + L, y0], [x0 + L + dx, y0 - dy], [x0 + L + dx, y0 - dy + H], [x0 + L, y0 + H]])}"/>`;
+    const hidden = 'stroke="var(--muted)" stroke-width="1" stroke-dasharray="4 4"';           // the three edges at the back corner, seen through
+    g += line(x0 + dx, y0 - dy + H, x0, y0 + H, hidden) + line(x0 + dx, y0 - dy + H, x0 + dx, y0 - dy, hidden) + line(x0 + dx, y0 - dy + H, x0 + L + dx, y0 - dy + H, hidden);
+    if (opts.grid) {
+      const [nl, nw, nh] = opts.grid, thin = 'stroke="var(--primary)" stroke-width="0.8"';
+      for (let i = 1; i < nl; i++) { const x = x0 + L * i / nl; g += line(x, y0, x, y0 + H, thin) + line(x, y0, x + dx, y0 - dy, thin); }
+      for (let j = 1; j < nh; j++) { const y = y0 + H * j / nh; g += line(x0, y, x0 + L, y, thin) + line(x0 + L, y, x0 + L + dx, y - dy, thin); }
+      for (let k = 1; k < nw; k++) { const ox = dx * k / nw, oy = dy * k / nw; g += line(x0 + ox, y0 - oy, x0 + L + ox, y0 - oy, thin) + line(x0 + L + ox, y0 - oy, x0 + L + ox, y0 - oy + H, thin); }
+    }
+    g += `<text x="${r(x0 + L / 2)}" y="${r(y0 + H + 20)}" text-anchor="middle" font-size="13">${labs[0]}</text>`;
+    g += `<text x="${r(x0 + L + dx / 2 + 8)}" y="${r(y0 + H - dy / 2 + 14)}" text-anchor="start" font-size="13">${labs[1]}</text>`;
+    g += `<text x="${x0 - 8}" y="${r(y0 + H / 2 + 5)}" text-anchor="end" font-size="13">${labs[2]}</text>`;
+    const Wd = Math.ceil(x0 + L + dx + 90), Hd = Math.ceil(y0 + H + 34);
+    if (!opts.exact) g += `<text x="${Wd - 4}" y="${Hd - 4}" text-anchor="end" font-size="9" fill="var(--muted)">not to scale</text>`;
+    return `<svg class="figure" viewBox="0 0 ${Wd} ${Hd}" width="${Wd}" role="img" aria-label="${label}">${g}</svg>`;
+  }
+  /** the net of a box, unfolded into a cross: the four side faces in a row, the top above the front and the bottom below it.
+      Each face shows its two edge lengths; the three matching pairs are shaded alike. */
+  function netSvg(l, w, h, label) {
+    const k = Math.min((330 - 64) / (2 * (l + w)), (214 - 48) / (h + 2 * w)), D = v => 16 + v * k;
+    const Lw = D(l), Ww = D(w), Hh = D(h), x0 = 8, y0 = 8, r = v => M.round(v, 1);
+    const shade = { lw: '', lh: ' style="fill:var(--surface)"', wh: ' style="fill:var(--tint-2)"' };
+    const face = (x, y, fw, fh, txt, sh) => `<rect class="fill"${shade[sh]} x="${r(x)}" y="${r(y)}" width="${r(fw)}" height="${r(fh)}"/><text x="${r(x + fw / 2)}" y="${r(y + fh / 2 + 4)}" text-anchor="middle" font-size="11">${txt}</text>`;
+    const row = y0 + Ww;
+    let g = face(x0, row, Ww, Hh, `${w} × ${h}`, 'wh') + face(x0 + Ww, row, Lw, Hh, `${l} × ${h}`, 'lh') + face(x0 + Ww + Lw, row, Ww, Hh, `${w} × ${h}`, 'wh') + face(x0 + 2 * Ww + Lw, row, Lw, Hh, `${l} × ${h}`, 'lh');
+    g += face(x0 + Ww, y0, Lw, Ww, `${l} × ${w}`, 'lw') + face(x0 + Ww, row + Hh, Lw, Ww, `${l} × ${w}`, 'lw');
+    const Wd = Math.ceil(x0 * 2 + 2 * (Lw + Ww)), Hd = Math.ceil(y0 + Hh + 2 * Ww + 18);
+    g += `<text x="${Wd - 4}" y="${Hd - 4}" text-anchor="end" font-size="9" fill="var(--muted)">not to scale</text>`;
+    return `<svg class="figure" viewBox="0 0 ${Wd} ${Hd}" width="${Wd}" role="img" aria-label="${label}">${g}</svg>`;
+  }
+  /** the net of a square pyramid: a square with a triangle on each side; one triangle shows its dashed height */
+  function pyramidNetSvg(sd, t, u) {
+    const k = Math.min(9, 190 / (sd + 2 * t)), S = 44 + sd * k, T = 26 + t * k, C = T + S / 2 + 8, r = v => M.round(v, 1);
+    const a = C - S / 2, b = C + S / 2;
+    let g = `<polygon class="fill" style="fill:var(--surface)" points="${r(a)},${r(a)} ${r(b)},${r(a)} ${r(b)},${r(b)} ${r(a)},${r(b)}"/>`;
+    g += [[[a, a], [b, a], [C, a - T]], [[b, a], [b, b], [b + T, C]], [[b, b], [a, b], [C, b + T]], [[a, b], [a, a], [a - T, C]]].map(tr => `<polygon class="fill" points="${tr.map(([x, y]) => `${r(x)},${r(y)}`).join(' ')}"/>`).join('');
+    g += `<line x1="${r(C)}" y1="${r(a)}" x2="${r(C)}" y2="${r(a - T)}" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="5 4"/>`;
+    g += `<text x="${r(C + 9)}" y="${r(a - T / 2 + 4)}" text-anchor="start" font-size="12">${t} ${u}</text><text x="${r(C)}" y="${r(b - 8)}" text-anchor="middle" font-size="12">${sd} ${u}</text>`;
+    const Wd = Math.ceil(2 * C);
+    g += `<text x="${Wd - 4}" y="${Wd - 4}" text-anchor="end" font-size="9" fill="var(--muted)">not to scale</text>`;
+    return `<svg class="figure" viewBox="0 0 ${Wd} ${Wd}" width="${Math.min(Wd, 260)}" role="img" aria-label="the net of a square pyramid: a square with sides of ${sd} ${u} and four triangles, each with a base of ${sd} ${u} and a dashed height of ${t} ${u}">${g}</svg>`;
+  }
   A.skill({
     id: 'g6.volume-surface-area', title: 'Volume and surface area',
-    learn: p(`The <b>volume</b> of a box (rectangular prism) is ${V('V')} = length × width × height, in cubic units. This works with fractions too: a box ${F(1, 2)} m by 3 m by 2 m has volume ${F(1, 2)} × 3 × 2 = 3 m³. Turn mixed numbers into improper fractions before multiplying.`) +
-      p(`You can also fill a box with small cubes. A cube with side ${F(1, 2)} has volume ${F(1, 8)}, so <b>8 of them make one unit cube</b>.`) +
-      p('The <b>surface area</b> is the total area of all the faces. Unfold the solid into a flat <b>net</b>, find the area of each piece, and add. A box has 6 rectangles in 3 matching pairs.') +
-      example('Example', `${big('A box 5 cm × 3 cm × 2 cm')}Faces: two 5 × 3 = 15, two 5 × 2 = 10, two 3 × 2 = 6. Surface area = 2 × (15 + 10 + 6) = <b>62 cm²</b>.`),
+    learn: p(`<b>Volume</b> is the amount of space inside a solid, measured in <b>cubic units</b> such as cm³. For a box (a <b>rectangular prism</b>), ${V('V')} = length × width × height. This works with fractions too: a box ${F(1, 2)} m by 3 m by 2 m has a volume of ${F(1, 2)} × 3 × 2 = 3 m³. Turn mixed numbers into improper fractions before multiplying.`) +
+      p(`You can also fill a box with small cubes. A cube with edges of ${F(1, 2)} unit has a volume of ${F(1, 8)} cubic unit, so <b>8 of them make one unit cube</b>. Count how many small cubes fit along each edge, then multiply.`) +
+      p('The <b>surface area</b> is the total area of all the faces, the flat sides of the solid. Unfold the solid into a flat <b>net</b>, find the area of each piece, and add. A box has 6 rectangles in 3 matching pairs.') +
+      example('Example: volume', `${boxSvg(4, 2.5, 3, ['4 cm', '2 1/2 cm', '3 cm'], 'a box 4 cm long, 2 1/2 cm wide and 3 cm tall')}${V('V')} = 4 × ${MX(5, 2)} × 3 = 4 × ${F(5, 2, { raw: true })} × 3 = ${F(60, 2, { raw: true })} = <b>30 cm³</b>.`) +
+      example('Example: filling with small cubes', `${boxSvg(2, 1.5, 1, ['2', '1 1/2', '1'], 'a box 2 units long, 1 1/2 units wide and 1 unit tall, filled with cubes whose edges are 1/2 unit: 4 along the length, 3 along the width and 2 up the height', { exact: true, grid: [4, 3, 2] })}How many cubes with ${F(1, 2)}-unit edges fill a box 2 by ${MX(3, 2)} by 1 units? 4 halves fit along the 2, 3 along the ${MX(3, 2)}, and 2 along the 1. 4 × 3 × 2 = <b>24 cubes</b>. Check: 24 × ${F(1, 8)} = 3, and 2 × ${MX(3, 2)} × 1 = 3 ✓`) +
+      example('Example: surface area from a net', `${netSvg(5, 3, 2, 'the net of a box 5 cm long, 3 cm wide and 2 cm tall: two faces 5 by 3, two faces 5 by 2 and two faces 3 by 2')}The box is 5 cm × 3 cm × 2 cm. Faces: two 5 × 3 = 15, two 5 × 2 = 10, two 3 × 2 = 6. Surface area = 2 × (15 + 10 + 6) = <b>62 cm²</b>.`) +
+      example('Example: a square pyramid', `${pyramidNetSvg(4, 5, 'in')}The square is 4 × 4 = 16 in². Each triangle is ${F(1, 2)} × 4 × 5 = 10 in², and there are 4 of them: 40 in². Surface area = 16 + 40 = <b>56 in²</b>.`),
     make(rng) {
       const kind = rng.pick(['vol', 'vol', 'cubes', 'sa-box', 'sa-net', 'sa-pyramid']);
       const u = rng.pick(['cm', 'm', 'in', 'ft']);
@@ -877,26 +942,28 @@
         const edge = () => { const d = rng.pick([1, 2, 2, 4]); return [rng.int(1, 5) * d + (d === 1 ? 0 : rng.pick(d === 2 ? [1] : [1, 3])), d]; };
         const e = [edge(), edge(), edge()]; if (e.every(([, d]) => d === 1)) e[0] = [e[0][0] * 2 + 1, 2];
         const num = e[0][0] * e[1][0] * e[2][0], den = e[0][1] * e[1][1] * e[2][1], [sn, sd] = M.simp(num, den);
-        const show = e.map(([n, d]) => `${MX(n, d)} ${u}`);
-        return { prompt: `A box is ${show[0]} long, ${show[1]} wide and ${show[2]} tall. What is its volume? Give your answer as a fraction or mixed number.`, type: 'number', answer: sn / sd, answerText: M.fracText(sn, sd), unit: `${u}³`, params: { kind, e },
+        const show = e.map(([n, d]) => `${MX(n, d)} ${u}`), txt = e.map(([n, d]) => `${mixTxt(n, d)} ${u}`);
+        const pic = boxSvg(e[0][0] / e[0][1], e[1][0] / e[1][1], e[2][0] / e[2][1], txt, `a box ${txt[0]} long, ${txt[1]} wide and ${txt[2]} tall`);
+        return { prompt: `A box is ${show[0]} long, ${show[1]} wide and ${show[2]} tall. What is its volume? Give your answer as a fraction or mixed number.${pic}`, type: 'number', answer: sn / sd, answerText: M.fracText(sn, sd), unit: `${u}³`, params: { kind, e },
           hints: [`${V('V')} = length × width × height.`, `As fractions: ${e.map(([n, d]) => F(n, d, { raw: true })).join(' × ')} = ${F(num, den, { raw: true })}.`, `Simplify: <b>${MX(sn, sd)} ${u}³</b>${sd > 1 ? ` (${M.fracText(sn, sd)})` : ''}.`] };
       }
       if (kind === 'cubes') {
         const h = [rng.int(2, 8), rng.int(2, 8), rng.int(2, 6)];                 // edges in halves
-        const show = h.map(k => MX(k, 2));
-        return { prompt: `A box is ${show[0]} by ${show[1]} by ${show[2]} units. How many cubes with edges of ${F(1, 2)} unit does it take to fill it?`, type: 'number', answer: h[0] * h[1] * h[2], unit: 'cubes', params: { kind, h },
+        const show = h.map(k => MX(k, 2)), txt = h.map(k => mixTxt(k, 2));
+        const pic = boxSvg(h[0], h[1], h[2], txt, `a box ${txt[0]} units long, ${txt[1]} units wide and ${txt[2]} units tall`);
+        return { prompt: `A box is ${show[0]} by ${show[1]} by ${show[2]} units. How many cubes with edges of ${F(1, 2)} unit does it take to fill it?${pic}`, type: 'number', answer: h[0] * h[1] * h[2], unit: 'cubes', params: { kind, h },
           hints: [`Along each edge, count how many halves fit: ${show.map((s, i) => `${s} has ${h[i]}`).join(', ')}.`, `Multiply to count the cubes: ${h.join(' × ')}.`, `It takes <b>${h[0] * h[1] * h[2]} cubes</b>.`] };
       }
       if (kind === 'sa-pyramid') {
         const sd = rng.int(2, 10), t = rng.int(sd, 12);
         const ans = sd * sd + 4 * sd * t / 2;
-        return { prompt: `The net of a square pyramid is a square with sides of ${sd} ${u} and four triangles, each with a base of ${sd} ${u} and a height of ${t} ${u}. What is the surface area?`, type: 'number', answer: ans, unit: `${u}²`, params: { kind, s: sd, t },
+        return { prompt: `The net of a square pyramid is a square with sides of ${sd} ${u} and four triangles, each with a base of ${sd} ${u} and a height of ${t} ${u}. What is the surface area?${pyramidNetSvg(sd, t, u)}`, type: 'number', answer: ans, unit: `${u}²`, params: { kind, s: sd, t },
           hints: [`Square: ${sd} × ${sd} = ${sd * sd}.`, `Each triangle: ${F(1, 2)} × ${sd} × ${t} = ${N(sd * t / 2)}. Four of them: ${N(2 * sd * t)}.`, `Total: ${sd * sd} + ${N(2 * sd * t)} = <b>${N(ans)} ${u}²</b>.`] };
       }
       const [l, w, h] = rng.sample([2, 3, 4, 5, 6, 7, 8, 9, 10], 3).sort((a, b) => b - a);
       const ans = 2 * (l * w + l * h + w * h);
-      const prompt = kind === 'sa-net' ? `A box is unfolded into a net of 6 rectangles: two are ${l} ${u} by ${w} ${u}, two are ${l} ${u} by ${h} ${u}, and two are ${w} ${u} by ${h} ${u}. What is the surface area of the box?`
-        : `A box is ${l} ${u} long, ${w} ${u} wide and ${h} ${u} tall. What is its surface area?`;
+      const prompt = kind === 'sa-net' ? `A box is unfolded into a net of 6 rectangles: two are ${l} ${u} by ${w} ${u}, two are ${l} ${u} by ${h} ${u}, and two are ${w} ${u} by ${h} ${u}. What is the surface area of the box?${netSvg(l, w, h, `the net of a box: two faces ${l} ${u} by ${w} ${u}, two faces ${l} ${u} by ${h} ${u} and two faces ${w} ${u} by ${h} ${u}`)}`
+        : `A box is ${l} ${u} long, ${w} ${u} wide and ${h} ${u} tall. What is its surface area?${boxSvg(l, w, h, [`${l} ${u}`, `${w} ${u}`, `${h} ${u}`], `a box ${l} ${u} long, ${w} ${u} wide and ${h} ${u} tall`)}`;
       return { prompt, type: 'number', answer: ans, unit: `${u}²`, params: { kind, l, w, h },
         hints: [`A box has 3 pairs of matching faces: ${l} × ${w}, ${l} × ${h} and ${w} × ${h}.`, `${l * w} + ${l * h} + ${w * h} = ${l * w + l * h + w * h}. Each face has a twin, so double it.`, `Surface area = 2 × ${l * w + l * h + w * h} = <b>${ans} ${u}²</b>.`] };
     },
