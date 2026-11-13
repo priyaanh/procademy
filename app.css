@@ -4439,3 +4439,31 @@ html.tool-full main { padding-top: calc(64px + env(safe-area-inset-top, 0px)); }
 .lk-need { font-size: .68rem; color: var(--muted); line-height: 1.2; text-align: center; }
 .lk-banner { display: block; width: 60px; height: 34px; border-radius: 8px; border: 1px solid var(--line); background-color: var(--surface); }
 .lk-banner.bn-none { background: var(--surface-2); }
+/* speed sprints: family standings, and racing the computer */
+.sp-top { align-items: flex-start; gap: 12px 20px; margin-bottom: 4px; }
+.sp-top > div { flex: 1 1 320px; }
+.sp-fam-card { margin: 16px 0; }
+.sp-fam-card select, .race-pick select { margin-left: 6px; padding: .3rem .5rem; border-radius: 8px; border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink); max-width: 60vw; }
+.sp-fam { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 6px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+.sp-fam li { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 12px; background: var(--surface-2); }
+.sp-fam li.me { background: var(--tint); }
+.sp-rank { flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: var(--surface); font-weight: 800; font-size: .85rem; }
+.sp-who { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sp-fam li b { font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+.sp-fam-none { margin: 10px 0 16px; }
+.race-pick { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; margin: 4px 0 8px; }
+.race-pick .pz-diff { margin: 0; }
+.sr-sub { font-weight: 500; opacity: .8; }
+.race-track { display: grid; gap: 10px; margin: 4px 0 12px; text-align: left; }
+.race-lane { display: grid; grid-template-columns: 92px minmax(0, 1fr); align-items: center; gap: 10px; }
+.race-name { font-weight: 700; font-size: .9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.race-road { position: relative; height: 34px; border-radius: 999px; background: var(--surface-2); border: 1px dashed var(--line-strong); }
+.race-runner { position: absolute; top: 3px; left: 0; transition: left .35s ease; display: grid; }
+.race-dot { fill: var(--primary); }
+.race-lane.cpu .race-dot { fill: var(--surface); stroke: var(--primary); stroke-width: 2.5; }
+.race-face { fill: none; stroke: var(--on-primary); stroke-width: 2; stroke-linecap: round; }
+.race-lane.cpu .race-face { stroke: var(--primary-ink); }
+.race-flag { position: absolute; right: 6px; top: 6px; color: var(--primary-ink); }
+.race-flag path { fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; }
+.race-score { font-weight: 700; margin: 0 0 6px; font-variant-numeric: tabular-nums; }
+@media (max-width: 440px) { .race-lane { grid-template-columns: 70px minmax(0, 1fr); } }
