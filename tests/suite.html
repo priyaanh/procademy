@@ -3081,6 +3081,225 @@
   try { ['procademy.searches.v1', 'procademy.ui.searchfilter'].forEach(k => localStorage.removeItem(k)); } catch (e) {}
   }
 
+  { // the Practice page: tabs, My sets, two courses, CPM lessons, like the test, the time, picking up, a sound, the pace, a set with a friend, photos and topics
+  const until = async (fn, ms) => { const t = Date.now(); while (Date.now() - t < (ms || 3000)) { if (fn()) return true; await tick(20); } return false; };
+  const UI_KEYS = ['procademy.ui.unlimited', 'procademy.ullen.v1', 'procademy.topiclevel.v1', 'procademy.topicq.v1', 'procademy.topics.v1', 'procademy.vs.v1'];
+  try { UI_KEYS.forEach(k => localStorage.removeItem(k)); } catch (e) {}
+  S.reset(); S.setProfile({ grade: 7, welcomed: true, seenNews: 'n12', enrolled: ['math-7'] });
+  /** answer every question right until the summary shows (a set of a fixed length) */
+  const finishSet = async () => { for (let k = 0; k < 40 && !document.querySelector('#main .summary'); k++) { const mm = document.getElementById('main'); if (mm.querySelector('#check') && !mm.querySelector('.feedback')) answerCurrent(mm, true); await tick(); const nx = mm.querySelector('#next'); if (nx) nx.click(); await tick(); } return document.getElementById('main'); };
+  // tabs: For you, Courses, Topics, Pictures (all drawn, one shown), the address following the tab
+  m = await go('#/unlimited');
+  ok([...m.querySelectorAll('.ul-tabs [role="tab"]')].map(t => text(t)).join(',') === 'For you,Courses,Topics,Pictures' && !m.querySelector('#ul-p-foryou').hidden && m.querySelector('#ul-p-courses').hidden && m.querySelector('#ul-p-courses .ul-course') && m.querySelector('#ul-p-pictures #ul-shot') && m.querySelector('#ul-p-topics #ul-topic'), 'practice tabs: For you, Courses, Topics and Pictures, one shown at a time');
+  m.querySelector('#ul-t-courses').click(); await tick(10);
+  ok(location.hash === '#/unlimited/courses' && !m.querySelector('#ul-p-courses').hidden && m.querySelector('#ul-p-foryou').hidden && m.querySelector('#ul-t-courses').getAttribute('aria-selected') === 'true' && document.getElementById('main').querySelector('.unlimited') === m.querySelector('.unlimited'), 'practice tabs: a tab shows in place, and the address follows it');
+  m.querySelector('#ul-t-courses').focus(); m.querySelector('.ul-tabs').dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true })); await tick(5);
+  ok(location.hash === '#/unlimited/topics' && document.activeElement === m.querySelector('#ul-t-topics'), 'practice tabs: the arrow keys move between them');
+  m = await go('#/unlimited/pictures');
+  ok(!m.querySelector('#ul-p-pictures').hidden && m.querySelector('#ul-t-pictures').classList.contains('on'), 'practice tabs: a link opens on its tab');
+  m = await go('#/unlimited/unit/math-7/' + A.courseById('math-7').units[0].id);
+  ok(m.querySelector('.ex-head .back').getAttribute('href') === '#/unlimited/courses', 'practice tabs: Back from a unit goes to the Courses tab');
+  // My sets: made, named, edited, kept from a link, deleted
+  m = await go('#/unlimited');
+  m.querySelector('#set-new').click(); await tick(5);
+  m.querySelector('#set-name').value = 'Friday quiz';
+  const sq = m.querySelector('#set-q'); sq.value = 'negative numbers'; sq.dispatchEvent(new Event('input'));
+  await until(() => m.querySelector('#set-found [data-add]'));
+  m.querySelector('#set-found [data-add]').click(); m.querySelector('#set-all').click();
+  const nChosen = m.querySelectorAll('#set-chosen [data-rm]').length;
+  m.querySelector('#set-chosen [data-rm]').click();
+  ok(nChosen >= 3 && m.querySelectorAll('#set-chosen [data-rm]').length === nChosen - 1 && /chosen/.test(text(m.querySelector('#set-count'))), 'my sets: skills are added one at a time or all shown, and taken away');
+  m.querySelector('#set-save').click(); await tick(5);
+  const set1 = UNLIMITED.mySets()[0], setA = m.querySelector('.ul-set a.btn.primary');
+  ok(set1 && set1.name === 'Friday quiz' && set1.ids.length === nChosen - 1 && S.get().profile.sets.length === 1 && setA && setA.getAttribute('href') === `#/unlimited/set/${set1.ids.map(encodeURIComponent).join(',')}/Friday%20quiz`, 'my sets: a named set is kept in the profile, with Practice');
+  m.querySelector('[data-set-edit]').click(); await tick(5);
+  m.querySelector('#set-name').value = 'Negatives'; m.querySelector('#set-save').click(); await tick(5);
+  ok(UNLIMITED.mySets().length === 1 && UNLIMITED.mySets()[0].name === 'Negatives' && UNLIMITED.mySets()[0].id === set1.id, 'my sets: Edit renames a set and keeps it');
+  m = await go('#/unlimited/set/math7.circles,math7.add-negatives/' + encodeURIComponent('From Ms. Lee'));
+  m.querySelector('#set-keep').click(); await tick(5);
+  ok(UNLIMITED.mySets().length === 2 && UNLIMITED.mySets()[0].name === 'From Ms. Lee' && /Saved to My sets/.test(text(m.querySelector('#set-note'))), 'my sets: a set from a link is kept with one tap, under its name');
+  m = await go('#/unlimited/set/math7.add-negatives,math7.circles/x');
+  ok(/From My sets: From Ms\. Lee/.test(text(m.querySelector('#set-note'))), 'my sets: a set already kept says so');
+  m = await go('#/unlimited');
+  const conf0 = window.confirm; window.confirm = () => true;
+  [...m.querySelectorAll('[data-set-edit]')].find(b => b.dataset.setEdit === UNLIMITED.mySets()[0].id).click(); await tick(5);
+  m.querySelector('#set-del').click(); await tick(5);
+  window.confirm = conf0;
+  ok(UNLIMITED.mySets().length === 1 && UNLIMITED.mySets()[0].name === 'Negatives' && m.querySelectorAll('.ul-set').length === 1, 'my sets: a set can be deleted');
+  // two courses mixed, a CPM chapter's lessons, practice like the test
+  m = await go('#/unlimited/courses');
+  ok(m.querySelector('#mx-go').getAttribute('href') === '#/unlimited/mix/math-7,math-6' && /skills in all/.test(text(m.querySelector('#mx-n'))), 'two courses: your course and the one before it, to start with');
+  m = await go('#/unlimited/mix/math-7,math-8');
+  const c7ids = new Set(A.courseSkills(A.courseById('math-7'))), c8ids = new Set(A.courseSkills(A.courseById('math-8')));
+  let us = m.__session;
+  ok(us && us.kind === 'endless' && us.skills.some(id => c7ids.has(id)) && us.skills.some(id => c8ids.has(id)) && us.skills.every(id => c7ids.has(id) || c8ids.has(id)) && /7th grade math and 8th grade math/.test(us.title) && m.querySelector('.ex-head .back').getAttribute('href') === '#/unlimited/courses', 'two courses: one session from both, mixed');
+  m = await go('#/unlimited/courses');
+  const ccb = m.querySelector('#cc-book'); ccb.value = 'cc2'; ccb.dispatchEvent(new Event('change'));
+  const ccc = m.querySelector('#cc-ch'); ccc.value = '3'; ccc.dispatchEvent(new Event('change'));
+  const lessonBoxes = [...m.querySelectorAll('#cc-lessons input')];
+  ok(lessonBoxes.length >= 3 && lessonBoxes.every(x => x.checked) && m.querySelector('#cc-go').getAttribute('href') === '#/unlimited/chapter/cc2/3', 'CPM chapter: every lesson to start with, which is the whole chapter');
+  lessonBoxes.slice(2).forEach(x => { x.checked = false; }); m.querySelector('#cc-lessons').dispatchEvent(new Event('change'));
+  const lessonHref = m.querySelector('#cc-go').getAttribute('href');
+  ok(lessonHref === `#/unlimited/lesson/cc2/${lessonBoxes.slice(0, 2).map(x => encodeURIComponent(x.value)).join(',')}` && /Practice 2 lessons/.test(text(m.querySelector('#cc-go'))), 'CPM chapter: the lessons chosen are the ones practiced');
+  m = await go(lessonHref);
+  const wantIds = new Set(lessonBoxes.slice(0, 2).flatMap(x => A.cpmLesson('cc2', x.value).lesson.skills.filter(id => A.skills[id] && A.whereIs(id))));
+  ok(m.__session && m.__session.skills.length === wantIds.size && m.__session.skills.every(id => wantIds.has(id)) && m.__session.cpm.chapter === 3, 'CPM chapter: only those lessons’ skills, counted toward the chapter');
+  m = await go('#/unlimited/courses');
+  ok(m.querySelector('.ul-course a[href="#/unlimited/exam/math-7"]') && m.querySelectorAll('.ul-course a[href^="#/unlimited/exam/"]').length === A.courses.length, 'like the test: every course offers it');
+  const u0 = A.courseById('math-7').units[0];
+  S.setSkill(u0.skills[0], { level: 1, tries: 2, last: Date.now() });
+  m = await go('#/unlimited/exam/math-7');
+  us = m.__session;
+  ok(us && us.kind === 'mix' && us.items.length === 12 && !us.hints && m.querySelector('#ex-clock') && us.items.every(it => A.whereIs(it.skillId).unit.id === u0.id) && /Like the real test/.test(text(m.querySelector('.ex-banner'))), 'like the test: 12 questions, timed, no hints, from the units practiced so far');
+  // the time: suggestions that fit it; picking up where a session stopped; a sound when the time is up
+  m = await go('#/unlimited');
+  m.querySelector('#ul-len [data-v="m5"]').click(); await tick(5);
+  const sug5 = [...m.querySelectorAll('#ul-sug .ul-sug-item')].map(a => a.getAttribute('href'));
+  m.querySelector('#ul-len [data-v="m20"]').click(); await tick(5);
+  const sug20 = [...m.querySelectorAll('#ul-sug .ul-sug-item')].map(a => a.getAttribute('href'));
+  ok(sug5.length === 3 && sug20.length === 3 && sug5.includes('#/unlimited/day') && sug20.includes('#/unlimited/exam/math-7') && /Good for 20 minutes/.test(text(m.querySelector('.ul-sug-h'))) && localStorage.getItem('procademy.ullen.v1') === 'm20', 'the time: suggestions fit the time chosen, short rounds for 5 minutes and a practice test for 20');
+  const bellBox = m.querySelector('#ul-bell'); bellBox.checked = true; bellBox.dispatchEvent(new Event('change'));
+  let rang = 0; UNLIMITED._bell = () => { rang += 1; };
+  S.setProfile({ ulLast: { href: '#/unlimited/weak', title: 'Your weak skills', n: 4, right: 3, left: { ms: 1200 }, t: Date.now() } });
+  m = await go('#/'); m = await go('#/unlimited');
+  ok(/4 questions answered, 3 right, 1 min to go/.test(text(m.querySelector('#ul-resume'))), 'picking up: a session left before its end is offered, with what was left of it');
+  m.querySelector('#ul-resume-go').click();
+  await until(() => document.querySelector('#main .find-note'));
+  m = document.getElementById('main');
+  ok(location.hash === '#/unlimited/weak' && /Picking up where you stopped: 4 questions answered before, 3 right/.test(text(m.querySelector('.find-note'))) && !S.get().profile.ulLast, 'picking up: Continue starts it again, with the time that was left');
+  await until(() => document.querySelector('#main .summary'), 4000);
+  ok(rang === 1 && document.querySelector('#main .summary') && !S.get().profile.ulLast, 'sound: when the time is up a sound plays (turned on, on this device), and the session ends');
+  UNLIMITED._bell = null;
+  try { localStorage.setItem('procademy.ullen.v1', 'q10'); } catch (e) {}
+  m = await go('#/unlimited/skill/math7.circles');
+  answerCurrent(m, true); await tick(); m.querySelector('#next').click(); await tick();
+  answerCurrent(m, true); await tick();
+  m = await go('#/unlimited');
+  const left1 = S.get().profile.ulLast;
+  ok(left1 && left1.href === '#/unlimited/skill/math7.circles' && left1.n === 2 && left1.right === 2 && left1.left.questions === 8 && m.querySelector('#ul-resume'), 'picking up: leaving a session halfway keeps where it stopped (2 of 10)');
+  try { localStorage.removeItem('procademy.ullen.v1'); } catch (e) {}
+  m = await go('#/unlimited/skill/math7.circles');
+  answerCurrent(m, true); await tick(); m.querySelector('#stop').click(); await tick(20);
+  ok(!S.get().profile.ulLast, 'picking up: a session finished with End session (no limit) leaves nothing waiting');
+  // the pace: questions a minute, under the score (a break of more than 2½ minutes counts as 2½)
+  m = await go('#/unlimited/skill/math7.add-negatives');
+  const realNow = Date.now; let fake = realNow.call(Date);
+  Date.now = () => fake;
+  try { for (let k = 0; k < 3; k++) { fake += 20000; answerCurrent(m, true); await tick(350); m.querySelector('#next').click(); await tick(); } m.querySelector('#stop').click(); await tick(20); } finally { Date.now = realNow; }
+  ok(/Your pace: about 3 questions a minute \(3 questions in 1 minute\)/.test(text(m.querySelector('.summary'))) && m.querySelector('.summary .what + .sum-pace'), 'pace: after a session, questions a minute, under the score');
+  // a set with a friend: ten questions, a link with the same ones and the score, and who scored higher
+  m = await go('#/unlimited');
+  const roundA = m.querySelector('.ul-set a[href^="#/unlimited/round/"]');
+  ok(roundA, 'a set with a friend: My sets offer Challenge a friend');
+  m = await go(roundA.getAttribute('href'));
+  const mine10 = m.__session, prompts = mine10.items.map(it => it.q.prompt).join('|');
+  ok(mine10.kind === 'mix' && mine10.items.length === 10 && /A set to share/.test(text(m.querySelector('.ex-banner'))), 'a set with a friend: ten questions of the set first');
+  m = await finishSet();
+  ok(/10 \/ 10/.test(text(m.querySelector('.score'))) && m.querySelector('[data-ulvs]') && !m.querySelector('[data-vs]'), 'a set with a friend: the summary offers Challenge a friend');
+  m.querySelector('[data-ulvs]').click(); await tick();
+  m.querySelector('#ulvs-on').checked = true; m.querySelector('#vs-name').value = 'Sam'; m.querySelector('#ulvs-copy').click(); await tick(20);
+  const vsCode = String(UNLIMITED._lastVs || '').split('#/unlimited/vs/')[1], vsData = UNLIMITED.readVs(vsCode);
+  ok(vsData && vsData.score === 10 && vsData.n === 10 && vsData.name === 'Sam' && vsData.seed === mine10.seed && CHALLENGE.history()[0].dir === 'sent', 'a set with a friend: the link holds the skills, the questions’ code, the score and the name');
+  m = await go('#/unlimited/vs/' + vsCode);
+  ok(/Sam has sent you a practice set/.test(text(m)) && /Sam scored 10 \/ 10/.test(text(m)), 'a set with a friend: the friend sees who sent it, and the score');
+  m.querySelector('#vs-go').click(); await tick(10);
+  m = document.getElementById('main');
+  ok(m.__session.items.map(it => it.q.prompt).join('|') === prompts, 'a set with a friend: exactly the same questions');
+  m = await finishSet();
+  ok(/scores are tied/.test(text(m.querySelector('.vs-result'))) && /Challenge Sam back/.test(text(m.querySelector('[data-ulvs]'))) && CHALLENGE.history()[0].dir === 'got', 'a set with a friend: who scored higher, and Challenge them back');
+  const bad = o => UNLIMITED.readVs(DRAW.encode(JSON.stringify(o))) === null;
+  ok(bad({ ids: ['nope.skill'], seed: 'abc', n: 10, score: 3 }) && bad({ ids: ['math7.circles'], seed: 'a b<', n: 10, score: 3 }) && bad({ ids: ['math7.circles'], seed: 'abc', n: 10, score: 11 }) && UNLIMITED.readVs('%%%') === null, 'a set with a friend: a link with an unknown skill, a strange code or an impossible score is refused');
+  // photos: checked before reading (turned, cropped); how sure the reader is, with other readings; tips
+  FILES.ocr = async () => ({ text: 'Solve 2x + S = l7', confidence: 52, words: [{ text: 'Solve', confidence: 96 }, { text: '2x', confidence: 90 }, { text: 'S', confidence: 41, choices: ['5', 's'] }, { text: 'l7', confidence: 48 }] });
+  m = await go('#/unlimited/pictures');
+  const jpg = await new Promise(r => { const cv = document.createElement('canvas'); cv.width = 60; cv.height = 30; cv.getContext('2d').fillRect(0, 0, 60, 30); cv.toBlob(r, 'image/jpeg'); });
+  const dtj = new DataTransfer(); dtj.items.add(new File([jpg], 'photo.jpg', { type: 'image/jpeg' }));
+  const fij = m.querySelector('#shot-file'); fij.files = dtj.files; fij.dispatchEvent(new Event('change')); await tick(20);
+  ok(m.querySelector('.shot-check #shot-go') && !m.querySelector('#shot-read') && m.querySelector('.shot-tips'), 'photos: a photo is checked first, before it is read, with tips for photos of handwriting');
+  m.querySelector('#shot-right').click(); m.querySelector('#shot-right').click(); m.querySelector('#shot-left').click();
+  ok(m.querySelector('#shot-out').__turns() === 1 && /rotate\(90deg\)/.test(m.querySelector('#shot-prev').style.transform), 'photos: Turn left and Turn right turn it');
+  m.querySelector('#shot-go').click();
+  await until(() => m.querySelector('#shot-read'));
+  ok(/Not sure it read this right/.test(text(m.querySelector('.shot-sure'))) && /52%/.test(text(m.querySelector('.shot-sure'))) && m.querySelector('.shot-tips').open, 'how sure: the reader says how sure it is, and the tips open when it isn’t');
+  const altText = [...m.querySelectorAll('[data-alt]')].map(b => text(b));
+  ok(altText.includes('S → 5') && altText.includes('l7 → 17') && !altText.includes('S → s'), 'how sure: the words it wasn’t sure of come with other readings');
+  m.querySelector('[data-alt="0:0"]').click(); m.querySelector('[data-alt]').click();
+  await until(() => m.querySelector('.shot-match.best') && /Two-step/.test(text(m.querySelector('.shot-match.best'))));
+  ok(m.querySelector('#shot-read').value === 'Solve 2x + 5 = 17' && /Two-step equations/.test(text(m.querySelector('.shot-match.best'))), 'how sure: a tap puts another reading in the box, and the matches follow');
+  FILES.ocr = null;
+  const wideP = await new Promise(r => { const cv = document.createElement('canvas'); cv.width = 80; cv.height = 40; cv.toBlob(r, 'image/png'); });
+  const turning = FILES.crop(new File([wideP], 'wide.png', { type: 'image/png' }));
+  await until(() => document.querySelector('.crop-wrap img') && document.querySelector('.crop-wrap img').naturalWidth);
+  document.querySelector('#crop-right').click();
+  await until(() => document.querySelector('.crop-wrap img').naturalWidth === 40);
+  document.querySelector('#crop-all').click();
+  const turned = await turning, turnedBmp = await createImageBitmap(turned);
+  ok(turnedBmp.width === 40 && turnedBmp.height === 80 && turned.type === 'image/png', 'turning: the crop dialog turns a picture a quarter turn, on this device');
+  ok(FILES.mathAlts('2S').includes('25') && FILES.mathAlts('1O').includes('10') && !FILES.mathAlts('2x').length && !FILES.mathAlts('Solve').length && FILES.mathAlts('3x4').includes('3 × 4'), 'how sure: the usual math mix-ups, never in plain words or algebra');
+  // topics: how hard; the reason after every answer; Your topics with offline keeping and printing; Progress
+  const TUt = TUTOR, realF = TUt.fetch, use0 = TUt.cloud.use.slice(), sysSeen = [];
+  let tn = 0;
+  Object.keys(TUt._nextFree).forEach(k => delete TUt._nextFree[k]);
+  TUt.cloud.use = ['llm7'];
+  const sse = t => new Response('data: ' + JSON.stringify({ choices: [{ delta: { content: t } }] }) + '\n\ndata: [DONE]\n\n', { status: 200, headers: { 'Content-Type': 'text/event-stream' } });
+  TUt.fetch = async (url, init) => {
+    const b = JSON.parse(init.body), sys = b.messages[0].content;
+    if (!/You write multiple-choice/.test(sys)) return sse('{"answers": []}');
+    sysSeen.push(sys);
+    const n = Number((b.messages[1].content.match(/Write (\d+) questions/) || [])[1] || 5), qs = [];
+    for (let k = 0; k < n; k++) { tn++; qs.push({ question: `Tide question ${tn}?`, choices: [`Right ${tn}`, `Wrong ${tn}a`, `Wrong ${tn}b`, `Wrong ${tn}c`], answer: 0, why: tn === 2 ? '' : `Because of ${tn}.` }); }
+    return sse(JSON.stringify({ questions: qs }));
+  };
+  try {
+    m = await go('#/unlimited/topics');
+    const tdSel = m.querySelector('#tp-d'); tdSel.value = 'harder'; tdSel.dispatchEvent(new Event('change'));
+    m = await go('#/unlimited/topic/7/tides');
+    await until(() => document.querySelector('#main #choices'));
+    m = document.getElementById('main');
+    ok(/· Harder$/i.test(text(m.querySelector('.question .lead'))) && /harder than usual/.test(sysSeen[0] || '') && !/\bAI\b/.test(text(m)), 'topic level: Harder is asked for and shown, with no label about who wrote the questions');
+    const pickTp = good => [...m.querySelectorAll('#choices button')].find(x => good === /Right/.test(x.textContent)).click();
+    pickTp(false); await tick(5);
+    ok(/Not quite\. The answer is Right 1\. Because of 1\./.test(text(m.querySelector('#feedback'))) && m.querySelector('#feedback .tp-why'), 'topic explanations: the reason, on a line of its own');
+    m.querySelector('#next').click(); await tick(5);
+    pickTp(true); await tick(5);
+    ok(m.querySelector('#tp-explain') && /Explain this answer/.test(text(m.querySelector('#feedback'))), 'topic explanations: a question without a reason offers Explain this answer');
+    m.querySelector('#stop').click(); await tick(10);
+    ok(/To look at again/.test(text(m)) && /Tide question 1\?/.test(text(m.querySelector('.tp-missed'))) && /You chose Wrong 1/.test(text(m.querySelector('.tp-missed'))) && TOPICS.savedFor('tides', 7, 'harder').length >= 2 && !TOPICS.savedFor('tides', 7, '').length, 'topic explanations: the summary lists the ones to look at again; questions are kept at their level');
+    try { localStorage.setItem('procademy.topiclevel.v1', 'easier'); } catch (e) {}
+    m = await go('#/unlimited/topic/7/Photosynthesis');
+    const sizeOf = x => x[0].length + x[1].join(' ').length / 2, sizes = TOPIC_BANK.photosynthesis.map(sizeOf).sort((a, b) => a - b), firstQ = TOPIC_BANK.photosynthesis.find(x => x[0] === text(m.querySelector('.question p')));
+    ok(firstQ && sizeOf(firstQ) <= sizes[0] + 40, 'topic level: Easier starts with the shorter built-in questions');
+    try { localStorage.removeItem('procademy.topiclevel.v1'); } catch (e) {}
+    m = await go('#/unlimited/topics');
+    const tideRow = [...m.querySelectorAll('#ul-mytopics .tp-row')].find(r => /tides/.test(text(r)));
+    ok(tideRow && /2 questions, 50% right/.test(text(tideRow)) && tideRow.querySelector('a[href="#/unlimited/topic/7/tides"]') && ![...m.querySelectorAll('#ul-topic .tiny')].some(x => /Recent/.test(text(x))), 'your topics: each topic practiced, with how it’s going (in place of the recent chips)');
+    tideRow.querySelector('[data-tp-off]').click(); await tick(5);
+    const off = tideRow.querySelector('.tp-off');
+    ok(!off.hidden && /questions kept on this device/.test(text(off)) && off.querySelector('[data-keep]') && off.querySelector('[data-print]'), 'offline: a topic’s Offline shows what is kept, Keep 30 and Print');
+    off.querySelector('[data-keep]').click();
+    await until(() => /All set/.test(text(off)), 6000);
+    ok(TOPICS.savedFor('tides', 7).length >= 30 && /30 questions kept/.test(text(off)), 'offline: Keep 30 writes them now and keeps them on this device');
+    off.querySelector('[data-print]').click(); await tick(10);
+    m = document.getElementById('main');
+    ok(m.querySelectorAll('.ws-q').length === 30 && /tides/.test(text(m.querySelector('.ws-head h1'))) && m.querySelector('.ws-key') && m.querySelector('a[href="#/unlimited/topics"]'), 'offline: a topic prints as a worksheet with its answers, to save as a PDF');
+    Object.defineProperty(navigator, 'onLine', { configurable: true, get: () => false });
+    try {
+      const g3 = sysSeen.length;
+      m = await go('#/unlimited/topic/7/tides');
+      ok(m.querySelector('#choices') && m.__tp.source === 'saved' && sysSeen.length === g3, 'offline: without the internet a topic starts with its kept questions, asking no one');
+      m = await go('#/unlimited/topic/7/' + encodeURIComponent('sea glass'));
+      ok(/written online\. Connect to the internet/.test(text(m)) && sysSeen.length === g3, 'offline: a new topic says so plainly, with no wait');
+    } finally { delete navigator.onLine; }
+    const pc = TOPICS.progressCard();
+    ok(/tides/.test(pc) && /50% right/.test(pc) && !/Photosynthesis/.test(pc), 'progress: the topics practiced, each with how it’s going, for Progress');
+  } finally {
+    TUt.fetch = realF; TUt.cloud.use = use0; Object.keys(TUt._nextFree).forEach(k => delete TUt._nextFree[k]);
+  }
+  m = await go('#/');
+  try { UI_KEYS.forEach(k => localStorage.removeItem(k)); } catch (e) {}
+  S.reset();
+  }
+
   { // questions like a picture, and the grade setting the level of things
   const until = async (fn, ms) => { const t = Date.now(); while (Date.now() - t < (ms || 3000)) { if (fn()) return true; await tick(20); } return false; };
   const title = q => { const id = UNLIMITED.likeThis(q)[0]; return id ? A.stripTags(A.skills[id].title) : ''; };
