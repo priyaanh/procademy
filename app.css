@@ -483,6 +483,25 @@ footer { border-top: 1px solid var(--line); color: var(--muted); font-size: .9re
 .shot-tips > summary { cursor: pointer; font-weight: 600; color: var(--primary-ink); font-size: .9rem; }
 .shot-tips ul { margin: 8px 0 0; padding-left: 1.2rem; display: grid; gap: 4px; color: var(--muted); }
 @container page (max-width: 480px) { .shot-prev-box { width: 100%; height: 200px; } }
+/* practice page: Your topics (offline and printing), a topic's explanation, and the topics in Progress */
+.ul-mytopics { margin-top: 16px; }
+.ul-mytopics h2 { font-size: 1.15rem; margin: 0 0 4px; }
+.tp-list { list-style: none; margin: 0; padding: 0; }
+.tp-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; padding: 12px 0; }
+.tp-row + .tp-row { border-top: 1px solid var(--line); }
+.tp-row-text { display: grid; gap: 2px; flex: 1 1 240px; min-width: 0; }
+.tp-row-acts { display: flex; flex-wrap: wrap; gap: 8px; }
+.tp-off { flex-basis: 100%; padding: 10px 14px; border-radius: 12px; background: var(--tint); }
+.tp-off p { margin: 0; }
+.tp-off .btn-row { margin-top: 8px; }
+.tp-off .btn-row:empty { display: none; }
+.tp-meter { flex: none; width: 120px; height: 8px; border-radius: 99px; background: var(--tint-2); overflow: hidden; }
+.tp-meter > span { display: block; height: 100%; background: var(--primary); border-radius: inherit; }
+.feedback .tp-why { display: block; margin-top: 4px; font-weight: 400; }
+.feedback button.tp-why { display: inline; margin-top: 0; font-weight: 600; }
+.tp-missed { text-align: left; }
+.tp-row-acts .btn[aria-expanded="true"] { background: var(--tint-2); }
+@container page (max-width: 480px) { .ul-topic-row select { flex: 1 1 40%; } .ul-topic-row .btn { flex: 1 1 100%; } }
 /* practice page: the Courses tab's tools (mix two courses, a CPM chapter with lesson filters) */
 .ul-tools { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 16px; margin-top: 16px; }
 .ul-tools > .ul-tool { margin: 0; display: flex; flex-direction: column; gap: 10px; }
