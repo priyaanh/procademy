@@ -3010,7 +3010,7 @@
   m = await go('#/courses');
   const si = document.getElementById('search-input'), topBar = document.querySelector('header.top'), qp = document.getElementById('qs-panel');
   si.focus(); si.click(); await tick(10);
-  ok(topBar.classList.contains('qs-open') && !qp.hidden && si.getAttribute('aria-expanded') === 'true' && si.getAttribute('role') === 'combobox' && /Try searching for/i.test(text(qp)), 'search box: selecting it opens it bigger, with ideas before anything is typed');
+  ok(topBar.classList.contains('qs-open') && !qp.hidden && si.getAttribute('aria-expanded') === 'true' && si.getAttribute('role') === 'combobox' && /Popular for 7th grade/i.test(text(qp)), 'search box: selecting it opens it bigger, with topics for the learner’s grade before anything is typed');
   si.value = 'fractions'; si.dispatchEvent(new Event('input')); await tick(10);
   const qopts = [...qp.querySelectorAll('.qs-opt')], firstSkill = qopts.find(o => /^#\/skill\//.test(o.getAttribute('href')));
   ok(/Practice “fractions” now/.test(text(qopts[0])) && firstSkill && Math.abs(ACADEMY.whereIs(decodeURIComponent(firstSkill.getAttribute('href').slice(8))).course.grade - 7) <= 1 && qopts.some(o => o.getAttribute('href') === '#/fractions'), 'search box: results appear as you type: practice first, the Fraction lab, and skills near the learner’s grade');

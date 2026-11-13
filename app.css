@@ -106,7 +106,7 @@ a:not([class]):focus-visible { border-radius: 4px; }
   .top.qs-open .qs-cancel { display: inline-flex; flex: none; }
   .top.qs-open .qs-panel { position: static; flex-basis: 100%; max-height: none; border: 0; box-shadow: none; padding: 4px 0; }
   body.qs-lock { overflow: hidden; }
-  .top.qs-open { z-index: 60; }
+  .top.qs-open { z-index: 60; -webkit-backdrop-filter: none; backdrop-filter: none; }          /* a blur would hold the full-screen search inside the header's own box */
   body.qs-lock .tabbar, body.qs-lock .tutor-fab { display: none; }              /* nothing over the full-screen search */
   .top .bar { flex-wrap: wrap; padding: 8px 12px; gap: 6px; }
   .search { order: 3; flex-basis: 100%; }
@@ -3387,3 +3387,44 @@ html.tool-full main { padding-top: calc(64px + env(safe-area-inset-top, 0px)); }
 .left-note > span { min-width: 0; }
 .left-note .btn { flex: none; }
 @media (max-width: 700px) { .left-note { bottom: calc(80px + env(safe-area-inset-bottom, 0px)); width: auto; left: 12px; right: 12px; transform: none; } }
+/* the search box: a skill's level in its results, the quieter Clear row, and a microphone on phones (lib/quicksearch.js) */
+.qs-ic .lvl { width: 18px; height: 18px; }
+.qs-opt.qs-quiet { color: var(--muted); }
+.qs-opt.qs-quiet .qs-ic { background: transparent; color: var(--muted); }
+.qs-opt.qs-quiet .qs-txt b { font-weight: 500; }
+.qs-mic { display: none; position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 34px; height: 34px; border: 0; border-radius: 50%; background: transparent; color: var(--primary-ink); place-items: center; cursor: pointer; }
+.qs-mic:hover { background: var(--tint); }
+.qs-mic.on { background: var(--primary); color: var(--on-primary); animation: mic-pulse 1.2s ease-in-out infinite; }
+@keyframes mic-pulse { 50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--primary) 22%, transparent); } }
+@media (prefers-reduced-motion: reduce) { .qs-mic.on { animation: none; } }
+:root[data-motion="reduce"] .qs-mic.on { animation: none; }
+@media (max-width: 760px), (pointer: coarse) {
+  .has-mic .qs-mic { display: grid; }
+  .has-mic input[type="search"] { padding-right: 2.8rem; }
+}
+/* the search page: its own box, what was understood, filters with counts, and groups that show a few at first */
+.srch-form { display: flex; align-items: center; gap: 10px; max-width: 760px; margin: 4px 0 12px; }
+.srch-field { flex: 1; }
+.srch-field input { width: 100%; padding: .7rem 1rem .7rem 2.6rem; border: 1px solid var(--line-strong); border-radius: 999px; background: var(--surface); color: var(--ink); font-size: 1.02rem; }
+.srch-field input:focus { outline: 2px solid var(--primary); border-color: transparent; }
+.srch-field .icon { position: absolute; left: .95rem; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; display: grid; }
+.srch-meta { margin: 0 0 6px; }
+.srch-meta .chip { margin-left: 2px; }
+.srch-dym { margin: 4px 0 10px; font-size: 1.02rem; }
+.srch-dym a { font-weight: 700; }
+.srch-filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 6px; }
+.srch-filters .chip-btn.on { background: var(--primary); color: var(--on-primary); }
+.srch-n { font-weight: 600; opacity: .75; margin-left: 2px; }
+.section-title h2 .srch-n { font-size: .8em; color: var(--muted); opacity: 1; margin-left: 6px; }
+.srch-group > .card + .srch-show, .srch-group > .grid + .srch-show { margin-top: 10px; }
+.srch-snip { margin: 4px 0 0; color: var(--muted); }
+.srch-snip mark, .srch-meta mark { background: var(--primary-soft); color: var(--ink); border-radius: 3px; padding: 0 2px; }
+.srch-eq { margin-top: 2px; font-family: var(--mono); font-size: .95rem; }
+.srch-lvl { flex: none; align-self: flex-start; margin-top: 3px; }
+.srch-empty h2 { font-size: 1.1rem; margin: 0 0 10px; }
+.srch-empty .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.srch-recent-h { margin-top: 18px; }
+.srch-recent-h h2 { margin: 0; }
+@media (max-width: 700px) { .srch-form .btn { display: none; } }
+.srch-group > .section-title:first-child { margin-top: 28px; }
+.srch-filters + .search-topic, .srch-meta + .search-topic, .srch-dym + .search-topic { margin-top: 14px; }
