@@ -467,6 +467,22 @@ footer { border-top: 1px solid var(--line); color: var(--muted); font-size: .9re
 .ul-bell input { width: 18px; height: 18px; accent-color: var(--primary); }
 .sum-pace { margin: 10px 0 0; }
 .sum-prior { margin: 6px 0 0; }
+/* practice page: a photo checked before it is read (turned, cropped), how sure the reader is, and tips for photos */
+.shot-check { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; margin-top: 14px; }
+.shot-prev-box { flex: none; width: 168px; height: 168px; display: grid; place-items: center; border-radius: 12px; background: var(--surface-2); overflow: hidden; }
+.shot-prev { width: 100%; height: 100%; object-fit: contain; transition: transform .2s; }
+.shot-check-side { flex: 1 1 280px; min-width: 0; display: grid; gap: 10px; }
+.shot-check-side .btn-row { margin: 0; }
+.shot-sure { display: grid; gap: 8px; }
+.sure-line { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.sure-meter { flex: none; width: 88px; height: 8px; border-radius: 99px; background: var(--tint-2); overflow: hidden; }
+.sure-meter > span { display: block; height: 100%; border-radius: inherit; background: var(--primary); }
+.shot-alts { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.shot-alt { display: contents; }
+.shot-tips { margin-top: 12px; }
+.shot-tips > summary { cursor: pointer; font-weight: 600; color: var(--primary-ink); font-size: .9rem; }
+.shot-tips ul { margin: 8px 0 0; padding-left: 1.2rem; display: grid; gap: 4px; color: var(--muted); }
+@container page (max-width: 480px) { .shot-prev-box { width: 100%; height: 200px; } }
 /* practice page: the Courses tab's tools (mix two courses, a CPM chapter with lesson filters) */
 .ul-tools { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 16px; margin-top: 16px; }
 .ul-tools > .ul-tool { margin: 0; display: flex; flex-direction: column; gap: 10px; }
