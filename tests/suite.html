@@ -4271,8 +4271,8 @@
   ok(srSay() === 'Use whole numbers from 1 to 1,000.', 'screen readers: an error message in a tool is said');
   // Settings: Reading and access, and This device
   m = await goA('#/settings'); await tick(40);
-  const cards = [...m.querySelectorAll('.settings-grid > .card h2')].map(h => h.textContent);
-  ok(cards.indexOf('Reading and access') === cards.indexOf('Look') + 1 && cards.includes('This device'), 'settings: Reading and access sits after Look, and This device is there too');
+  const cards = [...m.querySelectorAll('.settings-grid .card > h2')].map(h => h.textContent);
+  ok(cards.indexOf('Reading and access') === cards.indexOf('Look') + 1 && cards.includes('This device') && !!m.querySelector('#set-device #device-card'), 'settings: Reading and access sits after Look, and This device (with Speed and storage) is there too');
   m.querySelector('#ac-lines [data-v="more"]').click(); m.querySelector('#ac-words [data-v="most"]').click();
   const lh = parseFloat(getComputedStyle(m.querySelector('.set-help')).lineHeight) / parseFloat(getComputedStyle(m.querySelector('.set-help')).fontSize);
   ok(S.get().profile.lineSpace === 'more' && html.dataset.lines === 'more' && lh > 1.7 && html.dataset.words === 'most' && parseFloat(getComputedStyle(document.body).wordSpacing) > 3, 'reading: line spacing and word spacing are kept and applied');
