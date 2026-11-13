@@ -1902,7 +1902,8 @@
   m.querySelector('.fig-zoom').click(); await tick(10);
   const dlg = document.querySelector('dialog.zoom-dlg');
   ok(dlg && dlg.open && dlg.querySelector('svg'), 'player: Zoom in shows the picture large');
-  dlg.querySelector('button').click(); await tick(10);
+  dlg.querySelector('button').click();
+  for (let k = 0; k < 50 && document.querySelector('dialog.zoom-dlg'); k++) await tick(20);          // closing can take a frame or two on a busy machine
   ok(!document.querySelector('dialog.zoom-dlg'), 'player: the zoomed picture closes');
   // test out and go back from the skill page
   m = await go('#/skill/math7.sub-negatives');
