@@ -8,6 +8,14 @@
   const p = (s) => `<p>${s}</p>`;
   const example = (title, body) => `<div class="example"><div class="ex-title">${title}</div>${body}</div>`;
   const big = s => `<div class="big">${s}</div>`;
+  /** a fraction answer in simplest form, ready to spread into a question */
+  const fracAns = (n, d) => { const [sn, sd] = M.simp(n, d); return { answer: sn / sd, answerText: M.fracText(sn, sd) }; };
+  /** the bold last-hint form of a fraction: the stacked fraction and the typed form */
+  const fracBold = (n, d) => { const [sn, sd] = M.simp(n, d); return `<b>${F(sn, sd)}</b>${sd === 1 ? '' : ` (${M.fracText(sn, sd)})`}`; };
+  /** the last hint for a fraction answer: simplify it, or say it already is simple */
+  const simpLine = (n, d) => M.gcd(n, d) === 1 ? `That is already in simplest form: ${fracBold(n, d)}.` : `Divide the top and bottom by ${M.gcd(n, d)}: ${fracBold(n, d)}.`;
+  /** a fraction exactly as given, not simplified */
+  const R = (n, d) => F(n, d, { raw: true });
 
   A.course({
     id: 'math-7', title: '7th grade math', subject: 'Middle school', grade: 7, icon: '7', hue: 215,
@@ -187,9 +195,10 @@
   /* ---------- Unit 3 ---------- */
   A.skill({
     id: 'math7.add-sub-fractions', title: 'Adding and subtracting fractions',
-    learn: p('Fractions can only be added or subtracted when they have the same denominator. Find a common denominator (the least common multiple works best), rewrite each fraction, then add or subtract the numerators and keep the denominator.') +
-      p('Finish by simplifying: divide the top and bottom by their greatest common factor.') +
-      example('Example', `${big(`${F(3, 4)} + ${F(1, 6)}`)}The least common denominator is 12. ${F(3, 4)} = ${F(9, 12, { raw: true })} and ${F(1, 6)} = ${F(2, 12, { raw: true })}. Add: ${F(11, 12)}.`),
+    learn: p('The <b>numerator</b> is the top number of a fraction, and the <b>denominator</b> is the bottom number. You can add or subtract fractions only when they have the same denominator, so first find a <b>common denominator</b>: a number that both denominators divide into. The <b>least common multiple</b> (LCM), the smallest such number, keeps the numbers small.') +
+      p('Rewrite each fraction over the common denominator, add or subtract the numerators, and keep the denominator. Finish by simplifying: divide the top and bottom by their <b>greatest common factor</b>, the largest number that divides both.') +
+      example('Example: adding', `${big(`${F(3, 4)} + ${F(1, 6)}`)}The LCM of 4 and 6 is 12. ${F(3, 4)} = ${R(9, 12)} and ${F(1, 6)} = ${R(2, 12)}. Add the numerators: 9 + 2 = 11, so the sum is <b>${F(11, 12)}</b>. It’s already in simplest form.`) +
+      example('Example: subtracting, then simplifying', `${big(`${F(5, 6)} − ${F(1, 3)}`)}The LCM of 6 and 3 is 6, and ${F(1, 3)} = ${R(2, 6)}. Subtract the numerators: 5 − 2 = 3, giving ${R(3, 6)}. Divide the top and bottom by 3: <b>${F(1, 2)}</b>.`),
     make(rng) {
       const dens = [2, 3, 4, 5, 6, 8, 9, 10, 12];
       let d1 = rng.pick(dens), d2 = rng.pick(dens);
@@ -212,9 +221,11 @@
 
   A.skill({
     id: 'math7.mul-div-fractions', title: 'Multiplying and dividing fractions',
-    learn: p('To multiply fractions, multiply the numerators and multiply the denominators, then simplify. Canceling common factors first keeps the numbers small.') +
-      p('To divide by a fraction, multiply by its reciprocal (flip it): ' + `${F(2, 3)} ÷ ${F(4, 5)} = ${F(2, 3)} × ${F(5, 4)} = ${F(10, 12, { raw: true })} = ${F(5, 6)}.`) +
-      example('Example', `${big(`${F(3, 8)} × ${F(4, 9)}`)}Multiply across: ${F(12, 72, { raw: true })}, which simplifies to <b>${F(1, 6)}</b>.`),
+    learn: p('To multiply fractions, multiply the numerators (the tops) and multiply the denominators (the bottoms), then simplify. You can also <b>cancel</b> first: divide a top and a bottom by the same number before you multiply, which keeps the numbers small. A whole number is a fraction with a denominator of 1, so 6 is 6 over 1.') +
+      p(`To divide by a fraction, multiply by its <b>reciprocal</b>, which is the fraction flipped upside down: the reciprocal of ${F(4, 5)} is ${F(5, 4)}. A short way to remember it: keep the first fraction, change ÷ to ×, and flip the second.`) +
+      example('Example: multiplying', `${big(`${F(3, 8)} × ${F(4, 9)}`)}Multiply across: 3 × 4 = 12 on top and 8 × 9 = 72 on the bottom, giving ${R(12, 72)}. Divide the top and bottom by 12: <b>${F(1, 6)}</b>.`) +
+      example('Example: dividing', `${big(`${F(2, 3)} ÷ ${F(4, 5)}`)}Multiply by the reciprocal of ${F(4, 5)}: ${F(2, 3)} × ${F(5, 4)} = ${R(10, 12)}. Divide the top and bottom by 2: <b>${F(5, 6)}</b>.`) +
+      example('Example: a whole number times a fraction', `${big(`6 × ${F(5, 9)}`)}Write 6 as 6 over 1. Multiply across: 6 × 5 = 30 on top and 1 × 9 = 9 on the bottom, giving ${R(30, 9)}. Divide the top and bottom by 3: <b>${F(10, 3)}</b>, which is ${M.mixed(10, 3)} as a mixed number.`),
     make(rng) {
       const d1 = rng.int(2, 9), d2 = rng.int(2, 9);
       const n1 = rng.int(1, 9), n2 = rng.int(1, 9);
@@ -238,9 +249,11 @@
 
   A.skill({
     id: 'math7.convert-fdp', title: 'Fractions, decimals, and percents',
-    learn: p('A fraction, a decimal and a percent can all name the same number. <b>Fraction → decimal:</b> divide the top by the bottom. <b>Decimal → percent:</b> multiply by 100 (move the point two places right). <b>Percent → fraction:</b> write it over 100 and simplify.') +
-      p(`${F(3, 8)} = 0.375 = 37.5%. &nbsp; 0.6 = 60% = ${F(3, 5)}. &nbsp; 45% = ${F(45, 100, { raw: true })} = ${F(9, 20)}.`) +
-      example('Example', `Write ${F(7, 20)} as a percent. 7 ÷ 20 = 0.35, and 0.35 × 100 = <b>35%</b>.`),
+    learn: p('A fraction, a decimal and a percent can all name the same number. <b>Percent</b> means “out of 100”, so 35% is 35 out of 100.') +
+      p('<b>Fraction → decimal:</b> divide the top by the bottom. <b>Decimal → percent:</b> multiply by 100 (move the point two places right). <b>Percent → decimal:</b> divide by 100 (move the point two places left). <b>Percent or decimal → fraction:</b> write it over 100 (or over 10, 1,000, …) and simplify.') +
+      example('Example: fraction to decimal to percent', `Write ${F(7, 20)} as a decimal and as a percent. 7 ÷ 20 = <b>0.35</b>, and 0.35 × 100 = <b>35%</b>.`) +
+      example('Example: percent to decimal to fraction', `Write 45% as a decimal and as a fraction. 45 ÷ 100 = <b>0.45</b>. As a fraction it’s ${R(45, 100)}; divide the top and bottom by 5: <b>${F(9, 20)}</b>.`) +
+      example('Example: decimal to fraction', `Write 0.375 as a fraction. It has three decimal places, so put it over 1,000: ${R(375, 1000)}. Divide the top and bottom by 125: <b>${F(3, 8)}</b>.`),
     make(rng) {
       const kind = rng.pick(['f2d', 'f2p', 'd2p', 'p2f', 'd2f', 'p2d']);
       const dens = [2, 4, 5, 8, 10, 20, 25, 50];
@@ -260,9 +273,10 @@
 
   A.skill({
     id: 'math7.percent-of', title: 'Percent of a number',
-    learn: p('To find a percent of a number, turn the percent into a decimal and multiply: 35% of 80 is 0.35 × 80 = 28.') +
-      p('Useful landmarks: 10% is one tenth (move the point one place), 50% is half, 25% is a quarter, 1% is one hundredth. 15% of 60 is 10% (6) plus 5% (3), which is 9.') +
-      example('Example', `${big('What is 12% of 250?')}0.12 × 250 = <b>30</b>. Or: 10% is 25 and 2% is 5, so 12% is 30.`),
+    learn: p('To find a <b>percent of a number</b>, turn the percent into a decimal and multiply: 35% of 80 is 0.35 × 80 = 28. In these questions, “of” means multiply.') +
+      p('Useful landmarks: 10% is one tenth (move the point one place left), 50% is half, 25% is a quarter, and 1% is one hundredth. You can build other percents from them: 15% of 60 is 10% (6) plus 5% (3), which is 9.') +
+      example('Example: a percent of a number', `${big('What is 12% of 250?')}0.12 × 250 = <b>30</b>. Or with landmarks: 10% of 250 is 25 and 1% is 2.5, so 2% is 5, and 12% is 25 + 5 = 30.`) +
+      example('Example: a word problem', `A 640-page book is 25% read. How many pages have been read? 25% is a quarter, and 640 ÷ 4 = <b>160 pages</b>. Check: 0.25 × 640 = 160.`),
     make(rng) {
       const pcts = [5, 10, 12, 15, 20, 25, 30, 35, 40, 45, 50, 60, 65, 70, 75, 80, 90];
       const pc = rng.pick(pcts);
@@ -283,9 +297,10 @@
   /* ---------- Unit 4 ---------- */
   A.skill({
     id: 'math7.unit-rate', title: 'Unit rates',
-    learn: p('A rate compares two quantities with different units, like 150 miles in 3 hours. A <b>unit rate</b> tells how much of the first for <b>one</b> of the second: divide. 150 ÷ 3 = 50 miles per hour.') +
-      p('Unit rates make comparisons fair: 12 pens for $9 is $0.75 per pen; 8 pens for $6.40 is $0.80 per pen, so the first pack is the better deal.') +
-      example('Example', `${big('A printer prints 180 pages in 4 minutes. Pages per minute?')}180 ÷ 4 = <b>45</b> pages per minute.`),
+    learn: p('A <b>rate</b> compares two amounts measured in different units, like 150 miles in 3 hours. A <b>unit rate</b> tells how much of the first amount goes with <b>one</b> of the second, such as miles per hour (“per” means “for each”). To find it, divide the first amount by the second: 150 ÷ 3 = 50 miles per hour.') +
+      p('Unit rates make comparisons fair: 12 pens for $9 is $0.75 per pen, and 8 pens for $6.40 is $0.80 per pen, so the first pack is the better deal.') +
+      example('Example: a whole-number rate', `${big('A printer prints 180 pages in 4 minutes. How many pages per minute?')}180 ÷ 4 = <b>45 pages per minute</b>.`) +
+      example('Example: a price per item', `6 notebooks cost $7.50. What is the cost per notebook? 7.50 ÷ 6 = <b>$1.25</b> per notebook. Check: 6 × 1.25 = 7.50.`),
     make(rng) {
       const name = rng.pick(NAMES);
       const kinds = [
@@ -304,9 +319,10 @@
 
   A.skill({
     id: 'math7.proportional-table', title: 'Recognizing proportional relationships',
-    learn: p(`Two quantities are <b>proportional</b> when ${V('y')} is always the same multiple of ${V('x')}: ${V('y')} = ${V('k')}${V('x')}. In a table, check the ratio ${V('y')} ÷ ${V('x')} in every row. If it is the same number each time, the relationship is proportional and that number is the constant ${V('k')}.`) +
-      p('A relationship like y = 3x + 2 is not proportional: the ratio changes from row to row, and the graph does not pass through (0, 0).') +
-      example('Example', `${M.table([V('x'), V('y')], [[2, 10], [5, 25], [8, 40]], { compact: true })}10 ÷ 2 = 5, 25 ÷ 5 = 5, 40 ÷ 8 = 5. Proportional, with ${V('y')} = 5${V('x')}.`),
+    learn: p(`Two amounts are <b>proportional</b> when one is always the same multiple of the other: ${V('y')} = ${V('k')}${V('x')}. The <b>ratio</b> ${V('y')} ÷ ${V('x')} compares them. In a table, work out ${V('y')} ÷ ${V('x')} in every row. If it’s the same number every time, the relationship is proportional, and that number is the <b>constant</b> ${V('k')}.`) +
+      p(`A relationship like ${V('y')} = 3${V('x')} + 2 isn’t proportional: the ratio changes from row to row, and its graph doesn’t pass through (0, 0).`) +
+      example('Example: proportional', `${M.table([V('x'), V('y')], [[2, 10], [5, 25], [8, 40]], { compact: true })}10 ÷ 2 = 5, 25 ÷ 5 = 5 and 40 ÷ 8 = 5. Every ratio is 5, so <b>yes</b>, it’s proportional, with ${V('y')} = 5${V('x')}.`) +
+      example('Example: not proportional', `${M.table([V('x'), V('y')], [[1, 5], [2, 8], [4, 14]], { compact: true })}5 ÷ 1 = 5, but 8 ÷ 2 = 4 and 14 ÷ 4 = 3.5. The ratios aren’t all the same, so <b>no</b>, it isn’t proportional. (Here ${V('y')} = 3${V('x')} + 2.)`),
     make(rng) {
       const k = rng.int(2, 9), prop = rng.chance(0.55), b = rng.nz(-6, 6);
       let xs = rng.sample([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12], 3).sort((a, c) => a - c);
@@ -324,9 +340,11 @@
 
   A.skill({
     id: 'math7.constant-k', title: 'Constant of proportionality',
-    learn: p(`In a proportional relationship ${V('y')} = ${V('k')}${V('x')}, the constant of proportionality ${V('k')} is the unit rate: ${V('k')} = ${V('y')} ÷ ${V('x')} for any pair. It is also the slope of the line through the origin.`) +
-      p('From an equation, read it off directly. From a table or a point, divide. From a sentence like “3 kg costs $7.50”, divide to get $2.50 per kg.') +
-      example('Example', `${V('y')} is proportional to ${V('x')}, and when ${V('x')} = 6, ${V('y')} = 27. ${V('k')} = 27 ÷ 6 = <b>4.5</b>.`),
+    learn: p(`In a proportional relationship ${V('y')} = ${V('k')}${V('x')}, the number ${V('k')} is the <b>constant of proportionality</b>. It’s the unit rate: how much ${V('y')} goes with each 1 of ${V('x')}. On a graph, the line passes through (0, 0) and (1, ${V('k')}).`) +
+      p(`From an equation, read it off: it’s the number multiplying ${V('x')}. From a table or a point, divide ${V('y')} by ${V('x')}. From a sentence like “3 kg costs $7.50”, divide to get $2.50 per kg.`) +
+      example('Example: from an equation', `${big(`${V('y')} = 7${V('x')}`)}The number multiplying ${V('x')} is 7, so ${V('k')} = <b>7</b>.`) +
+      example('Example: from a point', `${V('y')} is proportional to ${V('x')}, and when ${V('x')} = 6, ${V('y')} = 27. ${V('k')} = 27 ÷ 6 = <b>4.5</b>.`) +
+      example('Example: from a sentence', `Strawberries cost $10.50 for 3 kg. ${V('k')} = 10.50 ÷ 3 = <b>3.50</b> dollars per kilogram.`),
     make(rng) {
       const kind = rng.pick(['point', 'equation', 'table', 'words']);
       const k = rng.pick([0.5, 1.5, 2, 2.5, 3, 4, 4.5, 5, 6, 7, 8, 12]);
@@ -341,9 +359,11 @@
 
   A.skill({
     id: 'math7.percent-change', title: 'Percent increase and decrease',
-    learn: p('<b>Percent change</b> = (change ÷ original) × 100. The original amount is always the one you start from, even for a decrease.') +
-      p('To find a new amount after a change, multiply the original by (1 + rate) for an increase or (1 − rate) for a decrease: a $40 jacket at 25% off costs 40 × 0.75 = $30. An 8% sales tax on $50 gives 50 × 1.08 = $54.') +
-      example('Example', `${big('A plant grew from 20 cm to 26 cm.')}Change = 6. 6 ÷ 20 = 0.3, so a <b>30%</b> increase.`),
+    learn: p('<b>Percent change</b> = (change ÷ original) × 100, where the change is how much the amount went up or down. The <b>original</b> is always the amount you start from, even for a decrease.') +
+      p('To find a new amount after a change, multiply the original by (1 + rate) for an increase or (1 − rate) for a decrease, with the rate written as a decimal. A discount is a decrease; a tip or a sales tax is an increase.') +
+      example('Example: a percent increase', `A plant grew from 20 cm to 26 cm. The change is 26 − 20 = 6. Divide by the original: 6 ÷ 20 = 0.3, so it’s a <b>30% increase</b>.`) +
+      example('Example: a percent decrease', `A price dropped from $80 to $60. The change is 80 − 60 = 20. Divide by the original: 20 ÷ 80 = 0.25, so it’s a <b>25% decrease</b>.`) +
+      example('Example: the new amount', `A $40 jacket is 25% off, so you pay 75% of the price: 40 × 0.75 = <b>$30</b>. An 8% sales tax on $50 means you pay 108%: 50 × 1.08 = <b>$54</b>.`),
     make(rng) {
       const kind = rng.pick(['find-pct', 'find-pct', 'after-dec', 'after-inc']);
       const name = rng.pick(NAMES);
@@ -374,9 +394,10 @@
 
   A.skill({
     id: 'math7.combine-like-terms', title: 'Combining like terms',
-    learn: p(`<b>Like terms</b> have exactly the same variable part: 3${X} and −5${X} are like terms; 3${X} and 3 are not. To simplify an expression, add the coefficients of like terms and keep the variable part. Constants combine with constants.`) +
-      p('The sign in front of a term belongs to it. In 7x − 2 − 4x + 9, the terms are 7x, −2, −4x and 9. Group them: (7x − 4x) + (−2 + 9) = 3x + 7.') +
-      example('Example', `${big(`5${X} + 3 − 8${X} + 4`)}${X} terms: 5 − 8 = −3. Constants: 3 + 4 = 7. Simplified: <b>−3${X} + 7</b>.`),
+    learn: p(`A <b>term</b> is one piece of an expression, separated from the others by + or − signs. The number in front of a variable is its <b>coefficient</b>, and a term with no variable is a <b>constant</b>. <b>Like terms</b> have exactly the same variable part: 3${X} and −5${X} are like terms, but 3${X} and 3 aren’t.`) +
+      p(`To simplify, add the coefficients of the like terms and keep the variable part, then combine the constants. The sign in front of a term belongs to it: in 7${X} − 2 − 4${X} + 9, the terms are 7${X}, −2, −4${X} and 9.`) +
+      example('Example: two kinds of terms', `${big(`5${X} + 3 − 8${X} + 4`)}${X} terms: 5 − 8 = −3. Constants: 3 + 4 = 7. Simplified: <b>−3${X} + 7</b>.`) +
+      example('Example: a hidden 1', `${big(`−${X} − 6 + 4${X} − 2`)}−${X} means −1${X}. ${X} terms: −1 + 4 = 3. Constants: −6 − 2 = −8. Simplified: <b>3${X} − 8</b>.`),
     make(rng) {
       let a = rng.nz(-9, 9), c = rng.nz(-9, 9), b = rng.nz(-9, 9), d = rng.nz(-9, 9);
       if (a + c === 0) c = c + (c > 0 ? 1 : -1);
@@ -396,9 +417,10 @@
 
   A.skill({
     id: 'math7.distribute', title: 'The distributive property',
-    learn: p(`Multiplying a number by a sum means multiplying it by <b>each</b> term: ${V('a')}(${V('b')} + ${V('c')}) = ${V('a')}${V('b')} + ${V('a')}${V('c')}. The number outside “distributes” over everything inside the parentheses.`) +
-      p(`Watch the signs: −3(2${X} − 5) = −6${X} + 15, because −3 × (−5) = +15. The most common slip is multiplying only the first term.`) +
-      example('Example', `${big(`4(3${X} − 7)`)}4 × 3${X} = 12${X} and 4 × (−7) = −28, so the result is <b>12${X} − 28</b>.`),
+    learn: p(`The <b>distributive property</b> says that multiplying a number by a sum means multiplying it by <b>each</b> term inside: ${V('a')}(${V('b')} + ${V('c')}) = ${V('a')}${V('b')} + ${V('a')}${V('c')}. The number outside “distributes” over everything inside the parentheses. Writing the expression without the parentheses is called <b>expanding</b> it.`) +
+      p('Watch the signs: each term keeps its own sign when you multiply it. The most common slip is multiplying only the first term.') +
+      example('Example: a positive number outside', `${big(`4(3${X} − 7)`)}4 × 3${X} = 12${X} and 4 × (−7) = −28, so the result is <b>12${X} − 28</b>.`) +
+      example('Example: a negative number outside', `${big(`−5(2${X} − 3)`)}−5 × 2${X} = −10${X} and −5 × (−3) = +15, so the result is <b>−10${X} + 15</b>.`),
     make(rng) {
       const a = rng.nz(-8, 8), b = rng.nz(-7, 7), c = rng.nz(-9, 9);
       const inside = M.poly([b, c]);
@@ -413,9 +435,11 @@
 
   A.skill({
     id: 'math7.two-step-equations', title: 'Two-step equations',
-    learn: p(`A two-step equation like 3${X} + 5 = 20 is undone in the reverse order of operations: first undo the <b>addition or subtraction</b>, then undo the <b>multiplication or division</b>. Whatever you do to one side, do to the other.`) +
-      p(`3${X} + 5 = 20 → subtract 5: 3${X} = 15 → divide by 3: ${X} = 5. Check by substituting: 3(5) + 5 = 20 ✓.`) +
-      example('Example', `${big(`${F(1, 4, { raw: true })}${X} − 2 = 3`)}Add 2 to both sides: ${F(1, 4, { raw: true })}${X} = 5. Multiply both sides by 4: <b>${X} = 20</b>.`),
+    learn: p(`To <b>solve</b> an equation means to find the value of ${X} that makes it true. A two-step equation like 3${X} + 5 = 20 is undone in reverse order: first undo the <b>addition or subtraction</b>, then undo the <b>multiplication or division</b>. Whatever you do to one side, do to the other, so the two sides stay equal.`) +
+      p(`When there are parentheses, like 3(${X} − 2) = 21, you can divide by the number outside first. In a word problem, let ${X} be the unknown and write the equation: if 4 notebooks and a $3 pen cost $15, then 4${X} + 3 = 15, so 4${X} = 12 and ${X} = 3. Check an answer by putting it back into the equation.`) +
+      example('Example: a negative coefficient', `${big(`−4${X} + 7 = 31`)}Subtract 7 from both sides: −4${X} = 24. Divide both sides by −4: <b>${X} = −6</b>. Check: −4 × (−6) + 7 = 24 + 7 = 31 ✓`) +
+      example('Example: a division', `${big(`${F(X, 5)} − 2 = 3`)}Add 2 to both sides: ${F(X, 5)} = 5. Multiply both sides by 5: <b>${X} = 25</b>. Check: 25 ÷ 5 − 2 = 3 ✓`) +
+      example('Example: parentheses', `${big(`3(${X} − 2) = 21`)}Divide both sides by 3: ${X} − 2 = 7. Add 2 to both sides: <b>${X} = 9</b>. Check: 3 × (9 − 2) = 21 ✓`),
     make(rng) {
       const form = rng.pick(['ax+b', 'ax+b', 'x/a+b', 'a(x+b)', 'word']);
       const x = rng.nz(-12, 12);
@@ -450,9 +474,10 @@
 
   A.skill({
     id: 'math7.two-step-inequalities', title: 'Two-step inequalities',
-    learn: p(`Solve an inequality the same way as an equation, with <b>one extra rule</b>: when you multiply or divide both sides by a <b>negative</b> number, flip the inequality sign.`) +
-      p(`−2${X} + 3 > 11 → subtract 3: −2${X} > 8 → divide by −2 and flip: ${X} < −4. Check with ${X} = −5: −2(−5) + 3 = 13 > 11 ✓.`) +
-      example('Example', `${big(`5${X} − 4 ≤ 16`)}Add 4: 5${X} ≤ 20. Divide by 5 (positive, no flip): <b>${X} ≤ 4</b>.`),
+    learn: p(`An <b>inequality</b> compares two sides with &lt; (less than), &gt; (greater than), ≤ (less than or equal to) or ≥ (greater than or equal to). Its solution is every number that makes it true, such as ${X} &lt; −4.`) +
+      p(`Solve it the same way as an equation, with <b>one extra rule</b>: when you multiply or divide both sides by a <b>negative</b> number, flip the inequality sign. Then check with a number from your answer.`) +
+      example('Example: dividing by a positive', `${big(`5${X} − 4 ≤ 16`)}Add 4 to both sides: 5${X} ≤ 20. Divide by 5, which is positive, so the sign stays: <b>${X} ≤ 4</b>. Check with ${X} = 0: 5(0) − 4 = −4, and −4 ≤ 16 ✓`) +
+      example('Example: dividing by a negative', `${big(`−2${X} + 3 &gt; 11`)}Subtract 3 from both sides: −2${X} &gt; 8. Divide by −2, which is negative, so flip the sign: <b>${X} &lt; −4</b>. Check with ${X} = −5: −2(−5) + 3 = 13, and 13 &gt; 11 ✓`),
     make(rng) {
       const a = rng.nz(-8, 8), b = rng.nz(-12, 12), x = rng.nz(-9, 9), c = a * x + b;
       const op = rng.pick(['<', '>', '≤', '≥']);
@@ -617,13 +642,6 @@
   });
 
   /* ---------- Unit 8: Venn diagrams and probability ---------- */
-  /** a fraction answer in simplest form, ready to spread into a question */
-  const fracAns = (n, d) => { const [sn, sd] = M.simp(n, d); return { answer: sn / sd, answerText: M.fracText(sn, sd) }; };
-  /** the bold last-hint form of a fraction: the stacked fraction and the typed form */
-  const fracBold = (n, d) => { const [sn, sd] = M.simp(n, d); return `<b>${F(sn, sd)}</b>${sd === 1 ? '' : ` (${M.fracText(sn, sd)})`}`; };
-  /** the last hint for a fraction answer: simplify it, or say it already is simple */
-  const simpLine = (n, d) => M.gcd(n, d) === 1 ? `That is already in simplest form: ${fracBold(n, d)}.` : `Divide the top and bottom by ${M.gcd(n, d)}: ${fracBold(n, d)}.`;
-  const R = (n, d) => F(n, d, { raw: true });
 
   /** two overlapping circles in a box; marks = [only A, both, only B, neither], each a number, '?' or '' */
   function vennSvg(la, lb, marks) {
