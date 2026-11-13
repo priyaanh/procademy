@@ -1988,9 +1988,11 @@
   m.querySelector('[data-tab="in"]').click(); fill('#ac-id', 'priyaan'); fill('#ac-pw-in', 'mathrocks1');
   m.querySelector('#ac-in').dispatchEvent(new Event('submit', { cancelable: true })); await tick(80);
   m = document.getElementById('main');
-  const realConfirm2 = window.confirm; window.confirm = () => true;
-  m.querySelector('#ac-del-pw').value = 'mathrocks1'; m.querySelector('#ac-del').click(); await tick(60);
-  window.confirm = realConfirm2;
+  // deleting asks for the password, then for the username typed out
+  const sureDel = async () => { const t = document.querySelector('#ac-del-type'); t.value = ACCOUNT.user().username; t.dispatchEvent(new Event('input')); document.querySelector('#ac-del-yes').click(); await tick(60); };
+  m.querySelector('#ac-del-pw').value = 'mathrocks1'; m.querySelector('#ac-del').click(); await tick(10);
+  ok(server.docs[uid1] && document.querySelector('#ac-del-yes').disabled, 'accounts: deleting first asks for the username to be typed out');
+  await sureDel();
   ok(!server.docs[uid1] && !server.users['priyaan@learners.procademy.invalid'] && !ACCOUNT.user(), 'accounts: deleting the account removes everything saved online');
   // Google: one click signs in and saves this device's progress; no password controls; deleting asks Google
   ACCOUNT.useBackend(device()); S.reset(); S.setSkill('math7.circles', { level: 2, tries: 7, right: 5, sets: 1, last: Date.now() });
@@ -2018,7 +2020,7 @@
   m = document.getElementById('main');
   ok(ACCOUNT.user() && S.skill('math7.circles').level === 2, 'google: signing in with Google on another computer brings the progress back');
   m.querySelector('#ac-del-g').click(); await tick(10);
-  m.querySelector('#ac-del-yes').click(); await tick(60);
+  await sureDel();
   ok(!server.docs[gUser.uid] && !server.users['google:kid@gmail.com'] && !ACCOUNT.user(), 'google: deleting a Google account asks Google, not a password, and removes everything saved online');
   // GitHub and Facebook: offered once switched on; GitHub gives the username; one account per email
   server.providers = ['google', 'github', 'facebook'];
@@ -2034,7 +2036,7 @@
   const ghUser = server.users['github:OctoKid'];
   ok(ACCOUNT.user() && ghUser && server.docs[ghUser.uid] && /Signed in as @octokid \(octo@example\.com\) with GitHub/.test(text(m)) && /GitHub will ask you to confirm/.test(m.querySelector('#ac-del-box').textContent) && !m.querySelector('#ac-pw') && !m.querySelector('#ac-del-pw'), 'github: one click signs in, the username is the GitHub login, and there are no password controls');
   m.querySelector('#ac-del-g').click(); await tick(10);
-  m.querySelector('#ac-del-yes').click(); await tick(60);
+  await sureDel();
   ok(!server.docs[ghUser.uid] && !server.users['github:OctoKid'] && !ACCOUNT.user(), 'github: deleting asks GitHub, not a password, and removes everything saved online');
   m = document.getElementById('main');
   m.querySelector('#ac-google').click(); await tick(80);
@@ -3549,6 +3551,225 @@
   document.querySelectorAll('#skill-print').forEach(x => x.remove()); document.body.classList.remove('print-skill');
   Object.keys(localStorage).filter(k => /^procademy\.(drawings|answers)\.v1/.test(k)).forEach(lsDel);
   S.reset();
+  }
+
+  { // settings, profile and accounts; phones and tablets (c-settings)
+  const goS = async h => { location.hash = '#/x-set'; await tick(15); return go(h); };
+  const until = async (fn, ms) => { const t = Date.now(); while (Date.now() - t < (ms || 3000)) { if (fn()) return true; await tick(20); } return false; };
+  const cssHas = (...bits) => { const all = []; const walk = rules => { for (const r of rules) { if (r.cssRules) walk(r.cssRules); all.push(r.cssText); } }; for (const sh of document.styleSheets) { try { walk(sh.cssRules); } catch (e) { /* not ours */ } } return all.some(t => bits.every(b => t.includes(b))); };
+  const sw = (root, id, on) => { const x = root.querySelector('#' + id); x.checked = on; x.dispatchEvent(new Event('change')); };
+  S.reset(); S.setProfile({ welcomed: true, grade: 7 }); S.setSkill('math7.circles', { level: 2, tries: 7, right: 5, sets: 1, last: Date.now() - 6e4 });
+  m = await goS('#/settings');
+  // a search box in Settings
+  const find = m.querySelector('#set-find'), shown = sel => { const el = m.querySelector(sel); return !!el && !el.closest('[hidden]'); };
+  const look = q => { find.value = q; find.dispatchEvent(new Event('input')); };
+  look('volume');
+  ok(shown('#snd-vol') && !shown('#theme') && !shown('#set-you') && m.querySelector('#set-none').hidden, 'settings search: “volume” shows the volume row and hides the rest');
+  look('dark mode');
+  ok(shown('#theme') && !shown('#size') && !shown('#snd-vol'), 'settings search: other words for a setting find it too');
+  look('zzqx');
+  ok(!m.querySelector('#set-none').hidden && /zzqx/.test(text(m.querySelector('#set-none'))), 'settings search: when nothing matches it says so');
+  m.querySelector('#set-none-clear').click();
+  ok(shown('#theme') && shown('#snd-vol') && shown('#lock-card') && find.value === '', 'settings search: Show every setting brings them all back');
+  // the look, previewed before it is chosen
+  const pv = m.querySelector('#look-pv'), pvVar = k => pv.style.getPropertyValue(k).trim(), bg0 = pvVar('--bg');
+  m.querySelector('#theme [data-v="dark"]').dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
+  ok(pvVar('--bg') === '#14161b' && bg0 !== '#14161b' && !document.documentElement.hasAttribute('data-theme') && S.get().profile.theme === 'system', 'look preview: dark shows in the preview first, and the page itself is unchanged');
+  m.querySelector('#blue [data-v="navy"]').dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
+  ok(pvVar('--primary') && pvVar('--primary') !== getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() && /Navy blue/.test(text(m.querySelector('#pv-what'))), 'look preview: a blue shade too, named under the preview');
+  m.querySelector('#set-look').dispatchEvent(new FocusEvent('focusout', { bubbles: true }));
+  ok(pvVar('--bg') === bg0, 'look preview: leaving the choices shows the look in use again');
+  // more text size steps
+  m.querySelector('#size [data-v="xxlarge"]').click();
+  ok(m.querySelectorAll('#size [data-v]').length === 6 && getComputedStyle(document.documentElement).fontSize === '25px' && text(m.querySelector('#size-now')) === 'Largest', 'text size: six steps, up to Largest');
+  m.querySelector('#size [data-v="small"]').click();
+  ok(getComputedStyle(document.documentElement).fontSize === '14px', 'text size: and down to Small');
+  m.querySelector('#size [data-v="normal"]').click();
+  // the start page and the tutor's language
+  const sp = m.querySelector('#start-page'); sp.value = '#/daily'; sp.dispatchEvent(new Event('change'));
+  ok(S.get().profile.startPage === '#/daily' && INSTALL.startPage('') === '#/daily' && INSTALL.startPage('#/courses') === null, 'start page: the site opens on the page chosen, unless its address names a page');
+  sp.value = 'last'; sp.dispatchEvent(new Event('change'));
+  ok(typeof INSTALL.startPage('') === 'string' || INSTALL.startPage('') === null, 'start page: or where the learner left off');
+  sp.value = '#/'; sp.dispatchEvent(new Event('change'));
+  ok(!S.get().profile.startPage && INSTALL.startPage('') === null, 'start page: Home is the usual one');
+  m.querySelector('#tutor-lang [data-v="es"]').click();
+  ok(TUTORUI.pref().lang === 'es', 'tutor language: chosen in Settings, for the tutor’s explanations');
+  m.querySelector('#tutor-lang [data-v="en"]').click();
+  // practice: a set length, hints with pictures, sound with a volume, a buzz
+  m.querySelector('#set-len [data-v="5"]').click(); m.querySelector('#hint-style [data-v="pictures"]').click(); m.querySelector('#snd-vol [data-v="loud"]').click();
+  sw(m, 'snd', true); if (m.querySelector('#buzz')) sw(m, 'buzz', true);
+  const pl = S.get().profile.player;
+  ok(pl.len === 5 && pl.hintStyle === 'pictures' && pl.vol === 'loud' && pl.sound === true && VIEWS.soundLevel() > 1 && (!navigator.vibrate || pl.buzz === true), 'practice choices: set length, hints, sound with a volume, and a buzz are kept with the learner');
+  S.setProfile({ player: Object.assign({}, pl, { sound: false, buzz: true }) });
+  const buzzes = [];
+  navigator.vibrate = p => { buzzes.push(p); return true; };
+  m = await goS('#/practice/math7.circles');
+  ok(m.__session && m.__session.items.length === 5, 'practice choices: a practice set has the length chosen in Settings');
+  answerCurrent(m, false); await tick(80);
+  answerCurrent(m, true); await tick(80);
+  ok(buzzes.length === 2 && Array.isArray(buzzes[0]) && buzzes[1] === 25, 'vibrate: with no sound, a long buzz for a wrong answer and a short one for a right answer');
+  delete navigator.vibrate;
+  ok(getComputedStyle(m.querySelector('.ex')).touchAction === 'manipulation' && cssHas('-webkit-tap-highlight-color'), 'taps: practice never zooms on a double tap, and taps show at once');
+  // the scratch pad with a stylus: a pen draws, a palm beside it doesn't
+  m.querySelector('#scratch-btn').click(); await tick(60);
+  const cv = m.querySelector('.scratch canvas'), r0 = cv.getBoundingClientRect(), ink = () => { const d = cv.getContext('2d').getImageData(0, 0, cv.width, cv.height).data; let n = 0; for (let k = 3; k < d.length; k += 4) if (d[k]) n++; return n; };
+  const pe = (type, x, y, kind) => cv.dispatchEvent(new PointerEvent(type, { bubbles: true, cancelable: true, pointerId: kind === 'pen' ? 7 : 8, pointerType: kind, pressure: 0.7, clientX: r0.left + x, clientY: r0.top + y, button: 0, buttons: 1 }));
+  pe('pointerdown', 20, 20, 'pen'); pe('pointermove', 80, 60, 'pen'); pe('pointerup', 80, 60, 'pen');
+  const penInk = ink();
+  pe('pointerdown', 150, 100, 'touch'); pe('pointermove', 200, 120, 'touch'); pe('pointerup', 200, 120, 'touch');
+  ok(penInk > 20 && ink() === penInk, 'scratch pad: a stylus draws, and a palm resting nearby draws nothing');
+  // a lesson beside practice on a wide screen
+  if (innerWidth >= 900) {
+    await tick(40);
+    const lb = m.querySelector('#lesson-beside');
+    ok(lb, 'lesson beside: practice on a wide screen offers the lesson beside it');
+    if (lb) { lb.click(); await tick(20); ok(document.body.classList.contains('lesson-split') && document.querySelector('.lesson-dock .learn') && text(document.querySelector('.lesson-dock')).length > 60, 'lesson beside: the skill’s lesson opens next to the questions'); lb.click(); await tick(20); ok(!document.querySelector('.lesson-dock'), 'lesson beside: and closes again'); }
+  }
+  try { localStorage.removeItem('procademy.device.v1'); } catch (e) { /* fine */ }
+  S.setProfile({ player: {} });
+  // reminders on chosen weekdays
+  m = await goS('#/settings');
+  VIEWS._lastDownload = null;
+  const day = d => m.querySelector(`.rm-day[data-day="${d}"]`), rmSel = m.querySelector('#rm-days');
+  rmSel.value = 'weekend'; rmSel.dispatchEvent(new Event('change'));
+  ok(day('SA').getAttribute('aria-pressed') === 'true' && day('MO').getAttribute('aria-pressed') === 'false', 'reminder: a preset marks its days');
+  day('SA').click(); day('TU').click(); day('TH').click();
+  ok(rmSel.value === 'pick', 'reminder: choosing days one by one');
+  m.querySelector('#rm-hour').value = '17'; m.querySelector('#rm-add').click();
+  const ics = VIEWS._lastDownload && VIEWS._lastDownload.text, first = ics && /DTSTART:(\d{4})(\d{2})(\d{2})T170000/.exec(ics);
+  ok(/RRULE:FREQ=WEEKLY;BYDAY=TU,TH,SU/.test(ics) && first && [2, 4, 0].includes(new Date(+first[1], +first[2] - 1, +first[3]).getDay()), 'reminder: a calendar file for exactly the days chosen, starting on one of them');
+  // settings in a file of their own
+  S.setProfile({ theme: 'dark', goal: 30, name: 'Kept' });
+  m.querySelector('#set-save').click();
+  const setFile = VIEWS._lastDownload.text, sj = JSON.parse(setFile);
+  ok(sj.kind === 'settings' && sj.settings.theme === 'dark' && sj.settings.goal === 30 && !('name' in sj.settings) && !('skills' in sj.settings) && !sj.data, 'settings file: the look and goals, without progress or a name');
+  S.setProfile({ theme: 'light', goal: 10 });
+  const inF = m.querySelector('#set-load'), dtf = new DataTransfer(); dtf.items.add(new File([setFile], 'procademy-settings.json', { type: 'application/json' })); inF.files = dtf.files; inF.dispatchEvent(new Event('change'));
+  await until(() => S.get().profile.theme === 'dark');
+  ok(S.get().profile.theme === 'dark' && S.get().profile.goal === 30 && S.get().profile.name === 'Kept' && S.skill('math7.circles').level === 2, 'settings file: loading it sets them back, and progress is untouched');
+  S.setProfile({ theme: 'system' }); APP.applyPrefs();
+  // one course started over
+  S.setSkill('math8.slope', { level: 3, tries: 6, right: 6, sets: 1, last: Date.now() - 6e4 });
+  m = await goS('#/settings');
+  m.querySelector('#course-reset').value = 'math-7'; m.querySelector('#course-reset-go').click(); await tick(10);
+  ok(/Start .+ over\?/.test(text(document.querySelector('#lock-panel'))), 'one course: it asks first');
+  const beforeReset = JSON.parse(JSON.stringify(S.get()));
+  document.querySelector('#lock-form').dispatchEvent(new Event('submit', { cancelable: true }));
+  await until(() => !S.get().skills['math7.circles']);
+  ok(!S.get().skills['math7.circles'] && S.skill('math8.slope').level === 3 && S.get().profile.resets['math-7'], 'one course: its skills start over, and other courses stay');
+  const mergedBack = ACCOUNT.merge(S.get(), beforeReset);
+  ok(!mergedBack.skills['math7.circles'] && mergedBack.skills['math8.slope'], 'one course: a copy from another device doesn’t bring it back');
+  // this device: one-handed mode and data saver
+  m = await goS('#/settings');
+  sw(m, 'one-hand', true); sw(m, 'data-saver', true);
+  ok(document.documentElement.dataset.hand === 'one' && document.documentElement.dataset.saver === 'on' && navigator.connection.saveData === true && TUTOR.meteredConnection(), 'this device: one-handed mode and data saver, which the rest of the site follows');
+  sw(m, 'one-hand', false); sw(m, 'data-saver', false);
+  ok(!document.documentElement.hasAttribute('data-hand') && !document.documentElement.hasAttribute('data-saver'), 'this device: and both off again');
+  try { localStorage.removeItem('procademy.device.v1'); } catch (e) { /* fine */ }
+  // phones: CSS for the sheets, landscape practice, safe areas, the tablet keypad and lesson lines
+  ok(cssHas('max-width: 700px', '.opts-panel:not([hidden])', 'sheet-up') && cssHas('orientation: landscape', '.question', 'float: left') && cssHas('.top', 'safe-area-inset-top') && cssHas('pointer: coarse', '.ans-key', 'min-height: 62px') && cssHas('max-width: 480px', '.learn', 'line-height'), 'phones: bottom sheets, practice held sideways, safe areas, a bigger tablet keypad and comfortable lesson lines are in the stylesheet');
+  // pull to refresh, the share sheet, the offline marker, number keyboards
+  m = await goS('#/');
+  await APP.refreshHome(); await tick(20);
+  ok(/up to date/.test(text(document.querySelector('.toast'))) && document.getElementById('main').querySelector('.today-card, #welcome'), 'pull to refresh: Home is drawn again');
+  const shares = [], realMM = window.matchMedia;
+  window.matchMedia = q => (/pointer: coarse/.test(q) ? { matches: true, media: q, addEventListener() {}, removeEventListener() {} } : realMM.call(window, q));
+  navigator.share = d => { shares.push(d); return Promise.resolve(); };
+  ok(APP.shareSheet('https://example.test/#/calc', 'Calculator') === true && shares[0].url === 'https://example.test/#/calc', 'share: on a phone a link goes through the share sheet');
+  window.matchMedia = realMM; delete navigator.share;
+  ok(APP.shareSheet('https://example.test/', 'x') === false || matchMedia('(pointer: coarse)').matches, 'share: on a computer it is copied instead');
+  dispatchEvent(new Event('offline')); await tick(10);
+  ok(document.body.classList.contains('is-offline') && document.querySelector('.tab-offline') && /Offline/.test(document.querySelector('.tab-offline').textContent), 'offline: a marker shows over the tab bar');
+  dispatchEvent(new Event('online')); await tick(10);
+  const nIn = document.createElement('div'); nIn.innerHTML = '<input type="number" min="0" id="tn1"><input type="number" min="0" step="any" id="tn2"><input type="number" id="tn3">';
+  document.getElementById('main').appendChild(nIn); await tick(60);
+  ok(nIn.querySelector('#tn1').inputMode === 'numeric' && nIn.querySelector('#tn2').inputMode === 'decimal' && !nIn.querySelector('#tn3').hasAttribute('inputmode'), 'number keyboards: whole numbers, decimals, and a field that can be negative keeps its minus key');
+  nIn.remove();
+  // home-screen shortcuts
+  let mf = null; try { const x = new XMLHttpRequest(); x.open('GET', '../manifest.webmanifest', false); x.send(); mf = JSON.parse(x.responseText); } catch (e) { mf = null; }
+  if (mf) ok(['#/daily', '#/tutor', '#/calc'].every(h => mf.shortcuts.some(s => s.url.endsWith(h) && s.name && s.icons.length)), 'app: home-screen shortcuts to today’s practice, the tutor and the calculator');
+  // profile: a favorite subject and an avatar builder
+  S.reset(); S.setProfile({ welcomed: true, name: 'Ria' });
+  m = await goS('#/profile');
+  const fav = m.querySelector('#pf-fav'); fav.value = 'science'; fav.dispatchEvent(new Event('change')); await tick(10);
+  m = document.getElementById('main');
+  m.querySelector('[data-av-shape="hex"]').click(); m = document.getElementById('main'); m.querySelector('[data-av-face="star"]').click(); m = document.getElementById('main');
+  ok(S.get().profile.favSubject === 'science' && /Science/.test(text(m.querySelector('.profile-fav'))), 'profile: a favorite subject, shown under the name');
+  ok(S.get().profile.avatar.shape === 'hex' && S.get().profile.avatar.face === 'star' && document.querySelector('#avatar-btn .avatar[data-shape="hex"] svg') && m.querySelector('[data-av-face="star"]').getAttribute('aria-checked') === 'true', 'avatar builder: a shape and a symbol, shown in the header too');
+  // accounts, with a stand-in like Firebase: a new username keeps everything; an email link; devices; two copies
+  const srv = { users: {}, docs: {}, n: 0, links: [] };
+  const dev = linkOn => { let cur = null; const err = c => Object.assign(new Error(c), { code: c });
+    return { ready: Promise.resolve(), status: () => 'ready', providers: [], linkOn, onChange() {}, current: () => cur && { uid: cur.uid, email: cur.email, via: null, verified: !!cur.verified, name: cur.name || '' },
+      async signUp(email, pw, name) { if (srv.users[email]) throw err('auth/email-already-in-use'); const uid = 'c' + (++srv.n); srv.users[email] = { uid, pw, email, name }; cur = srv.users[email]; return { uid, email, verified: false, name }; },
+      async signIn(email, pw) { const u = srv.users[email]; if (!u || u.pw !== pw) throw err('auth/invalid-credential'); cur = u; return { uid: u.uid, email, verified: true, name: u.name || '' }; },
+      async sendLink(email) { srv.links.push(email); },
+      async finishLink(email, href) { if (!/oobCode=good/.test(href)) throw err('auth/invalid-action-code'); const u = srv.users[email] || (srv.users[email] = { uid: 'c' + (++srv.n), pw: null, email, verified: true }); cur = u; return { uid: u.uid, email, verified: true, via: 'link', name: u.name || '' }; },
+      async setName(n) { cur.name = n; },
+      async signOut() { cur = null; },
+      async load(uid) { if (!cur || cur.uid !== uid) throw err('permission-denied'); return srv.docs[uid] ? JSON.parse(JSON.stringify(srv.docs[uid])) : null; },
+      async save(uid, data) { if (!cur || cur.uid !== uid) throw err('permission-denied'); srv.docs[uid] = JSON.parse(JSON.stringify(data)); },
+      async reauth(pw) { if (!cur || cur.pw !== pw) throw err('auth/invalid-credential'); },
+      async remove(pw) { if (cur.pw && cur.pw !== pw) throw err('auth/invalid-credential'); delete srv.docs[cur.uid]; delete srv.users[cur.email]; cur = null; } }; };
+  S.setProfile({ grade: 7 }); S.setSkill('math7.circles', { level: 3, tries: 7, right: 7, sets: 1, last: Date.now() });
+  ACCOUNT.useBackend(dev(false));
+  m = await goS('#/profile');
+  ok(!m.querySelector('#ac-link'), 'email link: not offered until the owner switches it on');
+  const fill = (sel, v) => { m.querySelector(sel).value = v; };
+  fill('#ac-user', 'comet7'); fill('#ac-pass', 'orbit12345'); fill('#ac-pass2', 'orbit12345');
+  m.querySelector('#ac-new').dispatchEvent(new Event('submit', { cancelable: true }));
+  await until(() => ACCOUNT.user() && srv.docs[ACCOUNT.user().uid]);
+  const oldUid = ACCOUNT.user().uid;
+  m = await goS('#/profile');
+  ok(m.querySelector('.ac-devices') && /This device/.test(text(m.querySelector('.ac-devices'))) && JSON.parse(srv.docs[oldUid].state).profile.devices[ACCOUNT.deviceId()].at > 0, 'devices: each device’s last save goes with the account and shows on the Profile page');
+  const dm = ACCOUNT.merge({ saved: 2, profile: { name: 'A', devices: { a: { name: 'iPad, Safari', at: 5 } } }, days: { [S.today()]: { q: 1, right: 1, pts: 1 } } }, { saved: 1, profile: { devices: { a: { name: 'iPad, Safari', at: 9 }, b: { name: 'Mac, Chrome', at: 3 } } } });
+  ok(dm.profile.devices.a.at === 9 && dm.profile.devices.b.at === 3, 'devices: two copies keep every device, each with its latest time');
+  m.querySelector('#ac-name').click(); await tick(10);
+  m.querySelector('#ac-name-new').value = 'nova_7'; m.querySelector('#ac-name-pw').value = 'not-it-123';
+  m.querySelector('#ac-name-form').dispatchEvent(new Event('submit', { cancelable: true }));
+  await until(() => /isn’t your password/.test(text(m.querySelector('#ac-name-form .ac-msg'))));
+  ok(ACCOUNT.user().username === 'comet7' && srv.users['comet7@learners.procademy.invalid'], 'new username: the wrong password changes nothing');
+  m.querySelector('#ac-name-pw').value = 'orbit12345';
+  m.querySelector('#ac-name-form').dispatchEvent(new Event('submit', { cancelable: true }));
+  await until(() => ACCOUNT.user() && ACCOUNT.user().username === 'nova_7');
+  const nu = ACCOUNT.user();
+  ok(nu.username === 'nova_7' && !srv.users['comet7@learners.procademy.invalid'] && srv.users['nova_7@learners.procademy.invalid'] && !srv.docs[oldUid] && srv.docs[nu.uid].username === 'nova_7' && JSON.parse(srv.docs[nu.uid].state).skills['math7.circles'].level === 3, 'new username: the account moves to the new name with all its progress, and the old name is freed');
+  await ACCOUNT.logOut(true);
+  // two copies: what each one holds, side by side
+  S.setSkill('math8.slope', { level: 1, tries: 3, right: 1, sets: 1, last: Date.now() });
+  ACCOUNT.useBackend(dev(false));
+  m = await goS('#/profile');
+  m.querySelector('[data-tab="in"]').click(); fill('#ac-id', 'nova_7'); fill('#ac-pw-in', 'orbit12345');
+  m.querySelector('#ac-in').dispatchEvent(new Event('submit', { cancelable: true }));
+  await until(() => document.querySelector('#mg-add'));
+  m = document.getElementById('main');
+  ok(m.querySelectorAll('.mg-copy').length === 2 && /In your account/.test(text(m.querySelector('.mg-copies'))) && /1 skill practiced/.test(text(m.querySelector('.mg-copies'))) && m.querySelector('.ac-how'), 'two copies: what is on this computer and in the account, side by side, with what adding keeps');
+  m.querySelector('#mg-replace').click(); await until(() => !document.querySelector('#mg-add'));
+  await ACCOUNT.logOut(true);
+  // sign in with an email link, once switched on
+  ACCOUNT.useBackend(dev(true));
+  m = await goS('#/profile');
+  m.querySelector('#ac-link-email').value = 'kid@example.com'; m.querySelector('#ac-link').dispatchEvent(new Event('submit', { cancelable: true }));
+  await until(() => srv.links.length && /We sent a link/.test(text(m.querySelector('#ac-link .ac-msg'))));
+  ok(srv.links[0] === 'kid@example.com' && /We sent a link/.test(text(m.querySelector('#ac-link .ac-msg'))), 'email link: the link is emailed once asked for');
+  ok(await ACCOUNT.finishLink(null, 'https://example.test/?apiKey=k&mode=signIn&oobCode=good') === 'uploaded' && ACCOUNT.user().via === 'link' && !ACCOUNT.lock.locked(), 'email link: opening it on the same device signs in, with no password to ask for');
+  m = await goS('#/profile');
+  ok(!m.querySelector('#ac-pw') && /with an email link/.test(text(m.querySelector('#account'))), 'email link: no password controls for an account without a password');
+  m.querySelector('#ac-name').click(); await tick(10);
+  ok(!m.querySelector('#ac-name-pw'), 'new username: an account that logs in by email needs no password to change its name');
+  const linkUid = ACCOUNT.user().uid;
+  m.querySelector('#ac-name-new').value = 'kidmath'; m.querySelector('#ac-name-form').dispatchEvent(new Event('submit', { cancelable: true }));
+  await until(() => ACCOUNT.user().username === 'kidmath');
+  ok(ACCOUNT.user().uid === linkUid && srv.docs[linkUid].username === 'kidmath', 'new username: the same account, under its new name');
+  await ACCOUNT.logOut(true);
+  try { localStorage.removeItem('procademy.linkemail.v1'); } catch (e) { /* fine */ }
+  ACCOUNT.useBackend(dev(true));
+  ok(await ACCOUNT.finishLink(null, 'https://example.test/?mode=signIn&oobCode=good') === 'email' && !ACCOUNT.user(), 'email link: opened on another device, it asks for the email first');
+  m = await goS('#/profile');
+  m.querySelector('#ac-link-email2').value = 'kid@example.com'; m.querySelector('#ac-link-done').dispatchEvent(new Event('submit', { cancelable: true }));
+  await until(() => ACCOUNT.user());
+  ok(ACCOUNT.user() && ACCOUNT.user().username === 'kidmath', 'email link: then signs in to the same account');
+  await ACCOUNT.logOut(true);
+  ACCOUNT.useBackend(null); S.reset();
   }
 
   { // Erase all progress (not signed in: it asks to be sure)
