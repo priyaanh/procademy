@@ -406,7 +406,7 @@ footer { border-top: 1px solid var(--line); color: var(--muted); font-size: .9re
 .shot-recent .tiny { margin-right: 4px; }
 .ul-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px 16px; flex-wrap: wrap; margin-bottom: 4px; }
 .ul-today { margin-top: 10px; }
-.ul-len { margin: 0 0 16px; padding-top: 4px; padding-bottom: 4px; }
+.ul-len { margin: 0 0 16px; padding-top: 6px; }
 .ul-len .set-row { border-top: 0; padding: 10px 0; }
 .ul-limit { margin-left: auto; font-variant-numeric: tabular-nums; }
 @container page (max-width: 560px) { .shot-paste { display: none; } .ul-shot-head .tool-ic { display: none; } }
@@ -453,6 +453,20 @@ footer { border-top: 1px solid var(--line); color: var(--muted); font-size: .9re
 .ul-panel > .ul-picks:first-child { margin-top: 0; }
 .ul-sec-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; margin: 28px 0 12px; }
 .ul-sec-head h2 { margin: 0; }
+/* practice page: picking up where a session stopped, suggestions for the time chosen, and the sound when time is up */
+.ul-resume { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 14px; margin: 0 0 16px; background: var(--tint); box-shadow: none; }
+.ul-resume-text { display: grid; gap: 2px; flex: 1 1 260px; min-width: 0; }
+.ul-resume-acts { display: flex; gap: 8px; flex-wrap: wrap; }
+.ul-sug-h { margin: 6px 0 10px; font-size: .95rem; color: var(--muted); font-weight: 600; }
+.ul-sug { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 10px; }
+.ul-sug-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; border-radius: 14px; background: var(--tint); color: var(--ink); text-decoration: none; border: 1px solid transparent; }
+.ul-sug-item:hover { background: var(--tint-2); border-color: var(--primary); text-decoration: none; }
+.ul-sug-item b { display: block; }
+.ul-sug-item .tool-ic { background: var(--surface); }
+.ul-bell { display: inline-flex; align-items: center; gap: 8px; margin-top: 14px; color: var(--muted); cursor: pointer; }
+.ul-bell input { width: 18px; height: 18px; accent-color: var(--primary); }
+.sum-pace { margin: 10px 0 0; }
+.sum-prior { margin: 6px 0 0; }
 /* practice page: the Courses tab's tools (mix two courses, a CPM chapter with lesson filters) */
 .ul-tools { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 16px; margin-top: 16px; }
 .ul-tools > .ul-tool { margin: 0; display: flex; flex-direction: column; gap: 10px; }
