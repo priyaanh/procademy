@@ -4093,3 +4093,54 @@ html.tool-full main { padding-top: calc(64px + env(safe-area-inset-top, 0px)); }
 @media (min-width: 701px) and (max-width: 860px) { .nav a { padding: .45rem .55rem; } }
 @media (min-width: 701px) { .top .bar { gap: 8px; } .top .nav { margin-right: 4px; } .stat-pill { padding: .3rem .6rem; } }
 @media (min-width: 961px) { .nav a { padding: .45rem .7rem; } }          /* room for More in the header */
+
+/* settings and phones */
+/* Settings: a search box, a preview of the look, six text sizes, two columns of cards, reminder days */
+:root[data-size="small"] { --fs: 14px; }
+:root[data-size="medium"] { --fs: 17.5px; }
+:root[data-size="xxlarge"] { --fs: 25px; }
+.set-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 20px; margin-bottom: 12px; }
+.set-top h1 { margin: 0; }
+.set-find { position: relative; flex: 1 1 260px; max-width: 380px; }
+.set-find .icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); display: grid; color: var(--muted); pointer-events: none; }
+.set-find input { width: 100%; min-height: 44px; padding: .5rem 1rem .5rem 2.5rem; border: 1px solid var(--line-strong); border-radius: 999px; background: var(--surface); color: var(--ink); font: inherit; }
+.set-find input:focus { outline: 2px solid var(--primary); border-color: transparent; }
+.set-none { margin: 0 0 16px; }
+.set-col { display: grid; gap: 16px; align-content: start; min-width: 0; }
+.set-col[hidden] { display: none; }
+.settings-grid.set-more { grid-template-columns: minmax(0, 1fr); margin-top: 16px; }
+.set-card h2 + .set-sub, .set-card h2 + [data-find] > .set-sub:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
+.set-card h2 + .set-pv + .set-row { border-top: 0; }
+.set-h3 { margin: 0 0 4px; font-size: 1rem; }
+.set-pv { padding: 2px 0 14px; }
+.look-pv { --tint: color-mix(in srgb, var(--primary) 10%, var(--surface)); overflow: hidden; border-radius: 14px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font-family: var(--font); font-size: calc(var(--pv-fs, 16px) * .82); line-height: 1.4; }
+.pv-bar { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: var(--surface); border-bottom: 1px solid var(--line); }
+.pv-logo { width: 1.2em; height: 1.2em; border-radius: 30%; background: var(--primary); flex: none; }
+.pv-word { font-weight: 800; }
+.pv-chip { margin-left: auto; padding: 2px 10px; border-radius: 999px; background: var(--tint); color: var(--primary-ink); font-weight: 700; font-size: .88em; }
+.pv-page { padding: 12px; }
+.pv-card { display: grid; gap: 4px; padding: 12px 14px; border-radius: 12px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--card-line); }
+.pv-h { font-size: 1.08em; }
+.pv-p { color: var(--muted); }
+.pv-btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.pv-btn { padding: 4px 14px; border-radius: 999px; background: var(--tint); color: var(--primary-ink); font-weight: 700; }
+.pv-btn.primary { background: var(--primary); color: var(--on-primary); }
+.look-pv.pv-hc .pv-card { box-shadow: inset 0 0 0 1.5px var(--card-line); }
+.look-pv.pv-hc .pv-btn:not(.primary) { box-shadow: inset 0 0 0 1.5px var(--primary-ink); }
+.pv-note { display: block; margin: 8px 2px 0; }
+#size button { min-width: 38px; padding: .2rem .55rem; }
+.ts-a { font-weight: 800; line-height: 1; }
+.set-vol { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.rm-week { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; flex-basis: 100%; }
+.rm-day { min-width: 40px; min-height: 36px; padding: 0 .45rem; border: 0; border-radius: 999px; background: var(--tint); color: var(--primary-ink); font: inherit; font-size: .88rem; font-weight: 700; cursor: pointer; }
+.rm-day:hover { background: var(--tint-2); }
+.rm-day[aria-pressed="true"] { background: var(--primary); color: var(--on-primary); }
+.rm-week #rm-add { margin-left: auto; }
+:root[data-contrast="high"] .rm-day { box-shadow: inset 0 0 0 1.5px var(--primary-ink); }
+.set-course-pick { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.set-course-pick .set-input { flex: 1 1 200px; }
+.set-course + [data-find] { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
+.set-how summary { cursor: pointer; padding: 2px 0; }
+.set-merge { margin: 10px 0 8px; padding-left: 1.1rem; display: grid; gap: 4px; }
+.install-sub .install-steps { margin-bottom: 4px; }
+@media (max-width: 700px) { .set-find { max-width: none; flex-basis: 100%; } .rm-week #rm-add { margin-left: 0; } }
