@@ -4826,3 +4826,6 @@ body.tutor-resizing, .crop-stage { -webkit-user-select: none; }
 /* a practice set's dots: a missed question is striped and one right with help half filled, so they don't rely on color */
 .dots span.wrong { background: repeating-linear-gradient(135deg, var(--bad) 0 3px, color-mix(in srgb, var(--bad) 28%, var(--surface)) 3px 6px); }
 .dots span.hinted { background: linear-gradient(90deg, var(--warn) 50%, color-mix(in srgb, var(--warn) 22%, var(--surface)) 50%); }
+
+/* Speed and storage sits inside This device: no second line under its heading */
+#device-card > h3 + .set-row { border-top: 0; padding-top: 8px; }
