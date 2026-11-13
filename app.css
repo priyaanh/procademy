@@ -4117,7 +4117,8 @@ sub::before { content: "" / " sub "; }
 :root[data-focus="strong"] :focus-visible { outline: 4px solid var(--primary-ink) !important; outline-offset: 3px !important; box-shadow: 0 0 0 9px color-mix(in srgb, var(--primary) 28%, transparent) !important; }
 :root[data-focus="strong"][data-contrast="high"] :focus-visible { outline-color: var(--ink) !important; }
 /* fewer extras on screen: the streak and points, tips, pop-ups, the week in review and the footer step aside */
-:root[data-clutter="less"] :is(#stats, footer, .tool-tip, .wn-pop, .first-badge, .home-body > .recap, .home-body > .levels-note, .home-body > .tiles, .ex-streak, .ex-keys) { display: none !important; }
+:root[data-clutter="less"] :is(#stats, footer, .tool-tip, .wn-pop, .first-badge, .home-sec > .recap, .home-sec > .levels-note, .home-sec > .tiles, .ex-streak, .ex-keys) { display: none !important; }
+:root[data-clutter="less"] .home-sec:has(> .recap, > .levels-note, > .tiles) { display: none !important; }
 /* the reading ruler: a band across the screen at the line being read */
 .reading-ruler { position: fixed; left: 0; right: 0; top: 0; height: 2.6rem; z-index: 38; pointer-events: none; background: color-mix(in srgb, var(--primary) 9%, transparent); border-block: 2px solid color-mix(in srgb, var(--primary) 55%, transparent); will-change: transform; }
 :root[data-motion="reduce"] .reading-ruler { transition: none; }
