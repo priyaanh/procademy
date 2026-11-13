@@ -45,10 +45,11 @@
   /* ---------- Unit 1: Ratios ---------- */
   A.skill({
     id: 'g6.ratio-language', title: 'Ratio language',
-    learn: p('A <b>ratio</b> compares two amounts. If a fruit bowl has 3 apples and 5 bananas, the ratio of apples to bananas is <b>3 : 5</b>, said “3 to 5”. You can also write it as “3 for every 5”.') +
-      p('<b>Order matters.</b> The ratio of bananas to apples is 5 : 3, not 3 : 5. The first thing named goes first.') +
-      p('A ratio can also compare a part to the <b>whole</b>. There are 3 + 5 = 8 pieces of fruit, so the ratio of apples to all the fruit is 3 : 8.') +
-      example('Example', `${M.items([[2, 'circle', 'orange'], [5, 'square', 'blue']], { per: 0, size: 28 })}The ratio of squares to circles is <b>5 : 2</b>. The ratio of circles to all the shapes is <b>2 : 7</b>.`),
+    learn: p('A <b>ratio</b> compares two amounts. If a fruit bowl has 3 apples and 5 bananas, the ratio of apples to bananas is <b>3 : 5</b>. You say it “3 to 5”, and you can also write it as “3 for every 5”.') +
+      p('<b>Order matters.</b> The ratio of bananas to apples is 5 : 3, not 3 : 5. Whatever is named first gets its number first.') +
+      p('A ratio can also compare a part to the <b>whole</b>, which means everything put together. There are 3 + 5 = 8 pieces of fruit, so the ratio of apples to all the fruit is 3 : 8.') +
+      example('Example: part to part', `${M.items([[2, 'circle', 'orange'], [5, 'square', 'blue']], { per: 0, size: 28 })}Count each kind: 2 circles and 5 squares. The question names squares first, so the ratio of squares to circles is <b>5 : 2</b>.`) +
+      example('Example: part to whole', `${big('A shelf holds 4 mystery books and 7 science books.')}What is the ratio of science books to all the books? The whole is 4 + 7 = 11 books. The part goes first and the whole second: <b>7 : 11</b>.`),
     make(rng) {
       const kind = rng.pick(['pic', 'pic', 'words', 'whole']);
       let a = rng.int(2, 9), b = rng.int(2, 9);
@@ -84,10 +85,12 @@
 
   A.skill({
     id: 'g6.ratio-tables', title: 'Equivalent ratios and ratio tables',
-    learn: p('Two ratios are <b>equivalent</b> when you get one from the other by <b>multiplying (or dividing) both numbers by the same number</b>. 2 : 3 is equivalent to 4 : 6 and to 10 : 15.') +
+    learn: p('Two ratios are <b>equivalent</b> when they make the same comparison. You get one from the other by <b>multiplying (or dividing) both numbers by the same number</b>. 2 : 3 is equivalent to 4 : 6 and to 10 : 15.') +
       p('A <b>ratio table</b> lists equivalent ratios in rows. To fill in a missing number, find what the known number was multiplied by, then multiply the other number by the same thing.') +
-      p('When you know the <b>total</b>, add the parts of the ratio to see how many “groups” fit in it.') +
-      example('Example', `${big('3 : 4 = 15 : ?')}3 × 5 = 15, so multiply 4 by 5 too: the missing number is <b>20</b>.`),
+      p('When you know the <b>total</b>, add the two parts of the ratio to get the size of one “group”. Then see how many groups fit in the total.') +
+      example('Example: a missing number', `${big('3 : 4 = 15 : ?')}3 × 5 = 15, so multiply 4 by 5 too. The missing number is <b>20</b>.`) +
+      example('Example: a ratio table', `${M.table(['Cups of juice', 'Cups of water'], [['2', '7'], ['4', '14'], ['?', '35']])}Look at the water: 7 × 5 = 35. Multiply the juice by 5 too: 2 × 5 = <b>10</b> cups of juice.`) +
+      example('Example: using the total', `${big('Cats to dogs at a shelter is 2 : 3. There are 30 animals.')}How many are dogs? One group is 2 + 3 = 5 animals, and 30 ÷ 5 = 6 groups. Dogs: 3 × 6 = <b>18</b>. Check: there are 2 × 6 = 12 cats, and 12 + 18 = 30 ✓`),
     make(rng) {
       const kind = rng.pick(['table', 'equiv', 'recipe', 'total']);
       let a = rng.int(1, 6), b = rng.int(2, 9);
@@ -125,10 +128,12 @@
   /* ---------- Unit 2: Rates and percentages ---------- */
   A.skill({
     id: 'g6.unit-rates', title: 'Unit rates and unit price',
-    learn: p('A <b>rate</b> compares two different kinds of amounts, like miles and hours. A <b>unit rate</b> tells you how much for <b>one</b>: miles per hour, words per minute, dollars per pen.') +
+    learn: p('A <b>rate</b> compares two different kinds of amounts, like miles and hours. A <b>unit rate</b> tells you how much for <b>one</b>: miles per hour, words per minute, dollars per pen. “Per” means “for each”.') +
       p('<b>To find a unit rate, divide</b> the first amount by the second. 150 miles in 3 hours is 150 ÷ 3 = 50 miles per hour. Once you know the unit rate, multiply to find any other amount.') +
-      p('The <b>unit price</b> is the cost of one item. To find the better buy, compare unit prices: the lower one is the better deal.') +
-      example('Example', `${big('6 pens cost $4.50')}Unit price = $4.50 ÷ 6 = <b>$0.75</b> per pen.`),
+      p('The <b>unit price</b> is the cost of one item. To find the <b>better buy</b>, compare unit prices: the lower one is the better deal.') +
+      example('Example: unit price', `${big('6 pens cost $4.50')}Unit price = $4.50 ÷ 6 = <b>$0.75</b> per pen.`) +
+      example('Example: using a unit rate', `${big('Mei types 240 words in 6 minutes. How many words in 10 minutes?')}Unit rate: 240 ÷ 6 = 40 words per minute. In 10 minutes: 40 × 10 = <b>400 words</b>.`) +
+      example('Example: the better buy', `${big('A 4-pack of juice boxes costs $3.00. A 10-pack costs $6.50.')}4-pack: $3.00 ÷ 4 = $0.75 each. 10-pack: $6.50 ÷ 10 = $0.65 each. $0.65 is lower, so <b>the 10-pack</b> is the better buy.`),
     make(rng) {
       const kind = rng.pick(['rate', 'price', 'better', 'use']);
       const name = rng.pick(NAMES);
@@ -169,8 +174,10 @@
     id: 'g6.percents', title: 'Percent problems',
     learn: p('<b>Percent means “out of 100”.</b> 35% is 35 out of 100, which is the fraction ' + F(35, 100, { raw: true }) + ' or the decimal 0.35.') +
       p('<b>Percent of a number:</b> change the percent to a decimal and multiply. 35% of 80 = 0.35 × 80 = 28.') +
-      p('<b>Finding the whole:</b> if 25% of a number is 12, then the whole is 12 × 100 ÷ 25 = 48. <b>Finding the percent:</b> divide the part by the whole and multiply by 100.') +
-      example('Example', `${big('18 is 30% of what number?')}18 × 100 = 1,800 and 1,800 ÷ 30 = <b>60</b>. Check: 0.3 × 60 = 18 ✓`),
+      p('<b>Finding the whole:</b> if 25% of a number is 12, then the whole is 12 × 100 ÷ 25 = 48. <b>Finding the percent:</b> divide the part by the whole, then multiply by 100.') +
+      example('Example: percent of a number', `${big('What is 15% of 60?')}15% as a decimal is 0.15, and 0.15 × 60 = <b>9</b>.`) +
+      example('Example: finding the whole', `${big('18 is 30% of what number?')}18 × 100 = 1,800 and 1,800 ÷ 30 = <b>60</b>. Check: 0.3 × 60 = 18 ✓`) +
+      example('Example: finding the percent', `${big('12 is what percent of 40?')}12 ÷ 40 = 0.3, and 0.3 × 100 = <b>30%</b>.`),
     make(rng) {
       const kind = rng.pick(['of', 'of-word', 'whole', 'whole-word', 'what']);
       const pct = rng.pick([5, 10, 15, 20, 25, 30, 40, 45, 50, 60, 70, 75, 80, 90]);
@@ -197,10 +204,12 @@
   /* ---------- Unit 3: Dividing fractions ---------- */
   A.skill({
     id: 'g6.divide-fractions', title: 'Dividing fractions by fractions',
-    learn: p(`Dividing asks “how many of these fit into that?”. ${F(3, 4)} ÷ ${F(1, 8)} asks how many eighths fit into three quarters. The answer is 6.`) +
-      p('<b>To divide by a fraction, multiply by its reciprocal.</b> The reciprocal is the fraction flipped upside down: the reciprocal of ' + F(2, 5) + ' is ' + F(5, 2, { raw: true }) + '. A whole number like 3 is ' + F(3, 1, { raw: true }) + ', so its reciprocal is ' + F(1, 3) + '. Change a mixed number to an improper fraction first.') +
+    learn: p(`Dividing asks “how many of these fit into that?” ${F(3, 4)} ÷ ${F(1, 8)} asks how many eighths fit into three-fourths. The answer is 6.`) +
+      p('<b>To divide by a fraction, multiply by its reciprocal.</b> The <b>reciprocal</b> is the fraction flipped upside down: the reciprocal of ' + F(2, 5) + ' is ' + F(5, 2, { raw: true }) + '. A whole number like 3 is ' + F(3, 1, { raw: true }) + ', so its reciprocal is ' + F(1, 3) + '. Change a mixed number to an <b>improper fraction</b> (one with the top bigger than the bottom) first.') +
       p('In short: <b>keep</b> the first fraction, <b>change</b> ÷ to ×, <b>flip</b> the second fraction. Then simplify.') +
-      example('Example', `${big(`${F(2, 3)} ÷ ${F(4, 5)}`)}Keep, change, flip: ${F(2, 3)} × ${F(5, 4, { raw: true })} = ${F(10, 12, { raw: true })} = <b>${F(5, 6)}</b>.`),
+      example('Example: a fraction by a fraction', `${big(`${F(2, 3)} ÷ ${F(4, 5)}`)}Keep, change, flip: ${F(2, 3)} × ${F(5, 4, { raw: true })} = ${F(10, 12, { raw: true })} = <b>${F(5, 6)}</b>.`) +
+      example('Example: with a whole number', `${big(`6 ÷ ${F(3, 4)}`)}Write 6 as ${F('6', '1')}. Keep, change, flip: ${F('6', '1')} × ${F(4, 3, { raw: true })} = ${F(24, 3, { raw: true })} = <b>8</b>. A fraction divided by a whole number works the same way: ${F(3, 5)} ÷ 2 = ${F(3, 5)} × ${F(1, 2)} = <b>${F(3, 10)}</b>.`) +
+      example('Example: with a mixed number', `${big(`${MX(5, 2)} ÷ ${F(3, 4)}`)}First, ${MX(5, 2)} = ${F(5, 2, { raw: true })}. Then ${F(5, 2, { raw: true })} × ${F(4, 3, { raw: true })} = ${F(20, 6, { raw: true })} = ${F(10, 3, { raw: true })} = <b>${MX(10, 3)}</b>.`),
     make(rng) {
       const kind = rng.pick(['ff', 'ff', 'wf', 'fw', 'mixed']);
       let n1, d1, n2, d2, shown;
@@ -227,7 +236,9 @@
     learn: p('A story calls for division when you <b>split an amount into equal groups</b> or ask <b>how many groups fit</b>. “How many ' + F(1, 4) + '-cup servings are in 3 cups?” is 3 ÷ ' + F(1, 4) + '.') +
       p('Rates work the same way: if you walk ' + F(1, 2) + ' mile in ' + F(1, 4) + ' hour, your speed is ' + F(1, 2) + ' ÷ ' + F(1, 4) + ' = 2 miles per hour. And a rectangle’s missing side is <b>area ÷ the side you know</b>.') +
       p('<b>Write the division first</b> (total ÷ size of one group), then keep, change, flip.') +
-      example('Example', `${big(`A ribbon is ${F(3, 4)} m long. Each bow needs ${F(1, 8)} m.`)}${F(3, 4)} ÷ ${F(1, 8)} = ${F(3, 4)} × 8 = <b>6 bows</b>.`),
+      example('Example: how many groups fit', `${big(`A ribbon is ${F(3, 4)} m long. Each bow needs ${F(1, 8)} m.`)}${F(3, 4)} ÷ ${F(1, 8)} = ${F(3, 4)} × 8 = ${F(24, 4, { raw: true })} = <b>6 bows</b>.`) +
+      example('Example: sharing equally', `${big(`3 friends share ${F(3, 4)} pound of trail mix equally.`)}${F(3, 4)} ÷ 3 = ${F(3, 4)} × ${F(1, 3)} = ${F(3, 12, { raw: true })} = <b>${F(1, 4)} pound</b> for each friend.`) +
+      example('Example: a missing side', `${big(`A rectangle has an area of ${F(2, 3)} square meter. Its width is ${F(1, 2)} meter.`)}Length = area ÷ width: ${F(2, 3)} ÷ ${F(1, 2)} = ${F(2, 3)} × ${F(2, 1, { raw: true })} = ${F(4, 3, { raw: true })}, so the length is <b>${MX(4, 3)} m</b>.`),
     make(rng) {
       const kind = rng.pick(['groups', 'groups', 'speed', 'side', 'share']);
       const name = rng.pick(NAMES);
@@ -273,10 +284,12 @@
   }
   A.skill({
     id: 'g6.long-division', title: 'Multi-digit division',
-    learn: p('Long division breaks a big division into small steps, working from the left. At each step: <b>divide, multiply, subtract, bring down</b> the next digit, and repeat.') +
-      p('Estimate first so you know about how big the answer should be. 1,512 ÷ 36 is close to 1,500 ÷ 40, which is slightly less than 40.') +
-      p('If something is left at the end, that is the <b>remainder</b>. In a story, think about what it means: if 10 children are left without a seat on the bus, you need <b>one more bus</b>.') +
-      example('Example', `${big('1,512 ÷ 36')}151 ÷ 36 = 4 remainder 7. Bring down the 2 to make 72. 72 ÷ 36 = 2 remainder 0. The answer is <b>42</b>.`),
+    learn: p('<b>Long division</b> breaks a big division into small steps, working from the left. At each step: <b>divide, multiply, subtract, bring down</b> the next digit, and repeat.') +
+      p('Estimate first so you know about how big the answer should be. 1,512 ÷ 36 is close to 1,600 ÷ 40 = 40, so the answer should be around 40.') +
+      p('If something is left at the end, that is the <b>remainder</b>. In a story, think about what it means: if 10 children are left without a seat on the bus, you need <b>one more bus</b>. You can also keep dividing past the decimal point: write zeros after it and bring them down.') +
+      example('Example: no remainder', `${big('1,512 ÷ 36')}151 ÷ 36 = 4 remainder 7. Bring down the 2 to make 72. 72 ÷ 36 = 2 remainder 0. The answer is <b>42</b>.`) +
+      example('Example: a remainder in a story', `${big('250 students ride in vans that hold 12 each.')}How many vans are needed? 25 ÷ 12 = 2 remainder 1. Bring down the 0 to make 10, and 10 ÷ 12 = 0 remainder 10. So 250 ÷ 12 = 20 remainder 10. The 10 students left over need a van too: <b>21 vans</b>.`) +
+      example('Example: past the decimal point', `${big('54 ÷ 8')}54 ÷ 8 = 6 remainder 6. Write 54 as 54.00 and keep going: 60 ÷ 8 = 7 remainder 4, then 40 ÷ 8 = 5 remainder 0. So 54 ÷ 8 = <b>6.75</b>.`),
     make(rng) {
       const kind = rng.pick(['exact', 'exact', 'rem', 'bus', 'decimal']);
       if (kind === 'decimal') {
@@ -308,9 +321,11 @@
   A.skill({
     id: 'g6.decimals', title: 'Adding, subtracting, multiplying, and dividing decimals',
     learn: p('<b>Adding and subtracting:</b> line up the decimal points, fill empty places with zeros, and work as with whole numbers. 12.4 − 3.75 is 12.40 − 3.75 = 8.65.') +
-      p('<b>Multiplying:</b> multiply as if there were no decimal points, then <b>count the decimal places</b> in both numbers and give the answer that many. 2.4 × 0.3: 24 × 3 = 72, and there are two places, so 0.72.') +
-      p('<b>Dividing:</b> move the decimal point in the divisor to make it a whole number, and move the one in the dividend the same number of places. 6.3 ÷ 0.7 becomes 63 ÷ 7 = 9.') +
-      example('Example', `${big('4.5 ÷ 0.15')}Move both points two places: 450 ÷ 15 = <b>30</b>.`),
+      p('<b>Multiplying:</b> multiply as if there were no decimal points. Then <b>count the decimal places</b> (the digits after the point) in both numbers, and give the answer that many. 2.4 × 0.3: 24 × 3 = 72, and there are two places in all, so the answer is 0.72.') +
+      p('<b>Dividing:</b> the <b>divisor</b> is the number you divide by. Move its decimal point to make it a whole number, and move the point in the other number the same number of places. 6.3 ÷ 0.7 becomes 63 ÷ 7 = 9.') +
+      example('Example: adding', `${big('7.85 + 12.6')}Line up the points and fill in a zero: 7.85 + 12.60 = <b>20.45</b>.`) +
+      example('Example: multiplying', `${big('0.6 × 3.5')}6 × 35 = 210. There is one decimal place in 0.6 and one in 3.5, so two in all: 2.10 = <b>2.1</b>.`) +
+      example('Example: dividing', `${big('4.5 ÷ 0.15')}Move both points two places to the right: 450 ÷ 15 = <b>30</b>.`),
     make(rng) {
       const op = rng.pick(['+', '−', '×', '÷']);
       const mk = places => { const pl = rng.pick(places); return { pl, v: rng.int(Math.pow(10, pl), 99 * Math.pow(10, pl)) / Math.pow(10, pl) }; };
@@ -363,10 +378,12 @@
   }
   A.skill({
     id: 'g6.number-line', title: 'Negative numbers and absolute value',
-    learn: p('Numbers less than zero are <b>negative</b>. On a number line they sit to the <b>left</b> of zero. Every number has an <b>opposite</b> the same distance from zero on the other side: the opposite of 4 is −4, and the opposite of −4 is 4.') +
-      p('<b>Further left is smaller.</b> −8 is less than −3, because −8 is further left. Think of temperature: −8° is colder than −3°.') +
-      p('The <b>absolute value</b> of a number is its distance from zero, so it is never negative: |−6| = 6 and |6| = 6.') +
-      example('Example', `${big('Order from least to greatest: 2, −5, 0, −1')}The furthest left is −5, then −1, then 0, then 2: <b>−5, −1, 0, 2</b>.`),
+    learn: p('Numbers less than zero are <b>negative</b>. On a number line they sit to the <b>left</b> of zero. Every number has an <b>opposite</b>: the number the same distance from zero on the other side. The opposite of 4 is −4, and the opposite of −4 is 4.') +
+      p('<b>Farther left is smaller.</b> −8 is less than −3, because −8 is farther left. Think of temperature: −8° is colder than −3°.') +
+      p('The <b>absolute value</b> of a number is its distance from zero, so it is never negative. It is written with two straight bars: |−6| = 6 and |6| = 6.') +
+      example('Example: putting numbers in order', `${big('Order from least to greatest: 2, −5, 0, −1')}The farthest left is −5, then −1, then 0, then 2: <b>−5, −1, 0, 2</b>.`) +
+      example('Example: comparing', `${big('−7 &nbsp;?&nbsp; −2')}−7 is farther left than −2, so <b>−7 &lt; −2</b>. A temperature of −7° is colder than −2°.`) +
+      example('Example: absolute value', `${big('|−9| + |4|')}−9 is 9 steps from zero and 4 is 4 steps from zero, so this is 9 + 4 = <b>13</b>. In the same way, a diver at −30 feet is <b>30 feet</b> from the surface.`),
     make(rng) {
       const kind = rng.pick(['point', 'compare', 'order', 'abs', 'abs-word', 'opposite', 'coldest']);
       if (kind === 'point') {
@@ -380,7 +397,7 @@
         const opts = ['&lt;', '&gt;', '='].map(o => `${N(a)} ${o} ${N(b)}`);
         const answer = opts[a < b ? 0 : 1];
         return { prompt: `Which is true?${big(`${N(a)} &nbsp;?&nbsp; ${N(b)}`)}`, type: 'choice', answer, choices: opts, keepOrder: true, params: { kind, a, b },
-          hints: [`Picture both numbers on a number line. The one further left is smaller.`, `${N(Math.min(a, b))} is further left than ${N(Math.max(a, b))}.`, `So <b>${answer}</b>.`] };
+          hints: [`Picture both numbers on a number line. The one farther left is smaller.`, `${N(Math.min(a, b))} is farther left than ${N(Math.max(a, b))}.`, `So <b>${answer}</b>.`] };
       }
       if (kind === 'order') {
         const k = rng.int(2, 3);
@@ -398,7 +415,7 @@
         if (t.every(v => v > 0)) t[0] = -t[0];
         const answer = `${N(Math.min(...t))}°C`;
         return { prompt: `Which temperature is the <b>coldest</b>?`, type: 'choice', answer, choices: t.map(v => `${N(v)}°C`), params: { kind, t },
-          hints: [`Colder means lower: on a thermometer, further down. On a number line, further left.`, `The smallest of ${M.list(t.map(N))} is ${N(Math.min(...t))}.`, `The coldest is <b>${answer}</b>.`] };
+          hints: [`Colder means lower: on a thermometer, farther down. On a number line, farther left.`, `The smallest of ${M.list(t.map(N))} is ${N(Math.min(...t))}.`, `The coldest is <b>${answer}</b>.`] };
       }
       if (kind === 'opposite') {
         const a = rng.nz(-30, 30), dbl = rng.bool();
@@ -428,7 +445,7 @@
     },
   });
 
-  function gridSvg(points) {
+  function gridSvg(points, opts) {
     const C = 100, u = 14, sx = x => C + u * x, sy = y => C - u * y;
     let g = '';
     for (let i = -6; i <= 6; i++) {
@@ -436,17 +453,22 @@
       if (i !== 0 && i % 2 === 0) g += `<text x="${sx(i)}" y="${C + 12}" font-size="8" text-anchor="middle" fill="var(--muted)">${N(i)}</text><text x="${C - 4}" y="${sy(i) + 3}" font-size="8" text-anchor="end" fill="var(--muted)">${N(i)}</text>`;
     }
     g += `<line x1="${sx(-6.8)}" y1="${C}" x2="${sx(6.8)}" y2="${C}" stroke="var(--muted)" stroke-width="1.2"/><line x1="${C}" y1="${sy(6.8)}" x2="${C}" y2="${sy(-6.8)}" stroke="var(--muted)" stroke-width="1.2"/>`;
-    g += `<text x="192" y="${C - 4}" font-size="9" fill="var(--muted)">x</text><text x="${C + 4}" y="10" font-size="9" fill="var(--muted)">y</text>`;
+    g += `<text x="192" y="${C - 4}" font-size="9" font-style="italic" fill="var(--muted)">x</text><text x="${C + 4}" y="10" font-size="9" font-style="italic" fill="var(--muted)">y</text>`;
+    if (opts && opts.quads) [['I', 3.5, 2.5], ['II', -3.5, 2.5], ['III', -3.5, -2.5], ['IV', 3.5, -2.5]].forEach(([t, x, y]) => { g += `<text x="${sx(x)}" y="${sy(y) + 5}" font-size="14" font-weight="700" text-anchor="middle" fill="var(--muted)">${t}</text>`; });
+    if (opts && opts.seg) { const [[x1, y1], [x2, y2]] = opts.seg; g += `<line class="line" x1="${sx(x1)}" y1="${sy(y1)}" x2="${sx(x2)}" y2="${sy(y2)}"/>`; }
     points.forEach(([x, y, label]) => { g += `<circle cx="${sx(x)}" cy="${sy(y)}" r="3.4" fill="currentColor"/><text x="${sx(x) + 5}" y="${sy(y) - 5}" font-size="11" font-weight="700" fill="currentColor">${label}</text>`; });
-    return `<svg class="figure" viewBox="0 0 200 200" width="240" height="240" role="img" aria-label="coordinate grid">${g}</svg>`;
+    return `<svg class="figure" viewBox="0 0 200 200" width="240" height="240" role="img" aria-label="${(opts && opts.label) || 'coordinate grid'}">${g}</svg>`;
   }
   const QUADS = ['Quadrant I', 'Quadrant II', 'Quadrant III', 'Quadrant IV'];
   A.skill({
     id: 'g6.coordinate-plane', title: 'Coordinate plane in four quadrants',
-    learn: p(`A point is written (${V('x')}, ${V('y')}): first go <b>left or right</b> by ${V('x')}, then <b>up or down</b> by ${V('y')}. Negative ${V('x')} means left; negative ${V('y')} means down.`) +
-      p('The axes split the plane into four <b>quadrants</b>, numbered counter-clockwise from the top right: <b>I (+, +), II (−, +), III (−, −), IV (+, −)</b>.') +
-      p(`<b>Reflecting</b> across the ${V('x')}-axis changes the sign of ${V('y')}; across the ${V('y')}-axis changes the sign of ${V('x')}. Two points with the <b>same ${V('x')}</b> (or same ${V('y')}) are on one line, and their distance is found by subtracting the other coordinates, or adding their sizes if one is negative.`) +
-      example('Example', `${big('(−3, 4) and (5, 4)')}Same ${V('y')}. From −3 to 0 is 3, and from 0 to 5 is 5, so the distance is 3 + 5 = <b>8</b>.`),
+    learn: p(`The <b>coordinate plane</b> is made of two number lines that cross at zero. The <b>${V('x')}-axis</b> goes across and the <b>${V('y')}-axis</b> goes up and down. They cross at the <b>origin</b>, the point (0, 0).`) +
+      p(`A point is written (${V('x')}, ${V('y')}). Start at the origin, go <b>left or right</b> by ${V('x')}, then <b>up or down</b> by ${V('y')}. Negative ${V('x')} means left; negative ${V('y')} means down.`) +
+      p('The axes split the plane into four <b>quadrants</b>, numbered counterclockwise from the top right: <b>I (+, +), II (−, +), III (−, −), IV (+, −)</b>.' +
+        gridSvg([[-3, 4, 'A'], [5, 4, 'B']], { quads: true, seg: [[-3, 4], [5, 4]], label: 'a coordinate plane from −6 to 6 with the quadrants labeled I (top right), II (top left), III (bottom left) and IV (bottom right); point A is at (−3, 4) and point B is at (5, 4), joined by a line' })) +
+      p(`<b>Reflecting</b> a point makes its mirror image. Across the ${V('x')}-axis, the sign of ${V('y')} changes; across the ${V('y')}-axis, the sign of ${V('x')} changes. Two points with the <b>same ${V('x')}</b> (or the same ${V('y')}) are on one straight line. To find the distance between them, subtract the other coordinates, or add their distances from 0 when one is negative.`) +
+      example('Example: a distance', `${big('A (−3, 4) and B (5, 4)')}They have the same ${V('y')}, so they are on a line going across, like A and B in the picture. From −3 to 0 is 3, and from 0 to 5 is 5, so the distance is 3 + 5 = <b>8</b>.`) +
+      example('Example: quadrants and reflections', `${big('(4, −2)')}Go 4 right and 2 down: the point is in <b>Quadrant IV</b> (+, −). Reflected across the ${V('x')}-axis it lands at <b>(4, 2)</b>, and across the ${V('y')}-axis at <b>(−4, −2)</b>.`),
     make(rng) {
       const kind = rng.pick(['read', 'quadrant', 'reflect', 'distance', 'distance']);
       let x = rng.nz(-6, 6), y = rng.nz(-6, 6);
@@ -492,10 +514,12 @@
   const factorsOf = n => { const f = []; for (let k = 1; k <= n; k++) if (n % k === 0) f.push(k); return f; };
   A.skill({
     id: 'g6.gcf-lcm', title: 'Greatest common factor and least common multiple',
-    learn: p('The <b>greatest common factor (GCF)</b> of two numbers is the biggest number that divides both. List the factors of each and pick the largest one they share. Factors of 18: 1, 2, 3, 6, 9, 18. Factors of 24: 1, 2, 3, 4, 6, 8, 12, 24. The GCF is 6.') +
-      p('The <b>least common multiple (LCM)</b> is the smallest number that both divide into. List multiples of the larger number until you reach one the smaller number also goes into. Multiples of 8: 8, 16, 24. Since 6 goes into 24, the LCM of 6 and 8 is 24.') +
-      p('In stories, <b>splitting into identical groups</b> uses the GCF; <b>things lining up again</b> or <b>buying equal amounts</b> uses the LCM.') +
-      example('Example', `${big('GCF of 36 and 54')}Factors of 36: 1, 2, 3, 4, 6, 9, 12, 18, 36. Of those, 18 also divides 54, and nothing bigger does. GCF = <b>18</b>.`),
+    learn: p('A <b>factor</b> of a number divides into it with nothing left over: 6 is a factor of 18. A <b>multiple</b> of a number is what you get when you multiply it by 1, 2, 3 and so on: 24 is a multiple of 8.') +
+      p('The <b>greatest common factor (GCF)</b> of two numbers is the biggest number that is a factor of both. List the factors of each and pick the largest one they share. Factors of 18: 1, 2, 3, 6, 9, 18. Factors of 24: 1, 2, 3, 4, 6, 8, 12, 24. The GCF is 6.') +
+      p('The <b>least common multiple (LCM)</b> is the smallest number that is a multiple of both. List multiples of the larger number until you reach one the smaller number also divides. Multiples of 8: 8, 16, 24. Since 6 divides 24, the LCM of 6 and 8 is 24.') +
+      p('In stories, <b>splitting things into identical groups</b> uses the GCF; <b>things lining up again</b> or <b>buying equal amounts</b> uses the LCM.') +
+      example('Example: GCF', `${big('GCF of 36 and 54')}Factors of 36: 1, 2, 3, 4, 6, 9, 12, 18, 36. Of those, 18 also divides 54, and nothing bigger does. GCF = <b>18</b>.`) +
+      example('Example: LCM in a story', `${big('Cups come in packs of 6. Plates come in packs of 10.')}What is the smallest number of cups you can buy to have the same number of each? Multiples of 10: 10, 20, 30. 6 divides 30, so the LCM is <b>30</b>: 5 packs of cups and 3 packs of plates.`),
     make(rng) {
       const kind = rng.pick(['gcf', 'gcf', 'lcm', 'lcm', 'gcf-word', 'lcm-word']);
       const name = rng.pick(NAMES);
@@ -524,9 +548,10 @@
   A.skill({
     id: 'g6.distributive-factor', title: 'The distributive property',
     learn: p(`The <b>distributive property</b> says ${V('a')}(${V('b')} + ${V('c')}) = ${V('a')}${V('b')} + ${V('a')}${V('c')}: multiplying a sum is the same as multiplying each part and adding. It makes mental math easier: 7 × 46 = 7 × 40 + 7 × 6 = 280 + 42 = 322.`) +
-      p('It also works backwards. To write a sum like 36 + 48 as a product, <b>take out the greatest common factor</b>: 36 = 12 × 3 and 48 = 12 × 4, so 36 + 48 = 12(3 + 4).') +
+      p('It also works backward. To write a sum like 36 + 48 as a product, <b>take out the greatest common factor</b> (GCF, the biggest number that divides both): 36 = 12 × 3 and 48 = 12 × 4, so 36 + 48 = 12(3 + 4).') +
       p('Check your answer by multiplying back out: 12 × 3 + 12 × 4 = 36 + 48 ✓') +
-      example('Example', `${big('24 + 60')}The GCF of 24 and 60 is 12. 24 ÷ 12 = 2 and 60 ÷ 12 = 5, so 24 + 60 = <b>12(2 + 5)</b>.`),
+      example('Example: a sum as a product', `${big('24 + 60')}The GCF of 24 and 60 is 12. 24 ÷ 12 = 2 and 60 ÷ 12 = 5, so 24 + 60 = <b>12(2 + 5)</b>.`) +
+      example('Example: mental math', `${big('6 × 58')}Split 58 into 50 + 8: 6 × (50 + 8) = 6 × 50 + 6 × 8 = 300 + 48 = <b>348</b>.`),
     make(rng) {
       const kind = rng.pick(['factor', 'factor', 'fill', 'mental']);
       if (kind === 'mental') {
@@ -564,8 +589,10 @@
     id: 'g6.evaluate-expressions', title: 'Exponents, order of operations, and evaluating expressions',
     learn: p(`An <b>exponent</b> says how many times to multiply a number by itself: ${M.sup(2, 4)} = 2 × 2 × 2 × 2 = 16. It is <i>not</i> 2 × 4.`) +
       p('<b>Order of operations:</b> first <b>parentheses</b>, then <b>exponents</b>, then <b>multiply and divide</b> from left to right, then <b>add and subtract</b> from left to right.') +
-      p(`To <b>evaluate</b> an expression, put the number in place of the letter, then follow the order of operations. When ${X} = 5, 3${X} + 7 means 3 × 5 + 7 = 22.`) +
-      example('Example', `${big(`(8 + 4) ÷ 3 + ${M.sup(2, 3)}`)}Parentheses: 12 ÷ 3 + ${M.sup(2, 3)}. Exponent: 12 ÷ 3 + 8. Divide: 4 + 8 = <b>12</b>.`),
+      p(`To <b>evaluate</b> an expression means to find its value. Put the number in place of the letter, then follow the order of operations. When ${X} = 5, 3${X} + 7 means 3 × 5 + 7 = 22.`) +
+      example('Example: order of operations', `${big(`(8 + 4) ÷ 3 + ${M.sup(2, 3)}`)}Parentheses: 12 ÷ 3 + ${M.sup(2, 3)}. Exponent: 12 ÷ 3 + 8. Divide: 4 + 8 = <b>12</b>.`) +
+      example('Example: exponents', `${big(`${M.sup(3, 4)} and ${M.sup('0.3', 2)}`)}${M.sup(3, 4)} = 3 × 3 × 3 × 3 = <b>81</b>. With a decimal: ${M.sup('0.3', 2)} = 0.3 × 0.3 = <b>0.09</b>.`) +
+      example('Example: putting in values', `${big(`${M.sup(X, 2)} + 5${V('y')} when ${X} = 4 and ${V('y')} = 3`)}Put the numbers in: ${M.sup(4, 2)} + 5 × 3. Exponent first: 16 + 5 × 3. Multiply: 16 + 15 = <b>31</b>.`),
     make(rng) {
       const kind = rng.pick(['power', 'order', 'order', 'sub', 'sub']);
       if (kind === 'power') {
@@ -611,8 +638,10 @@
     id: 'g6.write-expressions', title: 'Writing and equivalent expressions',
     learn: p(`A letter like ${V('n')} can stand for a number we do not know yet. Turn words into symbols piece by piece: “<b>more than</b>” and “sum” mean +, “<b>less than</b>” and “fewer” mean −, “<b>times</b>” and “product” mean ×, “divided by” and “quotient” mean ÷.`) +
       p(`Watch the order with “less than”: “5 less than ${V('n')}” starts with ${V('n')} and takes 5 away, so it is ${V('n')} − 5, not 5 − ${V('n')}. A number next to a letter means multiply: 4${V('n')} is 4 × ${V('n')}.`) +
-      p(`<b>Equivalent expressions</b> are equal for every value of the letter. You can make one by distributing, 3(${X} + 4) = 3${X} + 12, or by <b>combining like terms</b>, 4${X} + 2${X} = 6${X}.`) +
-      example('Example', `${big(`“3 times the sum of ${V('n')} and 4”`)}The sum comes first, so it goes in parentheses: <b>3(${V('n')} + 4)</b>. It is equivalent to 3${V('n')} + 12.`),
+      p(`<b>Equivalent expressions</b> are equal for every value of the letter. You can make one by distributing, 3(${X} + 4) = 3${X} + 12, or by <b>combining like terms</b>, 4${X} + 2${X} = 6${X}. <b>Like terms</b> have the same letter part, so they can be added.`) +
+      example('Example: words to symbols', `${big(`“3 times the sum of ${V('n')} and 4”`)}The sum comes first, so it goes in parentheses: <b>3(${V('n')} + 4)</b>. It is equivalent to 3${V('n')} + 12.`) +
+      example('Example: from a story', `${big(`Jai has ${V('n')} marbles. Lena has 4 fewer than Jai.`)}“Fewer” means take away, and you start from Jai’s amount: Lena has <b>${V('n')} − 4</b> marbles.`) +
+      example('Example: equivalent expressions', `${big(`6(${X} + 2) and 4${X} + 3${X} + 2`)}Distribute: 6(${X} + 2) = <b>6${X} + 12</b>. Combine like terms: 4${X} + 3${X} + 2 = <b>7${X} + 2</b>.`),
     make(rng) {
       const kind = rng.pick(['words', 'words', 'story', 'equiv']);
       const k = rng.int(2, 9); let m = rng.int(2, 9); if (m === k) m = k === 9 ? 3 : k + 1;
@@ -665,10 +694,12 @@
   /* ---------- Unit 8: Equations and inequalities ---------- */
   A.skill({
     id: 'g6.one-step-equations', title: 'One-step equations',
-    learn: p(`An equation is a balance: both sides are equal. To find ${X}, <b>do the opposite operation to both sides</b> so that ${X} is left alone.`) +
+    learn: p(`An <b>equation</b> says two amounts are equal, like a balance. To <b>solve</b> it means to find the value of ${X} that makes it true. <b>Do the opposite operation to both sides</b> so that ${X} is left alone.`) +
       p(`Undo + with −, − with +, × with ÷ and ÷ with ×. If ${X} + 7 = 19, subtract 7 from both sides: ${X} = 12. If 4${X} = 36, divide both sides by 4: ${X} = 9.`) +
       p(`Always <b>check</b> by putting your answer back in: 12 + 7 = 19 ✓`) +
-      example('Example', `${big(`${F(X, 6)} = 5`)}${X} is divided by 6, so multiply both sides by 6: ${X} = <b>30</b>. Check: 30 ÷ 6 = 5 ✓`),
+      example('Example: undoing division', `${big(`${F(X, 6)} = 5`)}${X} is divided by 6, so multiply both sides by 6: ${X} = <b>30</b>. Check: 30 ÷ 6 = 5 ✓`) +
+      example('Example: a fraction times x', `${big(`${F(2, 3)}${X} = 8`)}Undo × ${F(2, 3)} by multiplying both sides by the reciprocal (the flipped fraction), ${F(3, 2, { raw: true })}: ${X} = 8 × ${F(3, 2, { raw: true })} = ${F(24, 2, { raw: true })} = <b>12</b>. Check: ${F(2, 3)} × 12 = 8 ✓`) +
+      example('Example: a story', `${big('After a friend gives Ravi 9 cards, he has 25.')}Let ${X} be the cards he had at first: ${X} + 9 = 25. Subtract 9 from both sides: ${X} = <b>16</b>. Check: 16 + 9 = 25 ✓`),
     make(rng) {
       const kind = rng.pick(['add', 'sub', 'mul', 'div', 'frac', 'dec', 'word']);
       const name = rng.pick(NAMES);
@@ -731,7 +762,9 @@
     learn: p(`An <b>inequality</b> says one side is bigger or smaller. ${X} &lt; 5 means “${X} is less than 5”; ${X} &gt; 5 means “greater than 5”. With a line underneath, ≤ means “less than <b>or equal to</b>” and ≥ means “greater than or equal to”.`) +
       p(`Watch the words: “<b>at least</b> 12” and “a minimum of 12” mean ≥ 12; “<b>at most</b> 12” and “no more than 12” mean ≤ 12. An inequality has many solutions: to test a number, put it in and see if the statement is true.`) +
       p(`On a number line, an <b>open circle</b> means the number itself is not included (&lt; or &gt;); a <b>filled circle</b> means it is (≤ or ≥). The arrow points toward the solutions.`) +
-      example('Example', `${big(`Is ${X} = 4 a solution of ${X} + 3 &gt; 6?`)}4 + 3 = 7, and 7 &gt; 6 is true, so <b>yes</b>. But ${X} = 3 is not: 3 + 3 = 6, and 6 &gt; 6 is false.`),
+      example('Example: testing a value', `${big(`Is ${X} = 4 a solution of ${X} + 3 &gt; 6?`)}4 + 3 = 7, and 7 &gt; 6 is true, so <b>yes</b>. But ${X} = 3 is not: 3 + 3 = 6, and 6 &gt; 6 is false.`) +
+      example('Example: words to an inequality', `${big('You must be at least 10 years old to ride.')}“At least 10” means 10 or more, and 10 itself is allowed, so the age ${V('a')} must be <b>${V('a')} ≥ 10</b>.`) +
+      example('Example: reading a number line', `${rayLine(3, '<')}The circle at 3 is open, so 3 is not included, and the arrow points left, toward smaller numbers: <b>${X} &lt; 3</b>.`),
     make(rng) {
       const kind = rng.pick(['write', 'write', 'test', 'graph']);
       if (kind === 'write') {
