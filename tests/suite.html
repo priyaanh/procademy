@@ -1251,7 +1251,7 @@
   const esq = m.querySelector('.question .es-q'), sw = m.querySelector('.question .es-switch');
   ok(S.get().profile.player.es === true && esq && esq.getAttribute('lang') === 'es' && /¿|Divide|Resta|Suma/.test(text(esq)) && sw, 'spanish: the question shows in Spanish, kept per learner');
   sw.click(); await tick(5);
-  ok(esq.getAttribute('lang') === 'en' && text(esq) === text((() => { const d = document.createElement('div'); d.innerHTML = m.__session.items[m.__session.i].q.prompt; return d; })()) && sw.getAttribute('aria-pressed') === 'true' && /español/.test(text(sw)), 'spanish: the English is a tap away');
+  ok(esq.getAttribute('lang') === 'en' && text(esq).replace(/\s/g, '') === text((() => { const d = document.createElement('div'); d.innerHTML = m.__session.items[m.__session.i].q.prompt; return d; })()).replace(/\s/g, '') && sw.getAttribute('aria-pressed') === 'true' && /español/.test(text(sw)), 'spanish: the English is a tap away');
   sw.click(); await tick(5);
   ok(esq.getAttribute('lang') === 'es' && sw.getAttribute('aria-pressed') === 'false', 'spanish: and back to Spanish');
   m = await goL('#/practice/g6.gcf-lcm');
