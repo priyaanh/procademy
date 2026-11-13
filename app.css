@@ -453,6 +453,20 @@ footer { border-top: 1px solid var(--line); color: var(--muted); font-size: .9re
 .ul-panel > .ul-picks:first-child { margin-top: 0; }
 .ul-sec-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; margin: 28px 0 12px; }
 .ul-sec-head h2 { margin: 0; }
+/* practice page: the Courses tab's tools (mix two courses, a CPM chapter with lesson filters) */
+.ul-tools { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 16px; margin-top: 16px; }
+.ul-tools > .ul-tool { margin: 0; display: flex; flex-direction: column; gap: 10px; }
+.ul-tool h3 { margin: 0; font-size: 1.05rem; }
+.ul-tool p { margin: 0; }
+.ul-tool .btn-row { margin-top: auto; padding-top: 4px; align-items: center; }
+.ul-tool .btn[aria-disabled="true"] { opacity: .55; pointer-events: none; }
+.ul-tool-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.ul-tool-row select { flex: 1 1 160px; min-width: 0; padding: .5rem .6rem; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--surface); color: var(--ink); font: inherit; }
+.ul-lesson-pick { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip-check { display: inline-flex; align-items: center; min-height: 32px; padding: .2rem .75rem; border-radius: 999px; border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink); font-size: .86rem; font-weight: 600; cursor: pointer; font-variant-numeric: tabular-nums; }
+.chip-check input { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
+.chip-check.on { background: var(--primary-soft); border-color: var(--primary); color: var(--primary-ink); }
+.chip-check:has(input:focus-visible) { outline: 2px solid var(--primary); outline-offset: 2px; }
 /* practice page: My sets, and the set maker */
 .ul-sets-none { margin: 0; }
 .ul-setlist { list-style: none; margin: 0; padding-top: 4px; padding-bottom: 4px; }
