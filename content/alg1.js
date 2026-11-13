@@ -1036,10 +1036,13 @@
 
   A.skill({
     id: 'alg1.exponent-properties', title: 'Exponent properties and rational exponents',
-    learn: p(`<b>Product:</b> ${M.sup(V('a'), V('m'))} · ${M.sup(V('a'), V('n'))} = ${V('a')}<sup>${V('m')}+${V('n')}</sup>. <b>Quotient:</b> ${M.sup(V('a'), V('m'))} ÷ ${M.sup(V('a'), V('n'))} = ${V('a')}<sup>${V('m')}−${V('n')}</sup>. <b>Power of a power:</b> (${M.sup(V('a'), V('m'))})<sup>${V('n')}</sup> = ${V('a')}<sup>${V('m')}${V('n')}</sup>. A power of a product raises every factor: (3${M.sup(X, 2)})³ = 27${M.sup(X, 6)}.`) +
-      p(`<b>Zero and negative exponents:</b> ${M.sup(V('a'), 0)} = 1 and ${M.sup(V('a'), '−' + V('n'))} = 1 ÷ ${M.sup(V('a'), V('n'))}, so 2<sup>−3</sup> = ${F(1, 8)}.`) +
-      p(`<b>Rational exponents</b> mean roots: ${V('a')}<sup>1/${V('n')}</sup> is the ${V('n')}th root of ${V('a')}, and ${V('a')}<sup>${V('m')}/${V('n')}</sup> is that root raised to the ${V('m')}th power. Taking the root first keeps the numbers small.`) +
-      example('Example', `${big('27<sup>2/3</sup>')}The cube root of 27 is 3, and 3² = <b>9</b>.`),
+    learn: p(`In a power such as ${M.sup(V('a'), V('n'))}, ${V('a')} is the <b>base</b> and ${V('n')} is the <b>exponent</b>, which counts how many times the base is multiplied. When the bases match: <b>multiply powers by adding exponents</b>, ${M.sup(V('a'), V('m'))} · ${M.sup(V('a'), V('n'))} = ${V('a')}<sup>${V('m')}+${V('n')}</sup>; <b>divide by subtracting</b>, ${M.sup(V('a'), V('m'))} ÷ ${M.sup(V('a'), V('n'))} = ${V('a')}<sup>${V('m')}−${V('n')}</sup>; and for a <b>power of a power, multiply</b>, (${M.sup(V('a'), V('m'))})<sup>${V('n')}</sup> = ${V('a')}<sup>${V('m')}${V('n')}</sup>.`) +
+      p(`A power of a product raises every factor, the number included. <b>Zero and negative exponents:</b> ${M.sup(V('a'), 0)} = 1, and a negative exponent means a reciprocal (1 divided by the number): ${M.sup(V('a'), '−' + V('n'))} = 1 ÷ ${M.sup(V('a'), V('n'))}, so 2<sup>−3</sup> = ${F(1, 8)}.`) +
+      p(`<b>Rational exponents</b>, exponents that are fractions, mean roots: ${V('a')}<sup>1/${V('n')}</sup> is the ${V('n')}th root of ${V('a')}, and ${V('a')}<sup>${V('m')}/${V('n')}</sup> is that root raised to the ${V('m')}th power. Taking the root first keeps the numbers small.`) +
+      example('Example 1: same base', `${M.sup(X, 5)} · ${M.sup(X, '−2')} = ${M.sup(X, 3)} (add: 5 + (−2) = 3). ${M.sup(X, 4)} ÷ ${M.sup(X, 7)} = ${M.sup(X, '−3')} (subtract: 4 − 7). (${M.sup(X, 3)})<sup>4</sup> = <b>${M.sup(X, 12)}</b> (multiply: 3 × 4).`) +
+      example('Example 2: a power of a product', `${big(`(−2${M.sup(X, 3)})<sup>4</sup>`)}The 4th power applies to −2 and to ${M.sup(X, 3)}: (−2)<sup>4</sup> = 16 and (${M.sup(X, 3)})<sup>4</sup> = ${M.sup(X, 12)}, so the result is <b>16${M.sup(X, 12)}</b>.`) +
+      example('Example 3: negative exponents', `5<sup>−2</sup> = ${F(1, 25)}. For a fraction, a negative exponent flips it: (${F(2, 3)})<sup>−2</sup> = (${F(3, 2)})² = <b>${F(9, 4)}</b>.`) +
+      example('Example 4: a rational exponent', `${big('27<sup>2/3</sup>')}The denominator 3 means a cube root: the cube root of 27 is 3. Then square it: 3² = <b>9</b>.`),
     make(rng) {
       const kind = rng.pick(['product', 'quotient', 'power', 'neg', 'rational', 'rational', 'mono']);
       if (kind === 'rational') {
@@ -1086,10 +1089,12 @@
 
   A.skill({
     id: 'alg1.simplify-roots', title: 'Simplifying square roots',
-    learn: p(`A square root is simplified when no perfect square (4, 9, 16, 25, …) divides the number under the root. Use <b>√(${V('a')}${V('b')}) = √${V('a')} · √${V('b')}</b>: split the number into the <b>largest perfect square factor</b> times what is left, then take the root of the square.`) +
-      p(`√72 = √(36 · 2) = 6√2. Using a smaller square works too, but then you must keep going: √72 = √(4 · 18) = 2√18 = 2 · 3√2 = 6√2.`) +
-      p(`To multiply roots, multiply under one root and simplify. To add roots, simplify each first; only <b>like radicals</b> (the same number under the root) can be combined, just like like terms.`) +
-      example('Example', `${big(`${M.sqrt(12)} + 5${M.sqrt(3)}`)}${M.sqrt(12)} = ${M.sqrt('4 · 3')} = 2${M.sqrt(3)}. Then 2${M.sqrt(3)} + 5${M.sqrt(3)} = <b>7${M.sqrt(3)}</b>.`),
+    learn: p(`A <b>perfect square</b> is a whole number times itself: 4, 9, 16, 25, 36, … A square root is <b>simplified</b> when no perfect square bigger than 1 divides the number under the root sign. To simplify, use <b>√(${V('a')}${V('b')}) = √${V('a')} · √${V('b')}</b>: split the number into its <b>largest perfect square factor</b> times what’s left, then take the root of the square.`) +
+      p(`Using a smaller square works too, but then you have to keep going: √72 = √(4 · 18) = 2√18 = 2 · 3√2 = 6√2.`) +
+      p(`To multiply roots, multiply the numbers under one root and simplify. To add or subtract roots, simplify each one first. Only <b>like radicals</b>, roots with the same number under the sign, can be combined, just as with like terms.`) +
+      example('Example 1: simplifying', `${big(M.sqrt(72))}The largest perfect square that divides 72 is 36: ${M.sqrt(72)} = ${M.sqrt('36 · 2')} = <b>6${M.sqrt(2)}</b>.`) +
+      example('Example 2: multiplying', `${big(`${M.sqrt(6)} · ${M.sqrt(10)}`)}Multiply under one root: ${M.sqrt(60)}. The largest perfect square factor of 60 is 4: ${M.sqrt('4 · 15')} = <b>2${M.sqrt(15)}</b>.`) +
+      example('Example 3: adding', `${big(`${M.sqrt(12)} + 5${M.sqrt(3)}`)}${M.sqrt(12)} = ${M.sqrt('4 · 3')} = 2${M.sqrt(3)}. Then 2${M.sqrt(3)} + 5${M.sqrt(3)} = <b>7${M.sqrt(3)}</b>.`),
     make(rng) {
       const kind = rng.pick(['simplify', 'simplify', 'multiply', 'add']);
       if (kind === 'multiply') {
@@ -1144,9 +1149,10 @@
 
   A.skill({
     id: 'alg1.rational-irrational', title: 'Rational and irrational numbers',
-    learn: p(`A <b>rational number</b> can be written as a fraction ${F(V('p'), V('q'))} of two integers (with ${V('q')} ≠ 0). Integers, fractions, terminating decimals and repeating decimals are all rational. An <b>irrational number</b> cannot be written that way; its decimal goes on forever without repeating. Examples: π, and the square root of any whole number that is not a perfect square.`) +
-      p(`Sums and products follow rules. Rational + rational and rational × rational are rational. <b>Rational + irrational is irrational</b>, and so is a non-zero rational times an irrational. Two irrationals can give either: √2 · √8 = √16 = 4 is rational, while √2 · √3 = √6 is not.`) +
-      example('Example', `Is ${M.sqrt(45)} ÷ ${M.sqrt(5)} rational? It equals ${M.sqrt(9)} = 3, so <b>yes</b>. Is 4 + ${M.sqrt(7)} rational? 7 is not a perfect square, so ${M.sqrt(7)} is irrational, and adding 4 keeps it irrational: <b>no</b>.`),
+    learn: p(`A <b>rational number</b> can be written as a fraction ${F(V('p'), V('q'))} of two <b>integers</b> (whole numbers and their negatives), with ${V('q')} ≠ 0. Integers, fractions, decimals that end, and decimals that repeat are all rational. An <b>irrational number</b> can’t be written that way; its decimal goes on forever without repeating. Examples: π, and the square root of any whole number that isn’t a perfect square.`) +
+      p(`Sums and products follow rules. Rational + rational and rational × rational are rational. <b>Rational + irrational is irrational</b>, and so is a rational number other than 0 times an irrational one. Two irrationals can give either kind, so simplify before you decide.`) +
+      example('Example 1: one number at a time', `Is ${M.sqrt(45)} ÷ ${M.sqrt(5)} rational? It equals ${M.sqrt(9)} = 3, so <b>yes</b>. Is 4 + ${M.sqrt(7)} rational? 7 isn’t a perfect square, so ${M.sqrt(7)} is irrational, and adding 4 keeps it irrational: <b>no</b>. Is 0.<span style="text-decoration: overline">27</span> rational? It repeats, so <b>yes</b> (it equals ${F(3, 11)}).`) +
+      example('Example 2: two irrationals', `${M.sqrt(2)} · ${M.sqrt(8)} = ${M.sqrt(16)} = 4, which is <b>rational</b>. But ${M.sqrt(2)} · ${M.sqrt(3)} = ${M.sqrt(6)}, and 6 isn’t a perfect square, so that product is <b>irrational</b>.`),
     make(rng) {
       const wantIrr = rng.bool();
       const pickItems = (gens, k) => rng.sample(gens.map((g, i) => i), k).map(i => gens[i](rng));
@@ -1167,10 +1173,13 @@
 
   A.skill({
     id: 'alg1.exponential-growth-decay', title: 'Exponential growth and decay',
-    learn: p(`A quantity grows <b>exponentially</b> when it is multiplied by the same factor in each time period. The model is <b>${V('y')} = ${V('a')} · ${M.sup(V('b'), V('t'))}</b>, where ${V('a')} is the starting amount and ${V('b')} is the growth factor. If ${V('b')} &gt; 1 it is growth; if 0 &lt; ${V('b')} &lt; 1 it is decay.`) +
-      p(`For a percent change of ${V('r')}% per period, the factor is <b>1 + ${V('r')}/100</b> for growth and <b>1 − ${V('r')}/100</b> for decay: 5% growth uses 1.05, and losing 20% uses 0.80. "Doubles" means ${V('b')} = 2 and "halves" means ${V('b')} = ${F(1, 2)}, counted once per doubling or halving period.`) +
-      p('Compare with linear change: a linear quantity adds the same amount each period, while an exponential one multiplies by the same amount, so it eventually outgrows any line.') +
-      example('Example', `$600 earns 4% interest each year. After 3 years: 600 · 1.04³ = 600 · 1.124864 = <b>$674.92</b>.`),
+    learn: p(`A quantity changes <b>exponentially</b> when it’s multiplied by the same factor in each time period. The model is <b>${V('y')} = ${V('a')} · ${M.sup(V('b'), V('t'))}</b>, where ${V('a')} is the starting amount, ${V('b')} is the <b>growth factor</b> (what you multiply by each period), and ${V('t')} counts the periods. If ${V('b')} &gt; 1 it’s growth; if 0 &lt; ${V('b')} &lt; 1 it’s decay.`) +
+      p(`For a change of ${V('r')}% per period, the factor is <b>1 + ${V('r')}/100</b> for growth and <b>1 − ${V('r')}/100</b> for decay: 5% growth uses 1.05, and losing 20% uses 0.80. “Doubles” means ${V('b')} = 2 and “halves” means ${V('b')} = ${F(1, 2)}, applied once per doubling time or <b>half-life</b> (the time it takes to halve).`) +
+      p('Compare this with linear change: a linear quantity adds the same amount each period, while an exponential one multiplies by the same amount, so exponential growth eventually outgrows any line.') +
+      example('Example 1: percent growth', `$600 earns 4% interest each year. After 3 years: 600 · 1.04³ = 600 · 1.124864 ≈ <b>$674.92</b>.`) +
+      example('Example 2: percent decay', `A $15,000 tractor loses 12% of its value each year, so the factor is 1 − 0.12 = 0.88. After 2 years: 15,000 · 0.88² = 15,000 · 0.7744 = <b>$11,616</b>.`) +
+      example('Example 3: halving', `An 80 gram sample has a half-life of 6 days. In 18 days it halves 18 ÷ 6 = 3 times: 80 · (${F(1, 2)})³ = 80 ÷ 8 = <b>10 grams</b>.`) +
+      example('Example 4: reading the factor', `In ${V('f')}(${V('t')}) = 250(0.93)<sup>${V('t')}</sup>, the factor 0.93 = 1 − 0.07, so the amount <b>decays by 7% per period</b>. In a table with outputs 4, 12, 36, …, each output is 3 times the one before, so ${V('b')} = <b>3</b>.`),
     make(rng) {
       const kind = rng.pick(['double', 'half', 'percent', 'percent', 'identify', 'table']), name = rng.pick(NAMES);
       if (kind === 'identify') {
@@ -1225,9 +1234,11 @@
 
   A.skill({
     id: 'alg1.multiply-binomials', title: 'Multiplying binomials',
-    learn: p(`To multiply two binomials, <b>multiply each term of the first by each term of the second</b> and add the four products. One way to keep track is FOIL: First, Outer, Inner, Last. Then combine the two middle terms, which are like terms.`) +
+    learn: p(`A <b>binomial</b> is an expression with two terms, like ${X} + 3. To multiply two binomials, <b>multiply each term of the first by each term of the second</b> and add the four products. One way to keep track is FOIL: First, Outer, Inner, Last. Then combine the two middle terms, which are like terms.`) +
       p(`Two patterns are worth knowing. A square: (${V('a')} + ${V('b')})² = ${M.sup(V('a'), 2)} + 2${V('a')}${V('b')} + ${M.sup(V('b'), 2)}; the middle term is easy to forget. A sum times a difference: (${V('a')} + ${V('b')})(${V('a')} − ${V('b')}) = ${M.sup(V('a'), 2)} − ${M.sup(V('b'), 2)}; here the middle terms cancel.`) +
-      example('Example', `${big(`(2${X} + 3)(${X} − 5)`)}First 2${M.sup(X, 2)}, Outer −10${X}, Inner 3${X}, Last −15. Combine: <b>${M.poly([2, -7, -15])}</b>.`),
+      example('Example 1: any two binomials', `${big(`(2${X} + 3)(${X} − 5)`)}First 2${M.sup(X, 2)}, Outer −10${X}, Inner 3${X}, Last −15. Combine: <b>${M.poly([2, -7, -15])}</b>.`) +
+      example('Example 2: a square', `${big(`(${X} − 4)<sup>2</sup>`)}This is (${X} − 4)(${X} − 4): ${M.sup(X, 2)} − 4${X} − 4${X} + 16 = <b>${M.poly([1, -8, 16])}</b>, not ${M.sup(X, 2)} + 16.`) +
+      example('Example 3: a sum times a difference', `${big(`(3${X} + 2)(3${X} − 2)`)}The middle terms, −6${X} and +6${X}, cancel: 9${M.sup(X, 2)} − 4. So the product is <b>${M.poly([9, 0, -4])}</b>.`),
     make(rng) {
       const kind = rng.pick(['general', 'general', 'square', 'conj']);
       let fs, expr, wrong;
@@ -1251,9 +1262,11 @@
 
   A.skill({
     id: 'alg1.factor-quadratics', title: 'Factoring quadratics',
-    learn: p(`Factoring undoes multiplying. For ${M.sup(X, 2)} + ${V('b')}${X} + ${V('c')}, look for <b>two numbers that multiply to ${V('c')} and add to ${V('b')}</b>; then ${M.sup(X, 2)} + ${V('b')}${X} + ${V('c')} = (${X} + ${V('m')})(${X} + ${V('n')}). If ${V('c')} is negative the two numbers have opposite signs; if ${V('c')} is positive they share the sign of ${V('b')}.`) +
-      p(`When the leading coefficient is not 1, try factor pairs of it in the first places and factor pairs of ${V('c')} in the last places, and check the middle term by multiplying back. A <b>difference of squares</b> ${M.sup(V('a'), 2)} − ${M.sup(V('b'), 2)} factors as (${V('a')} − ${V('b')})(${V('a')} + ${V('b')}).`) +
-      example('Example', `${big(M.poly([1, -2, -15]))}Numbers that multiply to −15 and add to −2: −5 and 3. So it factors as <b>(${X} − 5)(${X} + 3)</b>.`),
+    learn: p(`<b>Factoring</b> undoes multiplying: it writes an expression as a product. For ${M.sup(X, 2)} + ${V('b')}${X} + ${V('c')}, look for <b>two numbers that multiply to ${V('c')} and add to ${V('b')}</b>. If they are ${V('m')} and ${V('n')}, then ${M.sup(X, 2)} + ${V('b')}${X} + ${V('c')} = (${X} + ${V('m')})(${X} + ${V('n')}). If ${V('c')} is negative, the two numbers have opposite signs; if ${V('c')} is positive, they share the sign of ${V('b')}.`) +
+      p(`When the <b>leading coefficient</b> (the number in front of ${M.sup(X, 2)}) isn’t 1, try its factor pairs in the first places and factor pairs of ${V('c')} in the last places, and check the middle term by multiplying back. A <b>difference of squares</b> ${M.sup(V('a'), 2)} − ${M.sup(V('b'), 2)} factors as (${V('a')} − ${V('b')})(${V('a')} + ${V('b')}).`) +
+      example('Example 1: leading coefficient 1', `${big(M.poly([1, -2, -15]))}Numbers that multiply to −15 and add to −2: −5 and 3. So it factors as <b>(${X} − 5)(${X} + 3)</b>.`) +
+      example('Example 2: leading coefficient 2', `${big(M.poly([2, 7, 3]))}Try (2${X} + ?)(${X} + ?) with last numbers multiplying to 3. (2${X} + 1)(${X} + 3) gives a middle term of 2${X} · 3 + 1 · ${X} = 7${X}, which matches: <b>(2${X} + 1)(${X} + 3)</b>.`) +
+      example('Example 3: a difference of squares', `${big(M.poly([9, 0, -25]))}9${M.sup(X, 2)} = (3${X})² and 25 = 5², so it factors as <b>(3${X} − 5)(3${X} + 5)</b>.`),
     make(rng) {
       const kind = rng.pick(['monic', 'monic', 'leading', 'dos']);
       let fs, opts;
@@ -1298,10 +1311,13 @@
 
   A.skill({
     id: 'alg1.solve-quadratics', title: 'Solving quadratic equations',
-    learn: p(`<b>Factoring:</b> write the equation as (…)(…) = 0. A product is 0 only when a factor is 0, so set each factor to 0. <b>Square roots:</b> if the equation is (${X} − ${V('h')})² = ${V('k')}, take the square root of both sides, remembering <b>±</b>: ${X} = ${V('h')} ± √${V('k')}.`) +
-      p(`<b>Completing the square</b> turns ${M.sup(X, 2)} + ${V('b')}${X} into a perfect square by adding (${V('b')}/2)² to both sides. Doing that to ${V('a')}${M.sup(X, 2)} + ${V('b')}${X} + ${V('c')} = 0 in general gives the <b>quadratic formula</b>: ${X} = (−${V('b')} ± √(${M.sup(V('b'), 2)} − 4${V('a')}${V('c')})) ÷ 2${V('a')}.`) +
-      p(`The <b>discriminant</b> ${M.sup(V('b'), 2)} − 4${V('a')}${V('c')} tells you how many real solutions there are: positive gives two, zero gives one, negative gives none.`) +
-      example('Example', `${big(`${M.poly([1, 6])} = 7`)}Add (6/2)² = 9 to both sides: (${X} + 3)² = 16. So ${X} + 3 = ±4, giving <b>${X} = 1 or ${X} = −7</b>.`),
+    learn: p(`A <b>quadratic equation</b> has an ${M.sup(X, 2)} term and can be written ${V('a')}${M.sup(X, 2)} + ${V('b')}${X} + ${V('c')} = 0. <b>Factoring:</b> write it as (…)(…) = 0. A product is 0 only when one of its factors is 0, so set each factor equal to 0. <b>Square roots:</b> if the equation is (${X} − ${V('h')})² = ${V('k')}, take the square root of both sides, remembering <b>±</b>: ${X} = ${V('h')} ± √${V('k')}.`) +
+      p(`<b>Completing the square</b> turns ${M.sup(X, 2)} + ${V('b')}${X} into a perfect square by adding (${V('b')}/2)² to both sides. Doing that to ${V('a')}${M.sup(X, 2)} + ${V('b')}${X} + ${V('c')} = 0 in general gives the <b>quadratic formula</b>: ${X} = (−${V('b')} ± √(${M.sup(V('b'), 2)} − 4${V('a')}${V('c')})) ÷ 2${V('a')}, which works for every quadratic.`) +
+      p(`The <b>discriminant</b>, ${M.sup(V('b'), 2)} − 4${V('a')}${V('c')}, tells you how many real solutions there are: positive gives two, zero gives one, negative gives none.`) +
+      example('Example 1: factoring', `${big(`${M.poly([1, -1, -12])} = 0`)}−4 and 3 multiply to −12 and add to −1: (${X} − 4)(${X} + 3) = 0. So <b>${X} = 4 or ${X} = −3</b>.`) +
+      example('Example 2: square roots', `${big(`2(${X} − 1)² − 3 = 47`)}Add 3 and divide by 2: (${X} − 1)² = 25. Take square roots: ${X} − 1 = ±5, so <b>${X} = 6 or ${X} = −4</b>.`) +
+      example('Example 3: completing the square', `${big(`${M.poly([1, 6, 0])} = 7`)}Add (6/2)² = 9 to both sides: (${X} + 3)² = 16. So ${X} + 3 = ±4, giving <b>${X} = 1 or ${X} = −7</b>.`) +
+      example('Example 4: the quadratic formula', `${big(`${M.poly([1, -4, 1])} = 0`)}${V('a')} = 1, ${V('b')} = −4, ${V('c')} = 1. The discriminant is 16 − 4 = 12, which is positive, so there are two solutions: ${X} = ${F(`4 ± ${M.sqrt(12)}`, '2')} ≈ <b>3.73 or 0.27</b>.`),
     make(rng) {
       const kind = rng.pick(['factored', 'factor', 'factor', 'sqrt', 'formula', 'count', 'complete']), ask = rng.pick(['greater', 'smaller']);
       const askTxt = `If there are two solutions, give the <b>${ask}</b> one.`;
@@ -1361,9 +1377,11 @@
 
   A.skill({
     id: 'alg1.vertex-form', title: 'Vertex form and features of parabolas',
-    learn: p(`The graph of a quadratic is a <b>parabola</b>. In <b>vertex form</b> ${Y} = ${V('a')}(${X} − ${V('h')})² + ${V('k')}, the vertex is <b>${M.pt(V('h'), V('k'))}</b>. Notice the sign: ${Y} = (${X} + 4)² − 1 has its vertex at ${M.pt(-4, -1)}. If ${V('a')} &gt; 0 the parabola opens up and ${V('k')} is the minimum value; if ${V('a')} &lt; 0 it opens down and ${V('k')} is the maximum.`) +
-      p(`From standard form ${Y} = ${V('a')}${M.sup(X, 2)} + ${V('b')}${X} + ${V('c')}, the vertex has ${X} = −${V('b')} ÷ 2${V('a')}; substitute that ${X} to find ${V('k')}. Or <b>complete the square</b>: ${M.sup(X, 2)} + 8${X} + 3 = (${M.sup(X, 2)} + 8${X} + 16) − 16 + 3 = (${X} + 4)² − 13.`) +
-      example('Example', `${big(`${Y} = ${M.poly([2, -12, 5])}`)}${X} = −(−12) ÷ (2 · 2) = 3, and ${Y} = 2(9) − 36 + 5 = −13. Vertex <b>${M.pt(3, -13)}</b>, a minimum because 2 &gt; 0.`),
+    learn: p(`The graph of a quadratic is a U-shaped curve called a <b>parabola</b>, and its turning point is the <b>vertex</b>. In <b>vertex form</b>, ${Y} = ${V('a')}(${X} − ${V('h')})² + ${V('k')}, the vertex is <b>${M.pt(V('h'), V('k'))}</b>. Watch the sign: ${Y} = (${X} + 4)² − 1 has its vertex at ${M.pt(-4, -1)}. If ${V('a')} &gt; 0 the parabola opens up and ${V('k')} is the <b>minimum</b> (smallest) value; if ${V('a')} &lt; 0 it opens down and ${V('k')} is the <b>maximum</b>.`) +
+      p(`From standard form, ${Y} = ${V('a')}${M.sup(X, 2)} + ${V('b')}${X} + ${V('c')}, the vertex has ${X} = −${V('b')} ÷ 2${V('a')}; substitute that ${X} to find ${V('k')}. Or <b>complete the square</b> to rewrite the equation in vertex form.`) +
+      example('Example 1: reading vertex form', `${big(vfH(-3, -2, 7))}Inside is ${X} + 2, so ${V('h')} = −2, and ${V('k')} = 7. The vertex is <b>${M.pt(-2, 7)}</b>, and because −3 &lt; 0 it opens down, so 7 is the maximum.`) +
+      example('Example 2: the vertex from standard form', `${big(`${Y} = ${M.poly([2, -12, 5])}`)}${X} = −(−12) ÷ (2 · 2) = 3, and ${Y} = 2(9) − 36 + 5 = −13. Vertex <b>${M.pt(3, -13)}</b>, a minimum because 2 &gt; 0.`) +
+      example('Example 3: completing the square', `${big(`${Y} = ${M.poly([1, 8, 3])}`)}Half of 8 is 4, and 4² = 16. Add and subtract 16: ${Y} = (${M.poly([1, 8, 16])}) − 16 + 3 = <b>(${X} + 4)² − 13</b>.`),
     make(rng) {
       const kind = rng.pick(['read', 'convert', 'feature', 'feature']);
       if (kind === 'convert') {
