@@ -3414,7 +3414,6 @@ html.pc-focus main { padding-top: 20px; }
 .pr-two .pr-say { contain: inline-size; }
 @container page (max-width: 560px) { main .pr-mgrid { grid-template-columns: 1fr 1fr; } }
 .pr-sec > .section-title:first-child { margin-top: 28px; }
-.pr-help > .btn.ghost { margin-left: -12px; }
 .pr-gtable tbody th { text-transform: none; letter-spacing: normal; font-size: .92rem; font-weight: 600; color: var(--ink); }
 /* Family and class: tabs, plain words and next steps, parent controls, the family goal, class tools, the poster */
 .fam-tabs { margin: 4px 0 14px; }
@@ -3538,3 +3537,6 @@ html.pc-focus main { padding-top: 20px; }
 .fam-assign .btn[aria-disabled="true"], .fam-pickset .btn[aria-disabled="true"] { opacity: .55; }
 .recap-lines { margin: 8px 0 0; padding-left: 1.2rem; display: grid; gap: 2px; font-size: .92rem; }
 .recap-next { margin: 8px 0 0; }
+/* two columns on a phone: an odd last tile takes the whole row, so no row is half empty */
+@media (max-width: 560px) { .report .rp-tiles > div:last-child:nth-child(odd) { grid-column: 1 / -1; } }
+@container page (max-width: 560px) { main .pr-week-stats > div:last-child:nth-child(odd), main .pr-mgrid > div:last-child:nth-child(odd) { grid-column: 1 / -1; } }
