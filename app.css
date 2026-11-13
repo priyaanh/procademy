@@ -4455,7 +4455,7 @@ html.tool-full main { padding-top: calc(64px + env(safe-area-inset-top, 0px)); }
 .sp-fam-none { margin: 10px 0 16px; }
 .race-pick { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; margin: 4px 0 8px; }
 .race-pick .pz-diff { margin: 0; }
-.sr-sub { font-weight: 500; opacity: .8; }
+.sr-sub { font-weight: 500; }
 .race-track { display: grid; gap: 10px; margin: 4px 0 12px; text-align: left; }
 .race-lane { display: grid; grid-template-columns: 92px minmax(0, 1fr); align-items: center; gap: 10px; }
 .race-name { font-weight: 700; font-size: .9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
