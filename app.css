@@ -4218,3 +4218,9 @@ html.tool-full main { padding-top: calc(64px + env(safe-area-inset-top, 0px)); }
 .pk-w.right { fill: var(--primary); }
 .pk-w.wrong { fill: #c7cdd5; }
 .nc-next { justify-content: center; }
+.mt-beats { display: flex; align-items: center; gap: 12px; }
+.mt-beats b { font-size: 1.5rem; min-width: 1.6em; text-align: center; font-variant-numeric: tabular-nums; }
+.mt-step.sm { width: 40px; height: 40px; font-size: 1.3rem; }
+.mt-side .lab-check { margin-bottom: 16px; }
+.nc-setup .lab-ctl { margin-bottom: 14px; }
+@media (max-width: 480px) { .pn-tabs .tab { padding-left: .7rem; padding-right: .7rem; } }
