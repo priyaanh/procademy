@@ -3336,3 +3336,5 @@ html.hi-voice .hi-say { display: inline-flex; }
 .ty-stats b { font-size: 1.7rem; line-height: 1.1; }
 .ty-stats span { font-size: .85rem; color: var(--muted); }
 @media (max-width: 560px) { .ty-text { font-size: 1.2rem; } .ty-stats b { font-size: 1.4rem; } }
+/* Spanish question text: the switch back to English sits under the question */
+.es-switch { margin: 4px 0 0 -.8rem; }
