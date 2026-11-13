@@ -4177,3 +4177,93 @@ html.tool-full main { padding-top: calc(64px + env(safe-area-inset-top, 0px)); }
 .mg-copy { display: grid; gap: 2px; padding: 12px 14px; border-radius: 12px; background: var(--tint); }
 #ac-del-sure .field input { width: 100%; max-width: 300px; }
 @container page (min-width: 760px) { main .profile-grid { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); } main .profile-grid > .card:first-child { grid-row: span 2; } main .profile-grid > .reminder { grid-column: auto; } }
+/* Phones and tablets */
+/* instant taps: no grey flash or double-tap zoom on controls, and a press shows at once */
+html { -webkit-tap-highlight-color: transparent; }
+body, :where(a, button, input, select, textarea, label, summary, [role="button"], [role="radio"], [role="tab"]) { touch-action: manipulation; }
+.ex { touch-action: manipulation; }                     /* practice never zooms on a double tap; pinching still zooms */
+@media (pointer: coarse) {
+  :is(.btn, .seg button, .seg-sm button, .chip-btn, .tabbar a, .tabbar button, .ans-key, .rm-day, .avb-btn, .more-page, .learner, .kp-key, .sprint-pad button):active { transform: scale(.97); filter: brightness(.95); transition: none; }
+}
+/* safe areas on notched phones: the header, the footer and the floating buttons stay clear of the notch and the home bar */
+.top { padding-top: env(safe-area-inset-top, 0px); }
+.top .bar { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+footer { padding-bottom: max(16px, env(safe-area-inset-bottom, 0px)); }
+.tutor-fab { right: max(18px, calc(env(safe-area-inset-right, 0px) + 8px)); }
+@media (min-width: 701px) { .first-badge, .wn-pop { right: max(18px, calc(env(safe-area-inset-right, 0px) + 8px)); } }
+.toast { max-width: calc(100vw - 32px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)); }
+.edge-back { margin-left: env(safe-area-inset-left, 0px); }
+@media (min-width: 701px) { .tutor-fab { bottom: max(18px, calc(env(safe-area-inset-bottom, 0px) + 8px)); } }
+/* one-handed mode (Settings › This device): on a phone held upright, practice's buttons stay at the bottom, within reach of a thumb */
+@media (max-width: 700px) and (orientation: portrait) {
+  :root[data-hand="one"] .ex .ex-foot { position: sticky; bottom: calc(66px + env(safe-area-inset-bottom, 0px)); z-index: 6; margin: 16px -14px -6px; border-radius: 16px; background: var(--surface); box-shadow: 0 -8px 24px -12px rgba(15, 23, 42, .3); }
+  :root[data-hand="one"].pc-focus .ex .ex-foot, :root[data-hand="one"] body.kb-open .ex .ex-foot { bottom: env(safe-area-inset-bottom, 0px); }
+  :root[data-hand="one"] .ex .ans-pad { max-width: none; }
+  :root[data-hand="one"] .ex .ex-foot { gap: 6px; padding: 8px 12px 10px; }
+  :root[data-hand="one"] .ex .ex-foot > .btn { min-height: 38px; padding: .3rem .8rem; font-size: .9rem; }
+  :root[data-hand="one"] .ex .ex-go .ex-count { display: none; }
+}
+/* pull to refresh on Home */
+.ptr { position: fixed; z-index: 30; left: 50%; top: calc(64px + env(safe-area-inset-top, 0px)); width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; background: var(--surface); color: var(--primary-ink); box-shadow: 0 6px 18px rgba(15, 23, 42, .2); transform: translate(-50%, -48px); opacity: 0; pointer-events: none; }
+.ptr.ready { background: var(--primary); color: var(--on-primary); }
+.ptr.spin { background: var(--primary); color: var(--on-primary); animation: ptr-spin .7s linear infinite; }
+@keyframes ptr-spin { from { transform: translate(-50%, 24px) rotate(0deg); } to { transform: translate(-50%, 24px) rotate(360deg); } }
+@media (max-width: 700px) { html.on-home, html.on-home body { overscroll-behavior-y: contain; } }
+/* bottom sheets: on a phone, pop-ups rise from the bottom, with a grip to swipe them away */
+@keyframes sheet-up { from { transform: translateY(48px); opacity: .5; } to { transform: none; opacity: 1; } }
+@media (max-width: 700px) {
+  dialog.keys-dialog[open], dialog.zoom-dlg[open] { margin: auto 0 0; width: 100%; max-width: 100%; max-height: 88vh; border-radius: 22px 22px 0 0; padding-top: 28px; padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px)); animation: sheet-up .22s ease-out; }
+  .learner-menu { top: auto !important; left: 0 !important; right: 0 !important; bottom: 0; min-width: 0; max-width: none; border-radius: 22px 22px 0 0; padding: 26px 14px calc(14px + env(safe-area-inset-bottom, 0px)); animation: sheet-up .22s ease-out; }
+  .wn-pop { left: 0; right: 0; bottom: 0; width: auto; border-radius: 22px 22px 0 0; padding: 28px 18px calc(16px + env(safe-area-inset-bottom, 0px)); box-shadow: 0 -12px 40px rgba(15, 23, 42, .25); animation: sheet-up .22s ease-out; }
+  .opts-panel:not([hidden]) { position: fixed; left: 0; right: 0; bottom: 0; top: auto; width: auto; max-height: 80vh; overflow-y: auto; border-radius: 22px 22px 0 0; padding: 28px 10px calc(12px + env(safe-area-inset-bottom, 0px)); z-index: 60; box-shadow: 0 -12px 40px rgba(15, 23, 42, .25); animation: sheet-up .22s ease-out; }
+  :is(dialog.keys-dialog, dialog.zoom-dlg, .learner-menu, .wn-pop, .opts-panel)::before { content: ""; position: absolute; top: 9px; left: 50%; width: 40px; height: 5px; margin-left: -20px; border-radius: 3px; background: var(--line-strong); }
+  :is(.learner-menu, .wn-pop, .opts-panel) { transition: transform .12s ease-out; }
+}
+/* the offline marker over the tab bar */
+.tab-offline { display: none; }
+@media (max-width: 700px) {
+  body.is-offline .tab-offline { display: inline-flex; align-items: center; gap: 6px; position: fixed; z-index: 43; left: 50%; bottom: calc(70px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); padding: 3px 12px; border-radius: 999px; background: var(--surface); color: var(--muted); font-size: .76rem; font-weight: 700; box-shadow: 0 4px 14px rgba(15, 23, 42, .18); }
+  .tab-offline .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+  html.pc-focus .tab-offline, body.kb-open .tab-offline { display: none !important; }
+}
+/* a bigger keypad on tablets */
+@media (min-width: 701px) and (pointer: coarse) {
+  .ans-pad { max-width: 520px; gap: 10px; }
+  .ans-key { min-height: 62px; font-size: 1.45rem; border-radius: 14px; }
+  .ans-key.wide, .ans-key.del { font-size: 1.15rem; }
+  .sprint-pad button { min-height: 64px; font-size: 1.7rem; }
+  .kp-key { min-height: 52px; font-size: 1.12rem; }
+}
+/* a phone held sideways: practice in two columns, the question beside the answer, with the bars out of the way */
+@media (orientation: landscape) and (max-height: 500px) and (min-width: 560px) {
+  body:has(main > .ex) .top { display: none; }                  /* Back and Pause stay on the page */
+  body:has(main > .ex) .tabbar, body:has(main > .ex) .tutor-fab { display: none !important; }
+  body:has(main > .ex) { padding-bottom: env(safe-area-inset-bottom, 0px); }
+  main:has(> .ex) { padding-top: 10px; }
+  .ex:not(.wide) > .card { display: flow-root; padding: 16px 18px; }
+  .ex:not(.wide) > .card > .question { float: left; width: calc(50% - 14px); margin: 0 0 8px; }
+  .ex:not(.wide) > .card > :not(.q-tools, .question, .ex-banner, .flag-box) { margin-left: calc(50% + 14px); }
+  .ex:not(.wide) > .card > .ex-foot { margin-top: 12px; }
+  .ex-head h1 { font-size: 1.1rem; }
+}
+/* a skill's lesson beside its practice, on a wide screen */
+.lesson-beside { margin-left: auto; }
+.lesson-beside[aria-pressed="true"] { background: var(--primary-soft); color: var(--primary-ink); }
+@media (min-width: 900px) {
+  .lesson-dock { position: fixed; z-index: 15; left: 0; top: calc(61px + env(safe-area-inset-top, 0px)); bottom: 0; width: min(40vw, 520px); overflow-y: auto; overscroll-behavior: contain; padding: 18px 22px 28px max(22px, env(safe-area-inset-left, 0px)); background: var(--surface); border-right: 1px solid var(--line); box-shadow: 8px 0 24px -16px rgba(15, 23, 42, .25); }
+  .ld-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+  .ld-head b { font-size: 1.1rem; }
+  .lesson-dock .learn { font-size: 1rem; }
+  body.lesson-split main { width: calc(100% - min(40vw, 520px)); max-width: none; margin: 0 0 0 min(40vw, 520px); }
+  body.lesson-split .ex { max-width: 760px; }
+}
+@media (max-width: 899px) { .lesson-dock, .lesson-beside { display: none !important; } }
+/* lessons on small phones: a comfortable line, with long words and math kept inside it */
+.learn :is(p, li) { max-width: 70ch; }
+.learn { overflow-wrap: break-word; }
+@media (max-width: 480px) {
+  main .learn-card { padding-left: 16px; padding-right: 16px; }
+  .learn { line-height: 1.62; hyphens: auto; -webkit-hyphens: auto; }
+  .learn .example { padding: 10px 12px; }
+  .learn :is(ul, ol) { padding-left: 1.1rem; }
+}
