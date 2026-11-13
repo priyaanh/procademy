@@ -2199,6 +2199,171 @@
   clearDev(); S.reset();
   }
 
+  { // hints and explanations, mistakes and review (items 136 to 167)
+  const goR = async h => { location.hash = '#/settings'; await tick(15); return go(h); };
+  const DEVK = 'procademy.player.v1', clearDevR = () => { try { localStorage.removeItem(DEVK); } catch (e) { /* fine */ } };
+  const typeIn = (m, v) => { const a = m.querySelector('#ans'); a.value = v; a.dispatchEvent(new Event('input', { bubbles: true })); m.querySelector('#check').click(); };
+  const numQ = (answer, prompt, hints, extra) => Object.assign({ type: 'number', answer, prompt, hints: hints || ['First step.', 'Second step.', 'The answer.'] }, extra || {});
+  clearDevR(); S.reset(); S.setProfile({ welcomed: true });
+  // reading an answer: "x = 5", a unit after the number, ½, a decimal comma, a wrong unit; tips in the format to use
+  const rdq = { type: 'number', answer: 12, unit: 'cm²' };
+  ok(E.readAnswer({ type: 'number' }, 'x = 5').input === '5' && E.readAnswer({ type: 'number', unit: 'cm' }, '12 cm').input === '12' && E.readAnswer({ type: 'number' }, '1½').input === '1 1/2' && /point/.test(E.readAnswer({ type: 'number' }, '2,5').stop), 'answers (148): x = 5, a unit after the number and ½ are read; a decimal comma is pointed out');
+  ok(/square units/.test(E.readAnswer(rdq, '12 cm').stop) && /hours/.test(E.readAnswer({ type: 'number', unit: 'hours' }, '3 minutes').stop) && E.readAnswer({ type: 'number' }, '3x4').input === '3x4', 'units (149): a wrong unit is called out plainly (cm for cm², minutes for hours); 3x4 is not a unit');
+  ok(/digits/.test(E.formatTip({}, 'seven')) && /space between two numbers/.test(E.formatTip({}, '3 4')) && /one number/.test(E.formatTip({}, '3*4')) && /beside the box/.test(E.formatTip({ unit: 'cm' }, 'abc12')), 'format tips (148): words, two numbers, an expression and letters each get the format to use');
+  ok(/simplifies to <b>3\/4<\/b>/.test(E.simplifyNote({ prompt: 'Add.' }, '6/8')) && /asks for simplest form/.test(E.simplifyNote({ prompt: 'Give it in simplest form.' }, '1 4/8')) && E.simplifyNote({}, '3/4') === '', 'simplify (151): an unsimplified fraction gets a nudge; a simple one doesn’t');
+  // the coach: units, rounding said exactly, why a choice is wrong, the learner's own answer
+  ok(COACH.diagnose(numQ(250, 'A ribbon is 2.5 m long. How long is it in centimeters?', ['a', 'b'], { unit: 'cm' }), '2.5').kind === 'unit', 'units (149): an answer left in meters when centimeters were asked is named');
+  ok(/nearest hundredth/.test(COACH.diagnose(numQ(3.14, 'Round it to the nearest hundredth.'), '3.142').msg) && /very end/.test(COACH.diagnose(numQ(3.14, 'Find it.', ['a', 'b'], { tolerance: 0.005 }), '3.16').msg) && !/3\.14/.test(COACH.diagnose(numQ(3.14, 'Round it.'), '3.142').msg), 'rounding (150): close answers get exact rounding guidance, never the answer');
+  const ptq = { type: 'choice', prompt: '<p>Which point is it?</p>', choices: ['(3, 5)', '(5, 3)', '(3, −5)', '(2, 5)'], answerIndex: 0, answer: '(3, 5)', hints: ['Look at the x-coordinate.', 'The point is (3, 5).'] };
+  const exq = { type: 'choice', prompt: '<p>Expand 3(x + 2).</p>', choices: ['3x + 6', '3x + 2', 'x + 6'], answerIndex: 0, answer: '3x + 6', hints: ['a'] };
+  ok(/swapped/.test(COACH.whyChoice(ptq, 1)) && /wrong sign/.test(COACH.whyChoice(ptq, 2)) && /x = 2.*8.*12/.test(COACH.whyChoice(exq, 1)) && !/12/.test(COACH.whyChoice(exq, 1, true)) && /comes before/.test(COACH.whyChoice({ type: 'choice', prompt: 'Put them in order.', choices: ['2, 5, 7', '5, 2, 7'], answerIndex: 0, answer: '2, 5, 7', hints: ['a'] }, 1)), 'wrong choices (137): a point, an expression and an order each say why; with the question open nothing gives the answer away');
+  const ab = COACH.aboutAnswer({ type: 'number', answer: 5, prompt: 'Solve 2x + 3 = 13.', hints: ['Subtract 3 from both sides: 2x = 10.', 'Divide by 2: x = 5.'] }, '10');
+  ok(ab && ab.step === 0 && /step 1 ends/.test(ab.line), 'your answer (136): an answer that matches a step says so');
+  // building hints: the rule, the lesson paragraph a step uses, simpler words, pictures, spot the mistake
+  const rule7 = E.ruleOf('math7.add-negatives'), lf = E.lessonFor('math7.add-negatives', A.question('math7.add-negatives', 'h1').hints[0]);
+  ok(/Same signs/.test(rule7) && lf && /sign/i.test(lf.html) && !E.lessonFor('math7.add-negatives', 'Zebra quantum.'), 'rule (141) and lesson link (142): a skill’s rule comes from its lesson, and a step finds the paragraph it uses');
+  const simp = E.simpler('Multiply the numerator by 3; therefore the fraction is <b>equivalent</b>.');
+  ok(/numerator \(the top number\)/.test(simp) && /<br>So/.test(simp) && /<b>equivalent/.test(simp) && E.simpler('<span class="frac"><span class="num">3</span><span class="den">4</span></span>') === '<span class="frac"><span class="num">3</span><span class="den">4</span></span>', 'simpler (139): hard words get a meaning, long sentences split, and the math markup is untouched');
+  const mk = p => E.model(numQ(p[1], p[0], ['a']));
+  ok(mk(['Add.<div class="big">−4 + (−3) = ?</div>', -7]).kind === 'line' && mk(['Multiply. 34 × 7', 238]).kind === 'area' && mk([`Add. ${M.frac(1, 4)} + ${M.frac(1, 2)}`, 0.75]).kind === 'bars' && mk(['What is 20% of 160?', 32]).kind === 'percent' && !mk(['Multiply. 34 × 7', 200]) && /<svg/.test(mk(['Multiply. 34 × 7', 238]).svg), 'pictures (140): a number line, an area model, fraction bars and a percent bar, only when they fit the answer');
+  const sq1 = E.spotQuestion('math7.order-ops-negatives', 'sp1') || E.spotQuestion('math7.order-ops-negatives', 'sp2');
+  const wrongSteps = sq1 ? [...new DOMParser().parseFromString(sq1.prompt, 'text/html').querySelectorAll('.spot-steps li')].filter(li => { const mm = /(\(?[−-]?\d+\)?) ([+−×÷]) (\(?[−-]?\d+\)?) = ([−-]?\d+)/.exec(li.textContent.replace(/<[^>]*>/g, '')); if (!mm) return false; const n = t => Number(t.replace(/[()]/g, '').replace('−', '-')), v = { '+': (a, b) => a + b, '−': (a, b) => a - b, '×': (a, b) => a * b, '÷': (a, b) => a / b }[mm[2]](n(mm[1]), n(mm[3])); return v !== n(mm[4]); }) : [];
+  ok(sq1 && sq1.type === 'choice' && sq1.choices.every((c, k) => c === `Step ${k + 1}`) && wrongSteps.length === 1 && JSON.stringify(E.spotQuestion('math7.order-ops-negatives', sq1.seed)) === JSON.stringify(sq1), 'spot the mistake (145): exactly one step is wrong, and the same seed makes the same question');
+  // the player: the rule first, your answer in the hints, each step in turn, simpler words, the lesson, a picture, a worked example
+  S.reset(); S.setProfile({ welcomed: true, player: { pad: false } });
+  let m = await goR('#/practice/math7.add-negatives');
+  let q0 = null;
+  for (let k = 0; !q0 || !q0.answer; k++) q0 = A.question('math7.add-negatives', 'bh-' + k);
+  m.__session.items[0].q = q0;
+  typeIn(m, String(-q0.answer)); await tick();
+  ok(m.querySelector('.coach-note .sign-show mark') && m.querySelector('.question mark.sign-hl') && m.querySelector('#ans.sign-off') && /Not quite/.test(text(m.querySelector('.vd-title'))), 'sign (152): a sign slip marks the signs in the question and in the answer');
+  m.querySelector('#hint').click(); await tick();
+  ok(m.querySelector('.hint.nudge.rule-box') && /the rule/i.test(text(m.querySelector('.rule-box .hn'))) && /Same signs/.test(text(m.querySelector('.rule-box'))) && m.querySelector('.rule-box.hint-in'), 'rule (141): the free first rung is the skill’s rule, in a colored box');
+  m.querySelector('#hint').click(); await tick();
+  ok(m.querySelector('.your-ans') && text(m.querySelector('.your-ans b')) === String(-q0.answer), 'your answer (136): the hints show the learner’s own answer');
+  ok(/sign/.test(text(m.querySelector('.your-ans'))) && m.querySelector('.hints .hint:not(.nudge).hint-in'), 'your answer (136) and animation (138): it says what the answer shows, and the new step animates in');
+  const plainB = m.querySelector('[data-plain]');
+  if (plainB) { const before = text(m.querySelector('.hint:not(.nudge) .hint-body')); plainB.click(); await tick(); ok(text(m.querySelector('.hint:not(.nudge) .hint-body')) !== before && /Show the original/.test(text(m.querySelector('[data-plain]'))) && !m.querySelector('.hint-in'), 'simpler (139): Say it more simply rewrites the step on the device, and nothing animates again'); }
+  else ok(true, 'simpler (139): (this step had nothing to simplify)');
+  const lsB = m.querySelector('[data-lesson]');
+  if (lsB) { lsB.click(); await tick(); ok(m.querySelector('.lesson-bit .learn') && m.querySelector('.lesson-bit a[target="_blank"]'), 'lesson link (142): From the lesson shows the paragraph the step uses'); }
+  else ok(true, 'lesson link (142): (the rule already shows this step’s paragraph)');
+  m.querySelector('#hint-pic').click(); await tick();
+  ok(m.querySelector('.hint-pic.open svg.mdl-svg') && /Start at/.test(text(m.querySelector('.hint-pic p'))), 'pictures (140): a number line in the hints');
+  m.querySelector('#side-btn').click(); await tick();
+  ok(m.querySelector('.ex.wide .ex-split .ex-side .we-steps li') && m.querySelector('.ex-main .question') && /Answer:/.test(text(m.querySelector('.ex-side'))) && JSON.parse(localStorage.getItem(DEVK)).side === true, 'worked example (147): beside the question, kept open on this device');
+  m.querySelector('#side-close').click(); await tick();
+  ok(!m.querySelector('.ex-side') && !m.querySelector('.ex.wide'), 'worked example (147): Close puts it away');
+  // kinder words after repeated tries; a word problem's numbers; units and fractions; why a choice is wrong
+  m = await goR('#/practice/math7.add-negatives');
+  m.__session.items[m.__session.i].q = numQ(12, '<p>Nora buys 3 packs of pens. Each pack has 4 pens in it. How many pens does Nora have in all now?</p>', ['Multiply the packs by the pens in each: 3 × 4.', '3 × 4 = <b>12</b>.'], { unit: 'pens' });
+  typeIn(m, '7'); await tick(); const t1 = text(m.querySelector('.vd-title'));
+  typeIn(m, '8'); await tick(); const t2 = text(m.querySelector('.vd-title'));
+  typeIn(m, '9'); await tick(); const t3 = text(m.querySelector('.vd-title'));
+  ok(t1 === 'Not quite' && t2 === 'Not yet' && t3 === 'Let’s slow down' && m.querySelector('.verdict.gentle'), 'kinder words (144): a second and third try are met more gently');
+  m.querySelector('#hint').click(); await tick();
+  ok([...m.querySelectorAll('.question mark.num-hl')].map(x => x.textContent).join(',') === '3,4' && m.querySelector('.question mark.key-hl'), 'word problems (153): with hints out, the numbers and action words are highlighted');
+  typeIn(m, '12 pens'); await tick();
+  ok(m.querySelector('.feedback.good') && m.__session.results[m.__session.i].correct, 'units (149): a unit typed after the number is fine');
+  m.querySelector('#next').click(); await tick();
+  m.__session.items[m.__session.i].q = numQ(0.75, '<p>Add the fractions.</p>', ['a', 'b'], { unit: 'cm' });
+  typeIn(m, '5 m'); await tick();
+  ok(m.querySelector('.feedback.note') && /centimeters/.test(text(m.querySelector('#feedback'))) && !(m.__session.results[m.__session.i] || {}).tries, 'units (149): the wrong unit is said first, and isn’t counted as a try');
+  typeIn(m, '6/8'); await tick();
+  ok(m.querySelector('.feedback.good') && /simplifies to 3\/4/.test(text(m.querySelector('#feedback'))), 'fractions (151): 6/8 is right, with a nudge to simplify');
+  m.querySelector('#next').click(); await tick();
+  // the question is swapped after drawing, so it's drawn again through the free nudge
+  m.__session.items[m.__session.i].q = Object.assign({}, ptq);
+  m.querySelector('#hint').click(); await tick();
+  m.querySelector('#choices button[data-k="1"]').click(); m.querySelector('#check').click(); await tick();
+  ok(/swapped/.test(text(m.querySelector('.coach-note'))), 'wrong choices (137): a wrong pick says why, while the question is open');
+  m.querySelector('#giveup').click(); await tick();
+  ok(m.querySelectorAll('#choices .why-not').length === 3 && /wrong sign/.test(text(m.querySelector('#choices'))), 'wrong choices (137): once it’s over, every wrong choice says why');
+  // feedback in Spanish or Hindi; why does that work?
+  S.setProfile({ player: Object.assign({}, S.get().profile.player, { fbLang: 'es', why: true }) });
+  m = await goR('#/practice/math7.mul-div-negatives');
+  const qe = m.__session.items[0].q;
+  ok(m.querySelector('#opt-fb') && m.querySelector('#opt-fb').value === 'es' && m.querySelector('#opt-why'), 'feedback language (143): a choice in Options');
+  typeIn(m, String(qe.answer + 1)); await tick();
+  ok(text(m.querySelector('.vd-title')) === 'Todavía no' && m.querySelector('.verdict').getAttribute('lang') === 'es' && m.querySelector('.verdict').hasAttribute('data-raw'), 'feedback language (143): right-or-wrong messages in Spanish, marked for screen readers');
+  typeIn(m, String(qe.answer)); await tick();
+  ok(text(m.querySelector('.vd-title')) === 'Correcto' && m.querySelector('#why-works'), 'why does that work (146): after a right answer, with the option on');
+  m.querySelector('#why-works').open = true; m.querySelector('#why-words').value = 'Two negatives make a positive.'; m.querySelector('#why-compare').click(); m.querySelector('#why-save').click(); await tick();
+  ok(!m.querySelector('#why-rule').hidden && /Why it works: Two negatives/.test(S.note('math7.mul-div-negatives')), 'why does that work (146): compare with the rule, and keep your words in your notes');
+  S.setProfile({ player: { pad: false, fbLang: 'hi' } });
+  m = await goR('#/practice/math7.mul-div-negatives');
+  typeIn(m, 'seven'); await tick();
+  ok(/अंकों/.test(text(m.querySelector('#feedback'))) && !(m.__session.results[0] || {}).tries, 'feedback language (143): tips in Hindi too');
+  S.setProfile({ player: { pad: false } });
+  // mistakes kept over time: when each was missed and in which set; fixed this week; notes and tags; sets to try again; the archive
+  S.reset(); S.setProfile({ welcomed: true });
+  const drive2 = (s, bad) => { s.items.forEach((it, k) => { if (bad(k)) E.reveal(s); else E.answer(s, it.q.type === 'choice' ? it.q.answerIndex : it.q.answer); E.next(s); }); return E.finish(s); };
+  drive2(E.start('practice', { skillId: 'math7.add-negatives', seed: 'rs1' }), k => k < 2);
+  const ms = S.get().missed, set0 = (S.get().profile.missedSets || [])[0];
+  ok(ms.length === 2 && ms.every(x => x.last && x.set === 'rs1') && set0 && set0.seed === 'rs1' && set0.miss === 2 && set0.n === 7, 'mistakes (155): each one knows its set, and a set with misses is kept to try again');
+  const again = E.retrySet('rs1');
+  ok(again.kind === 'practice' && again.items.map(it => it.seed).join() === E.start('practice', { skillId: 'math7.add-negatives', seed: 'rs1' }).items.map(it => it.seed).join(), 'retry a set (155): the same seven questions, as a practice set that counts');
+  drive2(E.start('review', { items: ms.slice(0, 1).map(x => ({ skill: x.skill, seed: x.seed })) }), () => false);
+  drive2(E.start('review', { items: ms.slice(0, 1).map(x => ({ skill: x.skill, seed: x.seed })) }), () => false);
+  ok(S.get().missed.length === 1 && E.fixedSince() === 1, 'fixed this week (161): a mistake right twice is counted as fixed');
+  E.journal('math7.add-negatives', S.get().missed[0].seed, { note: 'Look at the bigger size first.', why: 'unknown' });
+  ok(E.journal('math7.add-negatives', S.get().missed[0].seed).why === 'unknown' && E.journalAll().length === 1, 'journal (156, 160): a note and a tag are kept with a mistake');
+  S.addMissed('math7.circles', 'old1'); S.get().missed.find(x => x.seed === 'old1').t = Date.now() - 70 * 864e5; S.save();
+  ok(E.archiveOld() === 1 && !S.get().missed.some(x => x.seed === 'old1') && S.get().profile.oldMistakes.length === 1, 'archive (164): a mistake not missed again in 60 days moves to the archive');
+  // the Review page
+  ['math7.circles', 'math7.percent-of', 'math7.order-ops-negatives', 'math7.unit-rate', 'math7.circles', 'math7.percent-of'].forEach((id, k) => { S.addMissed(id, 'rp' + k, k % 2 ? 'sign' : null); S.get().missed[0].t = Date.now() - (10 - k) * 3600e3; });
+  S.save();
+  S.setSkill('math7.circles', { level: 2, tries: 3, right: 2, due: S.dayShift(S.today(), 3) });
+  m = await goR('#/review');
+  const nMissed = S.get().missed.length;
+  ok(m.querySelectorAll('.rv-item').length === nMissed && m.querySelector('#rv-archive') && /1 fixed this week|1\s*fixed this week/.test(text(m.querySelector('.rv-stats'))), 'review (161, 164): every mistake, fixed this week, and the archive folded away');
+  const cell = m.querySelector(`[data-day="${S.dayShift(S.today(), 3)}"]`);
+  ok(m.querySelectorAll('.rv-cell').length === 14 && cell.classList.contains('has'), 'calendar (154): two weeks, with the day each skill comes back');
+  cell.click(); await tick();
+  ok(text(m.querySelector('#rv-cal-list')).includes(COACH.text(A.skills['math7.circles'].title)) && /3 days/.test(m.querySelector('.rv-how-sr').textContent), 'calendar (154, 163): a day lists its skills, and spaced review is explained in plain words');
+  m.querySelector('[data-sort="new"]').click(); await tick();
+  const firstFind = m.querySelector('.rv-item').dataset.find, newest = S.get().missed.slice().sort((a, b) => (b.last || b.t) - (a.last || a.t))[0];
+  ok(m.querySelector('.rv-flat') && S.get().profile.reviewPrefs.sort === 'new' && firstFind.includes(COACH.text(A.question(newest.skill, newest.seed).prompt).toLowerCase().slice(0, 12)), 'sort (159): newest first, remembered');
+  m.querySelector('#rv-find').value = 'circle'; m.querySelector('#rv-find').dispatchEvent(new Event('input')); await tick();
+  const vis = [...m.querySelectorAll('.rv-item')].filter(li => !li.hidden);
+  ok(vis.length >= 1 && vis.length < nMissed && vis.every(li => li.dataset.find.includes('circle')), 'search (165): the list narrows to matching mistakes');
+  m.querySelector('#rv-find').value = 'zzzz'; m.querySelector('#rv-find').dispatchEvent(new Event('input')); await tick();
+  ok(!m.querySelector('#rv-none').hidden, 'search (165): no match says so');
+  m.querySelector('[data-sort="skill"]').click(); await tick();
+  const it0 = m.querySelector('.rv-item'); it0.querySelector('details').open = true;
+  it0.querySelector('[data-why][data-v="careless"]').click(); await tick();
+  const ta = it0.querySelector('[data-note]'); ta.value = 'Read the sign twice.'; ta.dispatchEvent(new Event('change')); await tick();
+  const jn = E.journalAll().find(e => e.note === 'Read the sign twice.');
+  ok(jn && jn.why === 'careless', 'tag and note (156, 160): saved from the Review page');
+  // print, share, a quick round of five in relaxed mode, spot the mistake, retry a set, the reminder
+  m.querySelector('#rv-print').click(); await tick();
+  ok(m.querySelectorAll('.ws-q').length === nMissed, 'print (157): the mistakes as a worksheet, with an answer key');
+  m = await goR('#/review');
+  m.querySelector('#rv-share').click(); await tick(60);
+  ok(/Right answer:/.test(V._lastShare || '') && /Read the sign twice/.test(V._lastShare) && !/@/.test(V._lastShare), 'share (162): the mistakes as text for a parent or tutor, with notes');
+  m.querySelector('#rv-relaxed').click(); await tick();
+  m.querySelector('#rv-five').click(); await tick();
+  ok(m.__session.kind === 'review' && m.__session.items.length === 5 && /Quick round/.test(m.__session.title) && m.querySelector('.ex.relaxed .hints.big .rule-box') && !m.querySelector('#opt-timer') && typeof V.quickFive === 'function', 'quick round (166, 167): five mistakes, relaxed: the rule from the start, big hints, no timer');
+  m = await goR('#/review');
+  m.querySelector('[data-set]').click(); await tick();
+  ok(m.__session.kind === 'practice' && m.__session.items.length === 7, 'retry a set (155): Try it again starts the whole set');
+  m = await goR('#/review');
+  const missedBefore = S.get().missed.length;
+  m.querySelector('#rv-spot').click(); await tick();
+  ok(m.__session.kind === 'spot' && m.__session.items.every(it => it.q.spot) && m.querySelector('.spot-steps li'), 'spot the mistake (145): a round from the Review page');
+  for (let k = 0; k < 12 && !m.querySelector('.summary'); k++) { if (m.querySelector('#next')) m.querySelector('#next').click(); else answerCurrent(m, k % 2 === 0); await tick(); if (m.querySelector('#giveup') && m.querySelector('.feedback.bad')) { m.querySelector('#giveup').click(); await tick(); } }
+  ok(m.querySelector('.summary') && S.get().missed.length === missedBefore, 'spot the mistake (145): points, but a wrong pick isn’t added to Review');
+  m = await goR('#/review');
+  const sel = m.querySelector('#rv-remind'); sel.value = String(new Date().getDay()); sel.dispatchEvent(new Event('change')); await tick();
+  const rr = V.reviewReminder();
+  ok(rr && /waiting in Review/.test(rr.text) && m.querySelector('#rv-ics'), 'reminder (158): once a week, on the day chosen, only with mistakes waiting');
+  rr.seen();
+  ok(!V.reviewReminder(), 'reminder (158): once seen, quiet for the rest of the day');
+  m.querySelector('#rv-unarchive').click(); await tick();
+  ok(S.get().missed.some(x => x.seed === 'old1') && !(S.get().profile.oldMistakes || []).length, 'archive (164): Bring them back returns them to Review');
+  clearDevR(); S.reset();
+  }
+
   { // unlimited practice: questions without end, saved every 7 answers like a practice set
   S.reset();
   m = await go('#/unlimited');
