@@ -237,7 +237,7 @@
     ok(m.querySelectorAll('.sm-unit').length === mapUnits.length && mapUnits.every(u => m.querySelector(`.sm-unit[href="#/unit/${c.id}/${u.id}"]`)) && !m.querySelector('.unit-card') && text(m).includes(c.title), `course page ${c.id}: the skill map opens each of its ${mapUnits.length} units`);
     const u = c.units[0];
     const mu = await go(`#/unit/${c.id}/${u.id}`);
-    ok(mu.querySelectorAll('.skills li').length === u.skills.length + 5 && mu.querySelector(`a[href="#/quiz/${c.id}/${u.id}"]`) && mu.querySelector(`a[href="#/boss/${c.id}/${u.id}"]`) && mu.querySelector(`a[href="#/worksheet/unit/${c.id}/${u.id}"]`) && mu.querySelector(`a[href="#/unlimited/unit/${c.id}/${u.id}"]`), `unit page ${c.id}/${u.id}: ${u.skills.length} skills + unlimited + test + quiz + boss + worksheet`);
+    ok(mu.querySelectorAll('.skills li').length === u.skills.length + 6 && mu.querySelector(`a[href="#/quiz/${c.id}/${u.id}"]`) && mu.querySelector(`a[href="#/boss/${c.id}/${u.id}"]`) && mu.querySelector(`a[href="#/worksheet/unit/${c.id}/${u.id}"]`) && mu.querySelector(`a[href="#/unlimited/unit/${c.id}/${u.id}"]`), `unit page ${c.id}/${u.id}: ${u.skills.length} skills + unlimited + test + quiz + boss + worksheet`);
   }
   ok(document.title.includes('Procademy'), 'document title carries the brand');
   // every skill: learn article and a practice question render
@@ -2801,6 +2801,170 @@
   ok(document.activeElement === document.getElementById('search-input'), 'header: the search button puts the cursor in search');
   document.getElementById('search-input').blur();
   ok(LANG.tr('Graphing calculator', 'es') === 'Calculadora gráfica' && LANG.tr('Streak 3', 'hi') === 'लगातार 3' && LANG.tr('Chapter 4', 'es') === 'Capítulo 4', 'language: tools, the streak and chapters are translated');
+  S.reset();
+  }
+
+  { // courses and lessons: subjects, time to finish, archive, the course page's tools, units, the lesson's helpers, notes, worksheets
+  const until = async (fn, ms) => { const t = Date.now(); while (Date.now() - t < (ms || 3000)) { if (fn()) return true; await tick(20); } return false; };
+  const realPrint = window.print; let printed = 0; window.print = () => { printed++; };
+  const today = S.today(), lsDel = k => { try { localStorage.removeItem(k); } catch (e) {} };
+  ['procademy.ui.subject', 'procademy.read.v1', 'procademy.lesson.v1'].forEach(lsDel);
+  Object.keys(localStorage).filter(k => /^procademy\.(drawings|answers)\.v1/.test(k)).forEach(lsDel);
+  S.reset(); S.setProfile({ welcomed: true, grade: 7, enrolled: ['math-7'], name: 'Sam', prep: { book: 'cc2', ch: 3, date: S.dayShift(today, 6), tests: [], done: {} } });
+  const ids7 = A.courseSkills(A.courseById('math-7'));
+  S.setSkill(ids7[0], { level: 3, tries: 7, right: 6, last: Date.now() }); S.setSkill(ids7[1], { level: 2, tries: 5, right: 3, last: Date.now() });
+  S.get().log.unshift({ t: Date.now() - 20 * 864e5, kind: 'practice', course: 'math-7', skill: ids7[0], right: 6, total: 7, pts: 60, changes: [{ skillId: ids7[0], from: 0, to: 3 }] });
+  S.get().log.unshift({ t: Date.now() - 2 * 864e5, kind: 'practice', course: 'math-7', skill: ids7[1], right: 5, total: 7, pts: 50, changes: [{ skillId: ids7[1], from: 0, to: 2 }] });
+  S.save();
+  // Courses: a subject filter, a New chip for a week, a drawing on every course, the time left on each card
+  const sat = A.courseById('sat-act'), wasAdded = sat.added; sat.added = today;
+  m = await go('#/courses');
+  const subj = [...m.querySelectorAll('.subject-row [data-subject]')].map(b => b.dataset.subject);
+  ok(subj.join() === 'all,math,prep,money,coding', 'courses: a subject filter with only the subjects that have courses (' + subj.join(', ') + ')');
+  m.querySelector('[data-subject="coding"]').click(); await tick(10);
+  const shownC = [...m.querySelectorAll('.course-card')].filter(cd => !cd.hidden).map(cd => text(cd.querySelector('h3')));
+  ok(shownC.join() === 'Coding and logic' && localStorage.getItem('procademy.ui.subject') === 'coding' && m.querySelector('#rec-course').hidden, 'courses: choosing a subject shows just its courses');
+  m.querySelector('[data-subject="prep"]').click(); await tick(10);
+  ok([...m.querySelectorAll('.course-card')].filter(cd => !cd.hidden).every(cd => cd.dataset.area === 'prep') && m.querySelector('.band-section[data-band="area-prep"]:not([hidden])'), 'courses: test prep and contests are grouped together');
+  m.querySelector('.subject-row [data-subject="all"]').click(); await tick(10);
+  const satCard = [...m.querySelectorAll('.course-card')].find(cd => cd.dataset.area === 'prep' && /SAT/.test(text(cd)));
+  ok(satCard && satCard.querySelector('.new-chip') && !m.querySelector('.course-card .new-chip ~ .chip + .chip.new-chip'), 'courses: a course added this week wears a New chip');
+  sat.added = '2020-01-01'; m = await go('#/courses');
+  ok(![...m.querySelectorAll('.course-card')].some(cd => cd.querySelector('.new-chip') && /SAT/.test(text(cd))), 'courses: after a week the New chip goes');
+  sat.added = wasAdded;
+  ok(['sat-act', 'competition-math', 'personal-finance', 'coding-logic'].every(id => /<svg class="course-art"/.test(VIEWS._h.courseArt(id))), 'courses: the four newest courses have drawings');
+  ok([...m.querySelectorAll('.course-card')].filter(cd => cd.dataset.area).every(cd => /about \d+ (minutes|hours?)|all done/.test(text(cd.querySelector('.row.between.small')))), 'courses: each card says about how long the course takes');
+  m = await go('#/courses/coding');
+  ok([...m.querySelectorAll('.course-card')].filter(cd => !cd.hidden).length === 1 && m.querySelector('[data-subject="coding"]').classList.contains('on'), 'courses: #/courses/coding opens on a subject');
+  m.querySelector('[data-subject="all"]').click(); lsDel('procademy.ui.subject');
+  // the course page: time left, mixed practice, the coming test, find a skill, what builds on what, done for now, an outline, progress, compare
+  m = await go('#/course/math-7');
+  ok(/About \d+ (hours?|minutes) of practice left, about \d+ (days|weeks) at your daily goal/.test(text(m.querySelector('.course-time'))), 'course: about how long is left, at the daily goal');
+  ok(m.querySelector('.hero a[href="#/unlimited/course/math-7"]'), 'course: Practice the whole course, mixed, at the top');
+  const ct = m.querySelector('.course-test');
+  ok(!VIEWS.testSoon() || (ct && ct.querySelectorAll('.chip-btn').length >= 1 && ct.querySelector('a[href^="#/prep/cc2/3"]')), 'course: the skills on the coming test, with the way to its test prep');
+  const fnd = m.querySelector('#sm-find'); fnd.value = 'negative'; fnd.dispatchEvent(new Event('input'));
+  ok(m.querySelectorAll('#sm-found li a[href^="#/skill/"]').length >= 2 && m.querySelector('.sm-units.finding .sm-cell.hit'), 'course: find a skill in the course, marked on the map');
+  fnd.value = ''; fnd.dispatchEvent(new Event('input'));
+  const lk = m.querySelector('#sm-links'); lk.checked = true; lk.dispatchEvent(new Event('change')); await tick(20);
+  ok(m.querySelectorAll('.sm-links path').length >= 3, 'course: Show what builds on what draws the links (' + m.querySelectorAll('.sm-links path').length + ')');
+  const sub = m.querySelector('.sm-cell[data-sid="math7.sub-negatives"]'); sub.dispatchEvent(new Event('focusin', { bubbles: true })); await tick(5);
+  ok(/builds on/.test(text(m.querySelector('#sm-why'))) && m.querySelector('.sm-links path.on'), 'course: a skill shows what it builds on');
+  const u1 = A.courseById('math-7').units[0].id;
+  m.querySelector(`[data-fold="${u1}"]`).click(); await tick(10);
+  ok(m.querySelector(`li[data-unit="${u1}"]`).hidden && (S.get().profile.doneUnits || {})['math-7'].includes(u1) && !m.querySelector('.sm-folded').hidden, 'course: a unit marked done for now folds away');
+  m.querySelector('#sm-show-folded').click(); await tick(5);
+  ok(!m.querySelector(`li[data-unit="${u1}"]`).hidden, 'course: folded units come back to view');
+  m.querySelector(`[data-fold="${u1}"]`).click(); await tick(5);
+  ok(!doneUnits7(), 'course: and can be brought back');
+  function doneUnits7() { return ((S.get().profile.doneUnits || {})['math-7'] || []).length; }
+  m.querySelector('#print-outline').click(); await tick(10);
+  const outline = document.getElementById('skill-print');
+  ok(printed === 1 && outline && outline.querySelectorAll('.co-unit').length === A.courseById('math-7').units.length && outline.querySelectorAll('.co-skills li').length === ids7.length, 'course: a printable outline of every unit and skill');
+  ok(m.querySelectorAll('.ct-col').length === 10 && /mastered/.test(m.querySelector('.ct-col:last-child').getAttribute('aria-label')) && m.querySelectorAll('.ct-table tbody tr').length === 10, 'course: progress week by week, with the numbers as a table');
+  ok(m.querySelectorAll('.ca-log li').length === 2, 'course: recent activity in the course');
+  ok(/8th grade math/.test(text(m.querySelector('.compare-next summary'))) && m.querySelectorAll('.compare-next .cmp-col').length === 2, 'course: compare it with next year');
+  // archive: off the home page, progress kept, listed under Saved
+  m.querySelector('#archive').click(); await tick(10);
+  ok(!S.get().profile.enrolled.includes('math-7') && S.get().profile.archived.includes('math-7') && S.skill(ids7[0]).level === 3, 'archive: off the home page, its progress kept');
+  m = await go('#/courses/saved');
+  ok(m.querySelector('.band-section[data-band="archived"]:not([hidden]) .course-card'), 'archive: the Saved tab lists archived courses');
+  m.querySelector('.band-section[data-band="archived"] [data-save="math-7"]').click(); await tick(10);
+  ok(S.get().profile.enrolled.includes('math-7') && !S.get().profile.archived.includes('math-7'), 'archive: Save brings it back');
+  // start at the beginning, or where I'm ready
+  m = await go('#/course/math-8');
+  const opts8 = [...m.querySelectorAll('.start-opt')].map(a => a.getAttribute('href'));
+  ok(opts8.length === 2 && opts8[0].startsWith('#/skill/') && opts8[1] === '#/placement/math-8', 'course: start at the beginning, or where I’m ready');
+  // a unit: mini skill maps, its CPM chapters, a cheat sheet, done for now
+  m = await go('#/unit/math-7/' + u1);
+  ok(m.querySelectorAll('.unit-nav .mini-map').length === A.courseById('math-7').units.length && m.querySelector('.unit-nav .mini-map i.l3'), 'unit: each unit in the list has a mini skill map');
+  ok(m.querySelector('.unit-cpm a[href^="#/cpm/"]'), 'unit: the matching CPM chapters are linked');
+  m.querySelector('#cheat-view').click(); await tick(5);
+  ok(!m.querySelector('#cheat').hidden && m.querySelectorAll('#cheat .cheat-item').length === A.unitById('math-7', u1).skills.length && m.querySelector('#cheat .cheat-ex'), 'unit: a cheat sheet with every skill’s idea and an example');
+  m.querySelector('#cheat-print').click(); await tick(10);
+  ok(printed === 2 && document.querySelector('#skill-print.cheat-print .cheat-item'), 'unit: the cheat sheet prints on its own');
+  m.querySelector('#unit-done').click(); await tick(10);
+  ok(doneUnits7() === 1, 'unit: Done for now from the unit page'); S.setProfile({ doneUnits: {} });
+  // a skill: real life, mistakes, related tools, the last answers, study later, share, check your understanding, other numbers
+  m = await go('#/skill/math7.add-negatives');
+  ok(/°F/.test(text(m.querySelector('.learn-side'))) && m.querySelectorAll('.slips-box li').length >= 2 && m.querySelectorAll('.side-tools a').length >= 3 && m.querySelector('.side-tools a[href="#/calc"]'), 'skill: in real life, what to watch out for, and related tools beside the lesson');
+  const before = S.skill('math7.add-negatives');
+  S.setSkill('math7.add-negatives', { tries: before.tries + 1, right: before.right + 1 }); S.setSkill('math7.add-negatives', { tries: before.tries + 2, right: before.right + 1 });
+  m = await go('#/skill/math7.add-negatives');
+  const marks = [...m.querySelectorAll('.la-marks i')].map(i => i.className);
+  ok(marks.slice(-2).join() === 'ok,miss', 'skill: the last answers, right and not yet (' + marks.join(' ') + ')');
+  m.querySelector('#later').click(); await tick(5);
+  ok(S.get().profile.later[0] === 'math7.add-negatives' && m.querySelector('#later').getAttribute('aria-pressed') === 'true', 'skill: save it to study later');
+  m.querySelector('#share-skill').click(); await tick(20);
+  ok(/#\/skill\/math7\.add-negatives$/.test(m.__shared || ''), 'skill: Share gives a link to the page');
+  const ck = m.querySelector('#check'), cq = ck.__check.q;
+  if (cq.type === 'choice') ck.querySelector(`.ck-choice[data-k="${cq.answerIndex}"]`).click(); else { ck.querySelector('#ck-ans').value = A.answerText(cq); ck.querySelector('form').dispatchEvent(new Event('submit', { cancelable: true })); }
+  ok(ck.querySelector('.feedback.good') && ck.__check.good === true, 'skill: Check your understanding marks a right answer');
+  ck.querySelector('#ck-new').click(); const cq2 = ck.__check.q;
+  if (cq2.type === 'choice') ck.querySelector(`.ck-choice[data-k="${(cq2.answerIndex + 1) % cq2.choices.length}"]`).click(); else { ck.querySelector('#ck-ans').value = String(Number(cq2.answer) + 1); ck.querySelector('form').dispatchEvent(new Event('submit', { cancelable: true })); }
+  ok(ck.querySelectorAll('.ck-steps li').length === cq2.hints.length && ck.__check.good === false && S.skill('math7.add-negatives').tries === before.tries + 2, 'skill: a miss shows the working, and nothing is scored');
+  const ex = m.querySelector('.learn .example'); ex.querySelector('[data-ex="new"]').click();
+  ok(ex.__swapped && ex.querySelectorAll('.ex-steps li').length === ex.__swapped.hints.length, 'skill: the lesson’s example with other numbers');
+  ex.querySelector('[data-ex="back"]').click();
+  ok(!ex.__swapped && ex.querySelector('[data-ex="new"]'), 'skill: and back to the lesson’s own example');
+  // text size, and Spanish where it's written
+  m.querySelector('[data-size="1"]').click();
+  ok(m.querySelector('.learn').dataset.size === 'l' && JSON.parse(localStorage.getItem('procademy.lesson.v1')).size === 'l', 'lesson: a larger text size, kept on this device');
+  m.querySelector('[data-size="-1"]').click();
+  m.querySelector('[data-lang="es"]').click(); await tick(5);
+  ok(m.querySelector('.learn').getAttribute('lang') === 'es' && /recta numérica/.test(text(m.querySelector('.learn-body'))), 'lesson: Spanish lesson text where it has been written');
+  m.querySelector('[data-lang="en"]').click(); lsDel('procademy.lesson.v1');
+  ok(!m.querySelector('.learn').hasAttribute('lang') && /number line/.test(text(m.querySelector('.learn-body'))), 'lesson: and back to English');
+  // a drawing with the note, then My notes: search, drawings and study later
+  m.querySelector('#draw-open').click(); await tick(10);
+  m.querySelector('#note-board').__board.add([100, 100, 200, 150, 300, 120]);
+  const dKey = Object.keys(localStorage).find(k => k.startsWith('procademy.drawings.v1'));
+  ok(dKey && JSON.parse(localStorage.getItem(dKey))['math7.add-negatives'].strokes.length === 1, 'notes: a drawing is saved with the lesson');
+  S.setNote('math7.add-negatives', 'Different signs: subtract the sizes.'); S.setNote('math7.circles', 'Use the radius for area.');
+  m = await go('#/notes');
+  ok(m.querySelector('.note-item[data-id="math7.add-negatives"] .note-drawing polyline') && m.querySelector('.study-later a[href="#/skill/math7.add-negatives"]'), 'notes: drawings and the skills to study later are on My notes');
+  const nf = m.querySelector('#notes-find'); nf.value = 'radius'; nf.dispatchEvent(new Event('input'));
+  ok([...m.querySelectorAll('.note-item')].filter(x => !x.hidden).length === 1 && m.querySelector('.note-item:not([hidden]) mark'), 'notes: search finds words in notes and marks them');
+  m.querySelector('[data-unlater="math7.add-negatives"]').click(); await tick(5);
+  ok(!S.get().profile.later.length, 'notes: a skill comes off Study later');
+  // a long lesson: In short, each part's point, and parts that fold
+  const longSid2 = Object.keys(A.skills).find(id => { if (!A.whereIs(id)) return false; const d = document.createElement('div'); d.innerHTML = A.skills[id].learn || ''; return d.children.length >= 4 && d.textContent.length > 900; });
+  m = await go('#/skill/' + encodeURIComponent(longSid2));
+  const goes = m.querySelectorAll('#learn-sum .ls-go');
+  ok(goes.length === m.querySelectorAll('.learn-step').length && goes.length >= 2 && [...goes].every(b => b.textContent.trim().length > 8) && goes[0].getAttribute('aria-current') === 'step', 'lesson: In short lists each part’s point');
+  goes[1].click(); await tick(5);
+  ok(/Step 2 of/.test(text(m.querySelector('.learn-nav'))), 'lesson: selecting a point opens that part');
+  m.querySelector('#ls-mode').click(); await tick(5);
+  const heads = m.querySelectorAll('.lpart-head');
+  ok(heads.length === goes.length && !m.querySelector('.learn-nav'), 'lesson: Show it all puts each part under its own heading');
+  heads[0].click();
+  ok(heads[0].getAttribute('aria-expanded') === 'false' && heads[0].nextElementSibling.hidden, 'lesson: a part folds away');
+  m.querySelector('#ls-mode').click(); await tick(5);
+  ok(m.querySelector('.learn-nav') && !m.querySelector('.lpart-head'), 'lesson: and back to one part at a time');
+  lsDel('procademy.read.v1');
+  // glossary: a lesson's own topic word is linked too
+  const gd = document.createElement('div'); gd.innerHTML = '<p>The area of a rectangle is its length times its width.</p>';
+  const gd2 = gd.cloneNode(true);
+  ok(VOCAB.linkify(gd, { topic: 'Area of rectangles' }) >= 1 && gd.querySelector('.term[data-word="area"]') && !VOCAB.linkify(gd2) && !gd2.querySelector('.term'), 'glossary: a lesson about area links “area”; others leave it alone');
+  // worksheets: a QR code for the answers, and a set code to check a printed sheet
+  MOVE.qrLib = () => ({ addData() {}, make() {}, createSvgTag() { return '<svg viewBox="0 0 10 10"><rect width="10" height="10"/></svg>'; } });
+  m = await go('#/worksheet/skill/math7.add-negatives');
+  const ws = m.__worksheet;
+  ok(/#\/worksheet\/skill\/math7\.add-negatives\?set=[a-z0-9]+&n=12&check=1$/.test(ws.answers) && await until(() => m.querySelector('.ws-qr svg')), 'worksheet: a QR code for the sheet’s answers');
+  m = await go(ws.answers.slice(ws.answers.indexOf('#')));
+  ok(m.__worksheet.check && m.__worksheet.seed === ws.seed && m.__worksheet.items.map(x => A.answerText(x.q)).join() === ws.items.map(x => A.answerText(x.q)).join() && m.querySelector('.ws-sheet[hidden]') && m.querySelector('.ws-key .ws-steps'), 'worksheet: the QR address opens the same sheet’s answers, with the steps');
+  m = await go('#/worksheet/unit/math-7/' + u1);
+  m.querySelector('#ws-code-in').value = 'abc12'; m.querySelector('#ws-code').dispatchEvent(new Event('submit', { cancelable: true })); await tick(5);
+  ok(m.__worksheet.check && m.__worksheet.seed === 'abc12', 'worksheet: a set code shows a printed sheet’s answers');
+  MOVE.qrLib = null;
+  // the saved courses' order goes to other devices with the account: the newer copy's order wins
+  const older = S.blank(), newer = S.blank();
+  older.profile.enrolled = ['math-7', 'math-8']; older.saved = Date.now() - 6e4; older.days[today] = { q: 3, right: 2, pts: 10 };
+  newer.profile.enrolled = ['math-8', 'math-7']; newer.saved = Date.now(); newer.days[today] = { q: 3, right: 2, pts: 10 };
+  ok(ACCOUNT.merge(older, newer).profile.enrolled.join() === 'math-8,math-7' && ACCOUNT.merge(newer, older).profile.enrolled.join() === 'math-8,math-7', 'my courses: their order follows the account to other devices');
+  window.print = realPrint;
+  document.querySelectorAll('#skill-print').forEach(x => x.remove()); document.body.classList.remove('print-skill');
+  Object.keys(localStorage).filter(k => /^procademy\.(drawings|answers)\.v1/.test(k)).forEach(lsDel);
   S.reset();
   }
 
