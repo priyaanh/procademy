@@ -3629,6 +3629,8 @@
   ok(/^Not quite/.test(srSay()) && m.querySelector('#feedback').getAttribute('aria-live') === 'off', 'screen readers: a wrong answer is said once, and the redrawn region stays quiet');
   q = sess.items[sess.i].q; m.querySelector('#ans').value = String(q.answer); m.querySelector('#ans').dispatchEvent(new Event('input', { bubbles: true })); m.querySelector('#check').click(); await tick(120);
   ok(/^Correct\./.test(srSay()), 'screen readers: a right answer is said: ' + srSay().slice(0, 40));
+  const dotsEl = m.querySelector('.dots');
+  ok(dotsEl && /: 1 right after a hint or another try$/.test(dotsEl.getAttribute('aria-label')) && /gradient/.test(getComputedStyle(dotsEl.querySelector('span.hinted')).backgroundImage), 'charts: a set’s dots say what their colors mean, and a right-after-a-retry dot is half filled, not only amber');
   // skip links: Skip to content stays on the page; Skip to the answer appears in practice and goes to the box
   const skipA = document.querySelector('a.skip-ans');
   m = await goA('#/practice/math7.add-negatives'); await tick(30);
