@@ -34,6 +34,9 @@
     learn: p('On a number line, adding a positive number moves you to the right and adding a negative number moves you to the left.') +
       p('<b>Same signs:</b> add the sizes and keep the sign. −4 + (−3) = −7.<br><b>Different signs:</b> subtract the smaller size from the larger, and keep the sign of the number with the larger size. −9 + 4 = −5, because 9 − 4 = 5 and the 9 was negative.') +
       example('Example', `${big('−12 + 7')}The signs differ. 12 − 7 = 5, and 12 is the bigger size and it was negative, so the answer is <b>−5</b>.`),
+    learnEs: p('En la recta numérica, sumar un número positivo te mueve a la derecha y sumar un número negativo te mueve a la izquierda.') +
+      p('<b>Signos iguales:</b> suma los tamaños y conserva el signo. −4 + (−3) = −7.<br><b>Signos distintos:</b> resta el tamaño menor del mayor y conserva el signo del número de mayor tamaño. −9 + 4 = −5, porque 9 − 4 = 5 y el 9 era negativo.') +
+      example('Ejemplo', `${big('−12 + 7')}Los signos son distintos. 12 − 7 = 5, y 12 es el tamaño mayor y era negativo, así que la respuesta es <b>−5</b>.`),
     make(rng) {
       let a = rng.nz(-20, 20), b = rng.nz(-20, 20);
       if (a > 0 && b > 0) a = -a;
@@ -54,6 +57,9 @@
     learn: p('Subtracting a number is the same as adding its opposite. So every subtraction can be rewritten as an addition, and then the addition rules take over.') +
       p(`${V('a')} − ${V('b')} = ${V('a')} + (−${V('b')}), and ${V('a')} − (−${V('b')}) = ${V('a')} + ${V('b')}. Two minus signs next to each other make a plus.`) +
       example('Example', `${big('−3 − (−8)')}Subtracting −8 is adding 8: −3 + 8 = <b>5</b>.`),
+    learnEs: p('Restar un número es lo mismo que sumar su opuesto. Así, toda resta se puede escribir como una suma, y luego se usan las reglas de la suma.') +
+      p(`${V('a')} − ${V('b')} = ${V('a')} + (−${V('b')}), y ${V('a')} − (−${V('b')}) = ${V('a')} + ${V('b')}. Dos signos de menos seguidos se convierten en un más.`) +
+      example('Ejemplo', `${big('−3 − (−8)')}Restar −8 es sumar 8: −3 + 8 = <b>5</b>.`),
     make(rng) {
       let a = rng.nz(-20, 20), b = rng.nz(-20, 20);
       if (a > 0 && b > 0 && rng.chance(0.7)) b = -b;
@@ -74,6 +80,9 @@
     learn: p('The absolute value of a number is its distance from zero, so it is never negative: |−7| = 7 and |7| = 7.') +
       p(`The distance between two numbers on the number line is the absolute value of their difference: distance from ${V('a')} to ${V('b')} is |${V('a')} − ${V('b')}|. The order does not matter, because |−5| and |5| are both 5.`) +
       example('Example', `How far apart are −6 and 9? |−6 − 9| = |−15| = <b>15</b>.`),
+    learnEs: p('El valor absoluto de un número es su distancia al cero, así que nunca es negativo: |−7| = 7 y |7| = 7.') +
+      p(`La distancia entre dos números en la recta numérica es el valor absoluto de su diferencia: la distancia de ${V('a')} a ${V('b')} es |${V('a')} − ${V('b')}|. El orden no importa, porque |−5| y |5| son los dos 5.`) +
+      example('Ejemplo', `¿Qué tan lejos están −6 y 9? |−6 − 9| = |−15| = <b>15</b>.`),
     make(rng) {
       const kind = rng.pick(['abs', 'dist', 'dist', 'temp']);
       if (kind === 'abs') {
@@ -100,6 +109,9 @@
     learn: p('Multiply or divide the sizes as usual, then decide the sign: <b>same signs give a positive</b>, <b>different signs give a negative</b>.') +
       p('(−6) × (−4) = 24 because both are negative. 36 ÷ (−9) = −4 because the signs differ. With three or more factors, count the negatives: an even number of them gives a positive, an odd number gives a negative.') +
       example('Example', `${big('(−3) × 5 × (−2)')}Two negatives, so the result is positive: 3 × 5 × 2 = <b>30</b>.`),
+    learnEs: p('Multiplica o divide los tamaños como siempre y después decide el signo: <b>signos iguales dan positivo</b> y <b>signos distintos dan negativo</b>.') +
+      p('(−6) × (−4) = 24 porque los dos son negativos. 36 ÷ (−9) = −4 porque los signos son distintos. Con tres factores o más, cuenta los negativos: una cantidad par da positivo y una cantidad impar da negativo.') +
+      example('Ejemplo', `${big('(−3) × 5 × (−2)')}Hay dos negativos, así que el resultado es positivo: 3 × 5 × 2 = <b>30</b>.`),
     make(rng) {
       const kind = rng.pick(['mul', 'mul', 'div', 'triple']);
       const wrap = x => x < 0 ? `(${N(x)})` : N(x);
@@ -130,6 +142,9 @@
     learn: p('Work in this order: anything in <b>parentheses</b>, then <b>exponents</b>, then <b>multiplication and division</b> from left to right, then <b>addition and subtraction</b> from left to right.') +
       p('Negative numbers follow the same order; just keep the sign rules in mind at each step. Writing one step per line keeps the signs straight.') +
       example('Example', `${big('−4 + 3 × (−5)')}Multiply first: 3 × (−5) = −15. Then −4 + (−15) = <b>−19</b>.`),
+    learnEs: p('Trabaja en este orden: primero lo que está entre <b>paréntesis</b>, luego los <b>exponentes</b>, luego la <b>multiplicación y la división</b> de izquierda a derecha, y al final la <b>suma y la resta</b> de izquierda a derecha.') +
+      p('Los números negativos siguen el mismo orden; solo ten presentes las reglas de los signos en cada paso. Escribir un paso por renglón ayuda a no perder los signos.') +
+      example('Ejemplo', `${big('−4 + 3 × (−5)')}Primero multiplica: 3 × (−5) = −15. Después −4 + (−15) = <b>−19</b>.`),
     make(rng) {
       const wrap = x => x < 0 ? `(${N(x)})` : N(x);
       const form = rng.pick(['a+b*c', '(a+b)*c', 'a-b*c', 'a*b-c*d', 'a/b+c']);

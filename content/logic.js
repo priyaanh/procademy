@@ -23,7 +23,7 @@
   /** every ordering of a list */
   function perms(a) { if (a.length <= 1) return [a.slice()]; const out = []; a.forEach((x, i) => perms(a.slice(0, i).concat(a.slice(i + 1))).forEach(r => out.push([x].concat(r)))); return out; }
   const COURSE = {
-    id: 'coding-logic', title: 'Coding and logic', subject: 'Middle school', grade: 7, icon: 'Code', hue: 200,
+    id: 'coding-logic', title: 'Coding and logic', subject: 'Middle school', area: 'coding', added: '2026-11-11', grade: 7, icon: 'Code', hue: 200,
     blurb: 'Thinking like a programmer: logic puzzles, truth tables, sequences and patterns, reading code and tracing loops, binary and other number bases, and the steps of simple algorithms.',
     units: [
       { id: 'puzzles', title: 'Logic puzzles', blurb: 'Truth-tellers and liars, ordering puzzles, matching puzzles, and if-then reasoning.', skills: ['logic.truth-tellers', 'logic.ordering', 'logic.matching', 'logic.if-then'] },

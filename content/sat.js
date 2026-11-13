@@ -31,7 +31,7 @@
   /** "a" or "an" before a number said aloud: an 8-mile ride, an 11-mile ride */
   const an = n => [8, 11, 18].includes(n) || (n >= 80 && n < 90) ? 'an' : 'a';
   const COURSE = {
-    id: 'sat-act', title: 'SAT and ACT style math', subject: 'High school', grade: 11, icon: 'SAT', hue: 230,
+    id: 'sat-act', title: 'SAT and ACT style math', subject: 'High school', area: 'prep', added: '2026-11-11', grade: 11, icon: 'SAT', hue: 230,
     blurb: 'Original practice in the style of the SAT and ACT math sections, by topic area and in mixed test-style sets. Listed at grade 11, the year most students take these tests.',
     units: [
       { id: 'algebra', title: 'Algebra', blurb: 'Linear equations, linear models, systems, inequalities, and the slopes and intercepts of lines.', skills: ['sat.linear-equations', 'sat.linear-models', 'sat.systems', 'sat.linear-inequalities', 'sat.lines'] },
