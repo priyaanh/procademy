@@ -3676,6 +3676,10 @@
   const noClock = !m.querySelector('#ex-clock');
   S.setProfile({ timeLimits: null }); m = await goA('#/warmup'); await tick(20);
   ok(noClock && m.querySelector('#ex-clock'), 'time limits: turned off, the warm-up has no countdown');
+  const tl0 = S.timeLimit; S.timeLimit = () => 1200;
+  m = await goA('#/quiz/math-7/negatives-add'); await tick(1700);
+  S.timeLimit = tl0;
+  ok(/^Time’s up/.test(srSay()) && m.querySelector('.sum-extra'), 'time limits: a quiz running out of time is said to screen readers as well as shown');
   // the study timer's end stays on screen until it's put away
   const tkey = 'procademy.timer.v1', tWas = localStorage.getItem(tkey);
   S.setProfile({ quiet: { from: 0, to: 24 } });          // quiet hours all day: no chime in the suite
