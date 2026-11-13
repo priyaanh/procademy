@@ -407,6 +407,11 @@
     const rt = REPORT.asText(m.__report);
     ok(m.__report.period === '30' && /Tutor: 2 questions asked in 1 tutor chat\./.test(rt) && /Practice goes best in the afternoon/.test(rt) && /7th grade math: 2 of \d+ skills Proficient/.test(rt) && !/Negative fractions/.test(rt), 'report: tutor use as counts only, the best time of day and the course forecast');
     ok(/Mastery by area/.test(text(m)) && /Questions flagged as confusing/.test(text(m)) && /How to help at home/.test(text(m)) && /Asked for help/.test(text(m.querySelector('.rp-help'))) && m.querySelector('.pr-private'), 'report: areas, flagged questions, how to help, the note asking for help, and a privacy note');
+    S.setProfile({ recapSeen: null });
+    const rc = REPORT.weekRecap(), holder = document.createElement('div'); holder.innerHTML = rc; document.body.appendChild(holder);
+    holder.querySelector('[data-report-period]').addEventListener('click', ev => ev.preventDefault()); holder.querySelector('[data-report-period]').click(); holder.remove();
+    m = await goF('#/report');
+    ok(/id="recap-x"/.test(rc) && /week before/.test(rc) && /For this week/.test(rc) && m.__report.period === 'lastweek', 'recap: a fuller Monday recap of last week, whose report opens on last week');
     // Family and class: the learner's week in plain words, next steps, help, tutor use, controls, tests
     m = await goF('#/family');
     const me = LEARNERS.active(), card0 = m.querySelector('.fam-card');

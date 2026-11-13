@@ -3536,3 +3536,5 @@ html.pc-focus main { padding-top: 20px; }
 .ln-hue input:checked + .avatar { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
 .ln-hue input:focus-visible + .avatar { outline: 3px solid var(--primary); outline-offset: 2px; }
 .fam-assign .btn[aria-disabled="true"], .fam-pickset .btn[aria-disabled="true"] { opacity: .55; }
+.recap-lines { margin: 8px 0 0; padding-left: 1.2rem; display: grid; gap: 2px; font-size: .92rem; }
+.recap-next { margin: 8px 0 0; }
