@@ -542,9 +542,11 @@
 
   A.skill({
     id: 'math8.pythagorean-theorem', title: 'Pythagorean theorem and distance',
-    learn: p(`In a right triangle the two shorter sides are the <b>legs</b> (${V('a')} and ${V('b')}) and the side opposite the right angle is the <b>hypotenuse</b> (${V('c')}), always the longest side. The <b>Pythagorean theorem</b>: <b>${S(V('a'), 2)} + ${S(V('b'), 2)} = ${S(V('c'), 2)}</b>.`) +
+    learn: p(`A <b>right triangle</b> has one square corner, a 90° angle called the <b>right angle</b>. The two sides that make the right angle are the <b>legs</b> (${V('a')} and ${V('b')}), and the side across from it is the <b>hypotenuse</b> (${V('c')}), always the longest side. The <b>Pythagorean theorem</b> links them: <b>${S(V('a'), 2)} + ${S(V('b'), 2)} = ${S(V('c'), 2)}</b>.`) +
       p(`To find the hypotenuse, add the squares of the legs and take the square root. To find a missing leg, <b>subtract</b>: ${S(V('b'), 2)} = ${S(V('c'), 2)} − ${S(V('a'), 2)}. The distance between two points is a hypotenuse too: the horizontal and vertical gaps are the legs.`) +
-      example('Example', `${big(`Distance from ${PT(1, 2)} to ${PT(7, 10)}`)}The legs are 7 − 1 = 6 and 10 − 2 = 8. ${S(6, 2)} + ${S(8, 2)} = 36 + 64 = 100, and ${M.sqrt(100)} = <b>10</b>.`),
+      example('Example: the hypotenuse', `${big('Legs of 5 cm and 12 cm')}${S(5, 2)} + ${S(12, 2)} = 25 + 144 = 169, so ${S(V('c'), 2)} = 169 and ${V('c')} = ${M.sqrt(169)} = <b>13 cm</b>.`) +
+      example('Example: a missing leg', `${big('A 10 ft ladder, its foot 6 ft from the wall')}The ladder is the hypotenuse. ${S(V('b'), 2)} = ${S(10, 2)} − ${S(6, 2)} = 100 − 36 = 64, so the ladder reaches ${M.sqrt(64)} = <b>8 ft</b> up the wall.`) +
+      example('Example: a distance', `${big(`Distance from ${PT(1, 2)} to ${PT(7, 10)}`)}The legs are 7 − 1 = 6 and 10 − 2 = 8. ${S(6, 2)} + ${S(8, 2)} = 36 + 64 = 100, and ${M.sqrt(100)} = <b>10</b> units.`),
     make(rng) {
       const kind = rng.pick(['hyp', 'leg', 'distance', 'ladder']);
       const t = rng.pick(TRIPLES), k = t[2] > 25 ? 1 : rng.int(1, t[2] > 13 ? 2 : 4);
@@ -580,9 +582,12 @@
 
   A.skill({
     id: 'math8.volume', title: 'Volume of cylinders, cones, and spheres',
-    learn: p(`Each of these solids has a formula built on the area of a circle, π${S(V('r'), 2)}. <b>Cylinder:</b> ${V('V')} = π${S(V('r'), 2)}${V('h')} (the circle's area times the height). <b>Cone:</b> ${V('V')} = ${F(1, 3)}π${S(V('r'), 2)}${V('h')}, exactly one third of the cylinder with the same base and height. <b>Sphere:</b> ${V('V')} = ${F(4, 3)}π${S(V('r'), 3)}.`) +
-      p(`Watch for a <b>diameter</b>: the radius is half of it. Volume is measured in cubic units such as cm³. In these exercises use <b>3.14 for π</b> and round to two decimal places.`) +
-      example('Example', `${big('A cone with radius 3 cm and height 5 cm')}${V('V')} = ${F(1, 3)} × 3.14 × ${S(3, 2)} × 5 = ${F(1, 3)} × 3.14 × 45 = <b>47.1 cm³</b>.`),
+    learn: p(`<b>Volume</b> is the space inside a solid, counted in cubes such as cm³. A <b>cylinder</b> is a can shape, a <b>cone</b> narrows from a circle to a point, and a <b>sphere</b> is a ball. Each formula is built on the area of a circle, π${S(V('r'), 2)}, where ${V('r')} is the <b>radius</b> (the distance from the center to the edge).`) +
+      p(`<b>Cylinder:</b> ${V('V')} = π${S(V('r'), 2)}${V('h')}, the circle’s area times the height. <b>Cone:</b> ${V('V')} = ${F(1, 3)}π${S(V('r'), 2)}${V('h')}, exactly one third of the cylinder with the same base and height. <b>Sphere:</b> ${V('V')} = ${F(4, 3)}π${S(V('r'), 3)}.`) +
+      p(`Watch for a <b>diameter</b>, the distance all the way across: the radius is half of it. In these exercises use <b>3.14 for π</b> and round to two decimal places.`) +
+      example('Example: a cylinder', `${big('A cylinder with diameter 8 cm and height 10 cm')}The radius is 8 ÷ 2 = 4 cm. ${V('V')} = 3.14 × ${S(4, 2)} × 10 = 3.14 × 160 = <b>502.4 cm³</b>.`) +
+      example('Example: a cone', `${big('A cone with radius 3 cm and height 5 cm')}${V('V')} = ${F(1, 3)} × 3.14 × ${S(3, 2)} × 5 = ${F(1, 3)} × 3.14 × 45 = <b>47.1 cm³</b>.`) +
+      example('Example: a sphere', `${big('A sphere with radius 3 cm')}${V('V')} = ${F(4, 3)} × 3.14 × ${S(3, 3)} = ${F(4, 3)} × 3.14 × 27 = 4 × 3.14 × 9 = <b>113.04 cm³</b>.`),
     make(rng) {
       const shape = rng.pick(['cylinder', 'cone', 'sphere']), useD = rng.chance(0.3);
       const r = rng.int(1, 9), h = rng.int(2, 15), d = 2 * r;
@@ -606,9 +611,11 @@
 
   A.skill({
     id: 'math8.triangle-angles', title: 'Angles in triangles',
-    learn: p(`The three <b>interior angles</b> of any triangle add up to <b>180°</b>. So if you know two of them, subtract their sum from 180° to get the third.`) +
-      p(`An <b>exterior angle</b> is formed by extending one side. It sits on a straight line with its neighboring interior angle, so the two add to 180°. That makes the exterior angle equal to the <b>sum of the two remote interior angles</b> (the two that are not next to it).`) +
-      example('Example', `A triangle has angles 48° and 67°. The third is 180° − (48° + 67°) = 180° − 115° = <b>65°</b>. The exterior angle next to it is 48° + 67° = 115°.`),
+    learn: p(`The three <b>interior angles</b> of a triangle are the angles inside it, at its corners. In any triangle they add up to <b>180°</b>. So if you know two of them, subtract their sum from 180° to get the third.`) +
+      p(`An <b>exterior angle</b> is the angle outside the triangle that you get by extending one side past a corner. It sits on a straight line with the interior angle next to it, so the two add to 180°. That makes the exterior angle equal to the <b>sum of the two remote interior angles</b>, the two that aren’t next to it.`) +
+      example('Example: the third angle', `A triangle has angles of 48° and 67°. The third is 180° − (48° + 67°) = 180° − 115° = <b>65°</b>. The exterior angle next to it is 48° + 67° = 115°.`) +
+      example('Example: a remote interior angle', `An exterior angle measures 130°, and one remote interior angle is 55°. The two remote angles add to 130°, so the other one is 130° − 55° = <b>75°</b>.`) +
+      example('Example: with algebra', `A triangle’s angles are 50°, ${X}°, and (2${X} + 10)°. They add to 180: 50 + ${X} + 2${X} + 10 = 180, so 3${X} + 60 = 180, 3${X} = 120 and <b>${X} = 40</b>. Check: 50 + 40 + 90 = 180. ✓`),
     make(rng) {
       const kind = rng.pick(['third', 'third', 'exterior', 'remote', 'algebra']);
       let A1 = rng.int(25, 95), B1 = rng.int(20, 155 - A1); const C1 = 180 - A1 - B1;
@@ -633,9 +640,11 @@
 
   A.skill({
     id: 'math8.transformations', title: 'Translations, reflections, and rotations',
-    learn: p(`A <b>translation</b> slides a point: “3 left and 2 up” sends ${PT('x', 'y').replace('x', X).replace('y', Y)} to (${X} − 3, ${Y} + 2). A <b>reflection over the ${X}-axis</b> flips the sign of ${Y}: (${X}, −${Y}). A <b>reflection over the ${Y}-axis</b> flips the sign of ${X}: (−${X}, ${Y}).`) +
-      p(`Rotations about the origin: <b>90° counterclockwise</b> sends (${X}, ${Y}) to (−${Y}, ${X}); <b>90° clockwise</b> sends it to (${Y}, −${X}); <b>180°</b> sends it to (−${X}, −${Y}). Sketching the point on a grid is a quick way to check you turned the right way.`) +
-      example('Example', `Rotate ${PT(4, 1)} by 90° counterclockwise about the origin. (${X}, ${Y}) → (−${Y}, ${X}) gives <b>${PT(-1, 4)}</b>.`),
+    learn: p(`A <b>transformation</b> moves a point or a shape, and the new position is called its <b>image</b>. A <b>translation</b> slides it: “3 left and 2 up” sends ${PT('x', 'y').replace('x', X).replace('y', Y)} to (${X} − 3, ${Y} + 2). A <b>reflection</b> flips it over a line like a mirror. Over the ${X}-axis, the sign of ${Y} changes: (${X}, −${Y}). Over the ${Y}-axis, the sign of ${X} changes: (−${X}, ${Y}).`) +
+      p(`A <b>rotation</b> turns it around a point, here the <b>origin</b> ${PT(0, 0)}. <b>90° counterclockwise</b> sends (${X}, ${Y}) to (−${Y}, ${X}); <b>90° clockwise</b> sends it to (${Y}, −${X}); <b>180°</b> sends it to (−${X}, −${Y}). Sketching the point on a grid is a quick way to check that you turned the right way.`) +
+      example('Example: a translation', `Translate ${PT(-2, 5)} 4 units right and 3 units down. Add 4 to ${X} and subtract 3 from ${Y}: (−2 + 4, 5 − 3) = <b>${PT(2, 2)}</b>.`) +
+      example('Example: a reflection', `Reflect ${PT(3, -6)} over the ${X}-axis. Keep ${X} and change the sign of ${Y}: <b>${PT(3, 6)}</b>.`) +
+      example('Example: a rotation', `Rotate ${PT(4, 1)} 90° counterclockwise about the origin. (${X}, ${Y}) → (−${Y}, ${X}) gives <b>${PT(-1, 4)}</b>.`),
     make(rng) {
       const x = rng.nz(-8, 8), y = rng.nz(-8, 8);
       const kind = rng.pick(['translate', 'reflect-x', 'reflect-y', 'rot90ccw', 'rot90cw', 'rot180']);
@@ -666,8 +675,9 @@
   A.skill({
     id: 'math8.two-way-tables', title: 'Two-way tables',
     learn: p(`A <b>two-way table</b> sorts the same group of people by two questions at once: one along the rows, one along the columns. Each cell counts the people who fit both. The totals at the end of each row and column add up the cells, so a missing cell can be found by subtracting.`) +
-      p(`A <b>row relative frequency</b> compares a cell with its row total: cell ÷ row total, written as a percent. It answers questions like “what percent of the 8th graders chose soccer?” Use the row total, not the grand total, as the bottom of the fraction.`) +
-      example('Example', `40 students in 7th grade were asked; 30 of them have a pet. The row relative frequency is 30 ÷ 40 = 0.75 = <b>75%</b>.`),
+      p(`A <b>relative frequency</b> is a count compared with a total. A <b>row relative frequency</b> compares a cell with its row total: cell ÷ row total, written as a percent. It answers questions like “what percent of the 8th graders chose soccer?” Use the row total, not the grand total, as the bottom of the fraction.`) +
+      example('Example: a missing cell', `${M.table(['', 'Has a pet', 'No pet', 'Total'], [['<b>7th grade</b>', '18', '?', '30'], ['<b>8th grade</b>', '14', '11', '25'], ['<b>Total</b>', '32', '23', '55']], { compact: true })}The 7th grade row adds to 30, so ? = 30 − 18 = <b>12</b>. Check with the column: 23 − 11 = 12. ✓`) +
+      example('Example: a percent of a row', `What percent of the 7th graders have a pet? Use the 7th grade row only: 18 ÷ 30 = 0.6 = <b>60%</b>. (Dividing by the grand total, 55, is the usual slip.)`),
     make(rng) {
       const set = rng.pick([
         { rows: ['7th grade', '8th grade'], cols: ['Has a pet', 'No pet'], who: 'students', q: (r, c) => `${c === 0 ? 'have a pet' : 'have no pet'}`, of: r => `${r} students` },
@@ -723,7 +733,9 @@
     id: 'math8.scatter-plots', title: 'Describing scatter plots',
     learn: p(`A <b>scatter plot</b> shows pairs of measurements as dots, one dot per person or thing. Read it from left to right. If the dots tend to <b>rise</b>, the two quantities have a <b>positive association</b>: as one goes up, the other tends to go up. If they tend to <b>fall</b>, it is a <b>negative association</b>.`) +
       p(`If the dots form a shapeless cloud with no upward or downward drift, there is <b>no association</b>. When the dots hug a straight line the association is <b>linear</b>; the closer they hug it, the stronger it is. An association is a tendency, not a rule for every single dot.`) +
-      example('Example', `Hours spent practicing piano each week against mistakes made in a recital: more practice, fewer mistakes. The dots fall from left to right, a <b>negative association</b>.`),
+      example('Example: negative', `Hours spent practicing piano each week against mistakes made in a recital: more practice tends to go with fewer mistakes. The dots fall from left to right, a <b>negative association</b>.`) +
+      example('Example: positive', `The age of a tree against the width of its trunk: older trees tend to be wider. The dots rise from left to right, a <b>positive association</b>.`) +
+      example('Example: none', `Each student’s birth month against their height: the dots are spread all over, with no drift up or down. There’s <b>no association</b>.`),
     make(rng) {
       const kind = rng.pick(['positive', 'negative', 'none']);
       const ctx = rng.pick([
@@ -853,7 +865,8 @@
     id: 'math8.interpret-graphs', title: 'Interpreting graphs',
     learn: p(`Before reading any point on a graph, read the <b>axes</b>: what each one measures and which way is “more”. <b>Further right means more of the horizontal quantity; higher up means more of the vertical quantity.</b> A point is one thing (a person, a bag, a moment in time) described by both quantities at once.`) +
       p(`To compare two points, compare their positions: a point to the right of and below another has more of the horizontal quantity but less of the vertical one. On a graph of <b>distance from home against time</b>, the steepness tells the story: going up means moving away, a flat part means standing still, going down means coming back, and a steeper part means moving faster.`) +
-      example('Example', `On a graph of height against age, point C is furthest to the right and point A is highest. So C is the <b>oldest</b> person and A is the <b>tallest</b>. If B is to the right of A and lower, then B is older and shorter than A.`),
+      example('Example: points on a graph', `On a graph of height against age, point C is furthest to the right and point A is highest. So C is the <b>oldest</b> person and A is the <b>tallest</b>. If B is to the right of A and lower, then B is <b>older and shorter</b> than A.`) +
+      example('Example: a walk', `On a graph of distance from home against time, the line stays at 400 m from 10 to 15 minutes, so the walker is <b>standing still</b>. From 15 to 20 minutes it drops from 400 m to 0 m, so the walker is <b>going back home</b>, at 400 ÷ 5 = 80 m per minute.`),
     make(rng) {
       const kind = rng.pick(['points', 'points', 'points', 'walk', 'walk']);
       return kind === 'points' ? graphPoints(rng) : graphWalk(rng);
@@ -959,7 +972,9 @@
     learn: p(`Every point on the graph of a rule is a <b>solution</b> of the rule: its coordinates make the equation true. So to test whether a point lies on the line ${eqn(2, 1)}, <b>substitute its ${X}-value into the rule and check that you get its ${Y}-value</b>.`) +
       p(`For ${PT(3, 7)}: 2(3) + 1 = 7, which matches, so ${PT(3, 7)} is on the line. For ${PT(7, 3)}: 2(7) + 1 = 15, not 3, so it is not. Keep the order straight: the first number is always ${X}.`) +
       p(`The same idea finds a missing coordinate. If ${PT(4, V('k'))} is on the line, then ${V('k')} = 2(4) + 1 = 9. If it is the ${Y}-value you know, put it in for ${Y} and solve for ${X}.`) +
-      example('Example', `${big(`Is ${PT(-2, 5)} on the line ${eqn(-3, -1)}?`)}Substitute ${X} = −2: −3(−2) − 1 = 6 − 1 = 5. That is the point's ${Y}-value, so <b>yes</b>, it is on the line.`),
+      example('Example: testing a point', `${big(`Is ${PT(-2, 5)} on the line ${eqn(-3, -1)}?`)}Substitute ${X} = −2: −3(−2) − 1 = 6 − 1 = 5. That’s the point’s ${Y}-value, so <b>yes</b>, it’s on the line.`) +
+      example(`Example: a missing ${Y}-value`, `${big(`${PT(-3, V('k'))} is on ${eqn(2, 7)}`)}Put ${X} = −3 into the rule: ${V('k')} = 2(−3) + 7 = −6 + 7 = <b>1</b>.`) +
+      example(`Example: a missing ${X}-value`, `${big(`${PT(V('k'), 11)} is on ${eqn(3, -4)}`)}Put ${Y} = 11 into the rule: 11 = 3${X} − 4. Add 4: 15 = 3${X}. Divide by 3: <b>${V('k')} = 5</b>.`),
     make(rng) {
       const kind = rng.pick(['which', 'which', 'find-y', 'find-x']);
       const m = rng.nz(-5, 5), b = rng.int(-9, 9), rule = eqn(m, b);
@@ -1003,10 +1018,11 @@
 
   A.skill({
     id: 'math8.graph-lines', title: 'Graphing lines from slope-intercept form',
-    learn: p(`An equation in the form ${Y} = ${V('m')}${X} + ${V('b')} tells you how to draw its line without making a table. <b>Start at the ${Y}-intercept ${PT(0, V('b'))}, then use the slope as rise over run</b> to step to a second point, and draw the line through both.`) +
+    learn: p(`An equation in the form ${Y} = ${V('m')}${X} + ${V('b')} tells you how to draw its line without making a table. <b>Start at the ${Y}-intercept ${PT(0, V('b'))}, then use the slope as rise over run</b> to step to a second point, and draw the line through both. The <b>rise</b> is how far you go up or down, and the <b>run</b> is how far you go right.`) +
       p(`Write the slope as a fraction: 3 is ${fracH('3', '1')}, so from the intercept go up 3 and right 1. A negative slope such as −${F(2, 3)} means go <b>down</b> 2 and right 3. Check the result: a positive slope rises from left to right, a negative slope falls.`) +
       p(`Reading a graph works the same way backwards: the line crosses the ${Y}-axis at ${V('b')}, and counting the rise and the run between two grid points gives ${V('m')}.`) +
-      example('Example', `${big(lineF(2, 3, -1))}Plot the ${Y}-intercept ${PT(0, -1)}. The slope ${F(2, 3)} means up 2 and right 3, which lands on ${PT(3, 1)}. The line through <b>${PT(0, -1)} and ${PT(3, 1)}</b> is the graph.`),
+      example('Example: drawing a line', `${big(lineF(2, 3, -1))}Plot the ${Y}-intercept ${PT(0, -1)}. The slope ${F(2, 3)} means up 2 and right 3, which lands on ${PT(3, 1)}. The line through <b>${PT(0, -1)} and ${PT(3, 1)}</b> is the graph.`) +
+      example('Example: reading a line', `A line crosses the ${Y}-axis at ${PT(0, 3)} and also passes through ${PT(2, -1)}. From ${PT(0, 3)} to ${PT(2, -1)} it goes right 2 and down 4, so the slope is −4 ÷ 2 = −2. The equation is <b>${eqn(-2, 3)}</b>.`),
     make(rng) {
       const [mn, md] = rng.pick(SLOPES), b = rng.int(-4, 4), kind = rng.pick(['pick-graph', 'pick-equation', 'next-point']);
       const rule = lineF(mn, md, b), [flip, ...rest] = lineSlips(rng, mn, md, b), slips = [flip].concat(rng.shuffle(rest));
@@ -1078,9 +1094,10 @@
 
   A.skill({
     id: 'math8.circle-graphs', title: 'Circle graphs',
-    learn: p(`A <b>circle graph</b> (pie chart) shows how a whole splits into parts. The whole circle stands for everyone, 100% of the data, and each sector's share of the circle equals its category's share of the total.`) +
-      p(`A full turn is 360°, so <b>central angle = (part ÷ whole) × 360°</b>, and <b>percent = (part ÷ whole) × 100</b>. Going the other way, a sector's angle ÷ 360° gives its fraction of the whole: 90° is a quarter, 25%. To turn a percent back into a count, multiply it (as a decimal) by the total.`) +
-      example('Example', `${big('12 of 48 students walk to school.')}12 ÷ 48 = 0.25, so walkers are 25% of the students, and their sector has a central angle of 0.25 × 360° = <b>90°</b>.`),
+    learn: p(`A <b>circle graph</b> (pie chart) shows how a whole splits into parts. The whole circle stands for everyone, 100% of the data. Each slice is a <b>sector</b>, and a sector’s share of the circle equals its category’s share of the total.`) +
+      p(`The <b>central angle</b> of a sector is its angle at the center of the circle. A full turn is 360°, so <b>central angle = (part ÷ whole) × 360°</b>, and <b>percent = (part ÷ whole) × 100</b>. Going the other way, a sector’s angle ÷ 360° gives its fraction of the whole: 90° is a quarter, 25%. To turn a percent back into a count, multiply it (as a decimal) by the total.`) +
+      example('Example: count to angle', `${big('12 of 48 students walk to school.')}12 ÷ 48 = 0.25, so walkers are 25% of the students, and their sector has a central angle of 0.25 × 360° = <b>90°</b>.`) +
+      example('Example: angle to count', `${big('60 students; the Bus sector is 72°.')}72° ÷ 360° = 0.2, which is 20% of the circle. So 0.2 × 60 = <b>12 students</b> ride the bus.`),
     make(rng) {
       const set = rng.pick(PIE_SETS), k = rng.int(3, Math.min(5, set.cats.length));
       const cats = rng.sample(set.cats, k), units = cats.map(() => 2);           // shares in steps of 5%, each at least 10%
@@ -1144,7 +1161,8 @@
     learn: p(`When a scatter plot shows a linear association, a <b>trend line</b> (line of best fit) sums it up. A good trend line <b>follows the direction of the dots and passes through the middle of the cloud</b>, with about as many dots above it as below. It does not have to touch any dot.`) +
       p(`Write its equation like any line: read the ${Y}-intercept where it crosses the ${Y}-axis, and find the slope from two points on the line (not two dots of data). The slope is the predicted change in ${Y} for each extra unit of ${X}.`) +
       p(`To <b>predict</b>, substitute the ${X}-value into the equation. A prediction is an estimate: real data points sit near the line, not exactly on it.`) +
-      example('Example', `${big(`Trend line: ${eqn(3.5, 40)}`)}For a student who practices 6 hours, ${Y} = 3.5(6) + 40 = 21 + 40 = <b>61 points</b>. The slope says each extra hour goes with about 3.5 more points.`),
+      example('Example: a prediction', `${big(`Trend line: ${eqn(3.5, 40)}`)}For a student who practices 6 hours, ${Y} = 3.5(6) + 40 = 21 + 40 = <b>61 points</b>. The slope says each extra hour goes with about 3.5 more points.`) +
+      example('Example: writing the equation', `A trend line crosses the ${Y}-axis at ${PT(0, 20)} and passes through ${PT(10, 45)}. The slope is (45 − 20) ÷ (10 − 0) = 25 ÷ 10 = 2.5, and the ${Y}-intercept is 20, so the equation is <b>${eqn(2.5, 20)}</b>.`),
     make(rng) {
       const c = rng.pick(TREND_CTX), m = rng.pick(c.ms), b = rng.pick(c.bs), kind = rng.pick(['predict', 'predict', 'meaning', 'choose', 'read']);
       const step = c.xmax / 20, noise = c.ymax * 0.06, ydp = c.ymax >= 100 ? 0 : 1;
@@ -1235,7 +1253,9 @@
     learn: p(`The longest straight line inside a box runs from one corner to the opposite corner, through the middle: the <b>space diagonal</b>. Find it by using the Pythagorean theorem <b>twice</b>.`) +
       p(`First, the diagonal across the bottom of the box (AC) is the hypotenuse of a right triangle whose legs are the length and the width: AC² = ${S(V('l'), 2)} + ${S(V('w'), 2)}. Second, AC and the height stand at right angles, so the space diagonal AG is the hypotenuse of another right triangle: AG² = AC² + ${S(V('h'), 2)}. Put together, <b>AG² = ${S(V('l'), 2)} + ${S(V('w'), 2)} + ${S(V('h'), 2)}</b>.`) +
       p(`The same idea finds the longest stick that fits in a can: it is the hypotenuse of a triangle with the can's height and its diameter (twice the radius) as legs.`) +
-      example('Example', `${big('A box 3 cm by 4 cm by 12 cm')}Base diagonal: 3² + 4² = 9 + 16 = 25, so AC = 5 cm. Space diagonal: 5² + 12² = 25 + 144 = 169, so AG = ${M.sqrt(169)} = <b>13 cm</b>.`),
+      example('Example: a space diagonal', `${big('A box 3 cm by 4 cm by 12 cm')}Base diagonal: ${S(3, 2)} + ${S(4, 2)} = 9 + 16 = 25, so AC = 5 cm. Space diagonal: ${S(5, 2)} + ${S(12, 2)} = 25 + 144 = 169, so AG = ${M.sqrt(169)} = <b>13 cm</b>.`) +
+      example('Example: a missing height', `${big('A box 2 cm by 3 cm, with a space diagonal of 7 cm')}${S(V('h'), 2)} = ${S(7, 2)} − ${S(2, 2)} − ${S(3, 2)} = 49 − 4 − 9 = 36, so the box is ${M.sqrt(36)} = <b>6 cm</b> tall.`) +
+      example('Example: a can', `${big('A can 8 cm tall with a radius of 3 cm')}The diameter is 2 × 3 = 6 cm. The longest stick is the hypotenuse: ${S(6, 2)} + ${S(8, 2)} = 36 + 64 = 100, so it’s ${M.sqrt(100)} = <b>10 cm</b> long.`),
     make(rng) {
       const kind = rng.pick(['space', 'space', 'base', 'rounded', 'missing', 'can']), u = rng.pick(['cm', 'cm', 'in', 'ft']);
       const dim = v => `${N(v)} ${u}`;
@@ -1294,7 +1314,9 @@
     learn: p(`The Pythagorean theorem also works backwards. Its <b>converse</b> says: <b>if the side lengths of a triangle fit ${S(V('a'), 2)} + ${S(V('b'), 2)} = ${S(V('c'), 2)}, where ${V('c')} is the longest side, then the triangle is a right triangle</b>, with the right angle opposite the longest side.`) +
       p(`So to test three lengths, square the two shorter sides and add, then compare with the square of the longest side. If ${S(V('a'), 2)} + ${S(V('b'), 2)} is <b>larger</b> than ${S(V('c'), 2)}, the longest side is too short to reach across a right angle, so the angle opposite it is less than 90°: an <b>acute</b> triangle. If ${S(V('a'), 2)} + ${S(V('b'), 2)} is <b>smaller</b>, that angle is more than 90°: an <b>obtuse</b> triangle.`) +
       p(`Builders use this to check a square corner: 3 units along one edge, 4 along the other, and the diagonal between the marks must be exactly 5.`) +
-      example('Example', `${big('Sides 8, 15, 17')}The longest side is 17. 8² + 15² = 64 + 225 = 289, and 17² = 289. They are equal, so this is a <b>right triangle</b>.`),
+      example('Example: right', `${big('Sides 8, 15, 17')}The longest side is 17. ${S(8, 2)} + ${S(15, 2)} = 64 + 225 = 289, and ${S(17, 2)} = 289. They’re equal, so this is a <b>right triangle</b>.`) +
+      example('Example: obtuse', `${big('Sides 5, 7, 10')}The longest side is 10. ${S(5, 2)} + ${S(7, 2)} = 25 + 49 = 74, and ${S(10, 2)} = 100. 74 is smaller, so the angle across from the longest side is more than 90°: an <b>obtuse triangle</b>.`) +
+      example('Example: acute', `${big('Sides 6, 7, 8')}${S(6, 2)} + ${S(7, 2)} = 36 + 49 = 85, and ${S(8, 2)} = 64. 85 is larger, so every angle is less than 90°: an <b>acute triangle</b>.`),
     make(rng) {
       const kind = rng.pick(['classify', 'classify', 'which', 'corner']);
       const t0 = rng.pick(TRIPLES.slice(0, 4)), k = rng.int(1, t0[2] > 13 ? 1 : 3), t = t0.map(v => v * k);
