@@ -11,7 +11,7 @@
 'use strict';
 (function () {
   const A = window.ACADEMY, M = window.M;
-  const p = s => `<p>${s}</p>`;
+  const p = (s, fig) => `<p>${s}${fig || ''}</p>`;          // a figure goes inside its paragraph: the lesson's summary then reads the words, not the drawing's labels
   const example = (title, body) => `<div class="example"><div class="ex-title">${title}</div>${body}</div>`;
   const big = s => `<div class="big">${s}</div>`;
   const key = s => A.normText(A.stripTags(s));
@@ -96,6 +96,7 @@
     }
     if (o.time) { body += `<text x="${x + 10}" y="58" text-anchor="middle" font-size="22" font-weight="800">${o.time[0]}</text><text x="${x + 10}" y="78" text-anchor="middle" font-size="22" font-weight="800">${o.time[1]}</text>`; x += 26; }
     const gap = o.gap || 48;
+    if (groups[0]) x += Math.max(0, groups[0].filter(n => n.acc).length - 1) * 10;          // room for a chord's stacked sharps or flats
     groups.forEach((g, i) => {
       const cx = x + 30 + i * gap, qs = g.map(n => posOf(n, clef));
       let shift = 0, lastQ = null;
@@ -112,7 +113,7 @@
     let lines = '';
     for (let k = 0; k <= 8; k += 2) lines += `<path d="M2 ${yOf(k)}H${W - 2}" stroke="currentColor" stroke-width="1.2" opacity=".75"/>`;
     lines += `<path d="M${W - 2} 40V80" stroke="currentColor" stroke-width="1.6"/>`;
-    return `<svg class="figure mus-staff" viewBox="0 ${top} ${W} ${bottom - top}" width="${W}" role="img" aria-label="${o.label || 'music staff'}">${lines}${CLEF[clef]}${body.replace(/LABEL_Y/g, labelY)}</svg>`;
+    return `<svg class="figure mus-staff" viewBox="0 ${top} ${W} ${bottom - top}" width="${Math.round(W * 1.5)}" role="img" aria-label="${o.label || 'music staff'}">${lines}${CLEF[clef]}${body.replace(/LABEL_Y/g, labelY)}</svg>`;
   }
 
   /* ---------- drawing: rhythms on a one-line staff ---------- */
@@ -142,7 +143,7 @@
     const W = x + (o.bar === false ? 6 : 10);
     const bar = o.bar === false ? '' : `<path d="M${W - 3} 46V74" stroke="currentColor" stroke-width="1.8"/>`;
     const said = o.items.map(k => (/rest/.test(k) ? k : k + ' note')).join(', ') + (o.missing ? ', then a missing note' : '');          // for screen readers
-    return `<svg class="figure mus-rhythm" viewBox="0 20 ${W} 68" width="${W}" role="img" aria-label="${o.label ? o.label + ': ' : ''}${said}"><desc>${said}</desc><path d="M2 60H${W - 3}" stroke="currentColor" stroke-width="1.3" opacity=".75"/>${bar}${body}</svg>`;
+    return `<svg class="figure mus-rhythm" viewBox="0 20 ${W} 68" width="${Math.round(W * 1.35)}" role="img" aria-label="${o.label ? o.label + ': ' : ''}${said}"><desc>${said}</desc><path d="M2 60H${W - 3}" stroke="currentColor" stroke-width="1.3" opacity=".75"/>${bar}${body}</svg>`;
   }
 
   /* ---------- drawing: a piano keyboard (real key colors in every theme; marked keys in blue) ---------- */
@@ -210,9 +211,10 @@
 
   A.skill({
     id: 'mus.treble-notes', title: 'Notes on the treble staff',
+    real: 'Reading the treble staff quickly is what lets a pianist play a new piece at sight, without working out each note.',
+    mistakes: ['Reading a treble note with the bass staff’s names: the same place on the two staffs has different letters.', 'Counting a space as a line: a line goes through the middle of a note, a space sits between two lines.'],
     learn: p(`Music is written on a <b>staff</b> of five lines and the four spaces between them. Notes higher on the staff sound higher. Each line and each space is the next letter of the music alphabet, which runs <b>A B C D E F G</b> and then starts again.`) +
-      p(`The <b>treble clef</b> (or G clef) curls around the second line from the bottom, which is <b>G</b>. The right hand usually reads the treble staff. <b>Lines, from the bottom: E, G, B, D, F</b> (“Every Good Boy Does Fine”). <b>Spaces: F, A, C, E</b>, which spell FACE.`) +
-      staff({ clef: 'treble', notes: ['E4', 'F4', 'G4', 'A4', 'B4', 'C5', 'D5', 'E5', 'F5'].map(parse), labels: ['E', 'F', 'G', 'A', 'B', 'C', 'D', 'E', 'F'], gap: 30, label: 'the treble staff, E to F, with each note named' }) +
+      p(`The <b>treble clef</b> (or G clef) curls around the second line from the bottom, which is <b>G</b>. The right hand usually reads the treble staff. <b>Lines, from the bottom: E, G, B, D, F</b> (“Every Good Boy Does Fine”). <b>Spaces: F, A, C, E</b>, which spell FACE.`, staff({ clef: 'treble', notes: ['E4', 'F4', 'G4', 'A4', 'B4', 'C5', 'D5', 'E5', 'F5'].map(parse), labels: ['E', 'F', 'G', 'A', 'B', 'C', 'D', 'E', 'F'], gap: 30, label: 'the treble staff, E to F, with each note named' })) +
       example('Example', `A note sitting on the middle line of the treble staff is on the 3rd line: E, G, <b>B</b>. A note in the top space is the 4th space of FACE: <b>E</b>.`) + cardsLink,
     make(rng) { return rng.chance(0.25) ? spellWord(rng, 'treble') : nameNote(rng, 'treble', [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9]); },
     verify: verifyRead,
@@ -220,9 +222,10 @@
 
   A.skill({
     id: 'mus.bass-notes', title: 'Notes on the bass staff',
+    real: 'The left hand’s part in most piano music is on the bass staff: the low notes, chords and accompaniments.',
+    mistakes: ['Using the treble names on the bass staff: the bottom line of the bass staff is G, not E.', 'Losing your place: find the F line between the two dots of the clef, and count from there.'],
     learn: p(`The <b>bass clef</b> (or F clef) shows lower notes, usually played by the left hand. Its two dots sit on either side of the fourth line from the bottom, which is <b>F</b>.`) +
-      p(`<b>Bass lines, from the bottom: G, B, D, F, A</b> (“Good Boys Do Fine Always”). <b>Bass spaces: A, C, E, G</b> (“All Cows Eat Grass”). The bass staff is two letters off from the treble staff, so a note in the same place has a different name: don’t read one clef as the other.`) +
-      staff({ clef: 'bass', notes: ['G2', 'A2', 'B2', 'C3', 'D3', 'E3', 'F3', 'G3', 'A3'].map(parse), labels: ['G', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'A'], gap: 30, label: 'the bass staff, G to A, with each note named' }) +
+      p(`<b>Bass lines, from the bottom: G, B, D, F, A</b> (“Good Boys Do Fine Always”). <b>Bass spaces: A, C, E, G</b> (“All Cows Eat Grass”). The bass staff is two letters off from the treble staff, so a note in the same place has a different name: don’t read one clef as the other.`, staff({ clef: 'bass', notes: ['G2', 'A2', 'B2', 'C3', 'D3', 'E3', 'F3', 'G3', 'A3'].map(parse), labels: ['G', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'A'], gap: 30, label: 'the bass staff, G to A, with each note named' })) +
       example('Example', `A note on the bottom line of the bass staff is <b>G</b>, while the bottom line of the treble staff is E. A note in the 2nd space of the bass staff is <b>C</b> (A, C, E, G).`) + cardsLink,
     make(rng) { return rng.chance(0.25) ? spellWord(rng, 'bass') : nameNote(rng, 'bass', [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9]); },
     verify: verifyRead,
@@ -230,9 +233,10 @@
 
   A.skill({
     id: 'mus.ledger-notes', title: 'Middle C and ledger lines',
+    real: 'High melodies, low bass notes, and every piece where the hands pass middle C use ledger lines.',
+    mistakes: ['Skipping a space between ledger lines: each line and each space is the next letter.', 'Thinking middle C is two different notes: below the treble staff and above the bass staff, it’s the same key.'],
     learn: p(`Notes above or below the staff get short extra lines called <b>ledger lines</b>. Keep counting letters through them, one letter for each line and each space.`) +
-      p(`<b>Middle C</b> is the C near the middle of the piano. It sits on <b>one ledger line below the treble staff</b>, and on <b>one ledger line above the bass staff</b>: it’s the same key either way. The treble and bass staffs joined by a brace make the <b>grand staff</b> that piano music uses.`) +
-      `<div class="mus-pair">${staff({ clef: 'treble', notes: ['C4', 'B3', 'A3'].map(parse), labels: ['C', 'B', 'A'], gap: 36, label: 'middle C, B and A below the treble staff' })}${staff({ clef: 'bass', notes: ['C4', 'D4', 'E4'].map(parse), labels: ['C', 'D', 'E'], gap: 36, label: 'middle C, D and E above the bass staff' })}</div>` +
+      p(`<b>Middle C</b> is the C near the middle of the piano. It sits on <b>one ledger line below the treble staff</b>, and on <b>one ledger line above the bass staff</b>: it’s the same key either way. The treble and bass staffs joined by a brace make the <b>grand staff</b> that piano music uses.`, `<span class="mus-pair">${staff({ clef: 'treble', notes: ['C4', 'B3', 'A3'].map(parse), labels: ['C', 'B', 'A'], gap: 36, label: 'middle C, B and A below the treble staff' })}${staff({ clef: 'bass', notes: ['C4', 'D4', 'E4'].map(parse), labels: ['C', 'D', 'E'], gap: 36, label: 'middle C, D and E above the bass staff' })}</span>`) +
       example('Example', `Above the treble staff: the space above the top line is G, the first ledger line is <b>A</b>, the space above it is B, and the second ledger line is <b>C</b> (two octaves above middle C).`),
     make(rng) {
       const clef = rng.pick(['treble', 'bass']);
@@ -245,9 +249,10 @@
   const keyName = m => { const k = KEY_NAMES[m % 12]; return disp(k.split(' or ')[0]) + (k.includes(' or ') ? ` or ${disp(k.split(' or ')[1])}` : ''); };
   A.skill({
     id: 'mus.keyboard', title: 'Naming keys on the piano',
+    real: 'Finding any key at once by the groups of black keys is where every scale and chord on the piano starts.',
+    mistakes: ['Mixing up the groups: C is just left of the two black keys, F just left of the three.', 'Forgetting that a black key has two names: the sharp of the key below it and the flat of the key above it.'],
     learn: p(`The black keys come in <b>groups of two and three</b>. <b>C is the white key just left of each group of two</b>, and F is just left of each group of three. From C, the white keys go C, D, E, F, G, A, B, then C again an <b>octave</b> higher.`) +
-      p(`A black key is named from the white keys beside it. A <b>sharp (${SH})</b> means one key higher, so the black key just right of C is C${SH}. A <b>flat (${FL})</b> means one key lower, so the same key is also D${FL}. Two names for one key are called <b>enharmonic</b>.`) +
-      keyboard({ from: 48, octaves: 2, labels: true, middleC: true, label: 'two octaves of a piano keyboard with the white keys named' }) +
+      p(`A black key is named from the white keys beside it. A <b>sharp (${SH})</b> means one key higher, so the black key just right of C is C${SH}. A <b>flat (${FL})</b> means one key lower, so the same key is also D${FL}. Two names for one key are called <b>enharmonic</b>.`, keyboard({ from: 48, octaves: 2, labels: true, middleC: true, label: 'two octaves of a piano keyboard with the white keys named' })) +
       example('Example', `The black key between F and G is <b>F${SH} or G${FL}</b>. E and F have no black key between them, and neither do B and C.`),
     make(rng) {
       const m = 48 + rng.int(0, 23), black = BLACK.includes(m % 12), ans = keyName(m);
@@ -268,9 +273,10 @@
 
   A.skill({
     id: 'mus.steps', title: 'Half steps and whole steps',
+    real: 'Scales, chords and key signatures are all built from half steps and whole steps.',
+    mistakes: ['Forgetting that E–F and B–C are half steps, with no black key between them.', 'Counting the key you start on as the first step.'],
     learn: p(`A <b>half step</b> (also called a semitone) is the distance from one key to the very next key, black or white. A <b>whole step</b> is two half steps, with one key in between.`) +
-      p(`Most white keys have a black key between them, so they are a whole step apart. <b>E–F and B–C are half steps</b>, because no black key sits between them. A sharp raises a note a half step; a flat lowers it a half step.`) +
-      keyboard({ from: 60, octaves: 1, marks: [64, 65], labels: true, label: 'E and F marked: a half step apart' }) +
+      p(`Most white keys have a black key between them, so they are a whole step apart. <b>E–F and B–C are half steps</b>, because no black key sits between them. A sharp raises a note a half step; a flat lowers it a half step.`, keyboard({ from: 60, octaves: 1, marks: [64, 65], labels: true, label: 'E and F marked: a half step apart' })) +
       example('Example', `A whole step above E: E to F is only a half step, so go one key further: <b>F${SH}</b>. A half step below C is <b>B</b>.`),
     make(rng) {
       const t = rng.pick(['count', 'which', 'which', 'name']);
@@ -314,10 +320,10 @@
   const beatsText = b => (b === 1 ? '1 beat' : `${M.n(b)} beats`);
   A.skill({
     id: 'mus.note-values', title: 'Note and rest values',
+    real: 'Note values say how long to hold each key, so a melody’s rhythm comes out right.',
+    mistakes: ['Forgetting the dot: it adds half the note’s own value.', 'Mixing up the half note (hollow, with a stem) and the whole note (hollow, with no stem).'],
     learn: p(`A note’s shape says how long it lasts. With the <b>quarter note</b> as one beat: a <b>whole note</b> lasts 4 beats, a <b>half note</b> 2, a quarter note 1, an <b>eighth note</b> ½ and a <b>sixteenth note</b> ¼. Each is half as long as the one before. Some piano books, especially British ones, call these the semibreve, minim, crotchet, quaver and semiquaver.`) +
-      p(`<b>A dot adds half the note’s own value</b>: a dotted half note is 2 + 1 = 3 beats, and a dotted quarter note is 1 + ½ = 1½ beats. <b>Rests</b> are silences with the same values: the whole rest hangs below a line, the half rest sits on top of it.`) +
-      rhythm({ items: ['whole', 'half', 'quarter', 'eighth', 'sixteenth', 'dotted half', 'dotted quarter'], bar: false, label: 'a whole, half, quarter, eighth and sixteenth note, then a dotted half and a dotted quarter note' }) +
-      rhythm({ items: ['whole rest', 'half rest', 'quarter rest', 'eighth rest'], bar: false, label: 'a whole, half, quarter and eighth rest' }) +
+      p(`<b>A dot adds half the note’s own value</b>: a dotted half note is 2 + 1 = 3 beats, and a dotted quarter note is 1 + ½ = 1½ beats. <b>Rests</b> are silences with the same values: the whole rest hangs below a line, the half rest sits on top of it.`, rhythm({ items: ['whole', 'half', 'quarter', 'eighth', 'sixteenth', 'dotted half', 'dotted quarter'], bar: false, label: 'a whole, half, quarter, eighth and sixteenth note, then a dotted half and a dotted quarter note' }) + rhythm({ items: ['whole rest', 'half rest', 'quarter rest', 'eighth rest'], bar: false, label: 'a whole, half, quarter and eighth rest' })) +
       example('Example', `How many eighth notes last as long as a dotted half note? A dotted half note is 3 beats and an eighth note is ½ beat, so 3 ÷ ½ = <b>6</b>.`),
     make(rng) {
       const t = rng.pick(['beats', 'beats', 'equal', 'which']);
@@ -361,9 +367,10 @@
   }
   A.skill({
     id: 'mus.measures', title: 'Counting beats in a measure',
+    real: 'Counting the beats in a measure keeps a piece steady, and it’s how to check a rhythm you’re unsure of.',
+    mistakes: ['Counting a rest as nothing: rests take up beats too.', 'Counting an eighth note as a whole beat: two eighth notes make one beat.'],
     learn: p(`Bar lines divide music into <b>measures</b>. The time signature says how many beats fill each measure: <b>4/4</b> has four quarter-note beats, <b>3/4</b> three, and <b>2/4</b> two.`) +
-      p(`To check a measure, <b>add up the beats of every note and rest</b> in it. The total must match the top number of the time signature (with a quarter note as the beat). Counting out loud helps: “1 and 2 and 3 and 4 and”, with eighth notes on the “and”.`) +
-      rhythm({ items: ['half', 'quarter', 'eighth', 'eighth'], time: [4, 4], label: 'a measure of 4/4: a half note, a quarter note and two eighth notes' }) +
+      p(`To check a measure, <b>add up the beats of every note and rest</b> in it. The total must match the top number of the time signature (with a quarter note as the beat). Counting out loud helps: “1 and 2 and 3 and 4 and”, with eighth notes on the “and”.`, rhythm({ items: ['half', 'quarter', 'eighth', 'eighth'], time: [4, 4], label: 'a measure of 4/4: a half note, a quarter note and two eighth notes' })) +
       example('Example', `The measure above: half note 2 + quarter note 1 + two eighth notes ½ + ½ = <b>4 beats</b>, which fills a measure of 4/4.`) +
       p(`<a href="#/metronome">Open the metronome</a> to count a steady beat while you clap a rhythm.`),
     make(rng) {
@@ -393,9 +400,10 @@
   const VALUE_OF = { 1: 'whole note', 2: 'half note', 4: 'quarter note', 8: 'eighth note', 16: 'sixteenth note' };
   A.skill({
     id: 'mus.time-signatures', title: 'Time signatures',
+    real: 'A waltz is in 3/4, many marches are in 2/4 or cut time, and many jigs are in 6/8: the time signature gives a piece its feel.',
+    mistakes: ['Reading the bottom number as a number of beats: it names the note that gets one beat.', 'Counting 6/8 as six slow beats instead of two groups of three.'],
     learn: p(`A <b>time signature</b> is the pair of numbers at the start of a piece. <b>The top number says how many beats are in each measure. The bottom number says which note gets one beat</b>: 4 means a quarter note, 2 a half note, and 8 an eighth note.`) +
-      p(`So 3/4 has three quarter-note beats in a measure (a waltz), and 2/2, called <b>cut time</b>, has two half-note beats. In <b>6/8</b> there are six eighth notes in a measure, felt as <b>two beats of a dotted quarter note</b> each; times like 6/8, 9/8 and 12/8 are called <b>compound time</b>.`) +
-      staff({ clef: 'treble', time: [3, 4], notes: [], w: 120, label: 'a treble staff with the time signature 3/4' }) +
+      p(`So 3/4 has three quarter-note beats in a measure (a waltz), and 2/2, called <b>cut time</b>, has two half-note beats. In <b>6/8</b> there are six eighth notes in a measure, felt as <b>two beats of a dotted quarter note</b> each; times like 6/8, 9/8 and 12/8 are called <b>compound time</b>.`, staff({ clef: 'treble', time: [3, 4], notes: [], w: 120, label: 'a treble staff with the time signature 3/4' })) +
       example('Example', `How many eighth notes fill a measure of 3/4? A measure holds 3 quarter notes, and each quarter note is 2 eighth notes, so <b>6</b>.`),
     make(rng) {
       const t = rng.pick(['fill', 'fill', 'beat', 'compound']);
@@ -431,9 +439,10 @@
   const sigOf = k => ({ n: KEYSIG[k].length, kind: KEYSIG[k].length && KEYSIG[k][0][1] === 'b' ? 'flat' : 'sharp' });
   A.skill({
     id: 'mus.major-scales', title: 'Major scales',
+    real: 'Scales train your fingers for the patterns most pieces use, and every key has its own scale.',
+    mistakes: [`Using a letter twice or skipping one: a scale uses each letter once, so G major has F${SH}, not G${FL}.`, 'Forgetting where the half steps fall: between notes 3 and 4, and 7 and 8.'],
     learn: p(`A <b>major scale</b> climbs eight notes from one note to the same letter an octave higher, using every letter once. Its steps always follow the same pattern: <b>whole, whole, half, whole, whole, whole, half</b> (W W H W W W H).`) +
-      p(`C major uses only white keys. Any other major scale needs sharps or flats to keep the pattern. For G major, F has to become <b>F${SH}</b> so the step from E to the 7th note is a whole step and the step up to G is a half step. The notes are numbered as <b>scale degrees</b> 1 to 8; degree 1 is the <b>tonic</b>, 4 the <b>subdominant</b>, and 5 the <b>dominant</b>.`) +
-      staff({ clef: 'treble', notes: majorScale(parse('G4')), labels: majorScale(parse('G4')).map(nm), gap: 34, label: 'the G major scale, G A B C D E F-sharp G' }) + `<p>${play(majorScale(parse('G4')).map(midi), 'Play the G major scale')}</p>` +
+      p(`C major uses only white keys. Any other major scale needs sharps or flats to keep the pattern. For G major, F has to become <b>F${SH}</b> so the step from E to the 7th note is a whole step and the step up to G is a half step. The notes are numbered as <b>scale degrees</b> 1 to 8; degree 1 is the <b>tonic</b>, 4 the <b>subdominant</b>, and 5 the <b>dominant</b>.`, staff({ clef: 'treble', notes: majorScale(parse('G4')), labels: majorScale(parse('G4')).map(nm), gap: 34, label: 'the G major scale, G A B C D E F-sharp G' }) + `<p>${play(majorScale(parse('G4')).map(midi), 'Play the G major scale')}</p>`) +
       example('Example', `D major: D, E, F${SH}, G, A, B, C${SH}, D. Its 4th degree is <b>G</b> and its 7th degree is <b>C${SH}</b>.`),
     make(rng) {
       const k = rng.pick(KEYS), sc = majorScale(tonicOf(k)), t = rng.pick(['degree', 'degree', 'which', 'odd']);
@@ -469,9 +478,10 @@
 
   A.skill({
     id: 'mus.key-signatures', title: 'Key signatures',
+    real: 'The key signature at the start of each line tells you which black keys a piece uses, so you can check before you play.',
+    mistakes: ['Naming the key after the last sharp: the key is a half step above it.', 'Using the second-to-last-flat rule with one flat: one flat is F major.'],
     learn: p(`Instead of writing the same sharps or flats again and again, music puts them once at the start of every line: the <b>key signature</b>. A sharp on the F line means every F is played as F${SH}.`) +
-      p(`The sharps always come in the order <b>F C G D A E B</b>, and the flats in the reverse order, <b>B E A D G C F</b>. <b>With sharps, the key is a half step above the last sharp</b>. <b>With flats, the key is the second-to-last flat</b> (and one flat is F major). No sharps or flats is C major.`) +
-      `<div class="mus-pair">${staff({ clef: 'treble', key: sigOf('D'), notes: [], w: 110, label: 'two sharps: D major' })}${staff({ clef: 'treble', key: sigOf('Eb'), notes: [], w: 110, label: 'three flats: E-flat major' })}</div>` +
+      p(`The sharps always come in the order <b>F C G D A E B</b>, and the flats in the reverse order, <b>B E A D G C F</b>. <b>With sharps, the key is a half step above the last sharp</b>. <b>With flats, the key is the second-to-last flat</b> (and one flat is F major). No sharps or flats is C major.`, `<span class="mus-pair">${staff({ clef: 'treble', key: sigOf('D'), notes: [], w: 110, label: 'two sharps: D major' })}${staff({ clef: 'treble', key: sigOf('Eb'), notes: [], w: 110, label: 'three flats: E-flat major' })}</span>`) +
       example('Example', `Two sharps, F${SH} and C${SH}: a half step above C${SH} is <b>D major</b>. Three flats, B${FL}, E${FL} and A${FL}: the second-to-last is E${FL}, so <b>E${FL} major</b>.`),
     make(rng) {
       const k = rng.pick(KEYS), t = rng.pick(['name', 'name', 'count', 'list']), sig = KEYSIG[k];
@@ -489,7 +499,7 @@
       }
       const kk = rng.pick(KEYS.filter(x => KEYSIG[x].length >= 2)), s2 = KEYSIG[kk], ans = s2.map(disp).join(', ');
       const flat = s2[0][1] === 'b', order = flat ? ['Bb', 'Eb', 'Ab', 'Db', 'Gb'] : ['F#', 'C#', 'G#', 'D#', 'A#'];
-      const cands = [order.slice(0, s2.length - 1), order.slice(0, s2.length + 1), s2.map(x => x[0] + (flat ? '#' : 'b')), order.slice(1, s2.length + 1)].map(l => l.map(disp).join(', '));
+      const cands = [order.slice(0, s2.length - 1), order.slice(0, s2.length + 1), order.slice(0, s2.length - 1).concat(order[s2.length]), order.slice(1, s2.length + 1)].map(l => l.map(disp).join(', '));
       return { prompt: `Which ${flat ? 'flats' : 'sharps'} are in the key signature of ${keyLabel(kk)}?`, type: 'choice', answer: ans, choices: options(ans, cands), params: { t, k: kk },
         hints: [`${flat ? 'Flats' : 'Sharps'} always come in the order ${flat ? 'B E A D G C F' : 'F C G D A E B'}.`, `${keyLabel(kk)} has ${M.plural(s2.length, flat ? 'flat' : 'sharp')}: <b>${ans}</b>.`] };
     },
@@ -507,9 +517,10 @@
 
   A.skill({
     id: 'mus.minor-keys', title: 'Relative and harmonic minor',
+    real: 'Minor keys often sound darker or sadder, and many pieces move between a major key and its relative minor.',
+    mistakes: ['Counting up from the major tonic instead of down: the relative minor is 3 half steps below it.', 'Putting the raised 7th in the key signature: in the music it’s written as an accidental.'],
     learn: p(`Every major key has a <b>relative minor</b> that shares its key signature. <b>The relative minor starts on the 6th note of the major scale</b>, which is also 3 half steps below the major tonic. C major and A minor both have no sharps or flats; G major and E minor both have one sharp.`) +
-      p(`The <b>natural minor</b> scale uses just the key signature: A minor is A, B, C, D, E, F, G, A. The <b>harmonic minor</b> raises the 7th note a half step, which gives a strong pull back up to the tonic: <b>A harmonic minor is A, B, C, D, E, F, G${SH}, A</b>. The raised note is written as an accidental, not in the key signature.`) +
-      staff({ clef: 'treble', notes: ['A4', 'B4', 'C5', 'D5', 'E5', 'F5', 'G#5', 'A5'].map(parse), labels: ['A', 'B', 'C', 'D', 'E', 'F', 'G' + SH, 'A'], gap: 34, label: 'the A harmonic minor scale, with G-sharp' }) + `<p>${play(['A4', 'B4', 'C5', 'D5', 'E5', 'F5', 'G#5', 'A5'].map(s => midi(parse(s))), 'Play A harmonic minor')}</p>` +
+      p(`The <b>natural minor</b> scale uses just the key signature: A minor is A, B, C, D, E, F, G, A. The <b>harmonic minor</b> raises the 7th note a half step, which gives a strong pull back up to the tonic: <b>A harmonic minor is A, B, C, D, E, F, G${SH}, A</b>. The raised note is written as an accidental, not in the key signature.`, staff({ clef: 'treble', notes: ['A4', 'B4', 'C5', 'D5', 'E5', 'F5', 'G#5', 'A5'].map(parse), labels: ['A', 'B', 'C', 'D', 'E', 'F', 'G' + SH, 'A'], gap: 34, label: 'the A harmonic minor scale, with G-sharp' }) + `<p>${play(['A4', 'B4', 'C5', 'D5', 'E5', 'F5', 'G#5', 'A5'].map(s => midi(parse(s))), 'Play A harmonic minor')}</p>`) +
       example('Example', `The relative minor of F major: F, G, A, B${FL}, C, <b>D</b>, so D minor. D harmonic minor raises C to <b>C${SH}</b>.`),
     make(rng) {
       const t = rng.pick(['rel', 'rel', 'major', 'harmonic']);
@@ -546,9 +557,10 @@
   const NUM = ['unison', '2nd', '3rd', '4th', '5th', '6th', '7th', 'octave'];
   A.skill({
     id: 'mus.interval-numbers', title: 'Interval numbers',
+    real: 'Pianists read quickly by reading intervals, a 3rd up or a 5th down, instead of naming every note.',
+    mistakes: ['Not counting the first note: C to E is C, D, E, three letters, so a 3rd.', `Letting a sharp or flat change the number: C to E${FL} is still a 3rd.`],
     learn: p(`An <b>interval</b> is the distance between two notes. Its number comes from <b>counting letter names, including both notes</b>. C up to E is C, D, E: three letters, so a <b>3rd</b>. C up to G is a 5th, and C up to the next C is an <b>octave</b> (an 8th).`) +
-      p(`On the staff, intervals have a pattern: <b>odd numbers (3rd, 5th, 7th) go line to line or space to space</b>, and even numbers (2nd, 4th, 6th, octave) go from a line to a space. Sharps and flats don’t change the number: C to E${FL} is still a 3rd.`) +
-      staff({ clef: 'treble', notes: ['C4', 'E4', 'C4', 'G4', 'C4', 'C5'].map(parse), labels: ['C', '3rd', 'C', '5th', 'C', '8ve'], gap: 30, label: 'C up to E, a 3rd; C up to G, a 5th; C up to C, an octave' }) +
+      p(`On the staff, intervals have a pattern: <b>odd numbers (3rd, 5th, 7th) go line to line or space to space</b>, and even numbers (2nd, 4th, 6th, octave) go from a line to a space. Sharps and flats don’t change the number: C to E${FL} is still a 3rd.`, staff({ clef: 'treble', notes: ['C4', 'E4', 'C4', 'G4', 'C4', 'C5'].map(parse), labels: ['C', '3rd', 'C', '5th', 'C', '8ve'], gap: 30, label: 'C up to E, a 3rd; C up to G, a 5th; C up to C, an octave' })) +
       example('Example', `D up to A: D, E, F, G, A is five letters, so a <b>5th</b>. F up to E is F, G, A, B, C, D, E: a <b>7th</b>.`),
     make(rng) {
       const t = rng.pick(['staff', 'staff', 'letters']), clef = rng.pick(['treble', 'bass']);
@@ -572,9 +584,11 @@
 
   A.skill({
     id: 'mus.interval-quality', title: 'Major, minor and perfect intervals',
+    real: 'An interval’s quality is what you hear: a major 3rd sounds bright and a minor 3rd sounds darker.',
+    mistakes: ['Counting white keys only: count every key, black and white, for the half steps.', 'Calling a 4th or a 5th major or minor: those are perfect.'],
     learn: p(`Two intervals with the same number can be different sizes: C to E is a 3rd, and so is C to E${FL}. Their <b>quality</b> says which, counted in half steps. <b>2nds, 3rds, 6ths and 7ths are major or minor</b>; a minor interval is a half step smaller than a major one. <b>Unisons, 4ths, 5ths and octaves are perfect</b>.`) +
-      M.table(['Interval', 'Half steps', 'Example from C'], [['minor 2nd', '1', `C–D${FL}`], ['major 2nd', '2', 'C–D'], ['minor 3rd', '3', `C–E${FL}`], ['major 3rd', '4', 'C–E'], ['perfect 4th', '5', 'C–F'], ['perfect 5th', '7', 'C–G'], ['minor 6th', '8', `C–A${FL}`], ['major 6th', '9', 'C–A'], ['minor 7th', '10', `C–B${FL}`], ['major 7th', '11', 'C–B'], ['perfect octave', '12', 'C–C']], { compact: true }) +
       p(`A shortcut: in a major scale, <b>every note above the tonic is a major or perfect interval</b> from it. ${play([60, 64], 'Play a major 3rd')} ${play([60, 63], 'Play a minor 3rd')} ${play([60, 67], 'Play a perfect 5th')}`) +
+      M.table(['Interval', 'Half steps', 'Example from C'], [['minor 2nd', '1', `C–D${FL}`], ['major 2nd', '2', 'C–D'], ['minor 3rd', '3', `C–E${FL}`], ['major 3rd', '4', 'C–E'], ['perfect 4th', '5', 'C–F'], ['perfect 5th', '7', 'C–G'], ['minor 6th', '8', `C–A${FL}`], ['major 6th', '9', 'C–A'], ['minor 7th', '10', `C–B${FL}`], ['major 7th', '11', 'C–B'], ['perfect octave', '12', 'C–C']], { compact: true }) +
       example('Example', `E up to G: E, F, G is a 3rd. E–F is 1 half step and F–G is 2, so 3 half steps: a <b>minor 3rd</b>.`),
     make(rng) {
       const t = rng.pick(['name', 'name', 'staff', 'count']);
@@ -609,10 +623,10 @@
   function pickTriad(rng) { for (;;) { const r = parse(rng.pick(ROOTS)), minor = rng.bool(), t = triad(r, minor); if (t.every(n => n && !ODD.includes(nm(n)))) return { r, minor, t }; } }
   A.skill({
     id: 'mus.triads', title: 'Major and minor triads',
+    real: 'Most songs are accompanied with triads, and a song sheet names the chord for you to build.',
+    mistakes: ['Building in 2nds or 4ths: a triad skips one letter between its notes.', 'Changing the 5th instead of the 3rd: major and minor differ only in the middle note.'],
     learn: p(`A <b>triad</b> is a chord of three notes stacked in 3rds: a <b>root</b>, a <b>3rd</b> above it and a <b>5th</b> above the root. On the staff they look like a snowman: all lines or all spaces.`) +
-      p(`<b>A major triad is a major 3rd (4 half steps) with a minor 3rd on top</b>: C–E–G. <b>A minor triad is a minor 3rd (3 half steps) with a major 3rd on top</b>: C–E${FL}–G. Both have a perfect 5th from bottom to top; only the middle note moves. To build one, start from the root, skip a letter, and skip another, then fix the 3rd with a sharp or flat.`) +
-      staff({ clef: 'treble', notes: [triad(parse('C4')), triad(parse('C4'), true), triad(parse('G4')), triad(parse('A4'), true)], labels: ['C', 'Cm', 'G', 'Am'], gap: 46, label: 'C major, C minor, G major and A minor triads' }) +
-      `<p>${play(triad(parse('C4')).map(midi), 'Play C major', true)} ${play(triad(parse('C4'), true).map(midi), 'Play C minor', true)}</p>` +
+      p(`<b>A major triad is a major 3rd (4 half steps) with a minor 3rd on top</b>: C–E–G. <b>A minor triad is a minor 3rd (3 half steps) with a major 3rd on top</b>: C–E${FL}–G. Both have a perfect 5th from bottom to top; only the middle note moves. To build one, start from the root, skip a letter, and skip another, then fix the 3rd with a sharp or flat.`, staff({ clef: 'treble', notes: [triad(parse('C4')), triad(parse('C4'), true), triad(parse('G4')), triad(parse('A4'), true)], labels: ['C', 'Cm', 'G', 'Am'], gap: 46, label: 'C major, C minor, G major and A minor triads' }) + `<span class=\"mus-plays\">${play(triad(parse('C4')).map(midi), 'Play C major', true)} ${play(triad(parse('C4'), true).map(midi), 'Play C minor', true)}</span>`) +
       example('Example', `D major: D, F, A are the letters; D to F is only 3 half steps, so raise F to make a major 3rd: <b>D–F${SH}–A</b>.`),
     make(rng) {
       const { r, minor, t } = pickTriad(rng), t2 = rng.pick(['build', 'build', 'quality']);
@@ -643,9 +657,10 @@
   }
   A.skill({
     id: 'mus.chord-names', title: 'Naming chords',
+    real: 'Naming chords helps you learn and remember a piece: a measure of C major is one shape, not three separate notes.',
+    mistakes: ['Naming an inverted chord after its bottom note: stack the notes in 3rds first.', 'Forgetting a sharp or flat on the 3rd, which decides major or minor.'],
     learn: p(`To name a triad, find its <b>root</b>: the note the others stack on in 3rds. When the chord is written as a snowman (all lines or all spaces), the root is the <b>bottom note</b>. Then check the 3rd: 4 half steps above the root makes it <b>major</b>, 3 makes it <b>minor</b>.`) +
-      p(`Chords are often played with the notes in another order, called an <b>inversion</b>: E–G–C is still a C major chord. <b>Rearrange the letters until they skip one letter each time</b> (C–E–G), and the bottom one is the root.`) +
-      staff({ clef: 'treble', notes: [triad(parse('C4')), [parse('E4'), parse('G4'), parse('C5')], [parse('G4'), parse('C5'), parse('E5')]], labels: ['C', 'C', 'C'], gap: 50, label: 'a C major chord in root position, first inversion and second inversion' }) +
+      p(`Chords are often played with the notes in another order, called an <b>inversion</b>: E–G–C is still a C major chord. <b>Rearrange the letters until they skip one letter each time</b> (C–E–G), and the bottom one is the root.`, staff({ clef: 'treble', notes: [triad(parse('C4')), [parse('E4'), parse('G4'), parse('C5')], [parse('G4'), parse('C5'), parse('E5')]], labels: ['C', 'C', 'C'], gap: 50, label: 'a C major chord in root position, first inversion and second inversion' })) +
       example('Example', `The notes A, F and D: in 3rds they go D–F–A. D to F is 3 half steps, so it’s <b>D minor</b>.`),
     make(rng) {
       const { r, minor, t } = pickTriad(rng), ans = `${nm(r)} ${minor ? 'minor' : 'major'}`, t2 = rng.pick(['staff', 'staff', 'mixed']);
@@ -669,10 +684,10 @@
   const ROMAN = ['I', 'ii', 'iii', 'IV', 'V', 'vi'];
   A.skill({
     id: 'mus.primary-chords', title: 'The primary chords I, IV and V',
+    real: 'With just I, IV and V you can accompany hundreds of songs, and most pieces end with V going to I.',
+    mistakes: ['Building the chord on the wrong scale note: IV is on the 4th note and V on the 5th.', `Leaving out the key’s sharps or flats: in D major the V chord is A–C${SH}–E.`],
     learn: p(`A triad can be built on every note of a scale. They’re numbered with <b>Roman numerals</b>: capitals for major chords and small letters for minor ones. In every major key, <b>I, IV and V are major</b>, and ii, iii and vi are minor.`) +
-      p(`<b>I (the tonic), IV (the subdominant) and V (the dominant) are the primary chords</b>. Many songs can be played with just these three, and pieces usually end with V going to I. In C major they are C major (C–E–G), F major (F–A–C) and G major (G–B–D).`) +
-      staff({ clef: 'treble', notes: [0, 1, 2, 3, 4, 5].map(i => triad(majorScale(parse('C4'))[i], [1, 2, 5].includes(i))), labels: ROMAN, gap: 40, label: 'the triads on C, D, E, F, G and A in C major, numbered I, ii, iii, IV, V and vi' }) +
-      `<p>${play([60, 64, 67], 'Play I', true)} ${play([65, 69, 72], 'Play IV', true)} ${play([67, 71, 74], 'Play V', true)} ${play([60, 64, 67], 'Play I', true)}</p>` +
+      p(`<b>I (the tonic), IV (the subdominant) and V (the dominant) are the primary chords</b>. Many songs can be played with just these three, and pieces usually end with V going to I. In C major they are C major (C–E–G), F major (F–A–C) and G major (G–B–D).`, staff({ clef: 'treble', notes: [0, 1, 2, 3, 4, 5].map(i => triad(majorScale(parse('C4'))[i], [1, 2, 5].includes(i))), labels: ROMAN, gap: 40, label: 'the triads on C, D, E, F, G and A in C major, numbered I, ii, iii, IV, V and vi' }) + `<span class=\"mus-plays\">${play([60, 64, 67], 'Play I', true)} ${play([65, 69, 72], 'Play IV', true)} ${play([67, 71, 74], 'Play V', true)} ${play([60, 64, 67], 'Play I', true)}</span>`) +
       example('Example', `In G major (G, A, B, C, D, E, F${SH}), the IV chord is built on C: <b>C major</b>. The V chord is built on D: <b>D major</b>, with an F${SH}.`),
     make(rng) {
       const k = rng.pick(['C', 'G', 'D', 'F', 'Bb', 'A', 'Eb']), sc = majorScale(tonicOf(k)), t = rng.pick(['name', 'name', 'numeral']);
@@ -702,6 +717,8 @@
   const termKey = s => s.replace(/ \(.*\)$/, '').toLowerCase().replace('d.c. al fine', 'D.C. al Fine');
   A.skill({
     id: 'mus.tempo-terms', title: 'Tempo words',
+    real: 'Tempo words are at the start of almost every piece, and music exams often ask what they mean.',
+    mistakes: ['Mixing up Adagio (slow) and Allegro (fast).', 'Forgetting a tempo after rit.: it means back to the speed you had before.'],
     learn: p(`Composers write in Italian to say how fast to play. From slowest to fastest: <b>Largo</b> (very slow and broad), <b>Adagio</b> (slow), <b>Andante</b> (at a walking pace), <b>Moderato</b> (moderate), <b>Allegro</b> (fast and lively) and <b>Presto</b> (very fast).`) +
       p(`Some words change the speed: <b>ritardando</b> (rit.) means gradually slower, <b>accelerando</b> (accel.) gradually faster, and <b>a tempo</b> means back to the original speed. Others describe the mood: <b>dolce</b> is sweetly, <b>cantabile</b> in a singing style. <b>D.C. al Fine</b> means go back to the beginning and play until the word Fine.`) +
       p(`A tempo is often given as a number of beats per minute too, such as a quarter note = 96. <a href="#/metronome">The metronome</a> shows the Italian word for each speed as you set it.`) +
@@ -731,15 +748,16 @@
     diminuendo: sign('<path d="M8 8L112 20M8 32L112 20" fill="none" stroke="currentColor" stroke-width="2"/>', 120, 'a sign that closes to a point on the right'),
     staccato: sign('<ellipse cx="30" cy="26" rx="6.4" ry="4.5" transform="rotate(-20 30 26)" fill="currentColor"/><path d="M35.6 24.5V0" stroke="currentColor" stroke-width="1.6"/><circle cx="30" cy="36" r="2.4" fill="currentColor"/>', 60, 'a note with a dot under it'),
     fermata: sign('<path d="M8 30A22 22 0 0 1 52 30" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="30" cy="27" r="3" fill="currentColor"/>', 60, 'an arch with a dot under it'),
-    accent: sign('<path d="M14 8L46 18L14 28" fill="none" stroke="currentColor" stroke-width="2.4"/>', 60, 'a sideways V'),
+    accent: sign('<path d="M20 3L38 8.5L20 14" fill="none" stroke="currentColor" stroke-width="2.4"/><ellipse cx="28" cy="33" rx="6.4" ry="4.5" transform="rotate(-20 28 33)" fill="currentColor"/><path d="M33.6 31.5V17" stroke="currentColor" stroke-width="1.6"/>', 60, 'a note with a sideways V above it'),
   };
   const DYN = ['pp', 'p', 'mp', 'mf', 'f', 'ff'];
   const dyn = d => `<b class="mus-dyn">${d}</b>`;
   A.skill({
     id: 'mus.dynamics', title: 'Dynamics and articulation',
+    real: 'Dynamics make playing expressive: the same notes played softly and then loudly tell a different story.',
+    mistakes: ['Thinking mp is louder than mf: mezzo piano is moderately soft, mezzo forte moderately loud.', 'Confusing staccato (short) with an accent (louder).'],
     learn: p(`<b>Dynamics</b> say how loud to play, using the Italian <i>piano</i> (soft) and <i>forte</i> (loud). From softest to loudest: <b>pp</b> (pianissimo, very soft), <b>p</b> (piano, soft), <b>mp</b> (mezzo piano, moderately soft), <b>mf</b> (mezzo forte, moderately loud), <b>f</b> (forte, loud) and <b>ff</b> (fortissimo, very loud).`) +
-      p(`A <b>crescendo</b> (cresc., or a sign that opens out) means gradually louder; a <b>diminuendo</b> or decrescendo (dim., or a sign that closes up) means gradually softer. <b>Articulation</b> says how to play each note: a dot over or under it is <b>staccato</b> (short and detached), a curved slur means <b>legato</b> (smooth and connected), and a sideways V is an <b>accent</b>. A <b>fermata</b> means hold the note longer.`) +
-      `<div class="mus-pair">${DYN_SIGN.crescendo}${DYN_SIGN.diminuendo}</div>` +
+      p(`A <b>crescendo</b> (cresc., or a sign that opens out) means gradually louder; a <b>diminuendo</b> or decrescendo (dim., or a sign that closes up) means gradually softer. <b>Articulation</b> says how to play each note: a dot over or under it is <b>staccato</b> (short and detached), a curved slur means <b>legato</b> (smooth and connected), and a sideways V is an <b>accent</b>. A <b>fermata</b> means hold the note longer.`, `<span class="mus-pair">${DYN_SIGN.crescendo}${DYN_SIGN.diminuendo}</span>`) +
       example('Example', `Which is louder, ${dyn('mp')} or ${dyn('mf')}? Mezzo forte is moderately loud, so <b>mf</b>.`),
     make(rng) {
       const t = rng.pick(['order', 'order', 'mean', 'sign']);
