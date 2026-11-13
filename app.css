@@ -3432,3 +3432,5 @@ html.tool-full main { padding-top: calc(64px + env(safe-area-inset-top, 0px)); }
 .top .bar > .iconbtn, .top .bar > .avatar-btn { flex-shrink: 0; }
 @media (min-width: 701px) and (max-width: 960px) { .top .bar { gap: 10px; } .top .bar > .iconbtn[href="#/settings"] { display: none; } }
 @media (min-width: 701px) and (max-width: 860px) { .nav a { padding: .45rem .55rem; } }
+@media (min-width: 701px) { .top .bar { gap: 10px; } }
+@media (min-width: 961px) { .nav a { padding: .45rem .7rem; } }          /* room for More in the header */
