@@ -406,7 +406,7 @@ footer { border-top: 1px solid var(--line); color: var(--muted); font-size: .9re
 .shot-recent .tiny { margin-right: 4px; }
 .ul-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px 16px; flex-wrap: wrap; margin-bottom: 4px; }
 .ul-today { margin-top: 10px; }
-.ul-len { margin: 0 0 16px; padding-top: 4px; padding-bottom: 4px; }
+.ul-len { margin: 0 0 16px; padding-top: 6px; }
 .ul-len .set-row { border-top: 0; padding: 10px 0; }
 .ul-limit { margin-left: auto; font-variant-numeric: tabular-nums; }
 @container page (max-width: 560px) { .shot-paste { display: none; } .ul-shot-head .tool-ic { display: none; } }
@@ -446,6 +446,107 @@ footer { border-top: 1px solid var(--line); color: var(--muted); font-size: .9re
 .ul-more-topics > summary { cursor: pointer; font-weight: 600; color: var(--primary-ink); font-size: .92rem; }
 .ul-more-topics[open] > summary { margin-bottom: 4px; }
 .tp-wait { min-height: 120px; display: flex; flex-direction: column; justify-content: center; }
+/* practice page: the tabs (For you, Courses, Topics, Pictures) and the heading over a group of cards */
+.ul-tabs { margin: 18px 0 20px; padding-bottom: 12px; border-bottom: 1px solid var(--line); gap: 6px; }
+.ul-tabs .tab { display: inline-flex; align-items: center; gap: 7px; padding: .5rem 1rem; }
+.ul-tabs .tab svg { flex: none; }
+.ul-panel > .ul-picks:first-child { margin-top: 0; }
+.ul-sec-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; margin: 28px 0 12px; }
+.ul-sec-head > .btn { margin-left: auto; align-self: center; }
+.ul-sec-head h2 { margin: 0; }
+/* practice page: picking up where a session stopped, suggestions for the time chosen, and the sound when time is up */
+.ul-resume { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 14px; margin: 0 0 16px; background: var(--tint); box-shadow: none; }
+.ul-resume-text { display: grid; gap: 2px; flex: 1 1 260px; min-width: 0; }
+.ul-resume-acts { display: flex; gap: 8px; flex-wrap: wrap; }
+.ul-sug-h { margin: 6px 0 10px; font-size: .95rem; color: var(--muted); font-weight: 600; }
+.ul-sug { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 10px; }
+.ul-sug-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; border-radius: 14px; background: var(--tint); color: var(--ink); text-decoration: none; border: 1px solid transparent; }
+.ul-sug-item:hover { background: var(--tint-2); border-color: var(--primary); text-decoration: none; }
+.ul-sug-item b { display: block; }
+.ul-sug-item .tool-ic { background: var(--surface); }
+.ul-bell { display: inline-flex; align-items: center; gap: 8px; margin-top: 14px; color: var(--muted); cursor: pointer; }
+.ul-bell input { width: 18px; height: 18px; accent-color: var(--primary); }
+:root[data-contrast="high"] :is(.ul-sug-item, .tp-off, .set-chip) { box-shadow: inset 0 0 0 1.5px var(--primary-ink); }
+.sum-pace { margin: 10px 0 0; }
+.sum-prior { margin: 6px 0 0; }
+/* practice page: a photo checked before it is read (turned, cropped), how sure the reader is, and tips for photos */
+.shot-check { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; margin-top: 14px; }
+.shot-prev-box { flex: none; width: 168px; height: 168px; display: grid; place-items: center; border-radius: 12px; background: var(--surface-2); overflow: hidden; }
+.shot-prev { width: 100%; height: 100%; object-fit: contain; transition: transform .2s; }
+.shot-check-side { flex: 1 1 280px; min-width: 0; display: grid; gap: 10px; }
+.shot-check-side .btn-row { margin: 0; }
+.shot-sure { display: grid; gap: 8px; }
+.sure-line { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.sure-meter { flex: none; width: 88px; height: 8px; border-radius: 99px; background: var(--tint-2); overflow: hidden; }
+.sure-meter > span { display: block; height: 100%; border-radius: inherit; background: var(--primary); }
+.shot-alts { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.shot-alt { display: contents; }
+.shot-tips { margin-top: 12px; }
+.shot-tips > summary { cursor: pointer; font-weight: 600; color: var(--primary-ink); font-size: .9rem; }
+.shot-tips ul { margin: 8px 0 0; padding-left: 1.2rem; display: grid; gap: 4px; color: var(--muted); }
+@container page (max-width: 480px) { .shot-prev-box { width: 100%; height: 200px; } }
+@container page (max-width: 640px) { .ul-len .seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: 100%; border-radius: 18px; } .ul-len .seg button { padding-left: .3rem; padding-right: .3rem; } }
+/* practice page: Your topics (offline and printing), a topic's explanation, and the topics in Progress */
+.ul-mytopics { margin-top: 16px; }
+.ul-mytopics h2 { font-size: 1.15rem; margin: 0 0 4px; }
+.tp-list { list-style: none; margin: 0; padding: 0; }
+.tp-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; padding: 12px 0; }
+.tp-row + .tp-row { border-top: 1px solid var(--line); }
+.tp-row-text { display: grid; gap: 2px; flex: 1 1 240px; min-width: 0; }
+.tp-row-acts { display: flex; flex-wrap: wrap; gap: 8px; }
+.tp-off { flex-basis: 100%; padding: 10px 14px; border-radius: 12px; background: var(--tint); }
+.tp-off p { margin: 0; }
+.tp-off .btn-row { margin-top: 8px; }
+.tp-off .btn-row:empty { display: none; }
+.tp-meter { flex: none; width: 120px; height: 8px; border-radius: 99px; background: var(--tint-2); overflow: hidden; }
+.tp-meter > span { display: block; height: 100%; background: var(--primary); border-radius: inherit; }
+.feedback .tp-why { display: block; margin-top: 4px; font-weight: 400; }
+.feedback button.tp-why { display: inline; margin-top: 0; font-weight: 600; }
+.tp-missed { text-align: left; }
+.tp-row-acts .btn[aria-expanded="true"] { background: var(--tint-2); }
+@container page (max-width: 480px) { .ul-topic-row select { flex: 1 1 40%; } .ul-topic-row .btn { flex: 1 1 100%; } }
+/* practice page: the Courses tab's tools (mix two courses, a CPM chapter with lesson filters) */
+.ul-tools { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 16px; margin-top: 16px; }
+.ul-tools > .ul-tool { margin: 0; display: flex; flex-direction: column; gap: 10px; }
+.ul-tool h3 { margin: 0; font-size: 1.05rem; }
+.ul-tool p { margin: 0; }
+.ul-tool .btn-row { margin-top: auto; padding-top: 4px; align-items: center; }
+.ul-tool .btn[aria-disabled="true"] { opacity: .55; pointer-events: none; }
+.ul-tool-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.ul-tool-row select { flex: 1 1 160px; min-width: 0; padding: .5rem .6rem; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--surface); color: var(--ink); font: inherit; }
+.ul-lesson-pick { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip-check { display: inline-flex; align-items: center; min-height: 32px; padding: .2rem .75rem; border-radius: 999px; border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink); font-size: .86rem; font-weight: 600; cursor: pointer; font-variant-numeric: tabular-nums; }
+.chip-check input { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
+.chip-check.on { background: var(--primary-soft); border-color: var(--primary); color: var(--primary-ink); }
+.chip-check:has(input:focus-visible) { outline: 2px solid var(--primary); outline-offset: 2px; }
+/* practice page: My sets, and the set maker */
+.ul-sets-none { margin: 0; }
+.ul-setlist { list-style: none; margin: 0; padding-top: 4px; padding-bottom: 4px; }
+.ul-set { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; padding: 12px 0; }
+.ul-set + .ul-set { border-top: 1px solid var(--line); }
+.ul-set-text { display: grid; gap: 2px; flex: 1 1 280px; min-width: 0; }
+.ul-set-acts { display: flex; flex-wrap: wrap; gap: 8px; }
+.ul-set-make { margin-top: 12px; }
+.ul-set-make h3 { margin: 0 0 12px; font-size: 1.05rem; }
+.set-make-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 12px 16px; }
+.set-f { display: grid; gap: 6px; }
+.set-f input { width: 100%; padding: .6rem .9rem; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--surface); color: var(--ink); font: inherit; }
+.set-found { margin-top: 10px; }
+.set-add { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: .35rem .5rem; border: 0; border-radius: 8px; background: none; color: var(--ink); font: inherit; cursor: pointer; }
+.set-add:hover { background: var(--surface-2); }
+.set-add-w { flex: none; min-width: 4.4em; text-align: center; padding: .12rem .5rem; border-radius: 999px; background: var(--tint); color: var(--primary-ink); font-weight: 700; font-size: .8rem; }
+.set-add[aria-pressed="true"] .set-add-w { background: var(--primary); color: var(--on-primary); }
+.set-count { margin: 14px 0 8px; }
+.set-chosen { display: flex; flex-wrap: wrap; gap: 6px; }
+.set-chosen:empty { display: none; }
+.set-chip { display: inline-flex; align-items: center; gap: 2px; padding: .15rem .2rem .15rem .75rem; border-radius: 999px; background: var(--tint); color: var(--primary-ink); font-size: .86rem; font-weight: 600; }
+.set-chip button { border: 0; background: none; color: inherit; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font: inherit; line-height: 1; }
+.set-chip button:hover { background: var(--tint-2); }
+@container page (max-width: 480px) {
+  .ul-tabs { display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); gap: 4px; }
+  .ul-tabs .tab { justify-content: center; padding: .5rem .3rem; }
+  .ul-tabs .tab svg { display: none; }
+}
 .dots span { width: 22px; height: 10px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line-strong); }
 .dots span.current { border-color: var(--primary); box-shadow: inset 0 0 0 2px var(--primary-soft); }
 .dots span.right { background: var(--ok); border-color: var(--ok); }
