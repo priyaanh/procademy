@@ -4,7 +4,9 @@
 (function () {
   const A = window.ACADEMY, M = window.M;
   const F = M.frac, N = M.n, V = M.v, S = M.sup, PT = M.pt;
-  const NAMES = ['Ana', 'Ben', 'Chloe', 'Dev', 'Ella', 'Finn', 'Grace', 'Hugo', 'Iris', 'Jai', 'Kai', 'Lena', 'Milo', 'Nora', 'Omar', 'Ravi', 'Sara', 'Theo', 'Uma', 'Zoe'];
+  const NAMES = ['Ana', 'Ben', 'Chloe', 'Dev', 'Ella', 'Finn', 'Grace', 'Hugo', 'Iris', 'Jai', 'Kai', 'Lena', 'Milo', 'Nora', 'Omar', 'Ravi', 'Sara', 'Theo', 'Uma', 'Zoe',
+    'Aisha', 'Mateo', 'Mei', 'Kwame', 'Diego', 'Yuki', 'Fatima', 'Liam', 'Amara', 'Hana', 'Sofia', 'Jamal', 'Leila', 'Arjun', 'Noor', 'Tariq', 'Rosa', 'Kenji', 'Imani', 'Lucas',
+    'Elena', 'Malik', 'Anika', 'Owen', 'Zara', 'Nikhil', 'Chidi', 'Ines', 'Rafael', 'Sana'];
   const p = (s) => `<p>${s}</p>`;
   const example = (title, body) => `<div class="example"><div class="ex-title">${title}</div>${body}</div>`;
   const big = s => `<div class="big">${s}</div>`;
@@ -356,8 +358,13 @@
     const story = rng.pick([
       () => { const r = rng.pick([12, 15, 18, 20, 25]), v1 = r * t1 + rng.int(0, 4) * 10; return { r, v1, text: v => `${name}'s savings grow at a steady rate. After ${t1} weeks there is ${M.money(v1)} in the account; after ${t2} weeks there is ${M.money(v)}. What is the rate of change, in dollars per week?`, unitOut: '$/week', per: 'week' }; },
       () => { const r = -rng.pick([1.5, 2, 2.5, 3, 4]), v1 = rng.int(20, 30); return { r, v1, unitOut: 'cm/hour', per: 'hour', text: v => `A candle burns down at a steady rate. After ${t1} hours it is ${N(v1)} cm tall; after ${t2} hours it is ${N(v)} cm tall. What is the rate of change of its height, in centimeters per hour?` }; },
-      () => { const r = rng.pick([45, 50, 55, 60, 65]), v1 = r * t1 + rng.int(0, 3) * 20; return { r, v1, unitOut: 'km/hour', per: 'hour', text: v => `A bus travels at a steady speed. After ${t1} hours it has gone ${N(v1)} km; after ${t2} hours it has gone ${N(v)} km. What is the rate of change, in kilometers per hour?` }; },
+      () => { const r = rng.pick([45, 50, 55, 60, 65, 70, 75]), v1 = r * t1; return { r, v1, unitOut: 'km/hour', per: 'hour', text: v => `A bus travels at a steady speed. After ${t1} hours it has gone ${N(v1)} km; after ${t2} hours it has gone ${N(v)} km. What is the rate of change, in kilometers per hour?` }; },
       () => { const r = -rng.pick([3, 4, 5, 6, 8]), v1 = rng.int(60, 90); return { r, v1, unitOut: 'L/min', per: 'minute', text: v => `A tank is drained at a steady rate. After ${t1} minutes it holds ${N(v1)} liters; after ${t2} minutes it holds ${N(v)} liters. What is the rate of change, in liters per minute?` }; },
+      () => { const r = rng.pick([1.5, 2, 2.5, 3, 3.5]), v1 = rng.int(4, 12); return { r, v1, unitOut: 'cm/week', per: 'week', text: v => `A bean plant in ${name}'s garden grows at a steady rate. After ${t1} weeks it is ${N(v1)} cm tall; after ${t2} weeks it is ${N(v)} cm tall. What is the rate of change of its height, in centimeters per week?` }; },
+      () => { const r = rng.pick([20, 25, 30, 40, 45]), v1 = rng.int(3, 9) * 50; return { r, v1, unitOut: 'L/min', per: 'minute', text: v => `The pool at the community center is being filled at a steady rate. After ${t1} minutes it holds ${N(v1)} liters; after ${t2} minutes it holds ${N(v)} liters. What is the rate of change, in liters per minute?` }; },
+      () => { const r = rng.pick([24, 30, 36, 42, 48]), v1 = r * t1; return { r, v1, unitOut: 'rolls/hour', per: 'hour', text: v => `A bakery makes bread rolls at a steady rate. By ${t1} hours after opening it has made ${N(v1)} rolls; by ${t2} hours it has made ${N(v)}. What is the rate of change, in rolls per hour?` }; },
+      () => { const r = -rng.pick([6, 8, 10, 12, 15]), v1 = rng.int(18, 24) * 10; return { r, v1, unitOut: 'books/day', per: 'day', text: v => `A library is giving away old books at a steady rate. After ${t1} days ${N(v1)} books are left on the table; after ${t2} days ${N(v)} are left. What is the rate of change, in books per day?` }; },
+      () => { const r = -rng.pick([4, 5, 6, 8, 10]), v1 = rng.int(20, 30) * 10; return { r, v1, unitOut: 'm/min', per: 'minute', text: v => `${name} hikes down a hill trail at a park at a steady rate. After ${t1} minutes ${name} is at a height of ${N(v1)} m; after ${t2} minutes, ${N(v)} m. What is the rate of change of ${name}'s height, in meters per minute?` }; },
     ])();
     const v2 = M.round(story.v1 + story.r * (t2 - t1), 2);
     return { prompt: story.text(v2), type: 'number', answer: story.r, unit: story.unitOut, params: { kind: 'word', t1, t2, v1: story.v1, v2 },
@@ -539,6 +546,21 @@
 
   /* ---------- Unit 5: Geometry ---------- */
   const TRIPLES = [[3, 4, 5], [5, 12, 13], [8, 15, 17], [7, 24, 25], [20, 21, 29], [9, 40, 41]];
+  /** right-triangle stories: a and b are the legs (b is the one asked for in a 'leg' story), c the hypotenuse */
+  const PY_STORIES = [
+    { id: 'ladder', find: 'leg', units: ['ft'], ks: [1, 2, 3, 4, 5], fit: (a, b, c) => c >= 10 && c <= 30 && b >= 1.3 * a, hyp: 'The ladder', legs: 'The ground and the wall',
+      text: (n, a, b, c, u) => `${n} leans a ${N(c)} ${u} ladder against a wall. The foot of the ladder is ${N(a)} ${u} from the wall. How high up the wall does the ladder reach?` },
+    { id: 'kite', find: 'leg', units: ['m'], ks: [2, 3, 4, 5, 6, 10], fit: (a, b, c) => c >= 20 && c <= 90 && b >= 1.3 * a, hyp: 'The string', legs: 'The ground and the line straight up to the kite',
+      text: (n, a, b, c, u) => `${n} is flying a kite at the park. The string is ${N(c)} ${u} long and pulled straight, and the kite is right above a tree ${N(a)} ${u} away from ${n}. Leaving out ${n}'s own height, how high is the kite?` },
+    { id: 'garden', find: 'leg', units: ['ft'], ks: [1, 2, 3], fit: (a, b, c) => c <= 26, hyp: 'The diagonal', legs: 'The two sides of the bed',
+      text: (n, a, b, c, u) => `A rectangular bed in the school garden has a diagonal of ${N(c)} ${u}. One side is ${N(a)} ${u} long. How long is the other side?` },
+    { id: 'park', find: 'hyp', units: ['m', 'yd'], ks: [10, 20, 25, 30, 50], fit: (a, b, c) => c >= 100 && c <= 600, hyp: 'The path across', legs: 'The length and the width of the park', wide: true,
+      text: (n, a, b, c, u) => `A rectangular park is ${N(a)} ${u} long and ${N(b)} ${u} wide. ${n} walks straight across it, from one corner to the opposite corner. How long is that walk?` },
+    { id: 'ramp', find: 'hyp', units: ['in'], ks: [1, 2, 3, 4], fit: (a, b, c) => b <= 30 && a >= 2 * b, hyp: 'The sloping surface of the ramp', legs: 'The rise and the flat distance', wide: true,
+      text: (n, a, b, c, u) => `A ramp at the community center rises ${N(b)} ${u} over a flat distance of ${N(a)} ${u}. How long is the sloping surface of the ramp?` },
+    { id: 'tent', find: 'hyp', units: ['ft'], ks: [1, 2, 3], fit: (a, b, c) => b >= 3 && b <= 12 && c <= 17, hyp: 'The rope', legs: 'The pole and the ground',
+      text: (n, a, b, c, u) => `At a campground, a rope runs from the top of a tent pole ${N(b)} ${u} tall to a stake in the ground ${N(a)} ${u} from the bottom of the pole. How long is the rope, pulled tight?` },
+  ];
 
   A.skill({
     id: 'math8.pythagorean-theorem', title: 'Pythagorean theorem and distance',
@@ -548,22 +570,31 @@
       example('Example: a missing leg', `${big('A 10 ft ladder, its foot 6 ft from the wall')}The ladder is the hypotenuse. ${S(V('b'), 2)} = ${S(10, 2)} − ${S(6, 2)} = 100 − 36 = 64, so the ladder reaches ${M.sqrt(64)} = <b>8 ft</b> up the wall.`) +
       example('Example: a distance', `${big(`Distance from ${PT(1, 2)} to ${PT(7, 10)}`)}The legs are 7 − 1 = 6 and 10 − 2 = 8. ${S(6, 2)} + ${S(8, 2)} = 36 + 64 = 100, and ${M.sqrt(100)} = <b>10</b> units.`),
     make(rng) {
-      const kind = rng.pick(['hyp', 'leg', 'distance', 'ladder']);
+      const kind = rng.pick(['hyp', 'leg', 'distance', 'story', 'story']);
       const t = rng.pick(TRIPLES), k = t[2] > 25 ? 1 : rng.int(1, t[2] > 13 ? 2 : 4);
       let [a, b, c] = t.map(v => v * k); if (rng.bool()) [a, b] = [b, a];
       if (kind === 'distance') {
         const x1 = rng.int(-9, 9), y1 = rng.int(-9, 9), sx = rng.sign(), sy = rng.sign();
-        const [dx, dy] = t[2] > 13 ? [t[0] * sx, t[1] * sy] : [a * sx, b * sy], d = Math.sqrt(dx * dx + dy * dy);
+        const tt = t[2] > 17 ? rng.pick(TRIPLES.slice(0, 3)) : t, kk = tt[2] > 5 ? 1 : rng.int(1, 3), flip = rng.bool();      // gaps of at most 15, so the points stay near the grid
+        const [dx, dy] = [tt[flip ? 1 : 0] * kk * sx, tt[flip ? 0 : 1] * kk * sy], d = Math.sqrt(dx * dx + dy * dy);
         const x2 = x1 + dx, y2 = y1 + dy;
         return { prompt: `What is the distance between ${PT(x1, y1)} and ${PT(x2, y2)}?`, type: 'number', answer: d, unit: 'units', params: { kind, x1, y1, x2, y2 },
           hints: [`Make a right triangle: the horizontal leg is |${N(x2)} − ${wrap(x1)}| = ${Math.abs(dx)} and the vertical leg is |${N(y2)} − ${wrap(y1)}| = ${Math.abs(dy)}.`,
             `${S(Math.abs(dx), 2)} + ${S(Math.abs(dy), 2)} = ${dx * dx} + ${dy * dy} = ${dx * dx + dy * dy}.`, `${M.sqrt(dx * dx + dy * dy)} = <b>${N(d)}</b> units.`] };
       }
-      if (kind === 'ladder') {
-        const name = rng.pick(NAMES);
-        if (a > b) [a, b] = [b, a];                                // the foot is the short leg, so the ladder stands up steeply
-        return { prompt: `${name} leans a ${N(c)} ft ladder against a wall. The foot of the ladder is ${N(a)} ft from the wall. How high up the wall does the ladder reach?`, type: 'number', answer: b, unit: 'ft', params: { kind, a, b, c },
-          hints: [`The ladder is the hypotenuse (${N(c)} ft); the ground and the wall are the legs.`, `${S(V('b'), 2)} = ${S(c, 2)} − ${S(a, 2)} = ${c * c} − ${a * a} = ${c * c - a * a}.`, `${M.sqrt(c * c - a * a)} = <b>${N(b)} ft</b>.`] };
+      if (kind === 'story') {
+        const st = rng.pick(PY_STORIES), name = rng.pick(NAMES), u = rng.pick(st.units);
+        for (let i = 0; i < 80; i++) {                              // a triangle the right size and shape for the story
+          const tr = rng.pick(TRIPLES), kk = rng.pick(st.ks);
+          [a, b, c] = tr.map(v => v * kk); if ((a > b) !== !!st.wide) [a, b] = [b, a];
+          if (st.fit(a, b, c)) break;
+          [a, b, c] = [3, 4, 5].map(v => v * st.ks[0]); if (st.wide) [a, b] = [b, a];
+        }
+        const ask = st.text(name, a, b, c, u);
+        if (st.find === 'hyp') return { prompt: ask, type: 'number', answer: c, unit: u, params: { kind: 'hyp', a, b, c, story: st.id },
+          hints: [`${st.legs} meet at a right angle, so they are the legs. ${st.hyp} is the hypotenuse.`, `${S(V('c'), 2)} = ${S(a, 2)} + ${S(b, 2)} = ${a * a} + ${b * b} = ${c * c}.`, `${V('c')} = ${M.sqrt(c * c)} = <b>${N(c)} ${u}</b>.`] };
+        return { prompt: ask, type: 'number', answer: b, unit: u, params: { kind: 'leg', a, b, c, story: st.id },
+          hints: [`${st.hyp} is the hypotenuse (${N(c)} ${u}), across from the right angle. ${st.legs} are the legs.`, `Subtract to find a leg: ${S(V('b'), 2)} = ${S(c, 2)} − ${S(a, 2)} = ${c * c} − ${a * a} = ${c * c - a * a}.`, `${M.sqrt(c * c - a * a)} = <b>${N(b)} ${u}</b>.`] };
       }
       if (kind === 'hyp') {
         return { prompt: `A right triangle has legs of ${N(a)} cm and ${N(b)} cm. How long is the hypotenuse?`, type: 'number', answer: c, unit: 'cm', params: { kind, a, b, c },
@@ -679,11 +710,7 @@
       example('Example: a missing cell', `${M.table(['', 'Has a pet', 'No pet', 'Total'], [['<b>7th grade</b>', '18', '?', '30'], ['<b>8th grade</b>', '14', '11', '25'], ['<b>Total</b>', '32', '23', '55']], { compact: true })}The 7th grade row adds to 30, so ? = 30 − 18 = <b>12</b>. Check with the column: 23 − 11 = 12. ✓`) +
       example('Example: a percent of a row', `What percent of the 7th graders have a pet? Use the 7th grade row only: 18 ÷ 30 = 0.6 = <b>60%</b>. (Dividing by the grand total, 55, is the usual slip.)`),
     make(rng) {
-      const set = rng.pick([
-        { rows: ['7th grade', '8th grade'], cols: ['Has a pet', 'No pet'], who: 'students', q: (r, c) => `${c === 0 ? 'have a pet' : 'have no pet'}`, of: r => `${r} students` },
-        { rows: ['Plays a sport', 'No sport'], cols: ['Plays music', 'No music'], who: 'students', q: (r, c) => `${c === 0 ? 'play music' : 'do not play music'}`, of: r => `students who ${r === 'Plays a sport' ? 'play a sport' : 'do not play a sport'}` },
-        { rows: ['Walks to school', 'Rides to school'], cols: ['Eats breakfast', 'Skips breakfast'], who: 'students', q: (r, c) => `${c === 0 ? 'eat breakfast' : 'skip breakfast'}`, of: r => `students who ${r === 'Walks to school' ? 'walk' : 'ride'} to school` },
-      ]);
+      const set = rng.pick(TWO_WAY);
       const totals = [rng.pick([20, 25, 40, 50]), rng.pick([20, 25, 40, 50])];
       const cell = totals.map(t => { const step = 100 / t; return t * rng.pick([20, 30, 40, 60, 70, 80, 25, 75].filter(pc => (pc / step) % 1 === 0)) / 100; });
       const grid = [[cell[0], totals[0] - cell[0]], [cell[1], totals[1] - cell[1]]];
@@ -691,14 +718,15 @@
       const kind = rng.pick(['missing', 'pct', 'pct']);
       const r = rng.int(0, 1), c = rng.int(0, 1);
       const shownGrid = grid.map((row, i) => row.map((v, j) => (kind === 'missing' && i === r && j === c) ? '?' : N(v)));
+      const survey = `${set.where} asked ${N(all)} ${set.who} two questions.`;
       const table = M.table(['', set.cols[0], set.cols[1], 'Total'], [[`<b>${set.rows[0]}</b>`, ...shownGrid[0], N(totals[0])], [`<b>${set.rows[1]}</b>`, ...shownGrid[1], N(totals[1])], ['<b>Total</b>', N(colT[0]), N(colT[1]), N(all)]]);
       if (kind === 'missing') {
         const other = grid[r][1 - c];
-        return { prompt: `A survey of ${all} students. What number belongs in the cell marked “?”${table}`, type: 'number', answer: grid[r][c], params: { kind, grid, r, c, totals },
+        return { prompt: `${survey} What number belongs in the cell marked “?”${table}`, type: 'number', answer: grid[r][c], params: { kind, grid, r, c, totals },
           hints: [`Use the row total for “${set.rows[r]}”: the two cells in that row add to ${N(totals[r])}.`, `The other cell in the row is ${N(other)}, so ? = ${N(totals[r])} − ${N(other)}.`, `? = <b>${N(grid[r][c])}</b>. (Check with the column total: ${N(colT[c])} − ${N(grid[1 - r][c])} = ${N(grid[r][c])}.)`] };
       }
       const pc = M.round(grid[r][c] / totals[r] * 100, 4);
-      return { prompt: `A survey of ${all} students. What percent of the ${set.of(set.rows[r])} ${set.q(r, c)}?${table}`, type: 'number', answer: pc, unit: '%', params: { kind, grid, r, c, totals },
+      return { prompt: `${survey} What percent of the ${set.of[r]} ${set.q[c]}?${table}`, type: 'number', answer: pc, unit: '%', params: { kind, grid, r, c, totals },
         hints: [`This is a row relative frequency: use the “${set.rows[r]}” row only.`, `The cell is ${N(grid[r][c])} and the row total is ${N(totals[r])}: ${N(grid[r][c])} ÷ ${N(totals[r])} = ${N(pc / 100)}.`, `${N(pc / 100)} × 100 = <b>${N(pc)}%</b>.`] };
     },
     verify(q) {
@@ -708,6 +736,19 @@
       return Math.abs(q.answer * totals[r] - 100 * grid[r][c]) < 1e-6;          // cross-multiply instead of dividing
     },
   });
+
+  /** two-way table surveys: where, who, the row and column headings, how to say "the people in row r" and "answer c" */
+  const TWO_WAY = [
+    { where: 'A middle school', who: 'students', rows: ['7th grade', '8th grade'], cols: ['Has a pet', 'No pet'], of: ['7th graders', '8th graders'], q: ['have a pet', 'have no pet'] },
+    { where: 'A middle school', who: 'students', rows: ['Plays a sport', 'No sport'], cols: ['Plays music', 'No music'], of: ['students who play a sport', 'students who don’t play a sport'], q: ['play music', 'don’t play music'] },
+    { where: 'A middle school', who: 'students', rows: ['Walks to school', 'Rides to school'], cols: ['Eats breakfast', 'Skips breakfast'], of: ['students who walk to school', 'students who ride to school'], q: ['eat breakfast', 'skip breakfast'] },
+    { where: 'The town library', who: 'young readers', rows: ['Ages 10 to 12', 'Ages 13 to 15'], cols: ['Likes fiction best', 'Likes nonfiction best'], of: ['readers aged 10 to 12', 'readers aged 13 to 15'], q: ['like fiction best', 'like nonfiction best'] },
+    { where: 'The community center', who: 'members', rows: ['Takes swim lessons', 'No swim lessons'], cols: ['Uses the gym', 'Doesn’t use the gym'], of: ['members who take swim lessons', 'members who don’t take swim lessons'], q: ['use the gym', 'don’t use the gym'] },
+    { where: 'A science museum', who: 'visitors', rows: ['Came with a school', 'Came with family'], cols: ['Saw the planetarium', 'Skipped the planetarium'], of: ['visitors who came with a school', 'visitors who came with family'], q: ['saw the planetarium', 'skipped the planetarium'] },
+    { where: 'A farmers market', who: 'shoppers', rows: ['Weekday shoppers', 'Weekend shoppers'], cols: ['Bought fruit', 'No fruit'], of: ['weekday shoppers', 'weekend shoppers'], q: ['bought fruit', 'didn’t buy fruit'] },
+    { where: 'The school garden club', who: 'members', rows: ['Grows vegetables', 'Grows only flowers'], cols: ['Composts at home', 'Doesn’t compost'], of: ['members who grow vegetables', 'members who grow only flowers'], q: ['compost at home', 'don’t compost at home'] },
+    { where: 'A soccer league', who: 'players', rows: ['Under 12', '12 and over'], cols: ['Plays every week', 'Plays some weeks'], of: ['players under 12', 'players 12 and over'], q: ['play every week', 'play only some weeks'] },
+  ];
 
   /** an inline SVG scatter plot of points in 0–10 × 0–10 */
   function scatterSvg(pts, xl, yl) {
@@ -855,6 +896,10 @@
     { who: 'car', rel: 'that', xl: 'Age of car', yl: 'Top speed', most: ['oldest', 'fastest'], least: ['newest', 'slowest'], more: ['older', 'faster'], less: ['newer', 'slower'] },
     { who: 'house', rel: 'that', xl: 'Size', yl: 'Price', most: ['largest', 'most expensive'], least: ['smallest', 'cheapest'], more: ['larger', 'more expensive'], less: ['smaller', 'cheaper'] },
     { who: 'dog', rel: 'that', xl: 'Weight', yl: 'Age', most: ['heaviest', 'oldest'], least: ['lightest', 'youngest'], more: ['heavier', 'older'], less: ['lighter', 'younger'] },
+    { who: 'puppy', many: 'puppies', rel: 'that', xl: 'Age', yl: 'Weight', most: ['oldest', 'heaviest'], least: ['youngest', 'lightest'], more: ['older', 'heavier'], less: ['younger', 'lighter'] },
+    { who: 'book', rel: 'that', xl: 'Number of pages', yl: 'Price', most: ['longest', 'most expensive'], least: ['shortest', 'cheapest'], more: ['longer', 'more expensive'], less: ['shorter', 'cheaper'] },
+    { who: 'runner', rel: 'who', xl: 'Age', yl: 'Running speed', most: ['oldest', 'fastest'], least: ['youngest', 'slowest'], more: ['older', 'faster'], less: ['younger', 'slower'] },
+    { who: 'sunflower', rel: 'that', xl: 'Age', yl: 'Height', most: ['oldest', 'tallest'], least: ['youngest', 'shortest'], more: ['older', 'taller'], less: ['younger', 'shorter'] },
   ];
 
   /** distance from home at time t, read off the corners of a walk by straight-line interpolation */
@@ -902,7 +947,7 @@
       tries++;
     } while (tries < 100 && pts.some((a, i) => pts.some((b, j) => j > i && Math.abs(a[0] - b[0]) <= 1 && Math.abs(a[1] - b[1]) <= 1)));
     const choices = LETTERS.map(l => `Point ${l}`);
-    const intro = `The graph compares the ${c.xl.toLowerCase()} and the ${c.yl.toLowerCase()} of five ${c.who === 'person' ? 'people' : c.who === 'bag of rice' ? 'bags of rice' : c.who + 's'}.`;
+    const intro = `The graph compares the ${c.xl.toLowerCase()} and the ${c.yl.toLowerCase()} of five ${c.who === 'person' ? 'people' : c.who === 'bag of rice' ? 'bags of rice' : c.many || c.who + 's'}.`;
     const axesHint = `Read the axes first. The horizontal axis shows ${c.xl.toLowerCase()}: further right means ${c.more[0]}. The vertical axis shows ${c.yl.toLowerCase()}: higher up means ${c.more[1]}.`;
     // a two-condition question when some point has exactly one other point in one of its corners
     const opts = [];
@@ -942,7 +987,7 @@
     }
     const xmax = Math.max(20, Math.ceil(t / 10) * 10);
     const graph = plotSvg({ xmax, xstep: 5, ymax: 1200, ystep: 200, xl: 'Time (minutes)', yl: 'Distance from home (m)', path: verts, label: `${name}'s distance from home over time` });
-    const intro = `The graph shows ${name}'s distance from home during a walk.`;
+    const intro = `The graph shows ${name}'s distance from home during ${rng.pick(['a walk', 'a walk to the park', 'a bike ride', 'a run', 'a trip to the library', 'a walk with the dog'])}.`;
     const segs = types.map((ty, i) => ({ ty, t0: verts[i][0], t1: verts[i + 1][0], d0: verts[i][1], d1: verts[i + 1][1] }));
     const moving = segs.filter(s => s.ty !== 'stop').map(s => ({ s, v: Math.abs(s.d1 - s.d0) / (s.t1 - s.t0) })).sort((a, b) => b.v - a.v);
     const ask = rng.pick(['segment', 'segment', 'read', 'fastest']);
@@ -1068,13 +1113,20 @@
   });
 
   /* ---------- Unit 8: Circle graphs and trend lines ---------- */
+  /** who was asked (as in "120 students were asked …"), what they are called afterward, the question, the answers */
   const PIE_SETS = [
-    { q: 'how they get to school', cats: ['Walk', 'Bike', 'Bus', 'Car', 'Scooter'] },
-    { q: 'to name their favorite fruit', cats: ['Apple', 'Banana', 'Mango', 'Grapes', 'Orange'] },
-    { q: 'to name their favorite sport', cats: ['Soccer', 'Basketball', 'Swimming', 'Tennis', 'Track'] },
-    { q: 'to name their favorite season', cats: ['Spring', 'Summer', 'Autumn', 'Winter'] },
-    { q: 'what kind of pet they have', cats: ['Dog', 'Cat', 'Fish', 'Bird', 'No pet'] },
-    { q: 'which club they would join', cats: ['Art', 'Music', 'Chess', 'Drama', 'Robotics'] },
+    { who: 'students', w: 'students', q: 'how they get to school', cats: ['Walk', 'Bike', 'Bus', 'Car', 'Scooter'] },
+    { who: 'students', w: 'students', q: 'to name their favorite fruit', cats: ['Apple', 'Banana', 'Mango', 'Grapes', 'Orange'] },
+    { who: 'students', w: 'students', q: 'to name their favorite sport', cats: ['Soccer', 'Basketball', 'Swimming', 'Tennis', 'Track'] },
+    { who: 'students', w: 'students', q: 'to name their favorite season', cats: ['Spring', 'Summer', 'Autumn', 'Winter'] },
+    { who: 'students', w: 'students', q: 'what kind of pet they have', cats: ['Dog', 'Cat', 'Fish', 'Bird', 'No pet'] },
+    { who: 'students', w: 'students', q: 'which club they would join', cats: ['Art', 'Music', 'Chess', 'Drama', 'Robotics'] },
+    { who: 'students', w: 'students', q: 'what they would plant in the school garden', cats: ['Tomatoes', 'Sunflowers', 'Herbs', 'Peppers', 'Beans'] },
+    { who: 'shoppers at a farmers market', w: 'shoppers', q: 'what they came to buy', cats: ['Fruit', 'Vegetables', 'Bread', 'Honey', 'Flowers'] },
+    { who: 'visitors to the town library', w: 'visitors', q: 'which kind of book they borrowed', cats: ['Mystery', 'Science', 'History', 'Comics', 'Poetry'] },
+    { who: 'visitors to a museum', w: 'visitors', q: 'which exhibit they liked best', cats: ['Dinosaurs', 'Space', 'Oceans', 'Art', 'Inventions'] },
+    { who: 'customers at a bakery', w: 'customers', q: 'what they came in for', cats: ['Bagels', 'Muffins', 'Bread', 'Cookies', 'Pie'] },
+    { who: 'members of the community center', w: 'members', q: 'which class they take', cats: ['Yoga', 'Dance', 'Swimming', 'Painting', 'Cooking'] },
   ];
   const PIE_FILLS = ['var(--primary)', 'var(--ok)', 'var(--warn)', 'var(--bad)', 'var(--lvl2)'];
   /** a circle graph; shares are percents, labels are what each sector shows beside its name */
@@ -1089,7 +1141,7 @@
       g += `<text x="${lx}" y="${ly}" text-anchor="${anchor}" font-size="12"><tspan font-weight="700">${M.esc(cats[i])}</tspan><tspan x="${lx}" dy="14">${labels[i]}</tspan></text>`;
       a = a1;
     });
-    return `<svg class="figure" viewBox="0 0 320 224" width="320" role="img" aria-label="circle graph">${g}</svg>`;
+    return `<svg class="figure" viewBox="0 0 320 224" width="320" role="img" aria-label="${M.esc(`circle graph: ${cats.map((c, i) => `${c} ${labels[i]}`).join(', ')}`)}">${g}</svg>`;
   }
 
   A.skill({
@@ -1106,25 +1158,25 @@
       const pcts = units.map(u => u * 5), counts = units.map(u => u * T / 20), degs = units.map(u => u * 18);
       const i = rng.int(0, k - 1), cat = cats[i], pct = pcts[i], count = counts[i], deg = degs[i], frac = N(pct / 100);
       const kind = rng.pick(['angle', 'angle', 'percent', 'read-count', 'angle-percent', 'angle-count']);
-      const intro = `${N(T)} students were asked ${set.q}.`;
+      const intro = `${N(T)} ${set.who} were asked ${set.q}.`, W = set.w;
       const params = { kind, T, count, pct, deg, counts, pcts };
       if (kind === 'angle' || kind === 'percent') {
-        const table = M.table(['Answer', 'Students'], cats.map((c, j) => [c, N(counts[j])]).concat([['<b>Total</b>', `<b>${N(T)}</b>`]]));
-        const share = `${cat}: ${N(count)} of the ${N(T)} students, and ${N(count)} ÷ ${N(T)} = ${frac}.`;
+        const table = M.table(['Answer', W[0].toUpperCase() + W.slice(1)], cats.map((c, j) => [c, N(counts[j])]).concat([['<b>Total</b>', `<b>${N(T)}</b>`]]));
+        const share = `${cat}: ${N(count)} of the ${N(T)} ${W}, and ${N(count)} ÷ ${N(T)} = ${frac}.`;
         if (kind === 'angle') return { prompt: `${intro} The results will be shown in a circle graph. What is the central angle of the “${cat}” sector?${table}`, type: 'number', answer: deg, unit: '°', params,
-          hints: [`A full circle is 360°. Each sector gets the same share of 360° as its answer has of all ${N(T)} students.`, share, `${frac} × 360° = <b>${deg}°</b>.`] };
+          hints: [`A full circle is 360°. Each sector gets the same share of 360° as its answer has of all ${N(T)} ${W}.`, share, `${frac} × 360° = <b>${deg}°</b>.`] };
         return { prompt: `${intro} In a circle graph of the results, what percent of the circle is the “${cat}” sector?${table}`, type: 'number', answer: pct, unit: '%', params,
-          hints: [`The whole circle is all ${N(T)} students, so the sector's percent is the percent of students: part ÷ whole × 100.`, share, `${frac} × 100 = <b>${pct}%</b>.`] };
+          hints: [`The whole circle is all ${N(T)} ${W}, so the sector’s percent is the percent of ${W}: part ÷ whole × 100.`, share, `${frac} × 100 = <b>${pct}%</b>.`] };
       }
       const byAngle = kind !== 'read-count';
       const graph = pieSvg(cats, pcts, byAngle ? degs.map(d => `${d}°`) : pcts.map(v => `${v}%`));
-      if (kind === 'read-count') return { prompt: `${intro} The circle graph shows the results. How many students answered “${cat}”?${graph}`, type: 'number', answer: count, unit: 'students', params,
-        hints: [`The ${cat} sector is ${pct}% of the circle, so ${pct}% of the ${N(T)} students gave that answer.`, `${pct}% = ${frac}, and ${frac} × ${N(T)} = ${N(count)}.`, `<b>${N(count)}</b> students answered “${cat}”.`] };
+      if (kind === 'read-count') return { prompt: `${intro} The circle graph shows the results. How many ${W} answered “${cat}”?${graph}`, type: 'number', answer: count, unit: W, params,
+        hints: [`The ${cat} sector is ${pct}% of the circle, so ${pct}% of the ${N(T)} ${W} gave that answer.`, `${pct}% = ${frac}, and ${frac} × ${N(T)} = ${N(count)}.`, `<b>${N(count)}</b> ${W} answered “${cat}”.`] };
       const share = `${deg}° ÷ 360° = ${frac}${kind === 'angle-count' ? `, which is ${pct}% of the circle` : ''}.`;
-      if (kind === 'angle-percent') return { prompt: `${intro} The circle graph shows the central angle of each sector. What percent of the students answered “${cat}”?${graph}`, type: 'number', answer: pct, unit: '%', params,
-        hints: [`The whole circle, 360°, stands for all the students. Divide the ${cat} sector's angle by 360° to get its share.`, share, `${frac} = <b>${pct}%</b>.`] };
-      return { prompt: `${intro} The circle graph shows the central angle of each sector. How many students answered “${cat}”?${graph}`, type: 'number', answer: count, unit: 'students', params,
-        hints: [`The whole circle, 360°, stands for all ${N(T)} students. Find the ${cat} sector's share of 360° first.`, share, `${frac} × ${N(T)} = <b>${N(count)}</b> students.`] };
+      if (kind === 'angle-percent') return { prompt: `${intro} The circle graph shows the central angle of each sector. What percent of the ${W} answered “${cat}”?${graph}`, type: 'number', answer: pct, unit: '%', params,
+        hints: [`The whole circle, 360°, stands for all the ${W}. Divide the ${cat} sector’s angle by 360° to get its share.`, share, `${frac} = <b>${pct}%</b>.`] };
+      return { prompt: `${intro} The circle graph shows the central angle of each sector. How many ${W} answered “${cat}”?${graph}`, type: 'number', answer: count, unit: W, params,
+        hints: [`The whole circle, 360°, stands for all ${N(T)} ${W}. Find the ${cat} sector’s share of 360° first.`, share, `${frac} × ${N(T)} = <b>${N(count)}</b> ${W}.`] };
     },
     verify(q) {
       const { kind, T, count, pct, deg, counts, pcts } = q.params, a = q.answer;
@@ -1148,6 +1200,10 @@
       ask: x => `the value, in thousands of dollars, of a car that is ${N(x)} years old`, slopeQ: 'By how many thousand dollars does the predicted value go down for each extra year?', per: 'year', unit: '', say: 'thousand dollars' },
     { xl: 'Screen time (hours)', yl: 'Sleep (hours)', xw: 'hours of screen time', yw: 'hours of sleep', xmax: 8, xstep: 2, ymax: 12, ystep: 2, ms: [-0.5, -0.75], bs: [10, 11], xs: [2, 3, 4, 5, 6],
       ask: x => `the hours of sleep of a student with ${N(x)} hours of screen time`, slopeQ: 'By how many hours does the predicted sleep go down for each extra hour of screen time?', per: 'hour of screen time', unit: 'hours' },
+    { xl: 'People in line', yl: 'Wait (minutes)', xw: 'number of people in line at a bakery', yw: 'wait in minutes', xmax: 16, xstep: 4, ymax: 40, ystep: 10, ms: [1.5, 1.75, 2], bs: [2, 3, 4], xs: [5, 9, 13, 18, 20],
+      ask: x => `the wait at the bakery when ${N(x)} people are in line`, slopeQ: 'By how many minutes does the predicted wait go up for each extra person in line?', per: 'person in line', unit: 'minutes' },
+    { xl: 'Days since it rained', yl: 'Water in barrel (L)', xw: 'number of days since it rained', yw: 'number of liters of water in the school garden’s rain barrel', xmax: 10, xstep: 2, ymax: 200, ystep: 40, ms: [-12, -15, -16], bs: [170, 180, 190], xs: [3, 5, 7, 9],
+      ask: x => `how many liters will be left in the rain barrel ${N(x)} days after it rained`, slopeQ: 'By how many liters does the predicted amount of water go down each day?', per: 'day', unit: 'L' },
   ];
   /** "y = 3.5x + 40" back to [3.5, 40] */
   const parseDecEqn = html => {
@@ -1342,7 +1398,7 @@
         }
       }
       if (kind === 'corner') {
-        const [a, b, c] = s, name = rng.pick(NAMES), thing = rng.pick(['garden bed', 'picture frame', 'deck', 'tabletop', 'sandbox']), u = rng.pick(['ft', 'in', 'cm']);
+        const [a, b, c] = s, name = rng.pick(NAMES), thing = rng.pick(['garden bed', 'picture frame', 'deck', 'tabletop', 'sandbox', 'bookshelf', 'patio', 'dog house', 'stage at the community center', 'soccer goal frame']), u = rng.pick(['ft', 'in', 'cm']);
         const sum = a * a + b * b, cc = c * c, res = sum === cc ? 0 : sum > cc ? 1 : 2;
         return { prompt: `${name} wants to check that a corner of a ${thing} is a right angle. ${name} marks a point ${N(a)} ${u} along one edge from the corner and a point ${N(b)} ${u} along the other edge, then measures the diagonal between the two marks: ${N(c)} ${u}. Is the corner a right angle?`, type: 'choice', choices: CORNER.slice(), answer: CORNER[res], keepOrder: true, params: { kind, s },
           hints: [`The two edges and the diagonal make a triangle, and the corner is the angle opposite the diagonal. Compare ${S(N(a), 2)} + ${S(N(b), 2)} with ${S(N(c), 2)}.`,
