@@ -4160,3 +4160,5 @@ sub::before { content: "" / " sub "; }
   input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]), select, textarea { font-size: max(16px, 1em); }
 }
 body.tutor-resizing, .crop-stage { -webkit-user-select: none; }
+/* links inside the help steps' sentences are underlined, so they don't rely on color alone */
+.help-steps a:not([class]), .help-article p a:not([class]) { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 2px; }
