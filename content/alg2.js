@@ -5,7 +5,7 @@
 (function () {
   const A = window.ACADEMY, M = window.M;
   const F = M.frac, N = M.n, V = M.v;
-  const NAMES = ['Ana', 'Ben', 'Chloe', 'Dev', 'Ella', 'Finn', 'Grace', 'Hugo', 'Iris', 'Jai', 'Kai', 'Lena', 'Milo', 'Nora', 'Omar', 'Ravi', 'Sara', 'Theo', 'Uma', 'Zoe'];
+  const NAMES = ['Aisha', 'Mateo', 'Mei', 'Kwame', 'Sofia', 'Arjun', 'Leila', 'Tomas', 'Hana', 'Kofi', 'Ines', 'Diego', 'Yuki', 'Nia', 'Lucas', 'Fatima', 'Noah', 'Zara', 'Emeka', 'Rosa', 'Ana', 'Ben', 'Chloe', 'Dev', 'Grace', 'Omar', 'Ravi', 'Theo', 'Uma', 'Lena'];
   const p = s => `<p>${s}</p>`;
   const example = (title, body) => `<div class="example"><div class="ex-title">${title}</div>${body}</div>`;
   const big = s => `<div class="big">${s}</div>`;
@@ -611,6 +611,30 @@
   });
 
   /* ---------- Unit 7: Exponential models ---------- */
+  // everyday settings: (amount, growth word, step, time, unit word) → the question
+  const DOUBLINGS = [
+    (a, g, h, t) => `A bacteria culture in a school lab starts with ${N(a)} cells and ${g} every ${h} hours. How many cells are there after ${t} hours?`,
+    (a, g, h, t) => `A patch of algae on a pond covers ${N(a)} square centimeters and ${g} every ${h} days. How many square centimeters does it cover after ${t} days?`,
+    (a, g, h, t) => `A jar in a biology class holds ${N(a)} fruit flies, and the number ${g} every ${h} days. How many fruit flies are there after ${t} days?`,
+    (a, g, h, t) => `The number of people who have heard about a neighborhood food drive is ${N(a)}, and it ${g} every ${h} days. How many people have heard about it after ${t} days?`,
+    (a, g, h, t) => `A mint plant in a community garden covers ${N(a)} square inches and ${g} every ${h} weeks. How many square inches does it cover after ${t} weeks?`,
+  ];
+  const HALF_LIVES = [   // [question, unit]
+    [(nm, a, h, t) => `A medicine has a half-life of ${h} hours. ${nm} takes a ${N(a)} mg dose. How much is left after ${t} hours?`, 'mg'],
+    [(nm, a, h, t) => `A radioactive isotope used in a science lab has a half-life of ${h} days. A sample starts at ${N(a)} mg. How much is left after ${t} days?`, 'mg'],
+    [(nm, a, h, t) => `${nm} adds ${N(a)} g of chlorine to a pool. Sunlight breaks it down with a half-life of ${h} hours. How much is left after ${t} hours?`, 'g'],
+    [(nm, a, h, t) => `A hospital scan uses a tracer with a half-life of ${h} hours. A patient receives ${N(a)} mg. How much is left after ${t} hours?`, 'mg'],
+  ];
+  const PERCENT_MODELS = [   // [grows?, the situation, what the function gives]
+    [true, (a, r) => `A town has ${N(a)} people, and its population grows by ${r}% each year.`, 'population'],
+    [true, (a, r) => `A public library has ${N(a)} books, and its collection grows by ${r}% each year.`, 'number of books'],
+    [true, (a, r) => `A city’s bike-share program has ${N(a)} members, and membership grows by ${r}% each year.`, 'number of members'],
+    [true, (a, r) => `A farmers market sees ${N(a)} shoppers a season, and the number grows by ${r}% each year.`, 'number of shoppers'],
+    [false, (a, r) => `A lake holds ${N(a)} fish, and the number falls by ${r}% each year.`, 'number of fish'],
+    [false, (a, r) => `A city has ${N(a)} landline phones, and the number falls by ${r}% each year.`, 'number of landlines'],
+    [false, (a, r) => `A forest has ${N(a)} ash trees, and a disease lowers the number by ${r}% each year.`, 'number of ash trees'],
+  ];
+  const ITEMS = { true: ['a painting', 'a rare coin collection', 'a plot of farmland', 'a vintage guitar', 'a sculpture'], false: ['a used car', 'a used motorcycle', 'a fishing boat', 'a tractor', 'a camper trailer'] };
   A.skill({
     id: 'alg2.exponential-models', title: 'Exponential growth and decay models',
     learn: p(`An <b>exponential model</b> multiplies by the same factor in each equal time step: <b>${fx('f', V('t'))} = ${V('a')} · ${V('b')}<sup>${V('t')}</sup></b>. Here ${V('a')} is the starting amount and ${V('b')} is the <b>growth factor</b>, the number you multiply by each step. If ${V('b')} &gt; 1 the amount grows; if 0 &lt; ${V('b')} &lt; 1 it decays (shrinks).`) +
@@ -625,27 +649,28 @@
       if (kind === 'double') {
         const a = rng.pick([50, 100, 150, 200, 250, 300, 400]), g = rng.pick([2, 2, 3]), h = rng.int(2, 6), n = rng.int(2, g === 3 ? 4 : 5), t = h * n;
         const ans = a * g ** n;
-        return { prompt: `A bacteria culture starts with ${N(a)} cells and ${g === 2 ? 'doubles' : 'triples'} every ${h} hours. How many cells are there after ${t} hours?`, type: 'number', answer: ans, params: { kind, a, g, h, t },
+        return { prompt: rng.pick(DOUBLINGS)(a, g === 2 ? 'doubles' : 'triples', h, t), type: 'number', answer: ans, params: { kind, a, g, h, t },
           hints: [`The model is ${N(a)} · ${g}<sup>${V('t')}/${h}</sup>.`, `In ${t} hours it ${g === 2 ? 'doubles' : 'triples'} ${t} ÷ ${h} = ${n} times: ${g}<sup>${n}</sup> = ${g ** n}.`, `${N(a)} · ${g ** n} = <b>${N(ans)}</b> cells.`] };
       }
       if (kind === 'half') {
         const n = rng.int(1, 4), m = rng.pick([3, 5, 6, 7, 9, 10, 15, 25]), a = m * 2 ** n, h = rng.pick([4, 5, 6, 8, 10, 12, 20, 30]), t = h * n;
-        return { prompt: `A medicine has a half-life of ${h} hours. ${name} takes a ${N(a)} mg dose. How much is left after ${t} hours?`, type: 'number', answer: m, unit: 'mg', params: { kind, a, h, t },
-          hints: [`The model is ${N(a)} · (½)<sup>${V('t')}/${h}</sup>.`, `${t} hours is ${t} ÷ ${h} = ${n} half-lives, so multiply by ½ ${n === 1 ? 'once' : n + ' times'}: ÷ ${2 ** n}.`, `${N(a)} ÷ ${2 ** n} = <b>${N(m)} mg</b>.`] };
+        const [say, u] = rng.pick(HALF_LIVES), span = /days/.test(say(name, a, h, t)) ? 'days' : 'hours';
+        return { prompt: say(name, a, h, t), type: 'number', answer: m, unit: u, params: { kind, a, h, t },
+          hints: [`The model is ${N(a)} · (½)<sup>${V('t')}/${h}</sup>.`, `${t} ${span} is ${t} ÷ ${h} = ${n} half-lives, so multiply by ½ ${n === 1 ? 'once' : n + ' times'}: ÷ ${2 ** n}.`, `${N(a)} ÷ ${2 ** n} = <b>${N(m)} ${u}</b>.`] };
       }
       const grow = rng.bool(), r = rng.pick(grow ? [2, 3, 4, 5, 6, 8, 10, 12] : [5, 8, 10, 12, 15, 20]);
       const a = rng.pick([1200, 2500, 4000, 8000, 15000, 24000]);
       const b = grow ? (100 + r) / 100 : (100 - r) / 100;
       if (kind === 'write') {
         const T = V('t'), f = base => `${fx('P', T)} = ${N(a)}(${N(base)})<sup>${T}</sup>`;
-        const answer = f(b);
-        return { prompt: `${grow ? 'A town has' : 'A lake holds'} ${N(a)} ${grow ? 'people, and its population grows' : 'fish, and the number falls'} by ${r}% each year. Which function gives the ${grow ? 'population' : 'number of fish'} after ${T} years?`, type: 'choice', choices: [answer, f(grow ? (100 - r) / 100 : (100 + r) / 100), f(r / 100), f(grow ? 1 + r / 10 : r / 10)], answer, params: { kind, a, r, grow },
+        const answer = f(b), [, say, what] = rng.pick(PERCENT_MODELS.filter(m => m[0] === grow));
+        return { prompt: `${say(a, r)} Which function gives the ${what} after ${T} years?`, type: 'choice', choices: [answer, f(grow ? (100 - r) / 100 : (100 + r) / 100), f(r / 100), f(grow ? 1 + r / 10 : r / 10)], answer, params: { kind, a, r, grow },
           hints: [`Each year the amount is multiplied by the same factor, so the model is ${N(a)} · ${V('b')}<sup>${T}</sup>.`, grow ? `Growing ${r}% means keeping 100% and adding ${r}%: ${V('b')} = 1 + 0.${String(r).padStart(2, '0')} = ${N(b)}.` : `Losing ${r}% leaves 100% − ${r}% = ${100 - r}%: ${V('b')} = ${N(b)}.`, `<b>${answer}</b>`] };
       }
       const t = rng.int(2, 6);
       let v = a; for (let k = 0; k < t; k++) v *= b;
       const ans = Math.round(v);
-      return { prompt: `${name} buys ${grow ? 'a painting' : 'a used car'} for ${M.money(a)}. Its value ${grow ? 'rises' : 'falls'} by ${r}% per year. What is it worth after ${t} years, to the nearest dollar?`, type: 'number', answer: ans, unit: '$', tolerance: 1, params: { kind, a, r, grow, t },
+      return { prompt: `${name} buys ${rng.pick(ITEMS[grow])} for ${M.money(a)}. Its value ${grow ? 'rises' : 'falls'} by ${r}% per year. What is it worth after ${t} years, to the nearest dollar?`, type: 'number', answer: ans, unit: '$', tolerance: 1, params: { kind, a, r, grow, t },
         hints: [`The yearly factor is ${grow ? `1 + ${N(r / 100)}` : `1 − ${N(r / 100)}`} = ${N(b)}.`, `Value = ${N(a)} · ${N(b)}<sup>${t}</sup>, and ${N(b)}<sup>${t}</sup> ≈ ${N(M.round(Math.pow(b, t), 4))}.`, `${N(a)} · ${N(M.round(Math.pow(b, t), 4))} ≈ <b>${M.money(ans)}</b>.`] };
     },
     verify(q) {
@@ -658,6 +683,11 @@
     },
   });
 
+  const PERIODS = [   // [halves?, what, time unit]
+    [false, 'mold in a science-fair dish', 'days'], [false, 'algae in a fish tank', 'days'], [false, 'duckweed on a pond', 'weeks'], [false, 'yeast in a batch of bread dough', 'hours'],
+    [true, 'a radioactive sample', 'days'], [true, 'a medicine in a patient’s blood', 'hours'], [true, 'a pesticide in garden soil', 'weeks'],
+  ];
+  const RATE_SETTINGS = ['number of visitors to a state park', 'number of students in a school district', 'number of members of a hiking club', 'number of fish in a reservoir', 'number of riders on a city bus line', 'number of bees in a community apiary'];
   A.skill({
     id: 'alg2.exponential-rates', title: 'Interpreting exponential models',
     learn: p(`In ${fx('f', V('t'))} = ${V('a')} · ${V('b')}<sup>${V('t')}</sup>, the number in front, ${V('a')}, is the value when ${V('t')} = 0: the <b>initial value</b>. The base ${V('b')} is the <b>growth factor</b> for each unit of time: ${V('b')} &gt; 1 means growth, and 0 &lt; ${V('b')} &lt; 1 means decay.`) +
@@ -670,20 +700,21 @@
       const kind = rng.pick(['describe', 'describe', 'rate', 'initial', 'period']);
       const T = V('t');
       if (kind === 'period') {
-        const k = rng.int(2, 12), a = rng.pick([40, 60, 80, 120, 500]), half = rng.bool();
-        return { prompt: `The amount of ${half ? 'a substance' : 'mold'} after ${T} days is modeled below. How many days does it take to ${half ? 'halve' : 'double'}?${big(`${fx('A', T)} = ${N(a)} · ${half ? '(½)' : '2'}<sup>${T}/${k}</sup>`)}`, type: 'number', answer: k, unit: 'days', params: { kind, a, k, half },
-          hints: [`The amount ${half ? 'halves' : 'doubles'} each time the exponent ${T}/${k} goes up by 1.`, `${T}/${k} = 1 when ${T} = ${k}.`, `It ${half ? 'halves' : 'doubles'} every <b>${k} days</b>.`] };
+        const k = rng.int(2, 12), a = rng.pick([40, 60, 80, 120, 500]), [half, what, u] = rng.pick(PERIODS);
+        return { prompt: `The amount of ${what} after ${T} ${u} is modeled below. How many ${u} does it take to ${half ? 'halve' : 'double'}?${big(`${fx('A', T)} = ${N(a)} · ${half ? '(½)' : '2'}<sup>${T}/${k}</sup>`)}`, type: 'number', answer: k, unit: u, params: { kind, a, k, half },
+          hints: [`The amount ${half ? 'halves' : 'doubles'} each time the exponent ${T}/${k} goes up by 1.`, `${T}/${k} = 1 when ${T} = ${k}.`, `It ${half ? 'halves' : 'doubles'} every <b>${k} ${u}</b>.`] };
       }
       const grow = rng.bool(), r = rng.pick(grow ? [2, 3, 4, 5, 6, 7, 9, 15, 25] : [3, 4, 5, 8, 12, 15, 18, 30]);
       const b = grow ? (100 + r) / 100 : (100 - r) / 100, a = rng.pick([350, 800, 1500, 6000, 12000, 30000]);
       const shown = `${fx('f', T)} = ${N(a)}(${N(b)})<sup>${T}</sup>`;
       const hint1 = `The base ${N(b)} is ${grow ? 'more' : 'less'} than 1, so the model shows ${grow ? 'growth' : 'decay'}.`;
       const hint2 = grow ? `${N(b)} − 1 = ${N(r / 100)}, which is ${r}%.` : `1 − ${N(b)} = ${N(r / 100)}, which is ${r}%.`;
-      if (kind === 'initial') return { prompt: `What is the initial value of the model?${big(shown)}`, type: 'number', answer: a, params: { kind, a, b }, hints: [`The initial value is ${fx('f', 0)}, the value when ${T} = 0.`, `${N(b)}<sup>0</sup> = 1, so ${fx('f', 0)} = ${N(a)} · 1 = <b>${N(a)}</b>.`] };
-      if (kind === 'rate') return { prompt: `By what percent does the quantity ${grow ? 'increase' : 'decrease'} each year?${big(shown)}`, type: 'number', answer: r, unit: '%', params: { kind, b }, hints: [hint1, hint2, `It ${grow ? 'increases' : 'decreases'} by <b>${r}%</b> per year.`] };
+      const what = rng.pick(RATE_SETTINGS), ctx = `The ${what} ${T} years from now is modeled below.`;
+      if (kind === 'initial') return { prompt: `${ctx} What is the initial value of the model?${big(shown)}`, type: 'number', answer: a, params: { kind, a, b }, hints: [`The initial value is ${fx('f', 0)}, the value when ${T} = 0.`, `${N(b)}<sup>0</sup> = 1, so ${fx('f', 0)} = ${N(a)} · 1 = <b>${N(a)}</b>.`] };
+      if (kind === 'rate') return { prompt: `${ctx} By what percent does the ${what} ${grow ? 'increase' : 'decrease'} each year?${big(shown)}`, type: 'number', answer: r, unit: '%', params: { kind, b }, hints: [hint1, hint2, `It ${grow ? 'increases' : 'decreases'} by <b>${r}%</b> per year.`] };
       const d = (w, x) => `${w} of ${x}% per year`;
       const answer = d(grow ? 'growth' : 'decay', r);
-      return { prompt: `What does the model show? ${T} is in years.${big(shown)}`, type: 'choice', choices: [answer, d(grow ? 'decay' : 'growth', r), d(grow ? 'growth' : 'decay', Math.round(b * 100)), d(grow ? 'decay' : 'growth', Math.round(b * 100))], answer, params: { kind, b },
+      return { prompt: `${ctx} What does the model show?${big(shown)}`, type: 'choice', choices: [answer, d(grow ? 'decay' : 'growth', r), d(grow ? 'growth' : 'decay', Math.round(b * 100)), d(grow ? 'decay' : 'growth', Math.round(b * 100))], answer, params: { kind, b },
         hints: [hint1, hint2, `<b>${answer}</b>.`] };
     },
     verify(q) {
@@ -779,7 +810,13 @@
       if (kind === 'double') {
         const r = rng.pick([3, 4, 5, 6, 7, 8, 9, 12]), mult = rng.pick([2, 2, 3]), name = rng.pick(NAMES);
         const ans = M.round(Math.log(mult) / Math.log(1 + r / 100), 2);
-        return { prompt: `${name} invests money at ${r}% interest compounded once a year. How many years until it ${mult === 2 ? 'doubles' : 'triples'}? Round to two decimal places.`, type: 'number', answer: ans, tolerance: 0.01, unit: 'years', params: { kind, r, mult },
+        const dbl = mult === 2 ? 'doubles' : 'triples', say = rng.pick([
+          `${name} invests money at ${r}% interest compounded once a year. How many years until it ${dbl}?`,
+          `A town’s population grows ${r}% a year. How many years until it ${dbl}?`,
+          `A scholarship fund earns ${r}% a year, added once a year. How many years until it ${dbl}?`,
+          `${name}’s online chess club grows ${r}% a year. How many years until its membership ${dbl}?`,
+          `The number of solar panels installed in a county grows ${r}% a year. How many years until it ${dbl}?`]);
+        return { prompt: `${say} Round to two decimal places.`, type: 'number', answer: ans, tolerance: 0.01, unit: 'years', params: { kind, r, mult },
           hints: [`The amount ${mult === 2 ? 'doubles' : 'triples'} when ${N(1 + r / 100)}<sup>${V('t')}</sup> = ${mult}; the starting amount cancels.`, `Take logs: ${V('t')} = log ${mult} ÷ log ${N(1 + r / 100)}.`, `≈ ${N(M.round(Math.log10(mult), 4))} ÷ ${N(M.round(Math.log10(1 + r / 100), 4))} ≈ <b>${N(ans)} years</b>.`] };
       }
       const a = rng.pick([2, 3, 4, 5, 10]), b = rng.pick([2, 3, 5, 6]);
@@ -1062,6 +1099,14 @@
     },
   });
 
+  /** real things that rise and fall like a sinusoid: [max, min, unit, the situation] */
+  const WAVES = [
+    rng => { const mn = rng.int(1, 5), a = rng.int(10, 30); return [mn + 2 * a, mn, 'm', (mx, lo) => `A seat on a Ferris wheel is ${N(mx)} m above the ground at its highest point and ${N(lo)} m at its lowest.`]; },
+    rng => { const mn = rng.int(2, 8), a = rng.int(1, 6); return [mn + 2 * a, mn, 'ft', (mx, lo) => `The water at a harbor dock is ${N(mx)} feet deep at high tide and ${N(lo)} feet deep at low tide.`]; },
+    rng => { const mn = rng.int(40, 70), a = rng.int(5, 15); return [mn + 2 * a, mn, '°F', (mx, lo) => `Over one day, the temperature in a desert town rises to a high of ${N(mx)}°F and falls to a low of ${N(lo)}°F.`]; },
+    rng => { const a = rng.pick([2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6]); return [12 + a, 12 - a, 'hours', (mx, lo) => `A northern city gets ${N(mx)} hours of daylight on its longest day and ${N(lo)} hours on its shortest.`]; },
+    rng => { const mn = rng.int(8, 20), a = rng.int(3, 12); return [mn + 2 * a, mn, 'cm', (mx, lo) => `In a physics lab, a weight on a spring bobs up and down between ${N(mx)} cm and ${N(lo)} cm above the table.`]; },
+  ];
   A.skill({
     id: 'alg2.sinusoids', title: 'Amplitude, midline and period',
     learn: p(`The graph of ${Y} = ${V('a')} sin(${V('b')}${X}) + ${V('d')}, or the same with cos, is a repeating wave called a <b>sinusoid</b>. <b>Amplitude = |${V('a')}|</b>, the distance from the middle of the wave to a peak. <b>Midline: ${Y} = ${V('d')}</b>, the horizontal line through the middle. <b>Period = 2π ÷ ${V('b')}</b>, the length of one full cycle.`) +
@@ -1069,7 +1114,12 @@
       example('Example 1: reading an equation', `${big(`${Y} = −3 sin(${sfrac('π', 2)}${X}) + 1`)}Amplitude |−3| = <b>3</b>, midline <b>${Y} = 1</b>, and period 2π ÷ ${sfrac('π', 2)} = 2π · ${sfrac(2, 'π')} = <b>4</b>.`) +
       example('Example 2: from the highest and lowest points', `A seat on a Ferris wheel is 38 m above the ground at its highest and 2 m at its lowest. The midline is (38 + 2) ÷ 2 = <b>20 m</b>, and the amplitude is (38 − 2) ÷ 2 = <b>18 m</b>.`),
     make(rng) {
-      const kind = rng.pick(['amp', 'mid', 'period', 'period', 'maxmin']);
+      const kind = rng.pick(['amp', 'mid', 'period', 'period', 'maxmin', 'context']);
+      if (kind === 'context') {
+        const [mx, mn, u, say] = rng.pick(WAVES)(rng), ask = rng.pick(['amplitude', 'midline']), ans = ask === 'amplitude' ? (mx - mn) / 2 : (mx + mn) / 2;
+        return { prompt: `${say(mx, mn)} If this is modeled by a sinusoid, what is ${ask === 'amplitude' ? 'its amplitude' : 'the value of its midline'}?`, type: 'number', answer: ans, unit: u, params: { kind: 'maxmin', mx, mn, ask },
+          hints: [ask === 'amplitude' ? `The amplitude is half the distance from the lowest value to the highest.` : `The midline is halfway between the highest and lowest values.`, ask === 'amplitude' ? `(${N(mx)} − ${N(mn)}) ÷ 2 = ${N(mx - mn)} ÷ 2.` : `(${N(mx)} + ${N(mn)}) ÷ 2 = ${N(mx + mn)} ÷ 2.`, `<b>${N(ans)} ${u}</b>.`] };
+      }
       if (kind === 'maxmin') {
         const d = rng.int(-6, 6), a = rng.int(1, 7), ask = rng.pick(['amplitude', 'midline']), mx = d + a, mn = d - a;
         const ans = ask === 'amplitude' ? a : d;
