@@ -9,6 +9,8 @@ self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(keys => 
 // the network first, so a fix is seen at once; but when the network is down, or slower than SLOW, the copy kept
 // from last time is shown straight away (and the fresh one still replaces it for next time)
 const SLOW = 3000;
+// files answered from the kept copy because the network was down: fetched fresh once the page says it's back online
+const STALE = new Set();
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET' || new URL(e.request.url).origin !== location.origin) return;
   const net = fetch(e.request).then(res => { if (res.ok) { const copy = res.clone(); caches.open(VERSION).then(c => c.put(e.request, copy)); } return res; });
@@ -16,7 +18,13 @@ self.addEventListener('fetch', e => {
     let done = false;
     const answer = r => { if (!done && r) { done = true; resolve(r); } };
     const timer = setTimeout(() => caches.match(e.request).then(answer), SLOW);         // slow: only this file's own copy will do
-    net.then(r => { clearTimeout(timer); answer(r); }, () => { clearTimeout(timer); caches.match(e.request).then(r => r || caches.match('./index.html')).then(r => answer(r || Response.error())); });
+    net.then(r => { clearTimeout(timer); answer(r); }, () => { clearTimeout(timer); STALE.add(e.request.url); caches.match(e.request).then(r => r || caches.match('./index.html')).then(r => answer(r || Response.error())); });
   }));
   e.waitUntil(net.catch(() => {}));
+});
+// back online (the page tells it): the files given from the kept copy are fetched again, quietly, for next time
+self.addEventListener('message', e => {
+  if (!e.data || e.data.type !== 'online' || !STALE.size) return;
+  const urls = [...STALE]; STALE.clear();
+  e.waitUntil(caches.open(VERSION).then(c => Promise.all(urls.map(u => fetch(u).then(res => (res.ok ? c.put(u, res) : null)).catch(() => { STALE.add(u); })))));
 });

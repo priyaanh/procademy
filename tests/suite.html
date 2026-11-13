@@ -3614,6 +3614,161 @@
   S.reset();
   }
 
+  { // access and speed: what screen readers hear, reading comfort, time limits, damaged or full storage, the problem log, updates that wait
+  const goA = async h => { location.hash = '#/x-acc'; await tick(15); return go(h); };
+  const mainA = document.getElementById('main'), html = document.documentElement, srSay = () => (document.getElementById('sr-say') || {}).textContent || '';
+  S.reset(); S.setProfile({ welcomed: true, grade: 7, enrolled: ['math-7'] });
+  // fractions and powers have words for screen readers, and the text on the page is unchanged
+  const fr = document.createElement('div'); fr.innerHTML = `${M.frac(3, 4)} and x<sup>2</sup>`; root.appendChild(fr);
+  ok(/over/.test(getComputedStyle(fr.querySelector('.frac .num'), '::after').content) && /to the power/.test(getComputedStyle(fr.querySelector('sup'), '::before').content) && fr.textContent === '34 and x2', 'screen readers: a fraction is read as 3 over 4 and a power as to the power 2, with the page text unchanged');
+  fr.remove();
+  // right and wrong are said, once (the answer's own region, drawn anew each check, is quietened)
+  let m = await goA('#/practice/math7.add-negatives'); await tick(450);
+  let sess = m.__session, q = sess.items[sess.i].q;
+  m.querySelector('#ans').value = String(q.answer + 7); m.querySelector('#ans').dispatchEvent(new Event('input', { bubbles: true })); m.querySelector('#check').click(); await tick(120);
+  ok(/^Not quite/.test(srSay()) && m.querySelector('#feedback').getAttribute('aria-live') === 'off', 'screen readers: a wrong answer is said once, and the redrawn region stays quiet');
+  q = sess.items[sess.i].q; m.querySelector('#ans').value = String(q.answer); m.querySelector('#ans').dispatchEvent(new Event('input', { bubbles: true })); m.querySelector('#check').click(); await tick(120);
+  ok(/^Correct\./.test(srSay()), 'screen readers: a right answer is said: ' + srSay().slice(0, 40));
+  // skip links: Skip to content stays on the page; Skip to the answer appears in practice and goes to the box
+  const skipA = document.querySelector('a.skip-ans');
+  m = await goA('#/practice/math7.add-negatives'); await tick(30);
+  document.querySelector('a.skip').focus(); await tick(5);
+  ok(skipA && !skipA.hidden, 'skip links: Skip to the answer is offered in practice');
+  skipA.click(); await tick(5);
+  ok(document.activeElement === m.querySelector('#ans'), 'skip links: Skip to the answer goes straight to the answer box');
+  const before = location.hash; document.querySelector('a.skip').click(); await tick(20);
+  ok(location.hash === before && document.activeElement === mainA, 'skip links: Skip to content moves to the page instead of opening a page called main');
+  m = await goA('#/courses'); document.querySelector('a.skip').focus(); await tick(5);
+  ok(skipA.hidden, 'skip links: no answer link where there is no answer box');
+  // an error in a tool is said once it stops changing
+  m = await goA('#/numbers'); await tick(450);
+  const err = document.createElement('p'); err.className = 'cx-err'; err.textContent = 'Use whole numbers from 1 to 1,000.'; m.appendChild(err); await tick(1000);
+  ok(srSay() === 'Use whole numbers from 1 to 1,000.', 'screen readers: an error message in a tool is said');
+  // Settings: Reading and access, and This device
+  m = await goA('#/settings'); await tick(40);
+  const cards = [...m.querySelectorAll('.settings-grid > .card h2')].map(h => h.textContent);
+  ok(cards.indexOf('Reading and access') === cards.indexOf('Look') + 1 && cards.includes('This device'), 'settings: Reading and access sits after Look, and This device is there too');
+  m.querySelector('#ac-lines [data-v="more"]').click(); m.querySelector('#ac-words [data-v="most"]').click();
+  const lh = parseFloat(getComputedStyle(m.querySelector('.set-help')).lineHeight) / parseFloat(getComputedStyle(m.querySelector('.set-help')).fontSize);
+  ok(S.get().profile.lineSpace === 'more' && html.dataset.lines === 'more' && lh > 1.7 && html.dataset.words === 'most' && parseFloat(getComputedStyle(document.body).wordSpacing) > 3, 'reading: line spacing and word spacing are kept and applied');
+  m.querySelector('#ac-calm').click(); m.querySelector('#ac-focus').click(); m.querySelector('#ac-ruler').click();
+  ok(html.dataset.clutter === 'less' && getComputedStyle(document.getElementById('stats')).display === 'none' && html.dataset.focus === 'strong' && document.querySelector('.reading-ruler'), 'reading: fewer extras hides the streak and points; a bigger focus outline; a reading ruler');
+  document.dispatchEvent(new PointerEvent('pointermove', { clientX: 10, clientY: 300, pointerType: 'mouse', bubbles: true }));
+  const rr = document.querySelector('.reading-ruler').getBoundingClientRect();
+  ok(Math.abs(rr.top + rr.height / 2 - 300) < 2, 'reading: the ruler follows the pointer');
+  m.querySelector('#ac-calm').click(); m.querySelector('#ac-focus').click(); m.querySelector('#ac-ruler').click();
+  m.querySelector('#ac-lines [data-v="normal"]').click(); m.querySelector('#ac-words [data-v="normal"]').click();
+  ok(!html.dataset.clutter && !html.dataset.focus && !document.querySelector('.reading-ruler') && !html.dataset.lines && !html.dataset.words && !S.get().profile.calm, 'reading: and each one turns off again');
+  // Settings drawing itself again keeps its cards
+  S.setProfile({ easyRead: true }); V.settings(mainA); await tick(40);
+  ok(mainA.querySelector('#access-card') && mainA.querySelector('#device-card'), 'settings: the cards come back when Settings draws itself again');
+  S.setProfile({ easyRead: false });
+  // lessons in simpler words
+  const gl = Object.keys(A.skills).find(id => A.whereIs(id) && /\bdenominator\b/.test(A.skills[id].learn || '') && !A.skills[id].learnEs);
+  S.setProfile({ simpleWords: true }); m = await goA('#/skill/' + gl); await tick(30);
+  const simpleOn = /the bottom number/.test(m.querySelector('.learn-body').textContent);
+  S.setProfile({ simpleWords: null }); m = await goA('#/skill/' + gl); await tick(30);
+  ok(gl && simpleOn && !/the bottom number/.test(m.querySelector('.learn-body').textContent), 'reading: lessons in simpler words give a hard word a short meaning');
+  // time limits: more time, or none
+  ok(S.timeLimit(300000) === 300000, 'time limits: as set by default');
+  S.setProfile({ timeLimits: 'more' }); ok(S.timeLimit(300000) === 450000, 'time limits: more time is half as much again');
+  S.setProfile({ timeLimits: 'off' }); m = await goA('#/warmup'); await tick(20);
+  const noClock = !m.querySelector('#ex-clock');
+  S.setProfile({ timeLimits: null }); m = await goA('#/warmup'); await tick(20);
+  ok(noClock && m.querySelector('#ex-clock'), 'time limits: turned off, the warm-up has no countdown');
+  // the study timer's end stays on screen until it's put away
+  const tkey = 'procademy.timer.v1', tWas = localStorage.getItem(tkey);
+  S.setProfile({ quiet: { from: 0, to: 24 } });          // quiet hours all day: no chime in the suite
+  localStorage.setItem(tkey, JSON.stringify({ phase: 'focus', ends: Date.now() - 10, left: null, focus: 25, brk: 5, rounds: 0, day: S.today() }));
+  await tick(1300);
+  const tn = document.getElementById('timer-note');
+  ok(tn && tn.getAttribute('role') === 'alert' && /break/.test(tn.textContent), 'timer: its end is shown as well as heard, until it is put away');
+  if (tn) tn.querySelector('[data-ok]').click();
+  if (tWas == null) localStorage.removeItem(tkey); else localStorage.setItem(tkey, tWas);
+  S.setProfile({ quiet: null });
+  // everything read aloud is shown as text (no sound: the volume is 0 and it stops at once)
+  if (window.speechSynthesis && APP._caption) {
+    const u = new SpeechSynthesisUtterance('Three over four'); u.volume = 0;
+    speechSynthesis.speak(u); u.dispatchEvent(new Event('start'));
+    const shown = APP._caption();
+    speechSynthesis.cancel();
+    ok(shown === 'Three over four', 'read aloud: what is read is shown as text');
+  }
+  // help: a keyboard guide, an accessibility statement and what to do when something goes wrong; the grid fills its rows
+  ok(['keyboard', 'access', 'trouble'].every(id => HELP.ARTICLES.some(a => a[0] === id)) && HELP.ARTICLES.length % 3 === 0, 'help: keyboard, accessibility and trouble articles, in full rows of three');
+  m = await goA('#/help/access');
+  ok(/WCAG/.test(m.textContent) && m.querySelector('h1').textContent === 'Accessibility', 'help: the accessibility statement page');
+  // no positive tabindex on the main pages; every question drawing has a text description
+  let posTab = 0;
+  for (const h of ['#/', '#/settings', '#/practice/math7.circles', '#/progress', '#/tools']) { m = await goA(h); posTab += [...m.querySelectorAll('[tabindex]')].filter(e => e.tabIndex > 0).length; }
+  ok(posTab === 0, 'focus order: no element jumps the tab order on the main pages');
+  let unlabeled = 0;
+  const dv = document.createElement('div');
+  Object.keys(A.skills).forEach(id => { if (!A.whereIs(id)) return; let qq; try { qq = A.question(id, 'acc-1'); } catch (e) { return; } dv.innerHTML = qq.prompt; dv.querySelectorAll('svg').forEach(sv => { if (!sv.parentElement.closest('svg') && sv.getAttribute('aria-hidden') !== 'true' && !(sv.getAttribute('role') === 'img' && (sv.getAttribute('aria-label') || sv.querySelector('title')))) unlabeled++; }); });
+  ok(unlabeled === 0, 'drawings: every drawing in a question has a text description');
+  // chart colors stay apart for color blindness (deuteranopia, protanopia, tritanopia), in light and dark
+  const cvd = { d: [[.367, .861, -.228], [.280, .673, .047], [-.012, .043, .969]], p: [[.152, 1.053, -.205], [.115, .786, .099], [-.004, -.048, 1.052]], t: [[1.256, -.077, -.179], [-.078, .931, .148], [.005, .691, .304]] };
+  const lab = (hex, mx) => { let c = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255).map(v => (v <= .04045 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4))); if (mx) c = mx.map(r => Math.min(1, Math.max(0, r[0] * c[0] + r[1] * c[1] + r[2] * c[2]))); const X = (.4124 * c[0] + .3576 * c[1] + .1805 * c[2]) / .95047, Y = .2126 * c[0] + .7152 * c[1] + .0722 * c[2], Z = (.0193 * c[0] + .1192 * c[1] + .9505 * c[2]) / 1.08883, f = t => (t > .008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116); return [116 * f(Y) - 16, 500 * (f(X) - f(Y)), 200 * (f(Y) - f(Z))]; };
+  const sep = () => { const pal = [1, 2, 3, 4, 5, 6].map(k => getComputedStyle(html).getPropertyValue('--vz' + k).trim()); let worst = 99; [null, cvd.d, cvd.p, cvd.t].forEach(mx => { const L = pal.map(h => lab(h, mx)); L.forEach((a, i) => L.slice(i + 1).forEach(b => { worst = Math.min(worst, Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2])); })); }); return worst; };
+  const sepLight = sep(); html.setAttribute('data-theme', 'dark'); const sepDark = sep(); html.removeAttribute('data-theme'); APP.applyPrefs();
+  ok(sepLight > 15 && sepDark > 15, `charts: the six chart colors stay apart for color-blind eyes (light ${sepLight.toFixed(1)}, dark ${sepDark.toFixed(1)})`);
+  // drawings far down a long page wait until they come near
+  const wq = document.createElement('li'); wq.className = 'ws-q'; root.appendChild(wq);
+  ok(!('contentVisibility' in wq.style) || getComputedStyle(wq).contentVisibility === 'auto', 'speed: worksheet questions are drawn as they come into view');
+  wq.remove();
+  // the problem log, the speed readout, and This device
+  const PK = 'procademy.problems.v1', pWas = localStorage.getItem(PK);
+  localStorage.removeItem(PK);
+  APP.logProblem('error', 'A test problem', 'lib/x.js:1'); APP.logProblem('error', 'A test problem', 'lib/x.js:1');
+  ok(/A test problem/.test(APP.problemText()) && /2 times/.test(APP.problemText()) && /Browser:/.test(APP.problemText()), 'problem log: kept on this device, repeats counted, with the browser named');
+  m = await goA('#/settings'); await tick(40);
+  APP._lastFile = null; m.querySelector('#dv-log-save').click();
+  ok(APP._lastFile && /^procademy-problems-\d{4}-\d\d-\d\d\.txt$/.test(APP._lastFile.name) && /A test problem/.test(APP._lastFile.text), 'problem log: saved as a file to send');
+  ok(/^Ready \d/.test(m.querySelector('#dv-speed').textContent) && /Procademy keeps/.test(m.querySelector('#dv-store').textContent), 'This device: how quickly Procademy started, and what it keeps');
+  m.querySelector('#dv-log-clear').click();
+  ok(!localStorage.getItem(PK) && /No problems/.test(mainA.querySelector('#dv-log').textContent), 'problem log: cleared');
+  if (pWas) localStorage.setItem(PK, pWas);
+  // an update waits for the end of a practice set
+  m = await goA('#/practice/math7.add-negatives'); await tick(20);
+  let ran = false; APP.whenFree(() => { ran = true; });
+  const waited = APP.inSet() && !ran;
+  m = await goA('#/courses'); await tick(40);
+  ok(waited && ran, 'updates: an update waits while a practice set is under way, and shows once it is left');
+  // damaged progress goes back to the newest copy; storage that's full says so and makes room
+  S.useMemory(true, { seed: { 'procademy.v1': '{"skills":{"math7.circles":{"lev', 'procademy.backup.v1': JSON.stringify([{ t: Date.UTC(2026, 10, 5, 12), data: JSON.stringify({ skills: { 'math7.circles': { level: 3, tries: 5, right: 5 } }, points: 40 }) }]) } });
+  ok(S.skill('math7.circles').level === 3 && S.get().points === 40 && S.recovered() && S.recovered().from && S.damaged() && /"lev$/.test(S.damaged().text), 'storage: progress that can’t be read goes back to the newest copy, and the damaged text is kept aside');
+  S.useMemory(true, { seed: { 'procademy.v1': 'not json' } });
+  ok(S.get().points === 0 && S.recovered() && S.recovered().from === 0, 'storage: with no copy, it starts fresh instead of breaking');
+  S.useMemory(true, { limit: 6000, seed: { 'procademy.speed.v1': 'x'.repeat(1500), 'procademy.problems.v1': 'y'.repeat(1500) } });
+  S.setProfile({ name: 'Room' });
+  ok(!S.isFull() && S.usage().some(u => u.spare), 'storage: room to spare at first');
+  S.setProfile({ note: 'n'.repeat(3000) });
+  ok(!S.isFull() && !S.usage().some(u => u.spare) && S.get().profile.note.length === 3000, 'storage: when it fills up, what Procademy can rebuild makes room first');
+  S.setProfile({ note: 'n'.repeat(7000) });
+  ok(S.isFull() && document.getElementById('full-note') && document.getElementById('full-note').getAttribute('role') === 'alert', 'storage: when nothing more can go, the page says progress isn’t being saved');
+  S.setProfile({ note: '' });
+  ok(!S.isFull() && !document.getElementById('full-note'), 'storage: and once there is room again, the message goes');
+  S.useMemory(true, { seed: { 'procademy.tutorcache.v1': '{}', 'procademy.recentpages.v1.l2': '[]' } });
+  ok(S.freeUp() > 0 && !S.usage().length, 'storage: Free up space clears what Procademy can rebuild');
+  S.useMemory(true); S.reset(); S.setProfile({ welcomed: true });
+  const rn = document.getElementById('recover-note'); if (rn) rn.remove();
+  // the tutor's answer to a question asked before, when it can't reach the internet
+  if (window.TUTOR && TUTOR.ask && TUTOR.ask.__kept && APP._tutorKept) {
+    const K = APP._tutorKept, hist = [{ role: 'user', content: 'What is a ratio?' }], tcWas = localStorage.getItem(K.name());
+    localStorage.removeItem(K.name());
+    K.put(K.key(hist, {}), 'A ratio compares two amounts.');
+    let streamed = '', got = '', threw = false;
+    try {
+      Object.defineProperty(navigator, 'onLine', { get: () => false, configurable: true });
+      got = await TUTOR.ask(hist, {}, t => { streamed = t; });
+    } catch (e) { threw = true; } finally { delete navigator.onLine; }
+    ok(!threw && /^A ratio compares two amounts\./.test(got) && /asked this before/.test(got) && streamed === got && navigator.onLine !== false, 'tutor: an answer given before is there again offline');
+    ok(K.key([{ role: 'user', content: 'Hi' }, { role: 'assistant', content: 'Hello' }, { role: 'user', content: 'More' }], {}) === null, 'tutor: follow-ups in a chat aren’t kept (they depend on the chat)');
+    if (tcWas == null) localStorage.removeItem(K.name()); else localStorage.setItem(K.name(), tcWas);
+  }
+  S.reset();
+  }
+
   const SUGGESTED_ALL_BANKED = m => [...m.querySelectorAll('#ul-topic .chip-btn')].slice(-12).every(a => TOPICS.bankFor(a.textContent.trim()));
   { // practice any topic: reviewed questions start at once; AI questions stream in, checked in the background
   const TUt = TUTOR, realF = TUt.fetch, use0 = TUt.cloud.use.slice(), gen = [], chk = [];
