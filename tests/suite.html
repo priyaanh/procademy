@@ -987,6 +987,76 @@
   S.reset();
   }
 
+  /* ---- languages: the Hindi course (386), Hindi flashcards, typing practice with math words, Spanish question text (387) ---- */
+  {
+  S.reset();
+  const goL = async h => { location.hash = '#/settings'; await tick(15); location.hash = h; await tick(60); return document.getElementById('main'); };
+  const hc = A.courseById('hindi'), hids = hc ? A.courseSkills(hc) : [];
+  ok(hc && hc.units.length === 10 && hids.length >= 30 && hids.every(id => A.skills[id] && id.startsWith('hi.')) && /listed at grade 6/.test(hc.blurb), 'hindi: a beginners’ course of 10 units, from the alphabet to sentences, with an honest grade label');
+  ok(['hi.family', 'hi.food', 'hi.school', 'hi.colors', 'hi.days', 'hi.months', 'hi.greetings', 'hi.question-words'].every(id => hids.includes(id)), 'hindi (386): family, food, school, colors, days and months, greetings and question words');
+  ok(HINDI.translit('किताब') === 'kitaaba' && HINDI.spells('कमल', 'kamal') && !HINDI.spells('कमल', 'kalam') && HINDI.spells('सितंबर', 'sitambar'), 'hindi: spellings are checked against a transliteration of the Devanagari');
+  const hq = A.question('hi.to-be', 'lang-1');
+  ok(hq.choices.length === 4 && hq.choices.every(c => /lang="hi"/.test(c)) && /lang="hi"/.test(hq.prompt), 'hindi: Devanagari in questions and choices is marked as Hindi');
+  let m = await goL('#/practice/hi.consonants-1');
+  ok(m.querySelector('.question .hi[lang="hi"], .choices .hi[lang="hi"]'), 'hindi: practice shows Devanagari');
+  const hadVoice = document.documentElement.classList.contains('hi-voice');
+  m = await goL('#/skill/hi.vowels');
+  const lb = m.querySelector('.learn .hi-say');
+  document.documentElement.classList.remove('hi-voice');
+  const hiddenNoVoice = lb && getComputedStyle(lb).display === 'none';
+  document.documentElement.classList.add('hi-voice');
+  ok(m.querySelectorAll('.learn .hi-cell').length >= 11 && hiddenNoVoice && getComputedStyle(lb).display !== 'none', 'hindi: the lesson’s letters in a grid; Listen shows only with a Hindi voice');
+  document.documentElement.classList.toggle('hi-voice', hadVoice);
+  // Hindi flashcards
+  const hd = VOCAB.deckOf('hindi');
+  ok(hd.length === HINDI.WORDS.length && hd.length >= 100 && hd.every(c => c.hindi && /^h-[a-z0-9-]{1,38}$/.test(c.id)) && new Set(hd.map(c => c.id)).size === hd.length, 'hindi cards: every course word is a card, with an id kept apart from the math words');
+  m = await goL('#/words/cards/hindi');
+  ok(m.querySelector('input[value="hindi"]:checked') && m.querySelector('.ex-head a[href="#/course/hindi"]'), 'hindi cards: #/words/cards/hindi opens on the Hindi deck, with a way back to the course');
+  m.querySelector('#cd-go').click(); await tick(10);
+  const hFront = m.querySelector('.fc-term'), hWord = hd.find(c => c.term === text(hFront));
+  ok(hFront && hFront.getAttribute('lang') === 'hi' && hWord, 'hindi cards: Devanagari on the front');
+  m.querySelector('#fc-flip').click(); await tick(5);
+  ok(text(m.querySelector('.fc-def')) === hWord.def && /Say it: /.test(text(m.querySelector('.flashcard'))), 'hindi cards: the meaning and how to say it on the back');
+  m.querySelector('#fc-yes').click(); await tick(5);
+  ok(S.get().words[hWord.id].ivl === 3 && S.get().words[hWord.id].due === S.dayShift(S.today(), 3) && VOCAB.known() === 0 && VOCAB.hindiKnown() === 1, 'hindi cards: spaced review, and Hindi words don’t count as math words');
+  // typing practice
+  const sc = TYPING.score(['least', 'common', 'multiple'], ['least', 'comon', 'Multiple'], 60000, 20, 19);
+  ok(sc.wpm === 3 && sc.accuracy === 95 && sc.good === 2 && sc.missed.join() === 'common', 'typing: words per minute from the words typed right (capitals don’t matter), accuracy from the letters');
+  const tp = TYPING.passage('defs', 12, 'z');
+  ok(TYPING.passage('words', 12, 'a').join(' ') === TYPING.passage('words', 12, 'a').join(' ') && TYPING.passage('words', 12, 'a').length >= 12 && tp.length >= 12 && tp.every(w => /^[A-Za-z0-9,.;:'()/-]+$/.test(w)), 'typing: math words and meanings, only letters a keyboard has');
+  m = await goL('#/tools');
+  ok(m.querySelector('a.tool[href="#/typing"]'), 'typing: a card on the Tools page');
+  m = await goL('#/typing');
+  ok(m.querySelector('#ty-go') && m.querySelector('.crumbs a[href="#/tools"]') && m.querySelectorAll('#ty-kind [role="radio"]').length === 2, 'typing: choose what to type and how long');
+  m.querySelector('#ty-go').click(); await tick(10);
+  const tw = m.__run.words, tin = m.querySelector('#ty-in');
+  ok(document.activeElement === tin && m.querySelector('.ty-w.now') && text(m.querySelector('.ty-w.now')) === tw[0], 'typing: the box has the keyboard and the first word is marked');
+  tw.forEach((w, k) => { tin.value = (k === 1 ? w + 'x' : w) + (k < tw.length - 1 ? ' ' : ''); tin.dispatchEvent(new Event('input', { bubbles: true })); });
+  await tick(10);
+  ok(m.__typing && m.__typing.of === tw.length && m.__typing.good === tw.length - 1 && m.__typing.missed[0] === tw[1] && S.get().profile.typing.best.words > 0 && m.querySelector('.ty-stats'), 'typing: Space moves on, the last word finishes the set, and the best speed is kept');
+  // Spanish question text
+  ok(ESQ.SKILLS.length >= 100 && ESQ.SKILLS.every(id => A.skills[id] && A.whereIs(id)), `spanish (387): ${ESQ.SKILLS.length} skills have Spanish`);
+  let esMiss = 0, esEnglish = 0;
+  ESQ.SKILLS.forEach(id => { for (let k = 0; k < 25; k++) { const q = A.question(id, 'es' + k), es = ESQ.translate(q); if (!es) { esMiss++; continue; } if (/(^|[^\p{L}])(the|what|how many|which|find|write|give your)(?![\p{L}])/iu.test(es.replace(/<svg[\s\S]*?<\/svg>|<table[\s\S]*?<\/table>|<[^>]+>/g, ' '))) esEnglish++; } });
+  ok(esMiss === 0 && esEnglish === 0, `spanish: every question of every covered skill has Spanish, with no English left (${esMiss} missing, ${esEnglish} with English)`);
+  const eq = A.question('g4.divide-remainders', 'lang-2');
+  ok(/^Divide\.|tiene/.test(ESQ.translate(eq)) && ESQ.translate(A.question('g6.gcf-lcm', 'x')) === null && ESQ.prompt(eq) === eq.prompt, 'spanish: only skills written in Spanish, and only when the learner chose it');
+  m = await goL('#/practice/g4.divide-remainders');
+  const optEs = m.querySelector('#opt-es');
+  ok(optEs && !optEs.checked && !m.querySelector('.es-switch'), 'spanish: Questions in Spanish is in the practice Options menu, off at first');
+  optEs.checked = true; optEs.dispatchEvent(new Event('change')); await tick(20);
+  m = document.getElementById('main');
+  const esq = m.querySelector('.question .es-q'), sw = m.querySelector('.question .es-switch');
+  ok(S.get().profile.player.es === true && esq && esq.getAttribute('lang') === 'es' && /¿|Divide|Resta|Suma/.test(text(esq)) && sw, 'spanish: the question shows in Spanish, kept per learner');
+  sw.click(); await tick(5);
+  ok(esq.getAttribute('lang') === 'en' && text(esq) === text((() => { const d = document.createElement('div'); d.innerHTML = m.__session.items[m.__session.i].q.prompt; return d; })()) && sw.getAttribute('aria-pressed') === 'true' && /español/.test(text(sw)), 'spanish: the English is a tap away');
+  sw.click(); await tick(5);
+  ok(esq.getAttribute('lang') === 'es' && sw.getAttribute('aria-pressed') === 'false', 'spanish: and back to Spanish');
+  m = await goL('#/practice/g6.gcf-lcm');
+  ok(!m.querySelector('#opt-es') && !m.querySelector('.es-switch'), 'spanish: no option on a skill without Spanish');
+  S.reset();
+  }
+
   /* ---- the tutor's own page ---- */
   try { localStorage.removeItem('procademy.chats.v1'); } catch (e) {}
   const tReqs = [];
