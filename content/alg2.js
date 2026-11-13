@@ -519,10 +519,12 @@
   /* ---------- Unit 6: Rational exponents and radicals ---------- */
   A.skill({
     id: 'alg2.rational-exponents', title: 'Rational exponents and simplifying radicals',
-    learn: p(`<b>A fractional exponent is a root: ${V('a')}<sup>1/${V('n')}</sup> = ${root('<i>n</i>', V('a'))}, and ${V('a')}<sup>${V('m')}/${V('n')}</sup> = ${root('<i>n</i>', `${V('a')}<sup><i>m</i></sup>`)} = (${root('<i>n</i>', V('a'))})<sup><i>m</i></sup>.</b> The denominator is the root; the numerator is the power. A negative exponent means take the reciprocal.`) +
+    learn: p(`<b>A fractional exponent is a root: ${V('a')}<sup>1/${V('n')}</sup> = ${root('<i>n</i>', V('a'))}, and ${V('a')}<sup>${V('m')}/${V('n')}</sup> = ${root('<i>n</i>', `${V('a')}<sup><i>m</i></sup>`)} = (${root('<i>n</i>', V('a'))})<sup><i>m</i></sup>.</b> The denominator ${V('n')} is the <b>index</b> of the root (2 for a square root, 3 for a cube root), and the numerator ${V('m')} is the power. A negative exponent means take the reciprocal: ${V('a')}<sup>−${V('k')}</sup> = 1/${V('a')}<sup>${V('k')}</sup>.`) +
       p(`To evaluate, take the root first, while the number is still small: 8<sup>2/3</sup> = (∛8)² = 2² = 4.`) +
-      p(`<b>To simplify a square root, pull out the largest perfect-square factor:</b> √72 = √(36 · 2) = 6√2. Using a smaller square, like √72 = 2√18, leaves a square inside, so it is not finished.`) +
-      example('Example', `${big(`16<sup>−3/4</sup>`)}The fourth root of 16 is 2, and 2³ = 8. The negative exponent flips it: <b>${F(1, 8)}</b>.`),
+      p(`<b>To simplify a square root, pull out the largest perfect-square factor:</b> √72 = √(36 · 2) = 6√2. Using a smaller square, such as √72 = √(4 · 18) = 2√18, leaves a square factor inside, so it isn't finished.`) +
+      example('Example 1: evaluating', `${big(`16<sup>−3/4</sup>`)}The fourth root of 16 is 2, and 2³ = 8. The negative exponent flips it: <b>${F(1, 8)}</b>.`) +
+      example('Example 2: exponent to radical and back', `${big(`${X}<sup>3/5</sup> and ${root(3, M.sup(X, 4))}`)}In ${X}<sup>3/5</sup> the 5 becomes the index and the 3 stays as the power: <b>${root(5, M.sup(X, 3))}</b>. Going the other way, the index 3 becomes the denominator: ${root(3, M.sup(X, 4))} = <b>${X}<sup>4/3</sup></b>.`) +
+      example('Example 3: simplifying a root', `${big(M.sqrt(200))}The largest square that divides 200 is 100: √200 = √100 · √2 = <b>10√2</b>.`),
     make(rng) {
       const kind = rng.pick(['eval', 'eval', 'to-root', 'to-exp', 'simplify']);
       if (kind === 'eval') {
@@ -574,9 +576,11 @@
 
   A.skill({
     id: 'alg2.radical-equations', title: 'Solving radical equations',
-    learn: p(`<b>To solve a radical equation, isolate the radical, then raise both sides to the power that undoes it</b>: square a square root, cube a cube root.`) +
-      p(`Squaring can create <b>extraneous solutions</b>: answers to the squared equation that do not solve the original one. A square root is never negative, so if √(…) = ${X} − 4, any solution must make ${X} − 4 ≥ 0. <b>Always check every answer in the original equation.</b> Cube roots can be negative, so cubing does not create extraneous solutions.`) +
-      example('Example', `${big(`${M.sqrt(P([1, 2]))} = ${P([1, -10])}`)}Square: ${X} + 2 = ${X}² − 20${X} + 100, so ${X}² − 21${X} + 98 = 0 = (${X} − 7)(${X} − 14). Check 7: √9 = 3 but 7 − 10 = −3, so 7 is extraneous. Check 14: √16 = 4 = 14 − 10 ✓. <b>${X} = 14</b>.`),
+    learn: p(`A <b>radical equation</b> has the variable under a root. <b>To solve one, isolate the radical, then raise both sides to the power that undoes it</b>: square a square root, cube a cube root.`) +
+      p(`Squaring can create <b>extraneous solutions</b>: answers to the squared equation that don't solve the original one. A square root is never negative, so if √(…) = ${X} − 4, any solution must make ${X} − 4 ≥ 0. <b>Always check every answer in the original equation.</b> Cube roots can be negative, so cubing never creates extraneous solutions.`) +
+      example('Example 1: one square root', `${big(`${M.sqrt(P([2, 3]))} = 5`)}Square both sides: 2${X} + 3 = 25, so 2${X} = 22 and ${X} = 11. Check: √25 = 5 ✓. <b>${X} = 11</b>.`) +
+      example('Example 2: an extraneous solution', `${big(`${M.sqrt(P([1, 2]))} = ${P([1, -10])}`)}Square: ${X} + 2 = ${X}² − 20${X} + 100, so ${X}² − 21${X} + 98 = 0 = (${X} − 7)(${X} − 14). Check 7: √9 = 3 but 7 − 10 = −3, so 7 is extraneous. Check 14: √16 = 4 = 14 − 10 ✓. <b>${X} = 14</b>.`) +
+      example('Example 3: a cube root', `${big(`${root(3, P([1, -4]))} = −2`)}Cube both sides: ${X} − 4 = −8, so <b>${X} = −4</b>. Check: ∛(−8) = −2 ✓.`),
     make(rng) {
       const kind = rng.pick(['quad', 'quad', 'simple', 'cube']);
       if (kind === 'quad') {
@@ -609,10 +613,12 @@
   /* ---------- Unit 7: Exponential models ---------- */
   A.skill({
     id: 'alg2.exponential-models', title: 'Exponential growth and decay models',
-    learn: p(`An exponential model multiplies by the same factor in each equal time step: <b>${fx('f', V('t'))} = ${V('a')} · ${V('b')}<sup>${V('t')}</sup></b>, where ${V('a')} is the starting amount and ${V('b')} is the growth factor. If ${V('b')} &gt; 1 it grows; if 0 &lt; ${V('b')} &lt; 1 it decays.`) +
-      p(`<b>A percent change of ${V('r')} per step gives the factor ${V('b')} = 1 + ${V('r')} for growth and 1 − ${V('r')} for decay</b>, with ${V('r')} as a decimal: growing 6% is × 1.06, losing 6% is × 0.94.`) +
-      p(`When something doubles every ${V('h')} hours, the number of doublings after ${V('t')} hours is ${V('t')} ÷ ${V('h')}: ${fx('f', V('t'))} = ${V('a')} · 2<sup>${V('t')}/${V('h')}</sup>. Half-life works the same way with ½.`) +
-      example('Example', `A 120 mg sample has a half-life of 5 days. After 15 days it has halved 15 ÷ 5 = 3 times: 120 · (½)³ = <b>15 mg</b>.`),
+    learn: p(`An <b>exponential model</b> multiplies by the same factor in each equal time step: <b>${fx('f', V('t'))} = ${V('a')} · ${V('b')}<sup>${V('t')}</sup></b>. Here ${V('a')} is the starting amount and ${V('b')} is the <b>growth factor</b>, the number you multiply by each step. If ${V('b')} &gt; 1 the amount grows; if 0 &lt; ${V('b')} &lt; 1 it decays (shrinks).`) +
+      p(`<b>A percent change of ${V('r')} per step gives the factor ${V('b')} = 1 + ${V('r')} for growth and 1 − ${V('r')} for decay</b>, with ${V('r')} written as a decimal: growing 6% means × 1.06, and losing 6% means × 0.94.`) +
+      p(`When something doubles every ${V('h')} hours, the number of doublings after ${V('t')} hours is ${V('t')} ÷ ${V('h')}, so ${fx('f', V('t'))} = ${V('a')} · 2<sup>${V('t')}/${V('h')}</sup>. The <b>half-life</b> is the time it takes to fall to half; it works the same way with ½ in place of 2.`) +
+      example('Example 1: doubling', `A culture of 300 cells doubles every 4 hours. After 12 hours it has doubled 12 ÷ 4 = 3 times: 300 · 2³ = <b>2,400 cells</b>.`) +
+      example('Example 2: half-life', `A 120 mg sample has a half-life of 5 days. After 15 days it has halved 15 ÷ 5 = 3 times: 120 · (½)³ = <b>15 mg</b>.`) +
+      example('Example 3: a percent change', `A town of 5,000 people grows 4% a year, so ${fx('P', V('t'))} = 5,000(1.04)<sup>${V('t')}</sup>. After 2 years: 5,000 · 1.04² = 5,000 · 1.0816 = <b>5,408 people</b>.`),
     make(rng) {
       const kind = rng.pick(['double', 'half', 'percent', 'write']);
       const name = rng.pick(NAMES);
@@ -654,10 +660,12 @@
 
   A.skill({
     id: 'alg2.exponential-rates', title: 'Interpreting exponential models',
-    learn: p(`In ${fx('f', V('t'))} = ${V('a')} · ${V('b')}<sup>${V('t')}</sup>, the number in front, ${V('a')}, is the value at ${V('t')} = 0: the <b>initial value</b>. The base ${V('b')} is the <b>growth factor</b> for each unit of time.`) +
-      p(`<b>The percent rate is the distance of ${V('b')} from 1.</b> A factor of 1.07 is a 7% increase; a factor of 0.82 is an 18% decrease, because 1 − 0.82 = 0.18. The factor is not the rate: 1.07 is not 107% growth.`) +
-      p(`An exponent like ${V('t')}/5 changes the time step: ${V('a')} · 2<sup>${V('t')}/5</sup> doubles every 5 units, since the exponent goes up by 1 each time ${V('t')} goes up by 5.`) +
-      example('Example', `${big(`${fx('V', V('t'))} = 9,000(0.88)<sup>${V('t')}</sup>`)}Initial value $9,000. The factor 0.88 is less than 1, so it decays by 1 − 0.88 = 0.12: <b>12% per year</b>.`),
+    learn: p(`In ${fx('f', V('t'))} = ${V('a')} · ${V('b')}<sup>${V('t')}</sup>, the number in front, ${V('a')}, is the value when ${V('t')} = 0: the <b>initial value</b>. The base ${V('b')} is the <b>growth factor</b> for each unit of time: ${V('b')} &gt; 1 means growth, and 0 &lt; ${V('b')} &lt; 1 means decay.`) +
+      p(`<b>The percent rate is how far ${V('b')} is from 1.</b> A factor of 1.07 is a 7% increase; a factor of 0.82 is an 18% decrease, because 1 − 0.82 = 0.18. The factor isn't the rate itself: 1.07 means 7% growth, not 107%.`) +
+      p(`An exponent like ${V('t')}/5 changes the time step: ${V('a')} · 2<sup>${V('t')}/5</sup> doubles every 5 units, because the exponent goes up by 1 each time ${V('t')} goes up by 5.`) +
+      example('Example 1: decay', `${big(`${fx('V', V('t'))} = 9,000(0.88)<sup>${V('t')}</sup>`)}The initial value is $9,000. The factor 0.88 is less than 1, so it decays by 1 − 0.88 = 0.12: <b>12% per year</b>.`) +
+      example('Example 2: growth', `${big(`${fx('f', V('t'))} = 650(1.045)<sup>${V('t')}</sup>`)}The initial value is 650. The factor is more than 1, and 1.045 − 1 = 0.045: <b>4.5% growth per year</b>.`) +
+      example('Example 3: a doubling time', `${big(`${fx('A', V('t'))} = 80 · 2<sup>${V('t')}/6</sup>`)}The exponent ${V('t')}/6 reaches 1 when ${V('t')} = 6, so the amount <b>doubles every 6 days</b>.`),
     make(rng) {
       const kind = rng.pick(['describe', 'describe', 'rate', 'initial', 'period']);
       const T = V('t');
@@ -692,10 +700,13 @@
   const lg = (b, arg) => `log<sub>${b}</sub>${arg}`;
   A.skill({
     id: 'alg2.evaluate-logs', title: 'Evaluating logarithms',
-    learn: p(`<b>${lg(V('b'), ' ' + V('x'))} = ${V('y')} means ${V('b')}<sup>${V('y')}</sup> = ${V('x')}.</b> A logarithm answers the question “what power of ${V('b')} gives ${V('x')}?” So ${lg(2, ' 32')} = 5 because 2⁵ = 32, and ${lg(3, ` ${F(1, 9)}`)} = −2 because 3<sup>−2</sup> = ${F(1, 9)}.`) +
-      p(`<b>Properties:</b> ${lg(V('b'), `(${V('m')}${V('n')})`)} = ${lg(V('b'), ' ' + V('m'))} + ${lg(V('b'), ' ' + V('n'))}, ${lg(V('b'), `(${V('m')}/${V('n')})`)} = ${lg(V('b'), ' ' + V('m'))} − ${lg(V('b'), ' ' + V('n'))}, and ${lg(V('b'), ` ${V('m')}<sup>${V('k')}</sup>`)} = ${V('k')} ${lg(V('b'), ' ' + V('m'))}. A sum of logs with the same base is the log of a product.`) +
-      p(`<b>Change of base:</b> ${lg(V('b'), ' ' + V('x'))} = log ${V('x')} ÷ log ${V('b')}, using the common log (base 10) on a calculator.`) +
-      example('Example', `${big(`${lg(6, ' 4')} + ${lg(6, ' 9')}`)}Combine: ${lg(6, ' (4 · 9)')} = ${lg(6, ' 36')} = <b>2</b>, since 6² = 36.`),
+    learn: p(`A <b>logarithm</b> answers the question “what power of ${V('b')} gives ${V('x')}?” <b>${lg(V('b'), ' ' + V('x'))} = ${V('y')} means ${V('b')}<sup>${V('y')}</sup> = ${V('x')}.</b> The number ${V('b')} is the <b>base</b>. So ${lg(2, ' 32')} = 5 because 2⁵ = 32, and ${lg(3, ` ${F(1, 9)}`)} = −2 because 3<sup>−2</sup> = ${F(1, 9)}.`) +
+      p(`<b>Properties:</b> the log of a product is a sum, ${lg(V('b'), `(${V('m')}${V('n')})`)} = ${lg(V('b'), ' ' + V('m'))} + ${lg(V('b'), ' ' + V('n'))}; the log of a quotient is a difference, ${lg(V('b'), `(${V('m')}/${V('n')})`)} = ${lg(V('b'), ' ' + V('m'))} − ${lg(V('b'), ' ' + V('n'))}; and a power comes down in front, ${lg(V('b'), ` ${V('m')}<sup>${V('k')}</sup>`)} = ${V('k')} ${lg(V('b'), ' ' + V('m'))}.`) +
+      p(`<b>Change of base:</b> ${lg(V('b'), ' ' + V('x'))} = log ${V('x')} ÷ log ${V('b')}. Here “log” with no base written is the <b>common log</b>, base 10, which every scientific calculator has.`) +
+      example('Example 1: finding the power', `${big(`${lg(5, ' 125')} and ${lg(2, ` ${F(1, 8)}`)}`)}5³ = 125, so ${lg(5, ' 125')} = <b>3</b>. 2<sup>−3</sup> = ${F(1, 8)}, so ${lg(2, ` ${F(1, 8)}`)} = <b>−3</b>.`) +
+      example('Example 2: combining logs', `${big(`${lg(6, ' 4')} + ${lg(6, ' 9')}`)}A sum is the log of a product: ${lg(6, ' (4 · 9)')} = ${lg(6, ' 36')} = <b>2</b>, since 6² = 36. A difference works the same way: ${lg(3, ' 54')} − ${lg(3, ' 2')} = ${lg(3, ' 27')} = 3.`) +
+      example('Example 3: change of base', `${big(lg(3, ' 20'))}${lg(3, ' 20')} = log 20 ÷ log 3 ≈ 1.3010 ÷ 0.4771 ≈ <b>2.73</b>. Check: 3<sup>2.73</sup> ≈ 20.`) +
+      example('Example 4: expanding', `${big(lg(2, ` (${sfrac(`${M.sup(X, 3)}${Y}`, V('z'))})`))}Quotient, then product, then power: ${lg(2, ` ${M.sup(X, 3)}`)} + ${lg(2, ' ' + Y)} − ${lg(2, ' ' + V('z'))} = <b>3${lg(2, ' ' + X)} + ${lg(2, ' ' + Y)} − ${lg(2, ' ' + V('z'))}</b>.`),
     make(rng) {
       const kind = rng.pick(['exact', 'exact', 'sum', 'diff', 'cob', 'expand']);
       if (kind === 'exact') {
@@ -750,9 +761,12 @@
 
   A.skill({
     id: 'alg2.solve-exponential', title: 'Solving exponential equations with logarithms',
-    learn: p(`If both sides can be written as powers of the same base, set the exponents equal: 3<sup>${X} + 1</sup> = 81 = 3⁴ gives ${X} + 1 = 4, so ${X} = 3.`) +
-      p(`<b>Otherwise, isolate the power, then take the log of both sides and bring the exponent down</b>: ${V('b')}<sup>${X}</sup> = ${V('c')} gives ${X} = log ${V('c')} ÷ log ${V('b')}. Divide out any coefficient in front of the power first.`) +
-      example('Example', `${big(`4 · 3<sup>${X}</sup> = 60`)}Divide by 4: 3<sup>${X}</sup> = 15. Take logs: ${X} = log 15 ÷ log 3 ≈ 1.1761 ÷ 0.4771 ≈ <b>2.46</b>.`),
+    learn: p(`An <b>exponential equation</b> has the variable in an exponent. If both sides can be written as powers of the same base, set the exponents equal: 3<sup>${X} + 1</sup> = 81 = 3⁴ gives ${X} + 1 = 4, so ${X} = 3.`) +
+      p(`<b>Otherwise, isolate the power, then take the log of both sides and bring the exponent down</b>: ${V('b')}<sup>${X}</sup> = ${V('c')} gives ${X} · log ${V('b')} = log ${V('c')}, so ${X} = log ${V('c')} ÷ log ${V('b')}. Divide out any number multiplying the power first.`) +
+      p(`Doubling and tripling times work the same way: money growing 5% a year doubles when 1.05<sup>${V('t')}</sup> = 2. The starting amount cancels, so you don't need to know it.`) +
+      example('Example 1: the same base', `${big(`2<sup>${P([3, -1])}</sup> = 32`)}32 = 2⁵, so 3${X} − 1 = 5. Then 3${X} = 6 and <b>${X} = 2</b>.`) +
+      example('Example 2: using logs', `${big(`4 · 3<sup>${X}</sup> = 60`)}Divide by 4: 3<sup>${X}</sup> = 15. Take logs: ${X} = log 15 ÷ log 3 ≈ 1.1761 ÷ 0.4771 ≈ <b>2.46</b>.`) +
+      example('Example 3: a doubling time', `Money grows 5% a year. It doubles when 1.05<sup>${V('t')}</sup> = 2, so ${V('t')} = log 2 ÷ log 1.05 ≈ 0.30103 ÷ 0.02119 ≈ <b>14.21 years</b>.`),
     make(rng) {
       const kind = rng.pick(['same-base', 'logs', 'logs', 'double']);
       if (kind === 'same-base') {
