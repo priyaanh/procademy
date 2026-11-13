@@ -4268,3 +4268,13 @@ footer { padding-bottom: max(16px, env(safe-area-inset-bottom, 0px)); }
   .learn .example { padding: 10px 12px; }
   .learn :is(ul, ol) { padding-left: 1.1rem; }
 }
+
+/* profile: the summary sits beside the name; About you and the avatar side by side; the reminder below */
+.profile-head { flex-wrap: wrap; }
+.profile-head .profile-who { flex: 1 1 220px; min-width: 0; }
+.profile-sum { flex: 0 1 460px; display: grid; gap: 8px; justify-items: end; }
+.profile-sum .profile-stats { width: 100%; margin: 0; }
+.profile-sum .profile-badges { margin: 0; }
+@media (max-width: 640px) { .profile-sum { flex-basis: 100%; justify-items: start; } }
+@container page (min-width: 760px) { main .profile-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } main .profile-grid > .card:first-child { grid-row: auto; } main .profile-grid > .reminder { grid-column: 1 / -1; } }
+.av-card h2 { margin-bottom: 12px; }
