@@ -3428,3 +3428,7 @@ html.tool-full main { padding-top: calc(64px + env(safe-area-inset-top, 0px)); }
 @media (max-width: 700px) { .srch-form .btn { display: none; } }
 .srch-group > .section-title:first-child { margin-top: 28px; }
 .srch-filters + .search-topic, .srch-meta + .search-topic, .srch-dym + .search-topic { margin-top: 14px; }
+/* a narrow laptop window: More, the profile and the menu all fit; Settings is in More there */
+.top .bar > .iconbtn, .top .bar > .avatar-btn { flex-shrink: 0; }
+@media (min-width: 701px) and (max-width: 960px) { .top .bar { gap: 10px; } .top .bar > .iconbtn[href="#/settings"] { display: none; } }
+@media (min-width: 701px) and (max-width: 860px) { .nav a { padding: .45rem .55rem; } }

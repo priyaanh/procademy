@@ -2499,6 +2499,148 @@
   S.reset();
   }
 
+  { // moving around and search: breadcrumbs, sections, More, favorites, recent pages, shortcuts, going back, help, tabs, full screen, a set left halfway, and search
+  let m;
+  const crumbs = () => document.querySelector('#main > nav.crumbs');
+  const key = k => document.body.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true }));
+  S.reset(); S.setProfile({ grade: 7, welcomed: true, seenNews: 'n12', cpm: { book: 'cc2', lesson: '1.1.1' } });
+  try { ['procademy.searches.v1', 'procademy.ui.searchfilter'].forEach(k => localStorage.removeItem(k)); } catch (e) {}
+  if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+  m = await go('#/skill/math7.add-negatives');
+  ok(crumbs() && m.firstElementChild === crumbs() && /^Home/.test(text(crumbs())) && crumbs().querySelector('a[href="#/courses"]') && crumbs().querySelector('.crumb-back[href="#/course/math-7"]') && crumbs().querySelector('[aria-current="page"]'), 'breadcrumbs: first on the page, from Home through Courses, with Back to course');
+  m = await go('#/calc');
+  ok(crumbs() && crumbs().querySelector('a[href="#/tools"]') && crumbs().querySelector('.crumb-share') && crumbs().querySelector('.crumb-full'), 'breadcrumbs: a tool goes back through Tools, with Copy link and Full screen');
+  m = await go('#/mastered');
+  ok(crumbs() && crumbs().querySelector('a[href="#/progress"]') && m.querySelectorAll('.crumbs').length === 1, 'breadcrumbs: a page’s own trail becomes the one line, through its section');
+  m = await go('#/');
+  ok(!crumbs(), 'breadcrumbs: none on Home');
+  m = await go('#/sitemap'); V.sitemap(m); await tick(5);
+  ok(crumbs() && m.firstElementChild === crumbs() && m.querySelector('.sm-tools .sm-group'), 'breadcrumbs: a page drawing itself again gets its line back; All pages lists tools by subject');
+  // the section lit for pages inside it
+  m = await go('#/report');
+  ok(document.querySelector('.nav a.active[data-nav="progress"]') && document.getElementById('tab-more').classList.contains('active'), 'menu: the report lights Progress (and More on a phone)');
+  m = await go('#/unit/math-7/negatives-add');
+  ok(document.querySelector('.tabbar a.active[data-nav="courses"]') && APP.sectionOf('/cpm-practice/cc2/3.1.2') === 'cpm' && APP.sectionOf('/warmup') === 'unlimited' && APP.sectionOf('/new') === 'settings', 'tab bar: a unit lights Courses; CPM practice, the warm-up and Updates belong to their sections');
+  // favorites, recent pages and More on a computer
+  m = await go('#/geometry/construct');
+  crumbs().querySelector('.crumb-fav').click(); await tick(5);
+  ok((S.get().profile.favs || [])[0] && S.get().profile.favs[0].h === '#/geometry/construct' && crumbs().querySelector('.crumb-fav').getAttribute('aria-pressed') === 'true', 'favorites: the star adds the page');
+  m = await go('#/help');
+  document.getElementById('top-more').click(); await tick(5);
+  const sh = document.getElementById('more-sheet');
+  ok(!sh.hidden && [...sh.querySelectorAll('.more-page')].map(a => a.getAttribute('href')).join(' ') === '#/family #/profile #/settings #/help #/sitemap' && sh.querySelector('.more-links a[href="#/geometry/construct"] .more-star') && /Recent/i.test(text(sh)) && sh.querySelectorAll('.more-tools .more-sub').length >= 5, 'More on a computer: the other pages, favorites, recent pages and the tools by subject');
+  ok(['#/measure', '#/unlimited/day', '#/report', '#/words/formulas', '#/mastered'].every(h => sh.querySelector(`a[href="${h}"]`)), 'More: every page is two taps away');
+  document.querySelector('header .brand').click(); await tick(5);
+  ok(sh.hidden, 'the logo puts More away on its way Home');
+  m = await go('#/help');
+  // shortcuts: G then a letter
+  if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+  m = await go('#/tools'); key('g'); key('p'); await tick(40);
+  ok(location.hash === '#/unlimited', 'shortcuts: G then P goes to Practice');
+  m = await go('#/tools'); key('g'); key('c'); await tick(40);
+  ok(location.hash === '#/courses', 'shortcuts: G then C goes to Courses');
+  key('?'); await tick(5);
+  const kd = document.getElementById('keys-dialog');
+  ok(kd && kd.open && /G\s*then\s*H/.test(text(kd)), 'shortcuts: the list has G then H, P, C and T');
+  if (kd) kd.close();
+  // going back keeps your place
+  m = await go('#/search/fraction');
+  const room = document.documentElement.scrollHeight - window.innerHeight;
+  window.scrollTo(0, Math.min(400, room)); const was = window.scrollY;
+  m = await go('#/skill/math7.add-negatives');
+  history.back(); await tick(200);
+  ok(location.hash === '#/search/fraction' && Math.abs(window.scrollY - was) < 3 && window.scrollY > 0, 'going back: a list opens where it was scrolled to');
+  // help
+  m = await go('#/help');
+  ok(m.querySelectorAll('.help-card').length >= 10 && m.querySelector('a[href="#/help/finding"]'), 'help: a page of short how-tos');
+  m = await go('#/help/finding');
+  ok(/left edge/.test(text(m)) && crumbs().querySelector('a[href="#/help"]') && HELP.find('streak')[0].href === '#/help/progress', 'help: an article, and help found by its words');
+  // Words, Formulas and Flashcards: one tab bar; tabbed pages open on the tab last chosen
+  m = await go('#/words/cards');
+  ok(m.querySelector('.words-tabs a.on[href="#/words/cards"]') && m.querySelector('.words-tabs a[href="#/words/formulas"]'), 'flashcards: the same tab bar as Words and Formulas');
+  S.setProfile({ uiTabs: { '/words': '/words/formulas', '/steps|What to do': 'data-mode=factor' } });
+  m = await go('#/tools'); m = await go('#/words');
+  ok(location.hash === '#/words/formulas', 'tabs: Words opens on the tab last chosen');
+  m = await go('#/steps'); await tick(5);
+  ok(m.querySelector('[data-mode="factor"]').getAttribute('aria-selected') === 'true', 'tabs: the step checker opens on the tab last chosen');
+  S.setProfile({ uiTabs: {} });
+  // a tool on the whole screen
+  m = await go('#/calc');
+  crumbs().querySelector('.crumb-full').click(); await tick(5);
+  const full = document.documentElement.classList.contains('tool-full') && !document.getElementById('full-close').hidden;
+  document.getElementById('full-close').click(); await tick(5);
+  ok(full && !document.documentElement.classList.contains('tool-full') && document.getElementById('full-close').hidden, 'full screen: a tool can use the whole screen, and Close brings the menus back');
+  // a set left halfway: a gentle note, and one tap back to the same question
+  m = await go('#/practice/math7.add-negatives');
+  const ss = m.__session, it0 = ss.items[0];
+  E.answer(ss, it0.q.type === 'choice' ? it0.q.answerIndex : it0.q.answer); E.next(ss);
+  m = await go('#/tools'); await tick(20);
+  const note = document.getElementById('left-note');
+  ok(note && /question 2 of/.test(text(note)) && !window.onbeforeunload, 'leaving a set halfway: a gentle note on the next page, never a Leave site? dialog');
+  note.querySelector('#left-back').click(); await tick(120);
+  m = document.getElementById('main');
+  ok(/^#\/practice\/math7\.add-negatives$/.test(location.hash) && m.__session && m.__session.i === 1 && m.querySelector('.ex'), 'leaving a set halfway: Back to it opens the same question');
+  S.setProfile({ paused: {} });
+  m = await go('#/tools'); await tick(20);
+  const n2 = document.getElementById('left-note'); if (n2) n2.remove();
+  // search: grade, Spanish, lesson numbers, did you mean, tools by what they do, words, formulas, help, chats, lesson text
+  ok(V.gradeOf('7th grade fractions').grade === 7 && V.gradeOf('grade 5 volume').rest === 'volume' && V.gradeOf('seventh grade').grade === 7 && V.gradeOf('fractions').grade === null, 'search: a grade in the words is understood');
+  const f7 = V.find('7th grade fractions');
+  ok(f7.skills.length && f7.skills.every(id => A.whereIs(id).course.grade === 7) && f7.courses[0].id === 'math-7', 'search by grade: “7th grade fractions” finds 7th grade skills');
+  ok(V.fixQuery('fracción').q === 'fraction' && V.fixQuery('fracción').es && V.find('área de un círculo').skills.includes('math7.circles'), 'search: Spanish math words find the English ones');
+  ok(V.find('3.1.2').cpm[0].href === '#/cpm/cc2/3.1.2' && V.find('3.1.2').numbered && !V.find('3.1.2').skills.length, 'search: a CPM lesson number finds that lesson, your own book first');
+  ok(V.find('algebar 2').guess && V.find('algebar 2').guess.id === 'algebra-2' && V.find('precalclus').guess.id === 'precalculus' && !V.find('algebra 2').guess && !V.find('fractions').guess, 'search: Did you mean for a misspelled course name');
+  ok(V.find('convert inches to centimeters').tools.some(t => t[0] === 'measure') && V.find('roll dice').tools.some(t => t[0] === 'chance') && V.find('tell time').tools.some(t => t[0] === 'clock'), 'search: tools found by what they do');
+  ok(V.find('hypotenuse').words.some(w => w.id === 'hypotenuse') && V.find('slope formula').formulas.some(f => f[1] === 'Slope') && V.find('streak').help.some(h => h.href === '#/help/progress'), 'search: math words, formulas and help');
+  ok(V.find('hypotenuse').text.length > 0 && /<mark>/.test(V.find('hypotenuse').text[0].snip), 'search: inside lesson text, with the words marked');
+  let chats0 = null; try { chats0 = localStorage.getItem('procademy.chats.v1'); localStorage.setItem('procademy.chats.v1', JSON.stringify({ chats: [{ id: 'tst1', title: 'Homework help', messages: [{ role: 'user', content: 'How do I find the hypotenuse of a right triangle?' }] }] })); } catch (e) {}
+  ok(V.find('hypotenuse').chats.some(c => c.id === 'tst1'), 'search: your tutor chats');
+  try { if (chats0 == null) localStorage.removeItem('procademy.chats.v1'); else localStorage.setItem('procademy.chats.v1', chats0); } catch (e) {}
+  ok(V.suggest('fra').includes('fractions') && V.popular().grade === '7th grade' && V.popular().list.includes('Negative numbers'), 'search: suggestions while typing, and popular topics for the grade');
+  const quiet = [];
+  for (const g of [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 'adult']) {
+    S.setProfile(g === 'adult' ? { adult: true, grade: null } : { adult: false, grade: g });
+    V.popular().list.forEach(t => { const f = V.find(t); if (!(f.skills.length + f.units.length + f.courses.length + f.tools.length + f.text.length)) quiet.push(g + ':' + t); });
+  }
+  S.setProfile({ adult: false, grade: 7 });
+  ok(!quiet.length, 'search: every popular topic, for every grade, finds something' + (quiet.length ? ' (not: ' + quiet.join(', ') + ')' : ''));
+  // the search page: counts, Show more, the learner's level, filters kept for next time, and the arrow keys
+  m = await go('#/search/fractions');
+  const sg = m.querySelector('[data-group="skills"]');
+  ok(sg && /Skills \d+/.test(text(sg.querySelector('h2'))) && sg.querySelector('[data-more][hidden]') && sg.querySelector('.srch-show') && /All \d+/.test(text(m.querySelector('.srch-filters'))), 'search page: groups with counts, a few of each at first');
+  ok(/(Not started|Attempted|Familiar|Proficient|Mastered) · /.test(text(sg.querySelector('.skills .sub'))), 'search page: each skill shows the learner’s level');
+  sg.querySelector('.srch-show').click();
+  ok(!sg.querySelector('[data-more][hidden]'), 'search page: Show more shows the rest');
+  m.querySelector('.srch-filters [data-f="tools"]').click();
+  ok(m.querySelector('[data-group="skills"]').hidden && !m.querySelector('[data-group="tools"]').hidden, 'search page: a filter shows one kind of result');
+  m = await go('#/search/area');
+  ok(m.querySelector('.srch-filters [data-f="tools"].on') && m.querySelector('[data-group="skills"]').hidden, 'search page: the filter chosen is kept for the next search');
+  m.querySelector('.srch-filters [data-f="all"]').click();
+  const box = m.querySelector('#srch-q');
+  box.focus(); box.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+  const r1 = document.activeElement; r1.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+  const r2 = document.activeElement; r2.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true }));
+  ok(r1.matches('[data-res]') && r2.matches('[data-res]') && r1 !== r2 && document.activeElement === r1, 'search page: the arrow keys move through every result');
+  m = await go('#/search/');
+  ok(/Popular for 7th grade/.test(text(m)) && m.querySelector('#srch-q'), 'search page: with nothing typed, topics for the grade');
+  try { localStorage.removeItem('procademy.ui.searchfilter'); } catch (e) {}
+  // the search box: clear recent searches, suggestions, did you mean, the level beside each skill
+  const si = document.getElementById('search-input'), qp = document.getElementById('qs-panel');
+  QUICKSEARCH.remember('slope');
+  si.focus(); si.click(); si.value = ''; si.dispatchEvent(new Event('input')); await tick(5);
+  const clr = [...qp.querySelectorAll('.qs-opt')].find(o => /Clear recent searches/.test(text(o)));
+  if (clr) clr.click(); await tick(5);
+  ok(clr && !QUICKSEARCH.recent().length && !/Recent searches/i.test(text(qp)), 'search box: recent searches can be cleared');
+  si.value = 'fra'; si.dispatchEvent(new Event('input')); await tick(5);
+  ok(/Suggestions/i.test(text(qp)) && [...qp.querySelectorAll('.qs-opt b')].some(b => b.textContent === 'fractions') && qp.querySelector('.qs-opt .lvl'), 'search box: suggestions while typing, and each skill with its level');
+  si.value = 'precalclus'; si.dispatchEvent(new Event('input')); await tick(5);
+  ok(/Did you mean/i.test(text(qp)) && [...qp.querySelectorAll('.qs-opt b')].some(b => b.textContent === 'Precalculus'), 'search box: Did you mean a course');
+  si.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await tick(5);
+  ok(typeof QUICKSEARCH.addMic === 'function', 'search box: voice search is offered where the browser can listen');
+  S.reset();
+  try { ['procademy.searches.v1', 'procademy.ui.searchfilter'].forEach(k => localStorage.removeItem(k)); } catch (e) {}
+  }
+
   { // questions like a picture, and the grade setting the level of things
   const until = async (fn, ms) => { const t = Date.now(); while (Date.now() - t < (ms || 3000)) { if (fn()) return true; await tick(20); } return false; };
   const title = q => { const id = UNLIMITED.likeThis(q)[0]; return id ? A.stripTags(A.skills[id].title) : ''; };
