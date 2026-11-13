@@ -4093,3 +4093,54 @@ html.tool-full main { padding-top: calc(64px + env(safe-area-inset-top, 0px)); }
 @media (min-width: 701px) and (max-width: 860px) { .nav a { padding: .45rem .55rem; } }
 @media (min-width: 701px) { .top .bar { gap: 8px; } .top .nav { margin-right: 4px; } .stat-pill { padding: .3rem .6rem; } }
 @media (min-width: 961px) { .nav a { padding: .45rem .7rem; } }          /* room for More in the header */
+
+/* music, science, family */
+/* lessons: figures side by side, Play buttons, dynamics, genotypes, Punnett squares */
+.mus-pair, .sci-pair { display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-end; gap: 6px 28px; margin: 6px 0; }
+.mus-pair .figure, .sci-pair .figure { margin: 6px 0; }
+.mus-plays { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 8px 0 2px; }
+.mus-dyn { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-weight: 800; letter-spacing: .02em; }
+.sci-g { font-style: italic; font-weight: 650; }
+.sci-punnett { width: auto; margin: 12px auto; }
+.sci-punnett th, .sci-punnett td { min-width: 46px; height: 40px; text-align: center; padding: 6px 10px; }
+.sci-punnett td { background: var(--surface); }
+.sci-tile, .sci-ptable { margin: 12px auto; }
+/* the science lab */
+.lab-head h1 { margin-bottom: 4px; }
+.lab-head .muted { margin: 0 0 12px; }
+.lab-pick { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+.lab-grid { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); align-items: start; }
+.lab-grid > .card + .card { margin-top: 0; }
+@media (min-width: 900px) { .lab-grid { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); } }
+.lab-stage h2 { margin: 0 0 4px; }
+.lab-stage > .small { margin: 0 0 6px; }
+.lab-fig .lab-svg { width: 100%; max-width: 560px; height: auto; margin: 8px auto 0; }
+.lab-ctls { display: grid; gap: 14px; }
+.lab-ctl label { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 4px; font-weight: 600; }
+.lab-ctl label b { color: var(--primary-ink); white-space: nowrap; }
+.lab-ctl .lab-label { display: block; font-weight: 600; margin-bottom: 6px; }
+.lab-ctl input[type="range"] { width: 100%; accent-color: var(--primary); }
+.lab-ctl select { width: 100%; padding: .5rem .7rem; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--surface); color: var(--ink); font: inherit; }
+.lab-ctls .lab-btns { margin-top: 2px; }
+.lab-check { display: flex; align-items: center; gap: 8px; font-size: .95rem; }
+.lab-out { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
+.lab-out p { margin: 0 0 8px; }
+.lab-say { color: var(--ink); }
+.lab-list { margin: 0 0 8px; padding-left: 1.2em; }
+.lab-temp { font-size: 1.6rem; }
+.lab-square { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; }
+.lab-square .sci-punnett { margin: 4px 0; }
+.lab-notice { margin-top: 12px; }
+.lab-notice summary { cursor: pointer; font-weight: 600; color: var(--primary-ink); }
+.lab-side > .btn-row { margin-top: 14px; }
+.lab-block { transition: transform .8s cubic-bezier(.3, .7, .3, 1); }
+.lab-flow { stroke-dasharray: 2 14; animation: lab-flow 1s linear infinite; }
+@keyframes lab-flow { to { stroke-dashoffset: -32; } }
+.lab-jig { animation: lab-jig .35s ease-in-out infinite alternate; }
+.lab-jig:nth-child(odd) { animation-direction: alternate-reverse; }
+@keyframes lab-jig { to { transform: translate(2px, -2px); } }
+@media (prefers-reduced-motion: reduce) { .lab-flow, .lab-jig { animation: none; } .lab-block { transition: none; } }
+.lab-from { margin: 14px 0 0; }
+.lab-side .lab-from + .btn-row { margin-top: 8px; }
+.lab-stage .lab-square { justify-content: center; margin-top: 6px; }
+.lab-stage .lab-square p { max-width: 220px; margin: 0; }
