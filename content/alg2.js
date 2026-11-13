@@ -97,9 +97,10 @@
   /* ---------- Unit 1: Polynomial arithmetic ---------- */
   A.skill({
     id: 'alg2.add-sub-polynomials', title: 'Adding and subtracting polynomials',
-    learn: p('A polynomial is a sum of terms like 4' + X + '³ or −7. Two terms are <b>like terms</b> when they have the same power of ' + X + ', and only like terms can be combined.') +
-      p('<b>To add, combine the coefficients of like terms. To subtract, first change the sign of every term in the second polynomial, then add.</b> The most common slip is changing only the first sign, so write the distributed minus out in full.') +
-      example('Example', `${big(`(${P([3, -2, 5])}) − (${P([1, 4, -6])})`)}Distribute the minus: ${P([3, -2, 5])} − ${X}² − 4${X} + 6. Combine: ${X}² terms 3 − 1 = 2, ${X} terms −2 − 4 = −6, constants 5 + 6 = 11. Answer: <b>${P([2, -6, 11])}</b>.`),
+    learn: p(`A <b>polynomial</b> is a sum of terms such as 4${X}³, −2${X} and 7. The number in front of a term is its <b>coefficient</b>. Two terms are <b>like terms</b> when they have the same power of ${X}, and only like terms can be combined: 3${X}² + 5${X}² = 8${X}², but 3${X}² and 5${X} stay separate.`) +
+      p('<b>To add, combine the coefficients of like terms. To subtract, change the sign of every term in the second polynomial, then add.</b> The most common slip is changing only the first sign, so write the subtraction out in full before you combine.') +
+      example('Example 1: adding', `${big(`(${P([2, 5, -1])}) + (${P([1, -7, 4])})`)}Drop the parentheses and group like terms: ${X}² terms 2 + 1 = 3, ${X} terms 5 − 7 = −2, constants −1 + 4 = 3. Answer: <b>${P([3, -2, 3])}</b>.`) +
+      example('Example 2: subtracting', `${big(`(${P([3, -2, 5])}) − (${P([1, 4, -6])})`)}Change every sign in the second polynomial: ${P([3, -2, 5])} − ${X}² − 4${X} + 6. Combine: ${X}² terms 3 − 1 = 2, ${X} terms −2 − 4 = −6, constants 5 + 6 = 11. Answer: <b>${P([2, -6, 11])}</b>.`),
     make(rng) {
       const L = rng.pick([3, 3, 4]), sub = rng.bool();
       const a = [rng.nz(-9, 9)], b = [rng.nz(-9, 9)];
@@ -123,9 +124,11 @@
 
   A.skill({
     id: 'alg2.multiply-polynomials', title: 'Multiplying polynomials',
-    learn: p('<b>To multiply two polynomials, multiply every term of the first by every term of the second, then combine like terms.</b> A binomial times a trinomial gives 2 × 3 = 6 partial products before combining.') +
-      p(`Multiply the coefficients and add the exponents: 3${X} · 4${X}² = 12${X}³. Squaring a binomial is a product too: (${X} + 5)² = (${X} + 5)(${X} + 5) = ${X}² + 10${X} + 25. Forgetting the middle term 10${X} is the classic mistake.`) +
-      example('Example', `${big(`(${P([2, -1])})(${P([1, 3, -4])})`)}2${X} · (${P([1, 3, -4])}) = ${P([2, 6, -8, 0])}, and −1 · (${P([1, 3, -4])}) = ${P([-1, -3, 4])}. Add: <b>${P(pmul([2, -1], [1, 3, -4]))}</b>.`),
+    learn: p(`<b>To multiply two polynomials, multiply every term of the first by every term of the second, then combine like terms.</b> A <b>binomial</b> has two terms and a <b>trinomial</b> has three, so a binomial times a trinomial gives 2 × 3 = 6 small products before you combine.`) +
+      p(`When two terms multiply, multiply the coefficients and add the exponents: 3${X} · 4${X}² = 12${X}³. To square a binomial, write it out twice: (${X} + 5)² = (${X} + 5)(${X} + 5) = ${X}² + 10${X} + 25. Forgetting the middle term, 10${X}, is the classic mistake.`) +
+      example('Example 1: a binomial times a trinomial', `${big(`(${P([2, -1])})(${P([1, 3, -4])})`)}2${X} · (${P([1, 3, -4])}) = ${P([2, 6, -8, 0])}, and −1 · (${P([1, 3, -4])}) = ${P([-1, -3, 4])}. Add and combine: <b>${P(pmul([2, -1], [1, 3, -4]))}</b>.`) +
+      example('Example 2: squaring a binomial', `${big(`(${P([3, -2])})²`)}(${P([3, -2])})(${P([3, -2])}) = 9${X}² − 6${X} − 6${X} + 4 = <b>${P([9, -12, 4])}</b>.`) +
+      example('Example 3: just one coefficient', `${big(`The coefficient of ${X} in (${P([1, 4])})(${P([2, -3, 5])})`)}Only two products give an ${X} term: ${X} · 5 = 5${X} and 4 · (−3${X}) = −12${X}. So the coefficient is 5 − 12 = <b>−7</b>.`),
     make(rng) {
       const kind = rng.pick(['bin-bin', 'square', 'bin-tri', 'bin-tri', 'coef']);
       const a = [rng.pick([1, 1, 2, 3, -1, -2]), rng.nz(-7, 7)];
@@ -165,6 +168,7 @@
   });
 
   /* ---------- Unit 2: Complex numbers ---------- */
+  /** the complex plane from −6 to 6 with one point; the text alternative says where the point is, as the picture does */
   function planeSvg(a, b) {
     const S = 14, C = 100;
     let g = '';
@@ -173,18 +177,22 @@
       g += `<line x1="${C + k * S}" y1="16" x2="${C + k * S}" y2="184" stroke="var(--line)" stroke-width="0.6"/><line x1="16" y1="${C - k * S}" x2="184" y2="${C - k * S}" stroke="var(--line)" stroke-width="0.6"/>`;
     }
     g += `<line x1="12" y1="${C}" x2="188" y2="${C}" stroke="var(--muted)" stroke-width="1.2"/><line x1="${C}" y1="12" x2="${C}" y2="188" stroke="var(--muted)" stroke-width="1.2"/>`;
-    g += `<text x="168" y="${C - 5}" font-size="9" fill="var(--muted)">Re</text><text x="${C + 4}" y="20" font-size="9" fill="var(--muted)">Im</text>`;
-    g += `<text x="${C + 5 * S}" y="${C + 12}" font-size="8" text-anchor="middle" fill="var(--muted)">5</text><text x="${C - 4}" y="${C - 5 * S + 3}" font-size="8" text-anchor="end" fill="var(--muted)">5</text>`;
-    g += `<circle cx="${C + a * S}" cy="${C - b * S}" r="4" fill="currentColor"/>`;
-    return `<svg class="figure" viewBox="0 0 200 200" width="220" height="220" role="img" aria-label="complex plane with one point">${g}</svg>`;
+    g += `<text x="166" y="${C - 5}" font-size="11" fill="var(--muted)">Re</text><text x="${C + 5}" y="22" font-size="11" fill="var(--muted)">Im</text>`;
+    g += `<text x="${C + 5 * S}" y="${C + 13}" font-size="10" text-anchor="middle" fill="var(--muted)">5</text><text x="${C - 4}" y="${C - 5 * S + 4}" font-size="10" text-anchor="end" fill="var(--muted)">5</text>`;
+    g += `<circle cx="${C + a * S}" cy="${C - b * S}" r="4.5" class="dot"/>`;
+    const where = `${a === 0 ? 'on the imaginary axis' : `${Math.abs(a)} ${Math.abs(a) === 1 ? 'unit' : 'units'} ${a < 0 ? 'left' : 'right'} of 0`} and ${b === 0 ? 'on the real axis' : `${Math.abs(b)} ${Math.abs(b) === 1 ? 'unit' : 'units'} ${b < 0 ? 'down' : 'up'}`}`;
+    const label = `complex plane with real axis across and imaginary axis up, grid lines 1 unit apart, and one point ${where}`;
+    return `<svg class="figure" viewBox="0 0 200 200" width="220" height="220" role="img" aria-label="${label}"><desc>${label}</desc>${g}</svg>`;
   }
 
   A.skill({
     id: 'alg2.complex-plane', title: 'The imaginary unit and the complex plane',
-    learn: p(`The imaginary unit ${I} is defined by <b>${I}² = −1</b>, so √−1 = ${I} and √−25 = 5${I}. A complex number ${V('a')} + ${V('b')}${I} has a real part ${V('a')} and an imaginary part ${V('b')}.`) +
-      p(`<b>Powers of ${I} repeat every four steps: ${I}, −1, −${I}, 1.</b> To find ${I}<sup>${V('n')}</sup>, divide ${V('n')} by 4 and use the remainder: remainder 1 gives ${I}, 2 gives −1, 3 gives −${I}, and 0 gives 1.`) +
-      p(`In the <b>complex plane</b>, ${V('a')} + ${V('b')}${I} is the point (${V('a')}, ${V('b')}): the real part runs across and the imaginary part runs up. Its distance from 0 is the absolute value |${V('a')} + ${V('b')}${I}| = √(${V('a')}² + ${V('b')}²).`) +
-      example('Example', `${big(`${I}<sup>27</sup>`)}27 = 4 × 6 + 3, so ${I}<sup>27</sup> = (${I}⁴)⁶ · ${I}³ = 1 · ${I}³ = <b>−${I}</b>.`),
+    learn: p(`The <b>imaginary unit</b> ${I} is the number whose square is −1: <b>${I}² = −1</b>. It lets you take square roots of negative numbers: √−1 = ${I} and √−25 = √25 · √−1 = 5${I}. A <b>complex number</b> has the form ${V('a')} + ${V('b')}${I}, with a <b>real part</b> ${V('a')} and an <b>imaginary part</b> ${V('b')}.`) +
+      p(`<b>Powers of ${I} repeat in a cycle of four: ${I}¹ = ${I}, ${I}² = −1, ${I}³ = −${I}, ${I}⁴ = 1.</b> To find ${I}<sup>${V('n')}</sup>, divide ${V('n')} by 4 and use the remainder: 1 gives ${I}, 2 gives −1, 3 gives −${I}, and 0 gives 1.`) +
+      p(`In the <b>complex plane</b>, the number ${V('a')} + ${V('b')}${I} is the point (${V('a')}, ${V('b')}): the real part runs across and the imaginary part runs up. Its <b>absolute value</b> |${V('a')} + ${V('b')}${I}| is its distance from 0, which is √(${V('a')}² + ${V('b')}²) by the Pythagorean theorem.`) +
+      example('Example 1: a high power', `${big(`${I}<sup>27</sup>`)}27 = 4 × 6 + 3, so ${I}<sup>27</sup> = (${I}⁴)⁶ · ${I}³ = 1 · ${I}³ = <b>−${I}</b>.`) +
+      example('Example 2: the square root of a negative', `${big(`${M.sqrt('−49')}`)}Split off −1: √−49 = √49 · √−1 = <b>7${I}</b>. With a minus sign in front, −√−49 = −7${I}.`) +
+      example('Example 3: plotting and absolute value', `${planeSvg(3, -4)}The point is 3 right and 4 down, so it stands for <b>3 − 4${I}</b>. Its distance from 0 is √(3² + (−4)²) = √25, so |3 − 4${I}| = <b>5</b>.`),
     make(rng) {
       const kind = rng.pick(['power', 'power', 'sqrt', 'plane', 'plane', 'abs']);
       if (kind === 'power') {
@@ -225,9 +233,12 @@
 
   A.skill({
     id: 'alg2.complex-operations', title: 'Adding, subtracting and multiplying complex numbers',
-    learn: p(`<b>Add or subtract complex numbers by combining real parts with real parts and imaginary parts with imaginary parts</b>, just like like terms: (3 + 2${I}) + (1 − 5${I}) = 4 − 3${I}.`) +
-      p(`<b>Multiply with the distributive property (FOIL), then replace ${I}² with −1.</b> That last step turns the ${I}² term into a real number, which then joins the other real part.`) +
-      example('Example', `${big(`(2 + 3${I})(4 − ${I})`)}FOIL: 8 − 2${I} + 12${I} − 3${I}². Since ${I}² = −1, −3${I}² = +3. Combine: (8 + 3) + (−2 + 12)${I} = <b>11 + 10${I}</b>.`),
+    learn: p(`<b>To add or subtract complex numbers, combine the real parts with each other and the imaginary parts with each other</b>, the same way you combine like terms. When you subtract, the minus sign applies to both parts of the second number.`) +
+      p(`<b>To multiply, use the distributive property (FOIL: first, outer, inner, last), then replace ${I}² with −1.</b> That last step turns the ${I}² term into a real number, which joins the other real part.`) +
+      p(`The <b>conjugate</b> of ${V('a')} + ${V('b')}${I} is ${V('a')} − ${V('b')}${I}: the same number with the sign of the imaginary part changed. A number times its conjugate is always real: (${V('a')} + ${V('b')}${I})(${V('a')} − ${V('b')}${I}) = ${V('a')}² + ${V('b')}².`) +
+      example('Example 1: subtracting', `${big(`(5 − 2${I}) − (−3 + 4${I})`)}Change both signs in the second number: 5 − 2${I} + 3 − 4${I}. Real parts 5 + 3 = 8, imaginary parts −2 − 4 = −6: <b>8 − 6${I}</b>.`) +
+      example('Example 2: multiplying', `${big(`(2 + 3${I})(4 − ${I})`)}FOIL: 8 − 2${I} + 12${I} − 3${I}². Since ${I}² = −1, −3${I}² = +3. Combine: (8 + 3) + (−2 + 12)${I} = <b>11 + 10${I}</b>.`) +
+      example('Example 3: times the conjugate', `${big(`(4 + 3${I})(4 − 3${I})`)}FOIL: 16 − 12${I} + 12${I} − 9${I}². The ${I} terms cancel and −9${I}² = +9, so the product is 16 + 9 = <b>25</b>.`),
     make(rng) {
       const op = rng.pick(['add', 'sub', 'mul', 'mul', 'conj']);
       const lim = op === 'add' || op === 'sub' ? 9 : 6;
@@ -268,10 +279,11 @@
   /* ---------- Unit 3: Polynomial factorization ---------- */
   A.skill({
     id: 'alg2.factor-cubes', title: 'Factoring sums and differences of cubes',
-    learn: p(`Two cubes added or subtracted always factor into a binomial times a trinomial:`) +
-      p(`<b>${V('a')}³ + ${V('b')}³ = (${V('a')} + ${V('b')})(${V('a')}² − ${V('a')}${V('b')} + ${V('b')}²)</b> and <b>${V('a')}³ − ${V('b')}³ = (${V('a')} − ${V('b')})(${V('a')}² + ${V('a')}${V('b')} + ${V('b')}²)</b>. The binomial keeps the original sign; the middle term of the trinomial takes the opposite sign; the last term is always +. (Some remember it as SOAP: Same, Opposite, Always Positive.)`) +
-      p(`First write each term as a cube: 8${X}³ = (2${X})³ and 125 = 5³. The perfect cubes to know are 1, 8, 27, 64, 125, 216.`) +
-      example('Example', `${big(P([8, 0, 0, -27]))}${V('a')} = 2${X}, ${V('b')} = 3. Difference of cubes: (2${X} − 3)((2${X})² + 2${X} · 3 + 3²) = <b>(${P([2, -3])})(${P([4, 6, 9])})</b>.`),
+    learn: p(`A <b>perfect cube</b> is a number or term that equals something multiplied by itself three times: 8 = 2³, 125 = 5³ and 27${X}³ = (3${X})³. The cubes to know are 1, 8, 27, 64, 125, 216 and 343.`) +
+      p(`A sum or difference of two cubes always factors into a binomial times a trinomial: <b>${V('a')}³ + ${V('b')}³ = (${V('a')} + ${V('b')})(${V('a')}² − ${V('a')}${V('b')} + ${V('b')}²)</b> and <b>${V('a')}³ − ${V('b')}³ = (${V('a')} − ${V('b')})(${V('a')}² + ${V('a')}${V('b')} + ${V('b')}²)</b>.`) +
+      p(`To remember the signs, think “same, opposite, always positive”: the binomial keeps the original sign, the middle term of the trinomial takes the opposite sign, and the last term is always +. First write each term as a cube to find ${V('a')} and ${V('b')}.`) +
+      example('Example 1: a difference of cubes', `${big(P([8, 0, 0, -27]))}8${X}³ = (2${X})³ and 27 = 3³, so ${V('a')} = 2${X} and ${V('b')} = 3. Then (2${X} − 3)((2${X})² + 2${X} · 3 + 3²) = <b>(${P([2, -3])})(${P([4, 6, 9])})</b>.`) +
+      example('Example 2: a sum of cubes', `${big(P([1, 0, 0, 64]))}${V('a')} = ${X} and ${V('b')} = 4, since 64 = 4³. Same sign, then opposite, then always positive: <b>(${P([1, 4])})(${P([1, -4, 16])})</b>.`),
     make(rng) {
       const m = rng.pick([1, 1, 2, 3, 4]);
       let k = rng.int(1, 6);
@@ -294,9 +306,10 @@
 
   A.skill({
     id: 'alg2.factor-grouping', title: 'Factoring by grouping and quadratic forms',
-    learn: p(`<b>Factoring by grouping:</b> for four terms, split them into two pairs, take the greatest common factor out of each pair, and look for a shared binomial. ${P([1, 3, 2, 6])} = ${X}²(${X} + 3) + 2(${X} + 3) = (${X} + 3)(${X}² + 2).`) +
-      p(`<b>Quadratic form:</b> an expression like ${P([1, 0, -5, 0, 4])} is a quadratic in disguise. Let ${V('u')} = ${X}²; then it reads ${V('u')}² − 5${V('u')} + 4 = (${V('u')} − 1)(${V('u')} − 4). Put ${X}² back in for ${V('u')}.`) +
-      example('Example', `${big(P([2, 5, 6, 15]))}Group: (2${X}³ + 5${X}²) + (6${X} + 15) = ${X}²(2${X} + 5) + 3(2${X} + 5) = <b>(${P([2, 5])})(${P([1, 0, 3])})</b>.`),
+    learn: p(`<b>Factoring by grouping</b> works on four terms. Split them into two pairs, take the greatest common factor (GCF) out of each pair, and look for a binomial that both pairs share. Then factor that shared binomial out. If the third term is negative, take out a negative factor so the two binomials match.`) +
+      p(`A <b>quadratic form</b> is an expression like ${P([1, 0, -5, 0, 4])} that is a quadratic in disguise. Let ${V('u')} = ${X}²; then it reads ${V('u')}² − 5${V('u')} + 4, which factors as (${V('u')} − 1)(${V('u')} − 4). Put ${X}² back in place of ${V('u')} at the end: (${X}² − 1)(${X}² − 4).`) +
+      example('Example 1: grouping', `${big(P([2, 5, 6, 15]))}Pair up: (2${X}³ + 5${X}²) + (6${X} + 15) = ${X}²(2${X} + 5) + 3(2${X} + 5). Both share 2${X} + 5, so the answer is <b>(${P([2, 5])})(${P([1, 0, 3])})</b>.`) +
+      example('Example 2: a quadratic form', `${big(P([1, 0, 2, 0, -15]))}With ${V('u')} = ${X}², it is ${V('u')}² + 2${V('u')} − 15 = (${V('u')} + 5)(${V('u')} − 3). Replace ${V('u')}: <b>(${P([1, 0, 5])})(${P([1, 0, -3])})</b>.`),
     make(rng) {
       if (rng.chance(0.4)) {
         let u = rng.nz(-9, 9), v = rng.nz(-9, 9);
@@ -331,9 +344,11 @@
   /* ---------- Unit 4: Polynomial division ---------- */
   A.skill({
     id: 'alg2.divide-polynomials', title: 'Dividing polynomials by x − a',
-    learn: p(`<b>Long division</b> of polynomials works like long division of numbers: divide the leading term, multiply, subtract, bring down, repeat. What is left at the end, with a degree lower than the divisor, is the remainder.`) +
-      p(`<b>Synthetic division</b> is a shortcut when the divisor is ${X} − ${V('a')}: write ${V('a')} and the coefficients (with a 0 for any missing power). Bring the first coefficient down; then repeatedly multiply by ${V('a')} and add to the next coefficient. The last number is the remainder; the others are the quotient's coefficients, one degree lower than the dividend. Dividing by ${X} + 3 means ${V('a')} = −3.`) +
-      example('Example', `${big(`(${P([1, -2, -5, 8])}) ÷ (${P([1, -3])})`)}Use 3 with the coefficients 1, −2, −5, 8. Bring down 1; 1 · 3 = 3, −2 + 3 = 1; 1 · 3 = 3, −5 + 3 = −2; −2 · 3 = −6, 8 − 6 = 2. Quotient ${P([1, 1, -2])}, <b>remainder 2</b>.`),
+    learn: p(`<b>Long division</b> of polynomials works like long division of numbers: divide the leading terms, multiply, subtract, bring down the next term, and repeat. The <b>quotient</b> is the answer on top. The <b>remainder</b> is what's left at the end, and its degree is lower than the divisor's.`) +
+      p(`<b>Synthetic division</b> is a shortcut for dividing by ${X} − ${V('a')}. Write ${V('a')} and the coefficients of the dividend, using 0 for any missing power. Bring the first coefficient down. Then repeat: multiply by ${V('a')}, write the result under the next coefficient, and add.`) +
+      p(`The last number in the bottom row is the remainder. The others are the coefficients of the quotient, whose degree is one less than the dividend's. Watch the sign: dividing by ${X} + 3 means ${V('a')} = −3.`) +
+      example('Example 1: synthetic division', `${big(`(${P([1, -2, -5, 8])}) ÷ (${P([1, -3])})`)}Use 3 with the coefficients 1, −2, −5, 8. Bring down 1; 1 · 3 = 3, −2 + 3 = 1; 1 · 3 = 3, −5 + 3 = −2; −2 · 3 = −6, 8 − 6 = 2. Quotient <b>${P([1, 1, -2])}</b>, <b>remainder 2</b>.`) +
+      example('Example 2: long division', `${big(`(${P([2, 3, -4, 1])}) ÷ (${P([1, 2])})`)}2${X}³ ÷ ${X} = 2${X}²; subtract 2${X}²(${X} + 2) to leave −${X}² − 4${X} + 1. Next −${X}² ÷ ${X} = −${X}; subtract −${X}(${X} + 2) to leave −2${X} + 1. Last −2${X} ÷ ${X} = −2; subtract −2(${X} + 2) to leave 5. Quotient <b>${P([2, -1, -2])}</b>, <b>remainder 5</b>.`),
     make(rng) {
       const kind = rng.pick(['long', 'synthetic']);
       const Q = [rng.pick([1, 1, 2, 3, -1]), rng.nz(-6, 6), rng.nz(-6, 6)];
@@ -373,10 +388,12 @@
 
   A.skill({
     id: 'alg2.remainder-theorem', title: 'The remainder theorem',
-    learn: p(`<b>The remainder theorem: when a polynomial ${fx('p', X)} is divided by ${X} − ${V('a')}, the remainder is ${fx('p', V('a'))}.</b> So you can find a remainder without dividing at all: just substitute.`) +
-      p(`A special case is the <b>factor theorem</b>: ${X} − ${V('a')} is a factor of ${fx('p', X)} exactly when ${fx('p', V('a'))} = 0. Watch the sign: dividing by ${X} + 2 means ${V('a')} = −2.`) +
-      p(`The theorem also runs backwards: if you know the remainder, substituting gives an equation you can solve for an unknown coefficient.`) +
-      example('Example', `${big(`${fx('p', X)} = ${P([2, 0, -3, 5])}, divided by ${P([1, 2])}`)}${V('a')} = −2: ${fx('p', '−2')} = 2(−8) − 3(−2) + 5 = −16 + 6 + 5 = <b>−5</b>, so the remainder is −5.`),
+    learn: p(`<b>The remainder theorem: when a polynomial ${fx('p', X)} is divided by ${X} − ${V('a')}, the remainder is ${fx('p', V('a'))}.</b> So you can find a remainder without dividing at all: substitute ${V('a')} for ${X}. Watch the sign: dividing by ${X} + 2 means ${V('a')} = −2.`) +
+      p(`A special case is the <b>factor theorem</b>: ${X} − ${V('a')} is a <b>factor</b> of ${fx('p', X)}, meaning it divides ${fx('p', X)} with remainder 0, exactly when ${fx('p', V('a'))} = 0.`) +
+      p(`Both theorems work backwards too. If you know the remainder, substituting ${V('a')} gives an equation you can solve for an unknown coefficient.`) +
+      example('Example 1: finding a remainder', `${big(`${fx('p', X)} = ${P([2, 0, -3, 5])}, divided by ${P([1, 2])}`)}${V('a')} = −2: ${fx('p', '−2')} = 2(−8) − 3(−2) + 5 = −16 + 6 + 5 = <b>−5</b>, so the remainder is −5.`) +
+      example('Example 2: a factor', `${big(`${P([1, -2])} is a factor of ${X}³ + ${V('k')}${X} − 6. Find ${V('k')}.`)}A factor leaves remainder 0, so ${fx('p', 2)} = 0: 8 + 2${V('k')} − 6 = 0, so 2${V('k')} = −2 and <b>${V('k')} = −1</b>.`) +
+      example('Example 3: a given remainder', `${big(`${X}³ − ${X}² + ${V('k')}${X} + 4 leaves remainder 10 when divided by ${P([1, 1])}`)}${V('a')} = −1: −1 − 1 − ${V('k')} + 4 = 10, so 2 − ${V('k')} = 10 and <b>${V('k')} = −8</b>.`),
     make(rng) {
       const kind = rng.pick(['eval', 'eval', 'factor', 'rem-k']);
       const a = rng.nz(-4, 4);
@@ -417,10 +434,11 @@
 
   A.skill({
     id: 'alg2.zeros-multiplicity', title: 'Zeros of polynomials and their multiplicity',
-    learn: p(`In factored form you can read the zeros straight off: ${fx('f', X)} = (${X} − 2)(${X} + 5) is zero at ${X} = 2 and ${X} = −5. A factor that appears ${V('m')} times gives a zero of <b>multiplicity</b> ${V('m')}: in (${X} − 1)³ the zero 1 has multiplicity 3.`) +
-      p(`<b>Odd multiplicity: the graph crosses the x-axis. Even multiplicity: it touches the axis and turns back.</b> With multiplicity 3 or more the graph also flattens out as it passes through.`) +
-      p(`A factor like ${X}² + 4 has no real zeros at all, since ${X}² + 4 is always positive. The degree is the sum of all the exponents, counting 2 for each such quadratic factor.`) +
-      example('Example', `${big(`${fx('f', X)} = ${X}(${X} − 3)²(${X} + 1)`)}Zeros 0 (mult. 1, crosses), 3 (mult. 2, touches), −1 (mult. 1, crosses). The degree is 1 + 2 + 1 = <b>4</b>.`),
+    learn: p(`A <b>zero</b> of ${V('f')} is an ${X}-value where ${fx('f', X)} = 0, which is where the graph meets the ${X}-axis. In factored form you can read the zeros straight off: ${fx('f', X)} = (${X} − 2)(${X} + 5) is zero at ${X} = 2 and ${X} = −5.`) +
+      p(`A factor that appears ${V('m')} times gives a zero of <b>multiplicity</b> ${V('m')}: in (${X} − 1)³ the zero 1 has multiplicity 3. <b>Odd multiplicity: the graph crosses the ${X}-axis. Even multiplicity: it touches the axis and turns back.</b> With multiplicity 3 or more, the graph also flattens out as it crosses.`) +
+      p(`A factor like ${X}² + 4 has no real zeros, because ${X}² + 4 is always positive. The <b>degree</b> of ${V('f')} is its highest power of ${X} once it's multiplied out: add the exponents of all the factors, counting 2 for each quadratic factor.`) +
+      example('Example 1: reading the zeros', `${big(`${fx('f', X)} = ${X}(${X} − 3)²(${X} + 1)`)}Zeros 0 (multiplicity 1, crosses), 3 (multiplicity 2, touches) and −1 (multiplicity 1, crosses). The degree is 1 + 2 + 1 = <b>4</b>.`) +
+      example('Example 2: a factor with no real zeros', `${big(`${fx('f', X)} = (${X} + 2)³(${X}² + 9)`)}The only real zero is −2, with multiplicity 3, so the graph crosses and flattens there. ${X}² + 9 is never zero. So ${V('f')} has <b>1 distinct real zero</b>, and its degree is 3 + 2 = <b>5</b>.`),
     make(rng) {
       const kind = rng.pick(['mult', 'behave', 'behave', 'count', 'degree']);
       const roots = rng.sample([-6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6], 3).sort((u, v) => (u === 0 ? -1 : 0) - (v === 0 ? -1 : 0));
@@ -461,10 +479,11 @@
 
   A.skill({
     id: 'alg2.end-behavior', title: 'End behavior of polynomials',
-    learn: p(`Far from the origin, the <b>leading term</b> (the term with the highest power) is so much bigger than the others that it alone decides where the graph goes.`) +
-      p(`<b>Even degree: both ends go the same way, up if the leading coefficient is positive and down if it is negative. Odd degree: the ends go opposite ways, rising to the right if the leading coefficient is positive and falling to the right if it is negative.</b>`) +
-      p(`The leading term is not always written first. In factored form, multiply the leading parts of the factors: in (3 − ${X})(${X} + 1)², the leading term is (−${X})(${X}²) = −${X}³. Take care with factors written in reverse order, such as 3 − ${X}.`) +
-      example('Example', `${big(`${fx('f', X)} = 4 + 2${X} − 3${X}⁴`)}Leading term −3${X}⁴: even degree, negative coefficient, so both ends go down. <b>As ${X} → −∞, ${fx('f', X)} → −∞; as ${X} → ∞, ${fx('f', X)} → −∞.</b>`),
+    learn: p(`The <b>end behavior</b> of a graph is where it heads at the far left and far right, as ${X} → −∞ and ${X} → ∞. Far from the origin, the <b>leading term</b> (the term with the highest power of ${X}) is so much bigger than the others that it alone decides this.`) +
+      p(`<b>Even degree: both ends go the same way, up if the leading coefficient is positive and down if it's negative. Odd degree: the ends go opposite ways, rising to the right if the leading coefficient is positive and falling to the right if it's negative.</b>`) +
+      p(`The leading term isn't always written first. In factored form, multiply the leading part of each factor: in (3 − ${X})(${X} + 1)², the leading term is (−${X})(${X}²) = −${X}³. Take care with a factor written in reverse order, such as 3 − ${X}, because its ${X}-term is negative.`) +
+      example('Example 1: terms out of order', `${big(`${fx('f', X)} = 4 + 2${X} − 3${X}⁴`)}The leading term is −3${X}⁴: even degree, negative coefficient, so both ends go down. <b>As ${X} → −∞, ${fx('f', X)} → −∞; as ${X} → ∞, ${fx('f', X)} → −∞.</b>`) +
+      example('Example 2: factored form', `${big(`${fx('f', X)} = −(${X} + 2)²(5 − ${X})`)}Multiply the leading parts: −1 · ${X}² · (−${X}) = ${X}³. Odd degree, positive coefficient, so it falls on the left and rises on the right. <b>As ${X} → −∞, ${fx('f', X)} → −∞; as ${X} → ∞, ${fx('f', X)} → ∞.</b>`),
     make(rng) {
       if (rng.chance(0.4)) {
         const roots = rng.sample([-5, -4, -3, -2, -1, 1, 2, 3, 4, 5], 3);
