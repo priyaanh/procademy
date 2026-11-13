@@ -4144,3 +4144,77 @@ html.tool-full main { padding-top: calc(64px + env(safe-area-inset-top, 0px)); }
 .lab-side .lab-from + .btn-row { margin-top: 8px; }
 .lab-stage .lab-square { justify-content: center; margin-top: 6px; }
 .lab-stage .lab-square p { max-width: 220px; margin: 0; }
+/* piano: the practice log, the metronome and note flashcards */
+.pn-tabs { margin-bottom: 16px; }
+.pn-intro { margin: -4px 0 16px; }
+.pn-grid { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); align-items: start; }
+@media (min-width: 900px) { .pn-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+.pn-grid > .card + .card, .pn-grid + .card { margin-top: 0; }
+.pn-grid + .card { margin-top: 16px; }
+.pn-form .field { max-width: none; margin-bottom: 14px; }
+.pn-form textarea, .pn-form input[type="date"], .pn-form input[type="text"], .pn-form input[type="number"] { padding: .6rem .8rem; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--surface); color: var(--ink); font: inherit; width: 100%; box-sizing: border-box; }
+.pn-form input[type="date"] { max-width: 220px; }
+.pn-min { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
+.pn-min input[type="number"] { width: 110px; }
+.pn-quick { display: flex; flex-wrap: wrap; gap: 6px; }
+.pn-timer { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: -4px 0 14px; }
+.pn-clock { font-size: 1.5rem; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--primary-ink); }
+.pn-recent { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: -6px 0 14px; }
+.pn-weekhead h2 { margin: 0; }
+.pn-week { width: 100%; max-width: 460px; height: auto; margin: 12px auto 4px; }
+.pn-stats, .ty-stats.pn-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 8px 0 12px; text-align: center; }
+.pn-stats b { display: block; font-size: 1.6rem; color: var(--primary-ink); }
+.pn-stats span { font-size: .85rem; color: var(--muted); }
+.pn-goal { display: inline-flex; align-items: center; gap: 6px; }
+.pn-goal select { padding: .3rem .5rem; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--surface); color: var(--ink); font: inherit; }
+.pn-days { list-style: none; margin: 0; padding: 0; }
+.pn-days li { display: grid; grid-template-columns: 150px minmax(0, 1fr) auto; align-items: center; gap: 4px 14px; padding: 10px 0; border-top: 1px solid var(--line); }
+.pn-days li:first-child { border-top: 0; }
+.pn-d { display: flex; flex-direction: column; }
+@media (max-width: 600px) { .pn-days li { grid-template-columns: minmax(0, 1fr) auto; } .pn-what { grid-column: 1 / -1; grid-row: 2; } }
+.pn-more { margin-top: 16px; }
+.pn-kicker { text-transform: uppercase; letter-spacing: .05em; font-weight: 700; }
+.mt-main { text-align: center; }
+.mt-bpm { display: flex; align-items: center; justify-content: center; gap: 18px; border-radius: 20px; padding: 6px 0; }
+.mt-bpm.beat { animation: mt-beat .18s ease-out; }
+@keyframes mt-beat { from { background: var(--tint); } to { background: transparent; } }
+.mt-step { width: 48px; height: 48px; font-size: 1.6rem; background: var(--tint); color: var(--primary-ink); }
+.mt-read b { display: block; font-size: 3.4rem; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.mt-read span { font-size: .9rem; color: var(--muted); }
+#mt-slider { width: 100%; max-width: 440px; margin: 12px auto 4px; display: block; accent-color: var(--primary); }
+.mt-word { margin: 6px 0 14px; }
+.mt-dots { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 12px; min-height: 34px; margin-bottom: 4px; }
+.mt-dot { width: 20px; height: 20px; border-radius: 50%; background: var(--tint-2); transition: background .06s, transform .06s; }
+.mt-dot.first { width: 28px; height: 28px; }
+.mt-dot.on { background: var(--primary); transform: scale(1.15); }
+.mt-go { justify-content: center; }
+.mt-start { min-width: 120px; }
+.mt-keys { margin: 12px 0 0; }
+.mt-side .lab-ctl { margin-bottom: 16px; }
+.mt-side .seg select { border: 0; background: transparent; color: var(--primary-ink); font: inherit; font-weight: 650; font-size: .9rem; padding: 0 .4rem; border-radius: 999px; }
+.mt-words { margin: 6px 0; padding-left: 1.1em; }
+@media (prefers-reduced-motion: reduce) { .mt-bpm.beat { animation: none; } .mt-dot { transition: none; } }
+.nc-grid { display: flex; flex-wrap: wrap; gap: 5px; margin: 10px 0; }
+.nc-cell { display: inline-grid; place-items: center; min-width: 38px; height: 34px; padding: 0 4px; border-radius: 8px; font-weight: 700; font-size: .9rem; background: var(--surface-2); color: var(--ink); }
+.nc-cell sub { font-size: .65em; font-weight: 600; margin-left: 1px; }
+.nc-cell.b1 { background: var(--tint); }
+.nc-cell.b2 { background: var(--tint-2); }
+.nc-cell.b3 { background: color-mix(in srgb, var(--primary) 45%, var(--surface)); }
+.nc-cell.b4 { background: var(--primary); color: var(--on-primary); }
+.nc-card { text-align: center; max-width: 760px; margin: 0 auto; }
+.nc-staff .figure { max-width: 300px; margin: 4px auto; }
+.nc-say { min-height: 1.5em; margin: 4px 0 12px; }
+.nc-letters { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; max-width: 520px; margin: 0 auto; }
+.nc-l { min-height: 52px; font-size: 1.25rem; font-weight: 800; padding: 0; }
+.nc-l.right { background: var(--primary); color: var(--on-primary); }
+.nc-l.wrong { text-decoration: line-through; opacity: .55; }
+@media (max-width: 480px) { .nc-letters { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.pn-keys { width: 100%; max-width: 680px; height: auto; display: block; margin: 0 auto; }
+.pn-keys text { fill: var(--muted); font-family: var(--font); }
+.pk-w { fill: #ffffff; stroke: #5b616e; stroke-width: 1.2; cursor: pointer; }
+.pk-b { fill: #23262d; stroke: #23262d; pointer-events: none; }
+.pk-w:hover { fill: #e8f0fe; }
+.pk-w:focus-visible { outline: none; stroke: var(--primary); stroke-width: 3; }
+.pk-w.right { fill: var(--primary); }
+.pk-w.wrong { fill: #c7cdd5; }
+.nc-next { justify-content: center; }
