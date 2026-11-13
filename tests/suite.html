@@ -1265,6 +1265,115 @@
   S.reset();
   }
 
+  /* ---- music, science, family: the music theory and science courses, the science lab (384), the piano helpers, the merit badge tracker, the family calendar ---- */
+  {
+  S.reset();
+  const goC = async h => { location.hash = '#/settings'; await tick(15); location.hash = h; await tick(60); return document.getElementById('main'); };
+  const mc = A.courseById('music-theory'), sc = A.courseById('science');
+  ok(mc && mc.area === 'music' && A.courseSkills(mc).length >= 18 && A.courseSkills(mc).every(id => A.skills[id] && id.startsWith('mus.')), 'music: a music theory course for piano learners, under its own subject');
+  ok(['mus.treble-notes', 'mus.bass-notes', 'mus.ledger-notes', 'mus.note-values', 'mus.time-signatures', 'mus.key-signatures', 'mus.major-scales', 'mus.interval-quality', 'mus.triads', 'mus.chord-names'].every(id => A.courseSkills(mc).includes(id)), 'music: notes on both staffs, rhythm and time signatures, key signatures, scales, intervals and chords');
+  const tq = A.question('mus.treble-notes', 'cm-1');
+  ok(/<svg[^>]*mus-staff/.test(tq.prompt) && tq.choices.every(c => /^[A-G]$|^[A-G]+$/.test(c)) && (tq.params.kind === 'word' || MUSIC.TREBLE_READ[tq.params.q + 6] === tq.answer), 'music: notes drawn on a staff and read by letter, checked against the lines and spaces');
+  ok(sc && sc.area === 'science' && ['sci.metric-units', 'sci.density', 'sci.speed', 'sci.net-force', 'sci.kinetic-energy', 'sci.ohms-law', 'sci.punnett-squares', 'sci.periodic-table', 'sci.counting-atoms', 'sci.states-of-matter'].every(id => A.courseSkills(sc).includes(id)), 'science: units, density, speed, forces, energy, circuits, Punnett squares, the periodic table, formulas and states of matter');
+  ok(['sci.ohms-law', 'sci.density', 'sci.speed', 'sci.weight'].every(id => { const q = A.question(id, 'cm-2'); return q.type !== 'number' || !!q.unit; }) && SCIENCE.spellOut('Al2(SO4)3').O === 12 && SCIENCE.atoms('Ca(OH)2').H === 2 && SCIENCE.EQS.every(SCIENCE.balanced), 'science: answers carry their unit; atoms are counted two ways, and every equation in the bank balances');
+  let m = await goC('#/courses');
+  ok(m.querySelector('[data-subject="music"]') && m.querySelector('[data-subject="science"]') && m.querySelector('.band-section[data-band="area-music"] .course-card') && m.querySelector('.band-section[data-band="area-science"] .course-card'), 'courses: Music and Science subjects, each with its course');
+  m = await goC('#/skill/mus.triads');
+  ok(m.querySelector('.learn .mus-play[data-together]') && m.querySelector('.learn svg.mus-staff'), 'music lessons: staffs drawn in the lesson, with Play buttons for the chords');
+  // the science lab
+  m = await goC('#/lab/density');
+  ok(m.querySelectorAll('.lab-pick a').length === 7 && m.querySelector('.lab-pick a.on[href="#/lab/density"]') && /floats/.test(text(m.querySelector('#lab-out'))), 'lab (384): seven experiments; sink or float starts with a block that floats');
+  const lm = m.querySelector('#lab-m'); lm.value = '300'; lm.dispatchEvent(new Event('input', { bubbles: true })); await tick(5);
+  ok(/sinks/.test(text(m.querySelector('#lab-out'))) && /3\.75 g\/cm³/.test(text(m.querySelector('#lab-out'))), 'lab: more mass in the same volume sinks, with the density worked out');
+  m = await goC('#/lab/circuit');
+  ok(/0\.3 A/.test(text(m.querySelector('#lab-out'))), 'lab: the circuit’s current from Ohm’s law (9 V across 10 Ω and 20 Ω in series)');
+  m.querySelector('#lab-ctl [data-v="parallel"]').click(); await tick(5);
+  ok(/1\.35 A/.test(text(m.querySelector('#lab-out'))), 'lab: in parallel the branch currents add (0.9 A + 0.45 A)');
+  m.querySelector('#lab-ctl [data-act="bulb"]').click(); await tick(5);
+  ok(/stays on/.test(text(m.querySelector('#lab-out'))), 'lab: in parallel, taking one bulb out leaves the other on');
+  m.querySelector('#lab-ctl [data-act="bulb"]').click(); m.querySelector('#lab-ctl [data-v="series"]').click(); await tick(5);
+  m = await goC('#/lab/genetics'); m.querySelector('[data-act="100"]').click(); await tick(5);
+  ok(m.__lab.state.dom + m.__lab.state.rec === 100 && m.querySelector('.sci-punnett'), 'lab: breeding 100 offspring beside the Punnett square');
+  m.querySelector('[data-act="reset"]').click();
+  const race = LAB.motion.result({ va: 5, vb: 3.5, head: 20, t: 0 }), cart = LAB.forces.result({ push: 30, fric: 40, mass: 10, t: 2 });
+  ok(Math.abs(race.catchT - 20 / 1.5) < 1e-9 && race.ta === 20 && cart.net === 0 && cart.a === 0, 'lab: the race’s catch-up time, and a push smaller than friction moves nothing');
+  // the piano practice log
+  S.reset();
+  PIANO.save(S.today(), { min: 25, pieces: 'Minuet in G, scales in D major', note: 'Left hand slower' });
+  PIANO.addMinutes(S.today(), 5);
+  const wk = PIANO.week();
+  ok(PIANO.log()[S.today()].min === 30 && PIANO.log()[S.today()].pieces.length === 2 && wk.total === 30 && wk.practiced === 1 && PIANO.streak() === 1 && /30 minutes on 1 day/.test(PIANO.weekText()), 'piano log: minutes and pieces for a day, the week’s total, a streak, and the week as text for a teacher');
+  m = await goC('#/piano');
+  ok(m.querySelector('#pl-min') && m.querySelector('svg.pn-week') && /30/.test(text(m.querySelector('.pn-stats'))) && m.querySelector('.pn-tabs a[href="#/metronome"]') && m.querySelector('.pn-tabs a[href="#/piano/cards"]'), 'piano log: the form, the week’s bars, and tabs for the three piano tools');
+  m.querySelector('#pl-min').value = '40'; m.querySelector('#pl-save').click(); await tick(10);
+  ok(PIANO.log()[S.today()].min === 40 && S.get().profile.piano.log[S.today()].t > 0, 'piano log: saving a day again changes it, kept with the learner’s profile');
+  // the metronome, on a stand-in audio clock: every click lands exactly on the beat grid
+  const fake = { currentTime: 0, destination: {}, createOscillator: () => ({ type: '', frequency: { value: 0 }, connect() {}, start() {}, stop() {} }), createGain: () => ({ gain: { value: 0, setValueAtTime() {}, exponentialRampToValueAtTime() {} }, connect() {} }) };
+  PIANO.useAudio(fake);
+  m = await goC('#/metronome');
+  const MT = PIANO.MET; MT.bpm = 100; MT.beats = 3; MT.sub = 1;
+  PIANO.metStart();
+  const first = MT.queue[0].time;
+  for (let k = 0; k < 400; k++) { fake.currentTime += 0.0371; PIANO.schedule(); }
+  const grid = MT.queue.every(q => Math.abs((q.time - first) / 0.6 - Math.round((q.time - first) / 0.6)) < 1e-6) && Math.abs(MT.nextTime - first - MT.step * 0.6) < 1e-6;
+  const beatsOk = MT.queue.every(q => q.beat === Math.round((q.time - first) / 0.6) % 3);
+  PIANO.metStop(); PIANO.useAudio(null);
+  ok(grid && beatsOk && MT.step > 20 && PIANO.tempoWord(100)[1] === 'Andante' && m.querySelectorAll('#mt-dots .mt-dot').length >= 1, 'metronome: clicks scheduled ahead on the audio clock, exactly 0.6 s apart at 100 beats per minute, counting 1, 2, 3');
+  // note flashcards
+  m = await goC('#/piano/cards');
+  m.querySelector('#nc-go').click(); await tick(10);
+  const nc = m.__cards, n1 = nc.note();
+  nc.answer('CDEFGAB'[n1.L], null);
+  ok(nc.state().right === 1 && S.get().profile.piano.cards[nc.current().id].box === 1, 'note cards: the right letter scores, and that note moves up a box');
+  await tick(720);
+  const n2 = nc.note(), id2 = nc.current().id;
+  nc.answer('CDEFGAB'[(n2.L + 1) % 7], null);
+  ok(S.get().profile.piano.cards[id2].miss === 1 && S.get().profile.piano.cards[id2].box === 0 && /Try again/.test(text(m.querySelector('#nc-say'))), 'note cards: a wrong letter is marked, with a reminder of the lines and spaces');
+  ok(PIANO.deck({ clef: 'both', range: 'ledger' }).length === 38 && PIANO.midiOf(PIANO.noteOf('treble', -2)) === 60 && PIANO.midiOf(PIANO.noteOf('bass', 10)) === 60, 'note cards: both staffs with ledger lines, and middle C in both places');
+  // the merit badge tracker
+  S.reset();
+  const reqs = SCOUTS.parse('1. Do the following:\n  a. Explain one thing.\n  b. Show another\n  thing over two lines.\n2) Swim 50 yards\n50 yards is a long way.\nRequirement 3: Talk to your counselor.');
+  ok(reqs.map(r => r.label).join() === '1,1a,1b,2,3' && reqs[2].text === 'Show another thing over two lines.' && reqs[3].text === 'Swim 50 yards 50 yards is a long way.', 'merit badges: pasted requirements keep their numbers, and wrapped lines join up');
+  m = await goC('#/scouts');
+  m.querySelector('#sc-name').value = 'Camping'; m.querySelector('#sc-counselor').value = 'Ms. Diaz';
+  m.querySelector('#sc-reqs').value = '1. Do the following:\n  a. Explain one thing.\n  b. Show another thing.\n2. Make a plan.';
+  m.querySelector('#sc-add').click(); await tick(80);
+  m = document.getElementById('main');
+  const bd = SCOUTS.badges()[0];
+  ok(SCOUTS.badges().length === 1 && bd.name === 'Camping' && bd.counselor === 'Ms. Diaz' && m.querySelectorAll('.sc-r').length === 4 && location.hash === '#/scouts/' + bd.id, 'merit badges: a badge is added with its requirements and counselor');
+  m.querySelector('[data-tick="r1"]').click(); await tick(10);
+  const bd2 = SCOUTS.badge(bd.id);
+  ok(SCOUTS.progress(bd2).n === 1 && bd2.reqs[1].done === S.today() && /\[x\] 1a\. Explain one thing\./.test(SCOUTS.asText(bd2)) && /Counselor: Ms\. Diaz/.test(SCOUTS.asText(bd2)), 'merit badges: a tick saves today’s date, and the badge copies as text for the counselor');
+  ok(SCOUTS.reparse(bd2.reqs, '1. Do the following:\n a. Explain one thing.\n b. Show another thing.\n c. A new part.\n2. Make a plan.')[1].done === S.today(), 'merit badges: editing the requirements keeps the ticks');
+  // the family calendar
+  S.reset();
+  CALENDAR.save(null, { title: 'Piano lesson', kind: 'lesson', date: '2026-01-06', time: '16:30', dur: 45, repeat: 'weekly', days: [2], until: '2026-03-31', skip: ['2026-01-20'] });
+  const ce = CALENDAR.events()[0], ical = CALENDAR.ics([ce]);
+  ok(CALENDAR.occurs(ce, '2026-01-13') && !CALENDAR.occurs(ce, '2026-01-20') && !CALENDAR.occurs(ce, '2026-01-14') && !CALENDAR.occurs(ce, '2026-04-07'), 'calendar: a weekly lesson on its weekday, but not on a skipped week or after it ends');
+  ok(/RRULE:FREQ=WEEKLY;BYDAY=TU;UNTIL=20260331T235959/.test(ical) && /EXDATE:20260120T163000/.test(ical) && /DTSTART:20260106T163000/.test(ical) && /DTEND:20260106T171500/.test(ical) && ical.split('\r\n').every(l => l.length <= 75), 'calendar: a phone calendar file with a weekly rule, a skipped week and short lines');
+  m = await goC('#/calendar/2026-01');
+  ok(m.querySelectorAll('.cal-day').length % 7 === 0 && m.querySelectorAll('.cal-day:not(.out) .k-lesson').length === 3 && m.querySelector('.cal-wd span').textContent === 'Sun', 'calendar: a month view from Sunday, with the lesson every Tuesday but the skipped one');
+  m.querySelector('#cal-add').click(); await tick(5);
+  m.querySelector('#ce-title').value = 'Troop meeting'; m.querySelector('#ce-date').value = '2026-01-15'; m.querySelector('#ce-time').value = '19:00';
+  m.querySelector('#ce-save').click(); await tick(10);
+  m = document.getElementById('main');
+  ok(CALENDAR.events().length === 2 && CALENDAR.on('2026-01-15')[0].title === 'Troop meeting' && /Troop meeting/.test(text(m.querySelector('#cal-side'))), 'calendar: adding an event shows it on its day');
+  PIANO.save(S.today(), { min: 20, pieces: ['Scales'] });
+  ok(CALENDAR.known(S.today()).some(k => k.k === 'piano' && /20 min/.test(k.text)), 'calendar: the day shows piano practice from the practice log');
+  // the account copy: entries merge one by one, the newer edit winning
+  const a1 = S.blank(), b1 = S.blank();
+  a1.profile.calendar = { events: { x: { title: 'Old', date: '2026-01-01', t: 1 }, y: { title: 'Only here', date: '2026-01-02', t: 5 } } };
+  a1.profile.piano = { log: { '2026-01-01': { min: 10, t: 3 } }, goal: 30 };
+  b1.profile.calendar = { events: { x: { title: 'New', date: '2026-01-01', t: 9 }, z: { gone: true, t: 7 } } };
+  b1.profile.piano = { log: { '2026-01-02': { min: 15, t: 4 } } };
+  b1.profile.scouts = { badges: { q: { name: 'Cooking', reqs: [], t: 2 } } };
+  const mg = ACCOUNT.merge(a1, b1);
+  ok(mg.profile.calendar.events.x.title === 'New' && mg.profile.calendar.events.y.title === 'Only here' && mg.profile.calendar.events.z.gone && mg.profile.piano.log['2026-01-01'].min === 10 && mg.profile.piano.log['2026-01-02'].min === 15 && mg.profile.scouts.badges.q.name === 'Cooking', 'account: the piano log, badges and calendar merge entry by entry, the newer edit winning');
+  m = await goC('#/tools');
+  ok(['#/piano', '#/metronome', '#/piano/cards', '#/lab', '#/scouts', '#/calendar'].every(h => m.querySelector(`a.tool[href="${h}"]`)), 'tools: the piano log, metronome, note flashcards, science lab, merit badge tracker and family calendar');
+  S.reset();
+  }
+
   /* ---- the tutor's own page ---- */
   try { localStorage.removeItem('procademy.chats.v1'); } catch (e) {}
   const tReqs = [];
@@ -4488,7 +4597,7 @@
   ok(m.__data.sets[0].n === 3 && /“x” isn’t a number/.test(text(m)), 'data: something that isn’t a number is left out, and it says so');
 
   m = await go10('#/tools');
-  ok(m.querySelectorAll('.tool:not(.again)').length === 26 && m.querySelector('.tool[href="#/typing"]') && m.querySelector('.tool[href="#/geometry"]') && m.querySelector('.tool[href="#/measure"]') && m.querySelector('.tool[href="#/unlimited"]') && m.querySelector('.tool[href="#/calc"]') && m.querySelector('.tool[href="#/numbers"]') && m.querySelector('.tool[href="#/data"]'), 'tools: every tool on one page');
+  ok(m.querySelectorAll('.tool:not(.again)').length === 32 && m.querySelector('.tool[href="#/typing"]') && m.querySelector('.tool[href="#/geometry"]') && m.querySelector('.tool[href="#/measure"]') && m.querySelector('.tool[href="#/unlimited"]') && m.querySelector('.tool[href="#/calc"]') && m.querySelector('.tool[href="#/numbers"]') && m.querySelector('.tool[href="#/data"]'), 'tools: every tool on one page');
   m = await go10('#/skill/g6.gcf-lcm');
   ok(m.querySelector('.hero a[href="#/numbers/12-18"]'), 'tools: the GCF and LCM skill offers the number explorer');
   m = await go10('#/skill/g6.spread');
