@@ -51,22 +51,40 @@
   const slopeText = (n, d) => M.fracText(n, d);
   const frHtml = (n, d) => F(n, d);
 
-  /* a coordinate grid from −6 to 6, with optional lines (through two points) and dots */
+  /* a coordinate grid from −6 to 6, with optional lines (through two points) and dots.
+     opts.lines: [x1, y1, x2, y2] or { pts: [x1, y1, x2, y2], dash, label, at: [x, y] } · opts.dots: [x, y]
+     opts.riseRun: [x1, y1, x2, y2] marks the run and the rise between two points · opts.shade: a polygon to tint
+     opts.square: [x, y, ux, uy, vx, vy] a right-angle mark at (x, y) along two directions · opts.label: the text alternative */
   function grid(opts) {
     const R = 6, S = 20, pad = 8, W = 2 * R * S + 2 * pad;
-    const px = x => pad + (x + R) * S, py = y => pad + (R - y) * S;
+    const px = x => pad + (x + R) * S, py = y => pad + (R - y) * S, f = v => M.round(v, 2);
+    const txt = (x, y, s, anchor) => `<text x="${f(x)}" y="${f(y)}" font-size="13" font-weight="700" text-anchor="${anchor || 'middle'}" stroke="var(--surface)" stroke-width="4" paint-order="stroke">${s}</text>`;
     let g = '';
     for (let k = -R; k <= R; k++) g += `<line class="light" x1="${px(k)}" y1="${py(-R)}" x2="${px(k)}" y2="${py(R)}" stroke-width="${k === 0 ? 0 : 1}"/><line class="light" x1="${px(-R)}" y1="${py(k)}" x2="${px(R)}" y2="${py(k)}" stroke-width="${k === 0 ? 0 : 1}"/>`;
+    if (opts.shade) g += `<polygon points="${opts.shade.map(([x, y]) => `${f(px(x))},${f(py(y))}`).join(' ')}" fill="var(--primary)" fill-opacity="0.16" stroke="none"/>`;
     g += `<line class="stroke" x1="${px(-R)}" y1="${py(0)}" x2="${px(R)}" y2="${py(0)}" stroke-width="1.5"/><line class="stroke" x1="${px(0)}" y1="${py(-R)}" x2="${px(0)}" y2="${py(R)}" stroke-width="1.5"/>`;
     g += `<text x="${px(R) - 10}" y="${py(0) - 6}" font-size="13" font-style="italic">x</text><text x="${px(0) + 6}" y="${py(R) + 12}" font-size="13" font-style="italic">y</text>`;
-    (opts.lines || []).forEach(([x1, y1, x2, y2]) => {
-      const dx = x2 - x1, dy = y2 - y1;
+    const labels = [];
+    (opts.lines || []).forEach(L => {
+      const [x1, y1, x2, y2] = Array.isArray(L) ? L : L.pts, dx = x2 - x1, dy = y2 - y1;
       let lo = -Infinity, hi = Infinity;
       [[x1, dx], [y1, dy]].forEach(([s, d]) => { if (d !== 0) { const a = (-R - s) / d, b = (R - s) / d; lo = Math.max(lo, Math.min(a, b)); hi = Math.min(hi, Math.max(a, b)); } });
-      g += `<line x1="${px(x1 + lo * dx)}" y1="${py(y1 + lo * dy)}" x2="${px(x1 + hi * dx)}" y2="${py(y1 + hi * dy)}" stroke="var(--primary)" stroke-width="2.5"/>`;
+      g += `<line x1="${f(px(x1 + lo * dx))}" y1="${f(py(y1 + lo * dy))}" x2="${f(px(x1 + hi * dx))}" y2="${f(py(y1 + hi * dy))}" stroke="var(--primary)" stroke-width="2.5"${L.dash ? ' stroke-dasharray="8 5"' : ''}/>`;
+      if (L.label) labels.push(txt(px(L.at[0]), py(L.at[1]), L.label));
     });
+    if (opts.riseRun) {
+      const [x1, y1, x2, y2] = opts.riseRun;
+      g += `<path class="stroke" d="M${px(x1)},${py(y1)} H${px(x2)} V${py(y2)}" stroke-dasharray="5 4" stroke-width="1.8"/>`;
+      labels.push(txt((px(x1) + px(x2)) / 2, py(y1) + (y2 > y1 ? 17 : -8), `run ${N(x2 - x1)}`), txt(px(x2) + 6, (py(y1) + py(y2)) / 2 + 4, `rise ${N(y2 - y1)}`, 'start'));
+    }
+    if (opts.square) {
+      const [x, y, ux, uy, vx, vy] = opts.square, k = 9, nu = Math.hypot(ux, uy), nv = Math.hypot(vx, vy);
+      const a = [px(x) + k * ux / nu, py(y) - k * uy / nu], c = [px(x) + k * vx / nv, py(y) - k * vy / nv], b = [a[0] + c[0] - px(x), a[1] + c[1] - py(y)];
+      g += `<path class="stroke" d="M${f(a[0])},${f(a[1])} L${f(b[0])},${f(b[1])} L${f(c[0])},${f(c[1])}" stroke-width="1.5"/>`;
+    }
     (opts.dots || []).forEach(([x, y]) => { g += `<circle cx="${px(x)}" cy="${py(y)}" r="4.5" fill="var(--primary)"/>`; });
-    return `<svg class="figure" viewBox="0 0 ${W} ${W}" width="${W}" height="${W}" role="img" aria-label="coordinate grid">${g}</svg>`;
+    const label = M.esc(opts.label || 'coordinate grid');
+    return `<svg class="figure" viewBox="0 0 ${W} ${W}" width="${W}" height="${W}" role="img" aria-label="${label}"><desc>${label}</desc>${g}${labels.join('')}</svg>`;
   }
 
   A.course({
@@ -435,16 +453,18 @@
 
   A.skill({
     id: 'alg1.slope', title: 'Slope',
-    learn: p(`The <b>slope</b> of a line measures its steepness: how much ${Y} changes for each step of 1 in ${X}. Between any two points on the line, <b>slope = rise ÷ run = (${M.sub(Y, 2)} − ${M.sub(Y, 1)}) ÷ (${M.sub(X, 2)} − ${M.sub(X, 1)})</b>.`) +
-      p('A line that rises from left to right has a positive slope; one that falls has a negative slope; a flat line has slope 0. Subtract the coordinates in the same order on the top and the bottom, or the sign comes out wrong.') +
-      p('In a table, slope is the change in the output divided by the change in the input between any two rows. It is the same for every pair of rows, which is what makes the relationship linear.') +
-      example('Example', `Through ${M.pt(-2, 5)} and ${M.pt(4, 2)}: slope = ${F('2 − 5', '4 − (−2)', { raw: true })} = ${F('−3', '6', { raw: true })} = <b>−${F(1, 2)}</b>.`),
+    learn: p(`The <b>slope</b> of a line measures how steep it is: how much ${Y} changes for each step of 1 in ${X}. The <b>rise</b> is the vertical change between two points on the line, and the <b>run</b> is the horizontal change. For points (${M.sub(X, 1)}, ${M.sub(Y, 1)}) and (${M.sub(X, 2)}, ${M.sub(Y, 2)}), <b>slope = rise ÷ run = (${M.sub(Y, 2)} − ${M.sub(Y, 1)}) ÷ (${M.sub(X, 2)} − ${M.sub(X, 1)})</b>.`) +
+      p('A line that goes up from left to right has a positive slope; one that goes down has a negative slope; a flat line has slope 0. Subtract the coordinates in the same order on the top and the bottom, or the sign comes out wrong.') +
+      p('In a table, the slope is the change in the output divided by the change in the input between any two rows. It’s the same for every pair of rows, and that’s what makes the relationship linear.') +
+      example('Example 1: two points', `Through ${M.pt(-2, 5)} and ${M.pt(4, 2)}: slope = ${F('2 − 5', '4 − (−2)', { raw: true })} = ${F('−3', '6', { raw: true })} = <b>−${F(1, 2)}</b>. The line goes down as you move right.`) +
+      example('Example 2: a table', `${M.table([X, Y], [['1', '4'], ['3', '10'], ['5', '16']])}From the first row to the second, ${Y} goes up 6 while ${X} goes up 2, so the slope is ${F('6', '2', { raw: true })} = <b>3</b>. Any other pair of rows gives 3 too.`) +
+      example('Example 3: a graph', `${grid({ lines: [[-4, -1, 2, 3]], dots: [[-4, -1], [2, 3]], riseRun: [-4, -1, 2, 3], label: 'A line through the points (−4, −1) and (2, 3), with a run of 6 to the right and a rise of 4 marked between them' })}Pick two points where the line crosses grid corners, (−4, −1) and (2, 3). Going from one to the other, the run is 6 and the rise is 4, so the slope is ${F('4', '6', { raw: true })} = <b>${F(2, 3)}</b>.`),
     make(rng) {
       const kind = rng.pick(['points', 'points', 'table', 'graph']);
       let x1, y1, x2, y2, prompt;
       if (kind === 'graph') {
         x1 = rng.int(-5, 2); x2 = x1 + rng.int(1, 4); y1 = rng.int(-5, 5); y2 = rng.int(-5, 5);
-        prompt = `What is the slope of this line? Both dots sit exactly on grid points.${grid({ lines: [[x1, y1, x2, y2]], dots: [[x1, y1], [x2, y2]] })}`;
+        prompt = `What is the slope of this line? Both dots sit exactly on grid points.${grid({ lines: [[x1, y1, x2, y2]], dots: [[x1, y1], [x2, y2]], label: `A line on a coordinate grid through two marked points, (${N(x1)}, ${N(y1)}) and (${N(x2)}, ${N(y2)})` })}`;
       } else if (kind === 'table') {
         const x0 = rng.int(-3, 3), dx = rng.pick([1, 2, 3]), dy = rng.nz(-6, 6), y0 = rng.int(-10, 10);
         const rows = [0, 1, 2, 3].map(i => [x0 + i * dx, y0 + i * dy]);
@@ -468,9 +488,11 @@
 
   A.skill({
     id: 'alg1.linear-forms', title: 'Forms of linear equations',
-    learn: p(`A line can be written three common ways. <b>Slope-intercept form</b> ${Y} = ${V('m')}${X} + ${V('b')} shows the slope ${V('m')} and the ${Y}-intercept ${V('b')}. <b>Point-slope form</b> ${Y} − ${M.sub(Y, 1)} = ${V('m')}(${X} − ${M.sub(X, 1)}) shows the slope and one point ${M.pt(V('x') + '<sub>1</sub>', V('y') + '<sub>1</sub>')}. <b>Standard form</b> ${V('A')}${X} + ${V('B')}${Y} = ${V('C')} makes the intercepts easy to find.`) +
-      p(`To write ${Y} = ${V('m')}${X} + ${V('b')} from a slope and a point, put the point into the equation and solve for ${V('b')}. From two points, find the slope first. For the intercepts of a standard-form line, set ${Y} = 0 to find the ${X}-intercept and ${X} = 0 to find the ${Y}-intercept.`) +
-      example('Example', `Slope 3 through ${M.pt(2, 1)}: 1 = 3(2) + ${V('b')}, so ${V('b')} = −5 and the line is <b>${Y} = 3${X} − 5</b>. In point-slope form the same line is ${psH(3, 2, 1)}.`),
+    learn: p(`A line can be written in three common ways. <b>Slope-intercept form</b>, ${Y} = ${V('m')}${X} + ${V('b')}, shows the slope ${V('m')} and the <b>${Y}-intercept</b> ${V('b')}, the ${Y}-value where the line crosses the ${Y}-axis. <b>Point-slope form</b>, ${Y} − ${M.sub(Y, 1)} = ${V('m')}(${X} − ${M.sub(X, 1)}), shows the slope and one point ${M.pt(V('x') + '<sub>1</sub>', V('y') + '<sub>1</sub>')} on the line. <b>Standard form</b>, ${V('A')}${X} + ${V('B')}${Y} = ${V('C')}, makes the intercepts easy to find.`) +
+      p(`To write ${Y} = ${V('m')}${X} + ${V('b')} from a slope and a point, put the point’s coordinates into the equation and solve for ${V('b')}. From two points, find the slope first. For a line in standard form, set ${Y} = 0 to find the <b>${X}-intercept</b> (where it crosses the ${X}-axis) and ${X} = 0 to find the ${Y}-intercept.`) +
+      example('Example 1: a slope and a point', `Slope 3 through ${M.pt(2, 1)}: 1 = 3(2) + ${V('b')}, so ${V('b')} = −5 and the line is <b>${Y} = 3${X} − 5</b>. In point-slope form the same line is ${psH(3, 2, 1)}; distributing gives ${Y} − 1 = 3${X} − 6, and adding 1 brings back ${Y} = 3${X} − 5.`) +
+      example('Example 2: two points', `Through ${M.pt(1, 2)} and ${M.pt(3, 8)}: the slope is ${F('8 − 2', '3 − 1', { raw: true })} = 3. Then 2 = 3(1) + ${V('b')}, so ${V('b')} = −1: <b>${Y} = 3${X} − 1</b>.`) +
+      example('Example 3: standard form', `${big(`2${X} + 5${Y} = 10`)}${Y} = 0 gives 2${X} = 10, so the ${X}-intercept is <b>5</b>. ${X} = 0 gives 5${Y} = 10, so the ${Y}-intercept is <b>2</b>. Solving for ${Y}, ${Y} = −${F(2, 5)}${X} + 2, so the slope is <b>−${F(2, 5)}</b>.`),
     make(rng) {
       const kind = rng.pick(['slope-point', 'two-points', 'standard', 'point-slope', 'write-ps']);
       if (kind === 'standard') {
@@ -517,9 +539,12 @@
   const REL = ['Parallel', 'Perpendicular', 'Neither'];
   A.skill({
     id: 'alg1.parallel-perpendicular', title: 'Parallel and perpendicular lines',
-    learn: p(`<b>Parallel lines</b> never meet, so they have the <b>same slope</b> (and different ${Y}-intercepts). <b>Perpendicular lines</b> cross at a right angle; their slopes are <b>negative reciprocals</b>: flip the fraction and change its sign. The product of perpendicular slopes is −1.`) +
-      p(`A line with slope ${F(2, 3)} is perpendicular to any line with slope −${F(3, 2)}. A slope of −4 pairs with ${F(1, 4)}. To compare lines in standard form, solve each for ${Y} first so you can read the slope.`) +
-      example('Example', `Find the line through ${M.pt(4, 1)} perpendicular to ${Y} = 2${X} + 7. The new slope is −${F(1, 2)}. Then 1 = −${F(1, 2)}(4) + ${V('b')}, so ${V('b')} = 3: <b>${Y} = −${F(1, 2)}${X} + 3</b>.`),
+    learn: p(`<b>Parallel lines</b> never meet, so they have the <b>same slope</b> (and different ${Y}-intercepts). <b>Perpendicular lines</b> cross at a right angle, and their slopes are <b>negative reciprocals</b>: flip the fraction and change its sign. The product of two perpendicular slopes is −1.`) +
+      p(`A line with slope ${F(2, 3)} is perpendicular to any line with slope −${F(3, 2)}, and a slope of −4 pairs with ${F(1, 4)}. To compare lines written in standard form, solve each one for ${Y} first so you can read its slope.`) +
+      grid({ lines: [{ pts: [0, 3, 1, 5], label: 'slope 2', at: [-4.6, -1] }, { pts: [2, 2, 3, 4], label: 'slope 2', at: [4.6, 2.6] }, { pts: [0, 3, 2, 2], dash: true, label: 'slope −½', at: [-3.4, 5.4] }], square: [2, 2, 1, 2, 2, -1], label: 'Two parallel lines, y = 2x + 3 and y = 2x − 2, both with slope 2, and a dashed line y = −½x + 3 with slope −½ that crosses both of them at right angles' }) +
+      example('Example 1: slopes from standard form', `${big(`3${X} + 4${Y} = 8`)}Solve for ${Y}: ${Y} = −${F(3, 4)}${X} + 2, so the slope is −${F(3, 4)}. A parallel line has slope <b>−${F(3, 4)}</b>; a perpendicular line has slope <b>${F(4, 3)}</b>.`) +
+      example('Example 2: parallel, perpendicular, or neither', `${big(`${Y} = 2${X} + 1 <br> ${X} + 2${Y} = 6`)}The second line is ${Y} = −${F(1, 2)}${X} + 3. The slopes are 2 and −${F(1, 2)}, and 2 · (−${F(1, 2)}) = −1, so the lines are <b>perpendicular</b>.`) +
+      example('Example 3: a line through a point', `Find the line through ${M.pt(4, 1)} perpendicular to ${Y} = 2${X} + 7. The new slope is −${F(1, 2)}. Then 1 = −${F(1, 2)}(4) + ${V('b')}, so ${V('b')} = 3: <b>${Y} = −${F(1, 2)}${X} + 3</b>.`),
     make(rng) {
       const kind = rng.pick(['slope', 'slope', 'classify', 'through']);
       const [mn, md] = pickSlope(rng, [1, 1, 2, 3, 4], 6);
@@ -575,10 +600,13 @@
 
   A.skill({
     id: 'alg1.solve-systems', title: 'Solving systems of equations',
-    learn: p(`A <b>system</b> is two equations that must both be true. Its solution is the point ${M.pt(X, Y)} that works in both, which is where the two lines cross.`) +
-      p(`<b>Substitution:</b> when one equation already says ${Y} = … (or ${X} = …), put that expression into the other equation, solve, then substitute back. <b>Elimination:</b> multiply one or both equations so that one variable has opposite coefficients, then add the equations to cancel it.`) +
-      p('Lines with equal slopes and different intercepts are parallel, so there is <b>no solution</b>. If the two equations describe the same line, every point on it works: <b>infinitely many solutions</b>.') +
-      example('Example', `${big(`${stdH([2, 1, 7])} <br> ${stdH([3, -1, 8])}`)}Add the equations: 5${X} = 15, so ${X} = 3. Then 2(3) + ${Y} = 7, so <b>${Y} = 1</b>. The solution is ${M.pt(3, 1)}.`),
+    learn: p(`A <b>system of equations</b> is a pair of equations that must both be true at the same time. Its solution is the point ${M.pt(X, Y)} that works in both, which is where the two lines cross on a graph.`) +
+      p(`<b>Substitution:</b> when one equation already says ${Y} = … (or ${X} = …), put that expression in place of ${Y} in the other equation, solve, then substitute back to find ${Y}. <b>Elimination:</b> multiply one or both equations so that one variable has opposite coefficients, then add the equations so that variable cancels.`) +
+      p('Lines with equal slopes and different intercepts are parallel, so they never cross: <b>no solution</b>. If the two equations describe the same line, every point on it works: <b>infinitely many solutions</b>.') +
+      example('Example 1: elimination', `${big(`${stdH([2, 1, 7])} <br> ${stdH([3, -1, 8])}`)}The ${Y} coefficients are opposites, so add the equations: 5${X} = 15, so ${X} = 3. Then 2(3) + ${Y} = 7, so <b>${Y} = 1</b>. The solution is ${M.pt(3, 1)}.`) +
+      example('Example 2: substitution', `${big(`${Y} = 2${X} − 1 <br> ${stdH([3, 1, 9])}`)}Replace ${Y} in the second equation: 3${X} + (2${X} − 1) = 9, so 5${X} = 10 and ${X} = 2. Then ${Y} = 2(2) − 1 = 3. The solution is <b>${M.pt(2, 3)}</b>.`) +
+      example('Example 3: a word problem', `A school play sells 40 tickets for $251. Adult tickets cost $8 and child tickets cost $5. Let ${X} = adult tickets and ${Y} = child tickets: ${X} + ${Y} = 40 and 8${X} + 5${Y} = 251. Substitute ${Y} = 40 − ${X}: 8${X} + 200 − 5${X} = 251, so 3${X} = 51 and ${X} = 17. That’s <b>17 adult and 23 child tickets</b>.`) +
+      example('Example 4: how many solutions', `${big(`${Y} = 3${X} + 2 <br> ${stdH([6, -2, 5])}`)}Solve the second for ${Y}: ${Y} = 3${X} − 2.5. Same slope, different intercepts, so the lines are parallel: <b>no solution</b>.`),
     make(rng) {
       const kind = rng.pick(['sub', 'elim', 'elim', 'word', 'word', 'count']);
       if (kind === 'count') {
@@ -627,13 +655,38 @@
 
   const ineqH = (m, b, op) => `${Y} ${OPH[op]} ${sumHtml([[m, 'x', 1], [b, '', 0]])}`;
   const sat = (ins, [x, y]) => ins.every(([m, b, op]) => holds(y, op, m * x + b));
+  /** the part of the −6…6 window above (or below) y = mx + b, as a polygon, walking the window's edges in order */
+  function halfPlane(m, b, above) {
+    const g = ([x, y]) => (y - (m * x + b)) * (above ? 1 : -1), box = [[-6, -6], [6, -6], [6, 6], [-6, 6]], out = [];
+    box.forEach((P, i) => {
+      const Q = box[(i + 1) % 4], gp = g(P), gq = g(Q);
+      if (gp >= 0) out.push(P);
+      if (gp * gq < 0) { const t = gp / (gp - gq); out.push([P[0] + t * (Q[0] - P[0]), P[1] + t * (Q[1] - P[1])]); }
+    });
+    return out;
+  }
+  const SPEND = [
+    { text: (n, a, b, T) => `${n} has at most ${M.money(T)} to spend on ${X} pens at ${M.money(a)} each and ${Y} notebooks at ${M.money(b)} each.`, u: 'pens', w: 'notebooks' },
+    { text: (n, a, b, T) => `At a garden center, ${n} can spend at most ${M.money(T)} on ${X} bags of soil at ${M.money(a)} each and ${Y} trays of seedlings at ${M.money(b)} each.`, u: 'bags of soil', w: 'trays of seedlings' },
+    { text: (n, a, b, T) => `${n} is planning a class trip with a budget of at most ${M.money(T)}: ${X} bus tickets at ${M.money(a)} each and ${Y} museum passes at ${M.money(b)} each.`, u: 'bus tickets', w: 'museum passes' },
+    { text: (n, a, b, T) => `A food bank volunteer, ${n}, can spend at most ${M.money(T)} on ${X} boxes of cereal at ${M.money(a)} each and ${Y} bags of rice at ${M.money(b)} each.`, u: 'boxes of cereal', w: 'bags of rice' },
+  ];
+  const EARN = [
+    { text: (n, a, b, T) => `${n} wants to earn at least ${M.money(T)} by washing ${X} cars at ${M.money(a)} each and walking ${Y} dogs at ${M.money(b)} each.`, u: 'cars', w: 'dogs' },
+    { text: (n, a, b, T) => `At a craft fair, ${n} hopes to take in at least ${M.money(T)} by selling ${X} bracelets at ${M.money(a)} each and ${Y} painted mugs at ${M.money(b)} each.`, u: 'bracelets', w: 'mugs' },
+    { text: (n, a, b, T) => `${n} needs at least ${M.money(T)} for a music camp and earns it by mowing ${X} lawns at ${M.money(a)} each and tutoring ${Y} hours at ${M.money(b)} an hour.`, u: 'lawns', w: 'hours of tutoring' },
+    { text: (n, a, b, T) => `A bakery stand run by ${n} needs to bring in at least ${M.money(T)} a day from ${X} muffins at ${M.money(a)} each and ${Y} loaves of bread at ${M.money(b)} each.`, u: 'muffins', w: 'loaves' },
+  ];
 
   A.skill({
     id: 'alg1.linear-inequalities', title: 'Two-variable inequalities and systems',
-    learn: p(`The solutions of an inequality like ${Y} &gt; 2${X} − 1 are all the points on one side of the <b>boundary line</b> ${Y} = 2${X} − 1. To test a point, substitute it: if the statement is true, the point is a solution.`) +
-      p(`On a graph, <b>&gt;</b> or <b>≥</b> (when solved for ${Y}) shades <b>above</b> the line, and <b>&lt;</b> or <b>≤</b> shades below. A <b>dashed</b> line means the boundary is not included (&lt; or &gt;); a <b>solid</b> line means it is (≤ or ≥).`) +
-      p('A <b>system of inequalities</b> is solved by the points that satisfy every inequality at once: the region where the shadings overlap.') +
-      example('Example', `Is ${M.pt(3, 2)} a solution of ${Y} &lt; −${X} + 6? Substitute: 2 &lt; −3 + 6 = 3. True, so <b>yes</b>.`),
+    learn: p(`A <b>solution</b> of an inequality like ${Y} &gt; 2${X} − 1 is any point ${M.pt(X, Y)} that makes it true. All the solutions lie on one side of the <b>boundary line</b> ${Y} = 2${X} − 1. To test a point, substitute its coordinates: if the statement is true, the point is a solution.`) +
+      p(`On a graph, with the inequality solved for ${Y}, <b>&gt;</b> or <b>≥</b> shades <b>above</b> the line, and <b>&lt;</b> or <b>≤</b> shades <b>below</b> it. A <b>dashed</b> line means points on the line aren’t included (&lt; or &gt;); a <b>solid</b> line means they are (≤ or ≥).`) +
+      p('A <b>system of inequalities</b> is solved by the points that make every inequality true at once: the region where the shadings overlap.') +
+      example('Example 1: testing a point', `Is ${M.pt(3, 2)} a solution of ${Y} &lt; −${X} + 6? Substitute: 2 &lt; −3 + 6 = 3. True, so <b>yes</b>.`) +
+      example('Example 2: a system', `${big(`${Y} &gt; ${X} + 2 <br> ${Y} ≤ −2${X} + 7`)}Test ${M.pt(1, 4)}: 4 &gt; 1 + 2 = 3 is true, and 4 ≤ −2 + 7 = 5 is true. Both hold, so <b>${M.pt(1, 4)} is a solution</b>. ${M.pt(3, 6)} isn’t: 6 ≤ 1 is false.`) +
+      example('Example 3: reading a graph', `${grid({ lines: [{ pts: [0, -1, 2, 0], dash: true }], shade: halfPlane(0.5, -1, true), label: 'The dashed line y = ½x − 1 on a coordinate grid, with the region above the line shaded' })}The line is ${Y} = ${F(1, 2)}${X} − 1. It’s dashed, so the sign is strict, and the shading is above, so it’s greater than: <b>${Y} &gt; ${F(1, 2)}${X} − 1</b>.`) +
+      example('Example 4: from words', `${X} pens at $3 each and ${Y} notebooks at $5 each, spending at most $60. The cost is 3${X} + 5${Y}, and “at most” means ≤: <b>3${X} + 5${Y} ≤ 60</b>.`),
     make(rng) {
       const kind = rng.pick(['point', 'system', 'graph', 'words']);
       if (kind === 'graph') {
