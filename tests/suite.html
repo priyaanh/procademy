@@ -2829,7 +2829,7 @@
   m.querySelector('.subject-row [data-subject="all"]').click(); await tick(10);
   const satCard = [...m.querySelectorAll('.course-card')].find(cd => cd.dataset.area === 'prep' && /SAT/.test(text(cd)));
   ok(satCard && satCard.querySelector('.new-chip') && !m.querySelector('.course-card .new-chip ~ .chip + .chip.new-chip'), 'courses: a course added this week wears a New chip');
-  sat.added = '2020-01-01'; m = await go('#/courses');
+  sat.added = '2020-01-01'; m = await go('#/courses/all');
   ok(![...m.querySelectorAll('.course-card')].some(cd => cd.querySelector('.new-chip') && /SAT/.test(text(cd))), 'courses: after a week the New chip goes');
   sat.added = wasAdded;
   ok(['sat-act', 'competition-math', 'personal-finance', 'coding-logic'].every(id => /<svg class="course-art"/.test(VIEWS._h.courseArt(id))), 'courses: the four newest courses have drawings');
@@ -2888,9 +2888,9 @@
   // a skill: real life, mistakes, related tools, the last answers, study later, share, check your understanding, other numbers
   m = await go('#/skill/math7.add-negatives');
   ok(/°F/.test(text(m.querySelector('.learn-side'))) && m.querySelectorAll('.slips-box li').length >= 2 && m.querySelectorAll('.side-tools a').length >= 3 && m.querySelector('.side-tools a[href="#/calc"]'), 'skill: in real life, what to watch out for, and related tools beside the lesson');
-  const before = S.skill('math7.add-negatives');
-  S.setSkill('math7.add-negatives', { tries: before.tries + 1, right: before.right + 1 }); S.setSkill('math7.add-negatives', { tries: before.tries + 2, right: before.right + 1 });
-  m = await go('#/skill/math7.add-negatives');
+  const t0 = S.skill('math7.add-negatives').tries, r0 = S.skill('math7.add-negatives').right;
+  S.setSkill('math7.add-negatives', { tries: t0 + 1, right: r0 + 1 }); S.setSkill('math7.add-negatives', { tries: t0 + 2, right: r0 + 1 });
+  VIEWS.skill(m, 'math7.add-negatives');
   const marks = [...m.querySelectorAll('.la-marks i')].map(i => i.className);
   ok(marks.slice(-2).join() === 'ok,miss', 'skill: the last answers, right and not yet (' + marks.join(' ') + ')');
   m.querySelector('#later').click(); await tick(5);
@@ -2902,15 +2902,15 @@
   ok(ck.querySelector('.feedback.good') && ck.__check.good === true, 'skill: Check your understanding marks a right answer');
   ck.querySelector('#ck-new').click(); const cq2 = ck.__check.q;
   if (cq2.type === 'choice') ck.querySelector(`.ck-choice[data-k="${(cq2.answerIndex + 1) % cq2.choices.length}"]`).click(); else { ck.querySelector('#ck-ans').value = String(Number(cq2.answer) + 1); ck.querySelector('form').dispatchEvent(new Event('submit', { cancelable: true })); }
-  ok(ck.querySelectorAll('.ck-steps li').length === cq2.hints.length && ck.__check.good === false && S.skill('math7.add-negatives').tries === before.tries + 2, 'skill: a miss shows the working, and nothing is scored');
+  ok(ck.querySelectorAll('.ck-steps li').length === cq2.hints.length && ck.__check.good === false && S.skill('math7.add-negatives').tries === t0 + 2, 'skill: a miss shows the working, and nothing is scored');
   const ex = m.querySelector('.learn .example'); ex.querySelector('[data-ex="new"]').click();
   ok(ex.__swapped && ex.querySelectorAll('.ex-steps li').length === ex.__swapped.hints.length, 'skill: the lesson’s example with other numbers');
   ex.querySelector('[data-ex="back"]').click();
   ok(!ex.__swapped && ex.querySelector('[data-ex="new"]'), 'skill: and back to the lesson’s own example');
   // text size, and Spanish where it's written
-  m.querySelector('[data-size="1"]').click();
+  m.querySelector('.learn-body p').click(); m.querySelector('[data-text-size="1"]').click();
   ok(m.querySelector('.learn').dataset.size === 'l' && JSON.parse(localStorage.getItem('procademy.lesson.v1')).size === 'l', 'lesson: a larger text size, kept on this device');
-  m.querySelector('[data-size="-1"]').click();
+  m.querySelector('[data-text-size="-1"]').click();
   m.querySelector('[data-lang="es"]').click(); await tick(5);
   ok(m.querySelector('.learn').getAttribute('lang') === 'es' && /recta numérica/.test(text(m.querySelector('.learn-body'))), 'lesson: Spanish lesson text where it has been written');
   m.querySelector('[data-lang="en"]').click(); lsDel('procademy.lesson.v1');
