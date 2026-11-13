@@ -802,10 +802,11 @@
   const reflLabel = (axis, k) => `Reflect across the ${axis}-axis, then shift ${units_(k)} ${k > 0 ? 'up' : 'down'}`;
   A.skill({
     id: 'alg2.shifts-reflections', title: 'Shifting and reflecting functions',
-    learn: p(`<b>${fx('f', `${X} − ${V('h')}`)} + ${V('k')} moves the graph of ${V('f')} right ${V('h')} and up ${V('k')}.</b> The change outside the function acts on outputs and goes the way it looks: + 3 moves up. The change inside acts on inputs and goes the <b>opposite</b> way: ${fx('f', `${X} + 3`)} moves left 3, because the input must be 3 less to give the same output.`) +
-      p(`<b>−${fx('f', X)} reflects across the ${X}-axis</b> (outputs change sign). <b>${fx('f', '−' + X)} reflects across the ${Y}-axis</b> (inputs change sign).`) +
+    learn: p(`A <b>transformation</b> moves or flips a graph. <b>${fx('f', `${X} − ${V('h')}`)} + ${V('k')} moves the graph of ${V('f')} right ${V('h')} and up ${V('k')}.</b> A change outside the function acts on the outputs and goes the way it looks: + 3 moves the graph up 3. A change inside acts on the inputs and goes the <b>opposite</b> way: ${fx('f', `${X} + 3`)} moves it left 3, because ${X} must be 3 less to give the same output.`) +
+      p(`<b>−${fx('f', X)} reflects the graph across the ${X}-axis</b>: every output changes sign. <b>${fx('f', '−' + X)} reflects it across the ${Y}-axis</b>: every input changes sign.`) +
       p(`To move a point: (${V('a')}, ${V('b')}) on ${V('f')} becomes (${V('a')} + ${V('h')}, ${V('b')} + ${V('k')}) on ${fx('f', `${X} − ${V('h')}`)} + ${V('k')}.`) +
-      example('Example', `${big(`${fx('g', X)} = ${fx('f', P([1, 4]))} − 2`)}Inside + 4 moves the graph <b>4 left</b>; outside − 2 moves it <b>2 down</b>. The point (1, 5) on ${V('f')} moves to (−3, 3).`),
+      example('Example 1: a shift', `${big(`${fx('g', X)} = ${fx('f', P([1, 4]))} − 2`)}Inside, + 4 moves the graph <b>4 left</b>; outside, − 2 moves it <b>2 down</b>. The point (1, 5) on ${V('f')} moves to (1 − 4, 5 − 2) = <b>(−3, 3)</b>.`) +
+      example('Example 2: a reflection', `${big(`${fx('g', X)} = −${fx('f', X)} + 3`)}The minus sign is outside, so the graph <b>reflects across the ${X}-axis</b>, and then + 3 <b>shifts it up 3</b>. The point (2, 5) goes to (2, −5) and then to <b>(2, −2)</b>.`),
     make(rng) {
       const kind = rng.pick(['shift', 'shift', 'reflect', 'point']);
       const h = rng.nz(-6, 6), k = rng.nz(-6, 6);
@@ -846,10 +847,11 @@
 
   A.skill({
     id: 'alg2.stretches', title: 'Stretching and compressing functions',
-    learn: p(`<b>${V('a')} · ${fx('f', X)} stretches the graph vertically by a factor of ${V('a')}</b>: every ${Y}-value is multiplied by ${V('a')}. If 0 &lt; ${V('a')} &lt; 1 it is a vertical compression.`) +
-      p(`<b>${fx('f', `${V('b')}${X}`)} compresses the graph horizontally by a factor of 1/${V('b')}</b>: every ${X}-value is divided by ${V('b')}. As with shifts, the inside change works backwards, so ${fx('f', '2' + X)} squeezes the graph toward the ${Y}-axis, and ${fx('f', `${X}/2`)} stretches it to twice the width.`) +
+    learn: p(`<b>${V('a')} · ${fx('f', X)} stretches the graph vertically by a factor of ${V('a')}</b>: every ${Y}-value is multiplied by ${V('a')}, so the graph gets taller. If 0 &lt; ${V('a')} &lt; 1 the graph gets flatter instead, which is called a vertical <b>compression</b>.`) +
+      p(`<b>${fx('f', `${V('b')}${X}`)} compresses the graph horizontally by a factor of 1/${V('b')}</b>: every ${X}-value is divided by ${V('b')}. As with shifts, a change inside works backwards: ${fx('f', '2' + X)} squeezes the graph toward the ${Y}-axis, and ${fx('f', `${F(1, 2)}${X}`)} stretches it to twice the width.`) +
       p(`For points: (${V('p')}, ${V('q')}) on ${V('f')} becomes (${V('p')}, ${V('a')}${V('q')}) on ${V('a')} · ${fx('f', X)}, and (${V('p')}/${V('b')}, ${V('q')}) on ${fx('f', V('b') + X)}.`) +
-      example('Example', `${big(`${fx('g', X)} = ${fx('f', '3' + X)}`)}The 3 is inside, so it is a <b>horizontal compression by a factor of 1/3</b>. The point (6, 4) on ${V('f')} moves to (2, 4).`),
+      example('Example 1: a horizontal change', `${big(`${fx('g', X)} = ${fx('f', '3' + X)}`)}The 3 is inside, so it is a <b>horizontal compression by a factor of 1/3</b>. Divide each ${X}-coordinate by 3: the point (6, 4) on ${V('f')} moves to <b>(2, 4)</b>.`) +
+      example('Example 2: a vertical change', `${big(`${fx('g', X)} = ${F(1, 2)}${fx('f', X)}`)}The ${F(1, 2)} is outside, so it is a <b>vertical compression by a factor of 1/2</b>. Multiply each ${Y}-coordinate by ${F(1, 2)}: the point (4, −6) moves to <b>(4, −3)</b>.`),
     make(rng) {
       const k = rng.int(2, 5), kind = rng.pick(['describe', 'describe', 'point']);
       const form = rng.pick(['vs', 'vc', 'hc', 'hs']);
@@ -891,9 +893,11 @@
   /* ---------- Unit 10: Equations ---------- */
   A.skill({
     id: 'alg2.rational-equations', title: 'Solving rational equations',
-    learn: p(`A rational equation has the variable in a denominator. <b>Multiply both sides by the common denominator to clear the fractions, solve the equation that is left, then check that no solution makes a denominator zero.</b>`) +
-      p(`When each side is a single fraction, you can cross-multiply: ${sfrac(V('a'), V('b'))} = ${sfrac(V('c'), V('d'))} gives ${V('a')}${V('d')} = ${V('b')}${V('c')}. A value that makes a denominator zero is <b>extraneous</b>: it is thrown out even if it solves the cleared equation.`) +
-      example('Example', `${big(`${sfrac(M.sup(X, 2), P([1, -3]))} = ${sfrac(P([1, 6]), P([1, -3]))}`)}Same denominators, so ${X}² = ${X} + 6, ${X}² − ${X} − 6 = 0, (${X} − 3)(${X} + 2) = 0. But ${X} = 3 makes the denominator zero, so it is extraneous. <b>${X} = −2</b>.`),
+    learn: p(`A <b>rational equation</b> has the variable in a denominator. <b>Multiply both sides by the common denominator to clear the fractions, solve the equation that's left, then check that no solution makes a denominator zero.</b>`) +
+      p(`When each side is a single fraction, you can <b>cross-multiply</b>: ${sfrac(V('a'), V('b'))} = ${sfrac(V('c'), V('d'))} gives ${V('a')}${V('d')} = ${V('b')}${V('c')}. A value that makes a denominator zero is <b>extraneous</b>: you throw it out even if it solves the cleared equation, because the original equation isn't defined there.`) +
+      example('Example 1: cross-multiplying', `${big(`${sfrac('3', P([1, -1]))} = ${sfrac('2', P([1, 4]))}`)}Cross-multiply: 3(${X} + 4) = 2(${X} − 1), so 3${X} + 12 = 2${X} − 2 and ${X} = −14. Neither denominator is zero there, so <b>${X} = −14</b>.`) +
+      example('Example 2: an extraneous solution', `${big(`${sfrac(M.sup(X, 2), P([1, -3]))} = ${sfrac(P([1, 6]), P([1, -3]))}`)}The denominators match, so ${X}² = ${X} + 6, ${X}² − ${X} − 6 = 0 and (${X} − 3)(${X} + 2) = 0. But ${X} = 3 makes the denominator zero, so it is extraneous. <b>${X} = −2</b>.`) +
+      example('Example 3: clearing a denominator of x', `${big(`${sfrac('6', X)} + 2 = ${sfrac('18', X)}`)}Multiply every term by ${X}: 6 + 2${X} = 18, so 2${X} = 12 and <b>${X} = 6</b>, which isn't 0, so it works.`),
     make(rng) {
       const kind = rng.pick(['cross', 'cross', 'extraneous', 'recip']);
       if (kind === 'cross') {
@@ -925,9 +929,11 @@
 
   A.skill({
     id: 'alg2.quadratic-systems', title: 'Systems with a quadratic equation',
-    learn: p(`A line and a parabola can meet in two points, one point (the line just touches), or not at all. <b>To solve, set the two expressions for ${Y} equal, move everything to one side, and solve the quadratic. Then substitute each ${X} into the line to get its ${Y}.</b>`) +
-      p(`To count the solutions without finding them, look at the discriminant ${V('b')}² − 4${V('a')}${V('c')} of that quadratic: positive means two, zero means one, negative means none.`) +
-      example('Example', `${big(`${Y} = ${P([1, -1, -4])} and ${Y} = ${P([1, 4])}`)}${P([1, -1, -4])} = ${P([1, 4])} gives ${P([1, -2, -8])} = 0 = (${X} − 4)(${X} + 2). Then ${Y} = 4 + 4 = 8 and ${Y} = −2 + 4 = 2: <b>(−2, 2) and (4, 8)</b>.`),
+    learn: p(`A <b>system</b> is a set of equations that must all be true at once; its solutions are the points where the graphs meet. A line and a parabola can meet in two points, in one point (the line just touches), or not at all.`) +
+      p(`<b>To solve, set the two expressions for ${Y} equal, move everything to one side, and solve the quadratic. Then substitute each ${X} into the line to find its ${Y}.</b>`) +
+      p(`To count the solutions without finding them, use the <b>discriminant</b> ${V('b')}² − 4${V('a')}${V('c')} of that quadratic: positive means two solutions, zero means one, and negative means none.`) +
+      example('Example 1: solving', `${big(`${Y} = ${P([1, -1, -4])} and ${Y} = ${P([1, 4])}`)}${P([1, -1, -4])} = ${P([1, 4])} gives ${P([1, -2, -8])} = 0 = (${X} − 4)(${X} + 2). Then ${Y} = 4 + 4 = 8 and ${Y} = −2 + 4 = 2: <b>(−2, 2) and (4, 8)</b>.`) +
+      example('Example 2: counting solutions', `${big(`${Y} = ${P([1, 2, 5])} and ${Y} = ${P([2, 1])}`)}${P([1, 2, 5])} = ${P([2, 1])} gives ${P([1, 0, 4])} = 0. The discriminant is 0² − 4(1)(4) = −16, which is negative, so there are <b>no solutions</b>: the line passes below the parabola.`),
     make(rng) {
       const m = rng.nz(-4, 4), k = rng.int(-6, 6);
       if (rng.chance(0.35)) {
@@ -968,12 +974,52 @@
     return [REF[ref], sgn];
   }
 
+  const QUADRANT = ['first', 'second', 'third', 'fourth'];
+  /** where an angle in standard position ends, in words */
+  function endsIn(deg) {
+    const d = ((deg % 360) + 360) % 360;
+    if (d % 90 === 0) return 'on the ' + ['positive x-axis', 'positive y-axis', 'negative x-axis', 'negative y-axis'][d / 90];
+    return `in the ${QUADRANT[Math.floor(d / 90)]} quadrant`;
+  }
+  /** a unit circle with an angle θ of deg degrees (0 to 360) in standard position, its ending side and point on the circle;
+      opts.point labels that point, opts.ref labels the reference angle; opts.label is the text alternative */
+  function unitCircleSvg(deg, opts) {
+    opts = opts || {};
+    const cx = 150, cy = 112, R = 82, f = v => v.toFixed(1);
+    const at = (r, a) => [cx + r * Math.cos(a), cy - r * Math.sin(a)];
+    const t = deg * Math.PI / 180, P = at(R, t), d = ((deg % 360) + 360) % 360;
+    let g = `<line x1="40" y1="${cy}" x2="262" y2="${cy}" stroke="var(--muted)" stroke-width="1.2"/><line x1="${cx}" y1="14" x2="${cx}" y2="210" stroke="var(--muted)" stroke-width="1.2"/>`;
+    g += `<text x="262" y="${cy - 6}" font-size="12" font-style="italic" fill="var(--muted)" text-anchor="end">x</text><text x="${cx + 6}" y="24" font-size="12" font-style="italic" fill="var(--muted)">y</text>`;
+    g += `<text x="${cx + R + 4}" y="${cy + 15}" font-size="11" fill="var(--muted)">1</text><text x="${cx - R - 4}" y="${cy + 15}" font-size="11" fill="var(--muted)" text-anchor="end">−1</text>`;
+    g += `<circle class="stroke light" cx="${cx}" cy="${cy}" r="${R}"/>`;
+    if (d) {                                   // the angle θ, counterclockwise from the positive x-axis
+      const r1 = 18, e = at(r1, t), m = at(r1 + 11, t / 2);
+      g += `<path class="stroke" style="stroke-width:1.5" d="M${cx + r1},${cy} A${r1},${r1} 0 ${d > 180 ? 1 : 0} 0 ${f(e[0])},${f(e[1])}"/>`;
+      g += `<text x="${f(m[0])}" y="${f(m[1] + 4)}" font-size="13" font-style="italic" text-anchor="middle">θ</text>`;
+    }
+    if (opts.ref && d % 90) {                  // the reference angle, between the ending side and the x-axis
+      const q = Math.floor(d / 90), lo = [0, t, Math.PI, t][q], hi = [t, Math.PI, t, 2 * Math.PI][q], r2 = 30;
+      const s0 = at(r2, lo), s1 = at(r2, hi), m = at(r2 + 14, (lo + hi) / 2);
+      g += `<line x1="${f(P[0])}" y1="${f(P[1])}" x2="${f(P[0])}" y2="${cy}" stroke="currentColor" stroke-width="1.2" stroke-dasharray="4 3"/>`;
+      g += `<path class="stroke" style="stroke-width:1.5" d="M${f(s0[0])},${f(s0[1])} A${r2},${r2} 0 0 0 ${f(s1[0])},${f(s1[1])}"/>`;
+      g += `<text x="${f(m[0])}" y="${f(m[1] + 4)}" font-size="11" text-anchor="middle">${opts.ref}</text>`;
+    }
+    g += `<line class="line" x1="${cx}" y1="${cy}" x2="${f(P[0])}" y2="${f(P[1])}"/><circle class="dot" cx="${f(P[0])}" cy="${f(P[1])}" r="4.5"/>`;
+    if (opts.point) {
+      const lx = Math.min(240, Math.max(60, P[0] + 24 * Math.cos(t))), ly = Math.sin(t) >= -1e-9 ? P[1] - 10 : P[1] + 20;
+      g += `<text x="${f(lx)}" y="${f(ly)}" font-size="12" text-anchor="middle">${opts.point}</text>`;
+    }
+    const label = opts.label || `unit circle with an angle θ in standard position, ending ${endsIn(deg)}`;
+    return `<svg class="figure" viewBox="0 0 300 222" width="300" height="222" role="img" aria-label="${label}"><desc>${label}</desc>${g}</svg>`;
+  }
+
   A.skill({
     id: 'alg2.unit-circle', title: 'Radians and the unit circle',
-    learn: p(`<b>A full turn is 360° = 2π radians, so 180° = π radians.</b> To change degrees to radians multiply by π/180; to change radians to degrees multiply by 180/π. 90° = π/2, 60° = π/3, 45° = π/4, 30° = π/6.`) +
-      p(`On the unit circle (radius 1), the point at angle θ is (cos θ, sin θ). <b>The special values are 0, ½, √2/2, √3/2 and 1</b>: for π/6 the point is (√3/2, ½), for π/4 it is (√2/2, √2/2), for π/3 it is (½, √3/2).`) +
-      p(`For other angles, find the reference angle (the angle to the nearest part of the ${X}-axis) and then the sign from the quadrant: cosine is negative on the left half, sine is negative on the bottom half.`) +
-      example('Example', `${big(`sin ${piTxt(5, 4)}`)}5π/4 = 225°, in the third quadrant, with reference angle 45°. sin 45° = √2/2 and sine is negative below the axis: <b>−√2/2</b>.`),
+    learn: p(`A <b>radian</b> is another unit for measuring angles. <b>A full turn is 360° = 2π radians, so 180° = π radians.</b> To change degrees to radians, multiply by π/180; to change radians to degrees, multiply by 180/π. The common ones: 90° = π/2, 60° = π/3, 45° = π/4 and 30° = π/6.`) +
+      p(`The <b>unit circle</b> has radius 1 and its center at the origin. An angle θ in <b>standard position</b> starts on the positive ${X}-axis and turns counterclockwise. Where it ends, the point on the circle is <b>(cos θ, sin θ)</b>. The special values are 0, ½, √2/2, √3/2 and 1: for π/6 the point is (√3/2, ½), for π/4 it's (√2/2, √2/2), and for π/3 it's (½, √3/2).`) +
+      p(`For other angles, find the <b>reference angle</b>: the acute angle between the ending side and the ${X}-axis. It gives the size of cos θ and sin θ, and the quadrant gives the sign. Cosine is negative on the left half of the circle, and sine is negative on the bottom half.`) +
+      example('Example 1: converting', `${big(`150° and ${piTxt(7, 4)}`)}150° × π/180 = 150π/180 = <b>${piTxt(5, 6)}</b>. Going back, ${piTxt(7, 4)} × 180/π = 7 × 45 = <b>315°</b>.`) +
+      example('Example 2: an exact value', `${big(`sin ${piTxt(5, 4)}`)}${unitCircleSvg(225, { point: '(−√2/2, −√2/2)', ref: '45°', label: 'unit circle with an angle θ of 225 degrees in standard position, ending in the third quadrant at the point (−√2/2, −√2/2), with a reference angle of 45 degrees to the negative x-axis' })}5π/4 = 225°, which ends in the third quadrant with a reference angle of 45°. sin 45° = √2/2, and sine is negative below the ${X}-axis: <b>−√2/2</b>.`),
     make(rng) {
       const kind = rng.pick(['to-deg', 'to-rad', 'value', 'value']);
       const d = rng.pick([2, 3, 4, 6, 6]);
@@ -995,7 +1041,8 @@
       const choices = options(answer, [trigLabel(idx, -sgn), trigLabel(oidx, sgn), trigLabel(oidx, -sgn)], () => trigLabel(rng.int(0, 4), rng.sign()));
       const ang = nn === 0 ? '0' : piTxt(nn, dd);
       const ref = { 0: 0, 1: 30, 2: 45, 3: 60, 4: 90 };
-      return { prompt: `Find the exact value.${big(`${fn} ${ang}`)}`, type: 'choice', choices, answer, params: { kind, fn, nn, dd },
+      const fig = unitCircleSvg(dg, { label: `unit circle with an angle θ of ${nn === 0 ? '0' : A.stripTags(ang).replace(/\s+/g, '').replace(/π(\d)/, 'π/$1')} radians in standard position, ending ${endsIn(dg)}` });
+      return { prompt: `Find the exact value. The picture shows the angle on the unit circle.${big(`${fn} ${ang}`)}${fig}`, type: 'choice', choices, answer, params: { kind, fn, nn, dd },
         hints: [`${ang} radians is ${dg}°.`, `The point on the unit circle is (cos, sin); for ${dg}° the reference angle is ${ref[trigExact('sin', dg)[0]]}°, and ${fn === 'sin' ? 'sine is the y-coordinate' : 'cosine is the x-coordinate'}.`, `${fn} ${dg}° is ${sgn > 0 || idx === 0 ? 'not negative' : 'negative'} here: <b>${answer}</b>.`] };
     },
     verify(q) {
@@ -1017,9 +1064,10 @@
 
   A.skill({
     id: 'alg2.sinusoids', title: 'Amplitude, midline and period',
-    learn: p(`The graph of ${Y} = ${V('a')} sin(${V('b')}${X}) + ${V('d')} (or with cos) is a wave. <b>Amplitude = |${V('a')}|</b>, the distance from the middle to a peak. <b>Midline: ${Y} = ${V('d')}</b>, the horizontal line through the middle. <b>Period = 2π ÷ ${V('b')}</b>, the length of one full cycle.`) +
-      p(`From a maximum and minimum: the midline is halfway between them, (max + min) ÷ 2, and the amplitude is half the distance, (max − min) ÷ 2. A negative ${V('a')} flips the wave but does not change the amplitude.`) +
-      example('Example', `${big(`${Y} = −3 sin(${sfrac('π', 2)}${X}) + 1`)}Amplitude |−3| = <b>3</b>, midline <b>${Y} = 1</b>, period 2π ÷ (π/2) = <b>4</b>.`),
+    learn: p(`The graph of ${Y} = ${V('a')} sin(${V('b')}${X}) + ${V('d')}, or the same with cos, is a repeating wave called a <b>sinusoid</b>. <b>Amplitude = |${V('a')}|</b>, the distance from the middle of the wave to a peak. <b>Midline: ${Y} = ${V('d')}</b>, the horizontal line through the middle. <b>Period = 2π ÷ ${V('b')}</b>, the length of one full cycle.`) +
+      p(`From the highest and lowest values (the maximum and minimum): the midline is halfway between them, (max + min) ÷ 2, and the amplitude is half the distance between them, (max − min) ÷ 2. A negative ${V('a')} flips the wave upside down but doesn't change the amplitude.`) +
+      example('Example 1: reading an equation', `${big(`${Y} = −3 sin(${sfrac('π', 2)}${X}) + 1`)}Amplitude |−3| = <b>3</b>, midline <b>${Y} = 1</b>, and period 2π ÷ ${sfrac('π', 2)} = 2π · ${sfrac(2, 'π')} = <b>4</b>.`) +
+      example('Example 2: from the highest and lowest points', `A seat on a Ferris wheel is 38 m above the ground at its highest and 2 m at its lowest. The midline is (38 + 2) ÷ 2 = <b>20 m</b>, and the amplitude is (38 − 2) ÷ 2 = <b>18 m</b>.`),
     make(rng) {
       const kind = rng.pick(['amp', 'mid', 'period', 'period', 'maxmin']);
       if (kind === 'maxmin') {
@@ -1073,10 +1121,11 @@
 
   A.skill({
     id: 'alg2.choose-model', title: 'Choosing a model from a table',
-    learn: p(`When the ${X}-values go up in equal steps, the ${Y}-values tell you which kind of function fits:`) +
-      p(`<b>Linear: the first differences are constant. Quadratic: the first differences change, but the second differences (differences of the differences) are constant. Exponential: the ratios of consecutive ${Y}-values are constant.</b>`) +
-      p(`Work out the first differences first. If they are not constant, check the second differences and the ratios.`) +
-      example('Example', `${big('y: 3, 6, 12, 24, 48')}Differences 3, 6, 12, 24 are not constant, and neither are their differences 3, 6, 12. But every ratio is 2, so the model is <b>exponential</b>.`),
+    learn: p(`When the ${X}-values in a table go up in equal steps, the ${Y}-values tell you which kind of function fits. Start with the <b>first differences</b>: subtract each ${Y}-value from the next one.`) +
+      p(`<b>Linear: the first differences are constant. Quadratic: the first differences change, but the second differences (the differences of the differences) are constant. Exponential: the ratios of consecutive ${Y}-values are constant</b>, where you divide each ${Y}-value by the one before it.`) +
+      example('Example 1: linear', `${big('y: 7, 4, 1, −2, −5')}The first differences are −3, −3, −3, −3, all the same, so the model is <b>linear</b>.`) +
+      example('Example 2: quadratic', `${big('y: 1, 3, 9, 19, 33')}The first differences 2, 6, 10, 14 change, but the second differences are 4, 4, 4, so the model is <b>quadratic</b>.`) +
+      example('Example 3: exponential', `${big('y: 3, 6, 12, 24, 48')}The differences 3, 6, 12, 24 aren't constant, and neither are their differences 3, 6, 12. But every ratio is 2, so the model is <b>exponential</b>.`),
     make(rng) {
       const t = modelTable(rng);
       const d1 = diffs(t.ys), d2 = diffs(d1);
@@ -1090,9 +1139,11 @@
 
   A.skill({
     id: 'alg2.model-predict', title: 'Using a model to predict',
-    learn: p(`Once you know the kind of model, you can extend the table. <b>Linear: keep adding the same difference. Quadratic: keep adding the same second difference to the first differences. Exponential: keep multiplying by the same ratio.</b>`) +
-      p(`You can also write the rule. A linear table starting at (0, ${V('c')}) with difference ${V('m')} is ${Y} = ${V('m')}${X} + ${V('c')}; an exponential one with ratio ${V('g')} is ${Y} = ${V('c')} · ${V('g')}<sup>${X}</sup>.`) +
-      example('Example', `${big('y: 2, 5, 10, 17, 26')}First differences 3, 5, 7, 9; second differences all 2: quadratic. Next first difference 11, so ${Y}(5) = 26 + 11 = 37, then 13 more: ${Y}(6) = <b>50</b>.`),
+    learn: p(`Once you know the kind of model, you can extend the table one step at a time. <b>Linear: keep adding the same difference. Quadratic: keep adding the same second difference to the first differences. Exponential: keep multiplying by the same ratio.</b>`) +
+      p(`You can also write the rule. A linear table that starts at (0, ${V('c')}) with difference ${V('m')} is ${Y} = ${V('m')}${X} + ${V('c')}; an exponential one that starts at (0, ${V('c')}) with ratio ${V('g')} is ${Y} = ${V('c')} · ${V('g')}<sup>${X}</sup>.`) +
+      example('Example 1: linear', `${big('y: 5, 8, 11, 14, 17')}The difference is always 3 and the table starts at 5, so ${Y} = 3${X} + 5 and ${Y}(7) = 21 + 5 = <b>26</b>.`) +
+      example('Example 2: quadratic', `${big('y: 2, 5, 10, 17, 26')}First differences 3, 5, 7, 9; second differences all 2: quadratic. The next first difference is 11, so ${Y}(5) = 26 + 11 = 37, then 13 more: ${Y}(6) = <b>50</b>.`) +
+      example('Example 3: exponential', `${big('y: 96, 48, 24, 12, 6')}Each value is half the one before, so ${Y} = 96 · (½)<sup>${X}</sup>. Keep halving: ${Y}(5) = 3 and ${Y}(6) = <b>1.5</b>.`),
     make(rng) {
       const t = modelTable(rng), target = rng.int(5, 7), ans = t.f(target);
       const d1 = diffs(t.ys), d2 = diffs(d1);
