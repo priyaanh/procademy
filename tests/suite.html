@@ -4552,7 +4552,11 @@
   m = await go10('#/leap');
   ok(m.__leap.level === 1 && m.querySelectorAll('.lp-card').length === 3 && m.querySelector('.lp-line svg .lp-frog'), 'leap: it starts at level 1 with three cards and a frog');
   m.querySelector('#lp-hint').click();
-  ok(m.querySelectorAll('.lp-card.hint').length === 1 && m.__leap.mistakes === 1, 'leap: a hint lights up the next card (and costs a star)');
+  ok(!m.querySelector('.lp-card.hint') && m.__leap.mistakes === 0 && /Work backward|Look before you jump/.test(text(m.querySelector('#lp-status'))), 'leap: the first hint is a nudge, not an answer, and free');
+  m.querySelector('#lp-hint').click();
+  ok(!m.querySelector('.lp-card.hint') && m.__leap.mistakes === 1 && /One way through ends with/.test(text(m.querySelector('#lp-status'))), 'leap: the second names the last card (and costs a star)');
+  m.querySelector('#lp-hint').click();
+  ok(m.querySelectorAll('.lp-card.hint').length === 1 && m.__leap.mistakes === 2, 'leap: the third lights up the next card (and costs another)');
   m.querySelector('.lp-card.hint').click(); await tick(20);
   m.querySelector('#lp-undo').click(); await tick(20);
   ok(m.__leap.used === 0 && m.__leap.pos === m.__leap.start, 'leap: undo takes a jump back');
