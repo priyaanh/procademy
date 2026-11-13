@@ -452,7 +452,30 @@ footer { border-top: 1px solid var(--line); color: var(--muted); font-size: .9re
 .ul-tabs .tab svg { flex: none; }
 .ul-panel > .ul-picks:first-child { margin-top: 0; }
 .ul-sec-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; margin: 28px 0 12px; }
-.ul-sec-head h2 { margin: 0; font-size: 1.2rem; }
+.ul-sec-head h2 { margin: 0; }
+/* practice page: My sets, and the set maker */
+.ul-sets-none { margin: 0; }
+.ul-setlist { list-style: none; margin: 0; padding-top: 4px; padding-bottom: 4px; }
+.ul-set { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; padding: 12px 0; }
+.ul-set + .ul-set { border-top: 1px solid var(--line); }
+.ul-set-text { display: grid; gap: 2px; flex: 1 1 280px; min-width: 0; }
+.ul-set-acts { display: flex; flex-wrap: wrap; gap: 8px; }
+.ul-set-make { margin-top: 12px; }
+.ul-set-make h3 { margin: 0 0 12px; font-size: 1.05rem; }
+.set-make-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 12px 16px; }
+.set-f { display: grid; gap: 6px; }
+.set-f input { width: 100%; padding: .6rem .9rem; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--surface); color: var(--ink); font: inherit; }
+.set-found { margin-top: 10px; }
+.set-add { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: .35rem .5rem; border: 0; border-radius: 8px; background: none; color: var(--ink); font: inherit; cursor: pointer; }
+.set-add:hover { background: var(--surface-2); }
+.set-add-w { flex: none; min-width: 4.4em; text-align: center; padding: .12rem .5rem; border-radius: 999px; background: var(--tint); color: var(--primary-ink); font-weight: 700; font-size: .8rem; }
+.set-add[aria-pressed="true"] .set-add-w { background: var(--primary); color: var(--on-primary); }
+.set-count { margin: 14px 0 8px; }
+.set-chosen { display: flex; flex-wrap: wrap; gap: 6px; }
+.set-chosen:empty { display: none; }
+.set-chip { display: inline-flex; align-items: center; gap: 2px; padding: .15rem .2rem .15rem .75rem; border-radius: 999px; background: var(--tint); color: var(--primary-ink); font-size: .86rem; font-weight: 600; }
+.set-chip button { border: 0; background: none; color: inherit; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font: inherit; line-height: 1; }
+.set-chip button:hover { background: var(--tint-2); }
 @container page (max-width: 480px) {
   .ul-tabs { display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); gap: 4px; }
   .ul-tabs .tab { justify-content: center; padding: .5rem .3rem; }
