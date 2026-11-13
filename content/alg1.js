@@ -95,10 +95,11 @@
 
   A.skill({
     id: 'alg1.combine-like-terms', title: 'Combining like terms',
-    learn: p(`Two terms are <b>like terms</b> when their variable parts match exactly, powers included. 4${M.sup(X, 2)} and −${M.sup(X, 2)} are like terms. 4${M.sup(X, 2)} and 4${X} are not, because one has ${X} squared and the other does not.`) +
-      p('To simplify, <b>add the coefficients of each group of like terms</b> and keep the variable part unchanged. A sign belongs to the term that follows it, so carry it along when you regroup.') +
-      p('Write the result with the highest power first. The number of terms left equals the number of different kinds of term you started with.') +
-      example('Example', `${big(`2${M.sup(X, 2)} − 5${X} + 3 + ${M.sup(X, 2)} + 7${X}`)}${M.sup(X, 2)} terms: 2 + 1 = 3. ${X} terms: −5 + 7 = 2. Constant: 3. Result: <b>3${M.sup(X, 2)} + 2${X} + 3</b>.`),
+    learn: p(`A <b>term</b> is a number, a variable, or a number times variables, such as 5${M.sup(X, 2)} or −3. The number in front is the term’s <b>coefficient</b>, and a term with no variable is called a <b>constant</b>.`) +
+      p(`Two terms are <b>like terms</b> when their variable parts match exactly, powers included. 4${M.sup(X, 2)} and −${M.sup(X, 2)} are like terms. 4${M.sup(X, 2)} and 4${X} aren’t, because one has ${X} squared and the other doesn’t.`) +
+      p('To simplify, <b>add the coefficients of each group of like terms</b> and keep the variable part as it is. A minus sign belongs to the term right after it, so carry it along when you move terms around. Write the result with the highest power first.') +
+      example('Example 1: one variable with powers', `${big(`2${M.sup(X, 2)} − 5${X} + 3 + ${M.sup(X, 2)} + 7${X}`)}${M.sup(X, 2)} terms: 2 + 1 = 3. ${X} terms: −5 + 7 = 2. Constant: 3. Result: <b>3${M.sup(X, 2)} + 2${X} + 3</b>.`) +
+      example('Example 2: two variables', `${big(`4${X} − 6${Y} − ${X} + 2${Y}`)}${X} terms: 4 − 1 = 3. ${Y} terms: −6 + 2 = −4. The ${X} and ${Y} terms can’t be combined with each other, so the result is <b>3${X} − 4${Y}</b>.`),
     make(rng) {
       const kind = rng.pick(['quad', 'quad', 'two-var']);
       let terms, answer, wrong;
@@ -138,10 +139,11 @@
 
   A.skill({
     id: 'alg1.distribute', title: 'Distributing and simplifying',
-    learn: p(`The <b>distributive property</b> says a factor outside parentheses multiplies <b>every</b> term inside: ${V('k')}(${V('a')} + ${V('b')}) = ${V('k')}${V('a')} + ${V('k')}${V('b')}. When the factor is negative, its sign goes into every product too.`) +
-      p(`After distributing, combine like terms. In 2(3${X} + 1) − 4(${X} − 5), the −4 multiplies both ${X} and −5, giving −4${X} + 20. Losing that second sign is the most common slip.`) +
+    learn: p(`A <b>factor</b> is something being multiplied. The <b>distributive property</b> says a factor outside parentheses multiplies <b>every</b> term inside: ${V('k')}(${V('a')} + ${V('b')}) = ${V('k')}${V('a')} + ${V('k')}${V('b')}. When the factor is negative, its minus sign goes into every product too.`) +
+      p(`After distributing, combine like terms. In 2(3${X} + 1) − 4(${X} − 5), the −4 multiplies both ${X} and −5, giving −4${X} + 20. Forgetting the sign on that second product is the most common slip.`) +
       p(`A variable outside works the same way: ${X}(2${X} − 3) = 2${M.sup(X, 2)} − 3${X}, because ${X} · ${X} = ${M.sup(X, 2)}.`) +
-      example('Example', `${big(`3(2${X} − 4) − 5(${X} + 1)`)}3 · 2${X} = 6${X}, 3 · (−4) = −12, −5 · ${X} = −5${X}, −5 · 1 = −5. Combine: (6 − 5)${X} + (−12 − 5) = <b>${X} − 17</b>.`),
+      example('Example 1: two groups, then combine', `${big(`3(2${X} − 4) − 5(${X} + 1)`)}3 · 2${X} = 6${X}, 3 · (−4) = −12, −5 · ${X} = −5${X}, −5 · 1 = −5. Combine: (6 − 5)${X} + (−12 − 5) = <b>${X} − 17</b>.`) +
+      example('Example 2: a variable outside', `${big(`−2${X}(3${X} − 5)`)}−2${X} · 3${X} = −6${M.sup(X, 2)}, and −2${X} · (−5) = 10${X}. The result is <b>−6${M.sup(X, 2)} + 10${X}</b>.`),
     make(rng) {
       if (rng.chance(0.3)) {
         const k = rng.nz(-6, 6), a = rng.nz(-7, 7), b = rng.nz(-9, 9);
@@ -179,10 +181,12 @@
 
   A.skill({
     id: 'alg1.multi-step-equations', title: 'Equations with variables on both sides',
-    learn: p(`When ${X} appears on both sides, first <b>simplify each side</b> (distribute, combine like terms), then <b>move all the ${X} terms to one side</b> and the numbers to the other, and finally divide by the coefficient of ${X}.`) +
-      p(`Moving a term means doing the same thing to both sides: to move 2${X} off the right, subtract 2${X} from both sides. It helps to collect ${X} on the side where its coefficient stays positive.`) +
-      p(`Sometimes the ${X} terms cancel. If what is left is false (like 4 = 9) there is <b>no solution</b>; if it is always true (like 4 = 4) there are <b>infinitely many solutions</b>.`) +
-      example('Example', `${big(`7${X} − 4 = 3${X} + 12`)}Subtract 3${X}: 4${X} − 4 = 12. Add 4: 4${X} = 16. Divide by 4: <b>${X} = 4</b>. Check: 7(4) − 4 = 24 and 3(4) + 12 = 24 ✓`),
+    learn: p(`When ${X} appears on both sides, first <b>simplify each side</b>: distribute and combine like terms. Then <b>move all the ${X} terms to one side</b> and the plain numbers to the other. Finally, divide by the coefficient of ${X}, the number multiplying it.`) +
+      p(`Moving a term means doing the same thing to both sides: to move 2${X} off the right side, subtract 2${X} from both sides. It’s easiest to collect ${X} on the side where its coefficient stays positive.`) +
+      p(`Sometimes the ${X} terms cancel. If what’s left is false (like 4 = 9), there’s <b>no solution</b>. If it’s always true (like 4 = 4), there are <b>infinitely many solutions</b>: every number works.`) +
+      example('Example 1: variables on both sides', `${big(`7${X} − 4 = 3${X} + 12`)}Subtract 3${X}: 4${X} − 4 = 12. Add 4: 4${X} = 16. Divide by 4: <b>${X} = 4</b>. Check: 7(4) − 4 = 24 and 3(4) + 12 = 24 ✓`) +
+      example('Example 2: parentheses first', `${big(`3(${X} − 2) + 5 = 5${X} − 9`)}Distribute and tidy the left side: 3${X} − 1 = 5${X} − 9. Subtract 3${X}: −1 = 2${X} − 9. Add 9: 8 = 2${X}, so <b>${X} = 4</b>.`) +
+      example('Example 3: when the x terms cancel', `${big(`2(${X} + 3) = 2${X} + 1`)}Distribute: 2${X} + 6 = 2${X} + 1. Subtract 2${X}: 6 = 1, which is never true, so there’s <b>no solution</b>. If the right side were 2${X} + 6, you’d get 6 = 6, and there would be <b>infinitely many solutions</b>.`),
     make(rng) {
       const kind = rng.pick(['both', 'both', 'paren', 'count']);
       if (kind === 'count') {
@@ -283,10 +287,11 @@
 
   A.skill({
     id: 'alg1.literal-equations', title: 'Rearranging formulas',
-    learn: p(`A <b>literal equation</b> has several letters, like ${V('d')} = ${V('r')}${V('t')}. To solve it for one letter, treat every other letter as if it were a number and <b>undo the operations around the target letter</b>, in reverse order, doing the same to both sides.`) +
-      p(`Undo addition and subtraction first, then multiplication and division. If the target is multiplied by a group, divide by the whole group: in ${V('V')} = ${V('l')}${V('w')}${V('h')}, divide by ${V('l')}${V('w')} to get ${V('h')} alone.`) +
-      p('A quick check: put simple numbers in for the other letters, work out the target both ways, and make sure the original formula still balances.') +
-      example('Example', `Solve ${V('P')} = 2${V('l')} + 2${V('w')} for ${V('l')}. Subtract 2${V('w')}: ${V('P')} − 2${V('w')} = 2${V('l')}. Divide by 2: <b>${V('l')} = ${F(`${V('P')} − 2${V('w')}`, '2')}</b>.`),
+    learn: p(`A <b>literal equation</b> is an equation with several letters, like ${V('d')} = ${V('r')}${V('t')} (distance equals rate times time). Every formula is one. To solve it for one letter, treat all the other letters as if they were numbers and <b>undo the operations around the target letter</b> in reverse order, doing the same thing to both sides.`) +
+      p(`Undo addition and subtraction first, then multiplication and division. If the target is multiplied by a group, divide by the whole group: in ${V('V')} = ${V('l')}${V('w')}${V('h')}, divide both sides by ${V('l')}${V('w')} to get ${V('h')} by itself.`) +
+      p('To check, pick simple numbers for the other letters, work out the target, and make sure the original formula still balances.') +
+      example('Example 1: a formula', `Solve ${V('P')} = 2${V('l')} + 2${V('w')} for ${V('l')}. Subtract 2${V('w')}: ${V('P')} − 2${V('w')} = 2${V('l')}. Divide by 2: <b>${V('l')} = ${F(`${V('P')} − 2${V('w')}`, '2')}</b>.`) +
+      example('Example 2: solving a line for y', `Solve 3${X} − 4${Y} = 12 for ${Y}. Subtract 3${X}: −4${Y} = 12 − 3${X}. Divide every term by −4: ${Y} = −3 + ${F(3, 4)}${X}, which is <b>${Y} = ${F(3, 4)}${X} − 3</b>.`),
     make(rng) {
       if (rng.chance(0.3)) {
         const a = rng.nz(-6, 6), b = rng.sign() * rng.pick([2, 3, 4, 5]), c = rng.nz(-12, 12);
@@ -333,10 +338,11 @@
 
   A.skill({
     id: 'alg1.compound-inequalities', title: 'Compound inequalities',
-    learn: p(`A <b>compound inequality</b> joins two conditions. With <b>and</b>, a number must satisfy both, so the solution is the overlap, often written as one three-part statement like −2 &lt; ${X} ≤ 5. With <b>or</b>, a number needs to satisfy only one, as in ${X} &lt; −1 or ${X} &gt; 4.`) +
-      p(`Solve a three-part inequality by doing the same step to <b>all three parts</b>. As always, multiplying or dividing by a negative number <b>flips every sign</b>; afterward, rewrite the statement with the smaller number on the left.`) +
-      p('For an "or" inequality, solve each half on its own and keep the word "or" between the answers.') +
-      example('Example', `${big(`−7 &lt; −2${X} + 1 ≤ 9`)}Subtract 1 from all three parts: −8 &lt; −2${X} ≤ 8. Divide by −2 and flip both signs: 4 &gt; ${X} ≥ −4. Smaller number first: <b>−4 ≤ ${X} &lt; 4</b>.`),
+    learn: p(`A <b>compound inequality</b> joins two conditions on the same variable. With <b>and</b>, a number must satisfy both, so the solutions are the overlap. It’s often written as one three-part statement, such as −2 &lt; ${X} ≤ 5, which says ${X} is between −2 and 5 and may equal 5. With <b>or</b>, a number only needs to satisfy one of the two, as in ${X} &lt; −1 or ${X} &gt; 4.`) +
+      p(`Solve a three-part inequality by doing the same step to <b>all three parts</b>. Multiplying or dividing by a negative number <b>flips every inequality sign</b>; afterward, rewrite the statement with the smaller number on the left.`) +
+      p('For an “or” inequality, solve each half on its own, then keep the word “or” between the two answers.') +
+      example('Example 1: a three-part inequality', `${big(`−7 &lt; −2${X} + 1 ≤ 9`)}Subtract 1 from all three parts: −8 &lt; −2${X} ≤ 8. Divide by −2 and flip both signs: 4 &gt; ${X} ≥ −4. Smaller number first: <b>−4 ≤ ${X} &lt; 4</b>.`) +
+      example('Example 2: an “or” inequality', `${big(`2${X} + 1 &lt; −5 &nbsp;or&nbsp; 3${X} − 4 ≥ 8`)}First half: subtract 1, then divide by 2: ${X} &lt; −3. Second half: add 4, then divide by 3: ${X} ≥ 4. Together: <b>${X} &lt; −3 or ${X} ≥ 4</b>.`),
     make(rng) {
       if (rng.chance(0.6)) {
         const L = rng.int(-8, 3), R = L + rng.int(2, 9), b = rng.nz(-5, 5), c = rng.nz(-9, 9);
@@ -393,9 +399,10 @@
 
   A.skill({
     id: 'alg1.unit-conversion', title: 'Converting units and rates',
-    learn: p(`To change units, multiply by a <b>conversion factor</b>: a fraction equal to 1, such as ${F('12 in', '1 ft', { raw: true })}. Arrange it so the unit you want to get rid of appears on the top once and on the bottom once; then it cancels.`) +
-      p(`A <b>rate</b> has a unit on top and a unit on the bottom, like miles per hour. Convert each one with its own factor. Ask yourself whether the number should get bigger or smaller: there are more feet than miles, so the top number grows; a second is shorter than an hour, so less distance is covered per second.`) +
-      example('Example', `Convert 45 miles per hour to feet per second. ${F('45 mi', '1 h', { raw: true })} × ${F('5,280 ft', '1 mi', { raw: true })} × ${F('1 h', '3,600 s', { raw: true })} = ${F('237,600 ft', '3,600 s', { raw: true })} = <b>66 feet per second</b>.`),
+    learn: p(`To change units, multiply by a <b>conversion factor</b>: a fraction whose top and bottom are the same amount written in different units, such as ${F('12 in', '1 ft', { raw: true })}. It equals 1, so it changes the units but not the amount. Arrange it so the unit you want to get rid of appears once on top and once on the bottom; then it cancels.`) +
+      p(`A <b>rate</b> compares two units, like miles per hour, with one unit on top and one on the bottom. Convert each unit with its own factor. Ask yourself whether the number should get bigger or smaller: a mile is many feet, so the top number grows; a second is much shorter than an hour, so you cover less distance per second.`) +
+      example('Example 1: one unit', `Convert 2.5 pounds to ounces. There are 16 ounces in a pound: 2.5 lb × ${F('16 oz', '1 lb', { raw: true })} = <b>40 ounces</b>. Pounds cancel, and the number gets bigger because an ounce is smaller than a pound.`) +
+      example('Example 2: a rate', `Convert 45 miles per hour to feet per second. ${F('45 mi', '1 h', { raw: true })} × ${F('5,280 ft', '1 mi', { raw: true })} × ${F('1 h', '3,600 s', { raw: true })} = ${F('237,600 ft', '3,600 s', { raw: true })} = <b>66 feet per second</b>.`),
     make(rng) {
       if (rng.chance(0.45)) {
         const i = rng.int(0, SINGLE.length - 1), [from, to, num, den, vals] = SINGLE[i], v = rng.pick(vals);
