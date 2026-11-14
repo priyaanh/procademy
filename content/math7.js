@@ -8,6 +8,14 @@
   const p = (s) => `<p>${s}</p>`;
   const example = (title, body) => `<div class="example"><div class="ex-title">${title}</div>${body}</div>`;
   const big = s => `<div class="big">${s}</div>`;
+  /** a fraction answer in simplest form, ready to spread into a question */
+  const fracAns = (n, d) => { const [sn, sd] = M.simp(n, d); return { answer: sn / sd, answerText: M.fracText(sn, sd) }; };
+  /** the bold last-hint form of a fraction: the stacked fraction and the typed form */
+  const fracBold = (n, d) => { const [sn, sd] = M.simp(n, d); return `<b>${F(sn, sd)}</b>${sd === 1 ? '' : ` (${M.fracText(sn, sd)})`}`; };
+  /** the last hint for a fraction answer: simplify it, or say it already is simple */
+  const simpLine = (n, d) => M.gcd(n, d) === 1 ? `That is already in simplest form: ${fracBold(n, d)}.` : `Divide the top and bottom by ${M.gcd(n, d)}: ${fracBold(n, d)}.`;
+  /** a fraction exactly as given, not simplified */
+  const R = (n, d) => F(n, d, { raw: true });
 
   A.course({
     id: 'math-7', title: '7th grade math', subject: 'Middle school', grade: 7, icon: '7', hue: 215,
@@ -31,12 +39,16 @@
   /* ---------- Unit 1 ---------- */
   A.skill({
     id: 'math7.add-negatives', title: 'Adding negative numbers',
-    learn: p('On a number line, adding a positive number moves you to the right and adding a negative number moves you to the left.') +
-      p('<b>Same signs:</b> add the sizes and keep the sign. −4 + (−3) = −7.<br><b>Different signs:</b> subtract the smaller size from the larger, and keep the sign of the number with the larger size. −9 + 4 = −5, because 9 − 4 = 5 and the 9 was negative.') +
-      example('Example', `${big('−12 + 7')}The signs differ. 12 − 7 = 5, and 12 is the bigger size and it was negative, so the answer is <b>−5</b>.`),
-    learnEs: p('En la recta numérica, sumar un número positivo te mueve a la derecha y sumar un número negativo te mueve a la izquierda.') +
-      p('<b>Signos iguales:</b> suma los tamaños y conserva el signo. −4 + (−3) = −7.<br><b>Signos distintos:</b> resta el tamaño menor del mayor y conserva el signo del número de mayor tamaño. −9 + 4 = −5, porque 9 − 4 = 5 y el 9 era negativo.') +
-      example('Ejemplo', `${big('−12 + 7')}Los signos son distintos. 12 − 7 = 5, y 12 es el tamaño mayor y era negativo, así que la respuesta es <b>−5</b>.`),
+    learn: p('On a number line, adding a positive number moves you to the right, and adding a negative number moves you to the left. A number’s <b>size</b> is its distance from 0, without the sign: the size of −9 is 9, and the size of 4 is 4.') +
+      p('<b>Same signs:</b> add the sizes and keep the sign. <b>Different signs:</b> subtract the smaller size from the larger one, and keep the sign of the number with the larger size.') +
+      example('Example: same signs', `${big('−8 + (−6)')}Both numbers are negative, so add the sizes: 8 + 6 = 14. Keep the negative sign: <b>−14</b>.`) +
+      example('Example: different signs', `${big('−12 + 7')}The signs are different, so subtract the sizes: 12 − 7 = 5. The −12 has the larger size, and it’s negative, so the answer is <b>−5</b>.`) +
+      example('Example: the positive one is larger', `${big('−5 + 11')}Subtract the sizes: 11 − 5 = 6. The 11 has the larger size, and it’s positive, so the answer is <b>6</b>. On the number line, start at −5 and move 11 to the right.`),
+    learnEs: p('En la recta numérica, sumar un número positivo te mueve a la derecha y sumar un número negativo te mueve a la izquierda. El <b>tamaño</b> de un número es su distancia al 0, sin el signo: el tamaño de −9 es 9 y el tamaño de 4 es 4.') +
+      p('<b>Signos iguales:</b> suma los tamaños y conserva el signo. <b>Signos distintos:</b> resta el tamaño menor del mayor y conserva el signo del número de mayor tamaño.') +
+      example('Ejemplo: signos iguales', `${big('−8 + (−6)')}Los dos números son negativos, así que suma los tamaños: 8 + 6 = 14. Conserva el signo negativo: <b>−14</b>.`) +
+      example('Ejemplo: signos distintos', `${big('−12 + 7')}Los signos son distintos, así que resta los tamaños: 12 − 7 = 5. El −12 tiene el tamaño mayor y es negativo, así que la respuesta es <b>−5</b>.`) +
+      example('Ejemplo: el positivo es mayor', `${big('−5 + 11')}Resta los tamaños: 11 − 5 = 6. El 11 tiene el tamaño mayor y es positivo, así que la respuesta es <b>6</b>. En la recta numérica, empieza en −5 y avanza 11 hacia la derecha.`),
     make(rng) {
       let a = rng.nz(-20, 20), b = rng.nz(-20, 20);
       if (a > 0 && b > 0) a = -a;
@@ -54,12 +66,16 @@
 
   A.skill({
     id: 'math7.sub-negatives', title: 'Subtracting negative numbers',
-    learn: p('Subtracting a number is the same as adding its opposite. So every subtraction can be rewritten as an addition, and then the addition rules take over.') +
-      p(`${V('a')} − ${V('b')} = ${V('a')} + (−${V('b')}), and ${V('a')} − (−${V('b')}) = ${V('a')} + ${V('b')}. Two minus signs next to each other make a plus.`) +
-      example('Example', `${big('−3 − (−8)')}Subtracting −8 is adding 8: −3 + 8 = <b>5</b>.`),
-    learnEs: p('Restar un número es lo mismo que sumar su opuesto. Así, toda resta se puede escribir como una suma, y luego se usan las reglas de la suma.') +
-      p(`${V('a')} − ${V('b')} = ${V('a')} + (−${V('b')}), y ${V('a')} − (−${V('b')}) = ${V('a')} + ${V('b')}. Dos signos de menos seguidos se convierten en un más.`) +
-      example('Ejemplo', `${big('−3 − (−8)')}Restar −8 es sumar 8: −3 + 8 = <b>5</b>.`),
+    learn: p('The <b>opposite</b> of a number is the number the same distance from 0 on the other side: the opposite of 8 is −8, and the opposite of −8 is 8. <b>Subtracting a number is the same as adding its opposite.</b> So you can rewrite any subtraction as an addition, and then use the addition rules.') +
+      p(`${V('a')} − ${V('b')} = ${V('a')} + (−${V('b')}), and ${V('a')} − (−${V('b')}) = ${V('a')} + ${V('b')}. Two minus signs next to each other make a plus. Then add as usual: with the same signs, add the sizes (the distances from 0) and keep the sign; with different signs, subtract the sizes and keep the sign of the larger one.`) +
+      example('Example: subtracting a negative', `${big('−3 − (−8)')}Subtracting −8 is adding its opposite, 8: −3 + 8. The signs are different, so 8 − 3 = 5, and the 8 is larger and positive: <b>5</b>.`) +
+      example('Example: subtracting a positive', `${big('4 − 9')}Subtracting 9 is adding −9: 4 + (−9). The signs are different, so 9 − 4 = 5, and the −9 is larger and negative: <b>−5</b>.`) +
+      example('Example: a negative minus a positive', `${big('−6 − 5')}Rewrite it as −6 + (−5). The signs are the same, so add the sizes, 6 + 5 = 11, and keep the sign: <b>−11</b>.`),
+    learnEs: p('El <b>opuesto</b> de un número es el número que está a la misma distancia del 0, pero del otro lado: el opuesto de 8 es −8 y el opuesto de −8 es 8. <b>Restar un número es lo mismo que sumar su opuesto.</b> Así, toda resta se puede escribir como una suma, y luego se usan las reglas de la suma.') +
+      p(`${V('a')} − ${V('b')} = ${V('a')} + (−${V('b')}), y ${V('a')} − (−${V('b')}) = ${V('a')} + ${V('b')}. Dos signos de menos seguidos se convierten en un más. Después suma como siempre: con signos iguales, suma los tamaños (las distancias al 0) y conserva el signo; con signos distintos, resta los tamaños y conserva el signo del mayor.`) +
+      example('Ejemplo: restar un negativo', `${big('−3 − (−8)')}Restar −8 es sumar su opuesto, 8: −3 + 8. Los signos son distintos, así que 8 − 3 = 5, y el 8 es mayor y positivo: <b>5</b>.`) +
+      example('Ejemplo: restar un positivo', `${big('4 − 9')}Restar 9 es sumar −9: 4 + (−9). Los signos son distintos, así que 9 − 4 = 5, y el −9 es mayor y negativo: <b>−5</b>.`) +
+      example('Ejemplo: un negativo menos un positivo', `${big('−6 − 5')}Escríbelo como −6 + (−5). Los signos son iguales, así que suma los tamaños, 6 + 5 = 11, y conserva el signo: <b>−11</b>.`),
     make(rng) {
       let a = rng.nz(-20, 20), b = rng.nz(-20, 20);
       if (a > 0 && b > 0 && rng.chance(0.7)) b = -b;
@@ -77,12 +93,16 @@
 
   A.skill({
     id: 'math7.abs-distance', title: 'Absolute value and distance',
-    learn: p('The absolute value of a number is its distance from zero, so it is never negative: |−7| = 7 and |7| = 7.') +
-      p(`The distance between two numbers on the number line is the absolute value of their difference: distance from ${V('a')} to ${V('b')} is |${V('a')} − ${V('b')}|. The order does not matter, because |−5| and |5| are both 5.`) +
-      example('Example', `How far apart are −6 and 9? |−6 − 9| = |−15| = <b>15</b>.`),
-    learnEs: p('El valor absoluto de un número es su distancia al cero, así que nunca es negativo: |−7| = 7 y |7| = 7.') +
-      p(`La distancia entre dos números en la recta numérica es el valor absoluto de su diferencia: la distancia de ${V('a')} a ${V('b')} es |${V('a')} − ${V('b')}|. El orden no importa, porque |−5| y |5| son los dos 5.`) +
-      example('Ejemplo', `¿Qué tan lejos están −6 y 9? |−6 − 9| = |−15| = <b>15</b>.`),
+    learn: p('The <b>absolute value</b> of a number is its distance from 0 on the number line. It’s written with two bars, like |−7|, and it’s never negative: |−7| = 7 and |7| = 7. Work out what’s inside the bars first, then take its distance from 0.') +
+      p(`The <b>distance</b> between two numbers on the number line is the absolute value of their difference: the distance from ${V('a')} to ${V('b')} is |${V('a')} − ${V('b')}|. The order doesn’t matter, because |−5| and |5| are both 5. A change in temperature or height works the same way.`) +
+      example('Example: an absolute value', `${big('|−14| − 6')}|−14| is 14, because −14 is 14 steps from 0. Then 14 − 6 = <b>8</b>.`) +
+      example('Example: the distance between two numbers', `How far apart are −6 and 9? |−6 − 9| = |−15| = <b>15</b>. Check on the number line: 6 steps from −6 up to 0, then 9 more up to 9, and 6 + 9 = 15.`) +
+      example('Example: a change in temperature', `At dawn it was −7°C, and by noon it was 5°C. The change is |5 − (−7)| = |12| = <b>12 degrees</b>.`),
+    learnEs: p('El <b>valor absoluto</b> de un número es su distancia al 0 en la recta numérica. Se escribe entre dos barras, como |−7|, y nunca es negativo: |−7| = 7 y |7| = 7. Primero resuelve lo que está dentro de las barras y luego toma su distancia al 0.') +
+      p(`La <b>distancia</b> entre dos números en la recta numérica es el valor absoluto de su diferencia: la distancia de ${V('a')} a ${V('b')} es |${V('a')} − ${V('b')}|. El orden no importa, porque |−5| y |5| son los dos 5. Un cambio de temperatura o de altura funciona igual.`) +
+      example('Ejemplo: un valor absoluto', `${big('|−14| − 6')}|−14| es 14, porque −14 está a 14 pasos del 0. Después 14 − 6 = <b>8</b>.`) +
+      example('Ejemplo: la distancia entre dos números', `¿Qué tan lejos están −6 y 9? |−6 − 9| = |−15| = <b>15</b>. Compruébalo en la recta numérica: 6 pasos de −6 hasta 0 y 9 más hasta 9, y 6 + 9 = 15.`) +
+      example('Ejemplo: un cambio de temperatura', `Al amanecer hacía −7°C y al mediodía hacía 5°C. El cambio es |5 − (−7)| = |12| = <b>12 grados</b>.`),
     make(rng) {
       const kind = rng.pick(['abs', 'dist', 'dist', 'temp']);
       if (kind === 'abs') {
@@ -106,12 +126,16 @@
   /* ---------- Unit 2 ---------- */
   A.skill({
     id: 'math7.mul-div-negatives', title: 'Multiplying and dividing negative numbers',
-    learn: p('Multiply or divide the sizes as usual, then decide the sign: <b>same signs give a positive</b>, <b>different signs give a negative</b>.') +
-      p('(−6) × (−4) = 24 because both are negative. 36 ÷ (−9) = −4 because the signs differ. With three or more factors, count the negatives: an even number of them gives a positive, an odd number gives a negative.') +
-      example('Example', `${big('(−3) × 5 × (−2)')}Two negatives, so the result is positive: 3 × 5 × 2 = <b>30</b>.`),
-    learnEs: p('Multiplica o divide los tamaños como siempre y después decide el signo: <b>signos iguales dan positivo</b> y <b>signos distintos dan negativo</b>.') +
-      p('(−6) × (−4) = 24 porque los dos son negativos. 36 ÷ (−9) = −4 porque los signos son distintos. Con tres factores o más, cuenta los negativos: una cantidad par da positivo y una cantidad impar da negativo.') +
-      example('Ejemplo', `${big('(−3) × 5 × (−2)')}Hay dos negativos, así que el resultado es positivo: 3 × 5 × 2 = <b>30</b>.`),
+    learn: p('Multiply or divide the sizes (the numbers without their signs) as usual, then decide the sign: <b>same signs give a positive</b>, <b>different signs give a negative</b>. The answer to a multiplication is the <b>product</b>, and the answer to a division is the <b>quotient</b>.') +
+      p('When three or more numbers are multiplied together, count the negatives: an even number of them gives a positive product, and an odd number gives a negative one.') +
+      example('Example: different signs', `${big('(−7) × 6')}7 × 6 = 42. One number is negative and one is positive, so the product is negative: <b>−42</b>.`) +
+      example('Example: dividing with the same signs', `${big('(−48) ÷ (−8)')}48 ÷ 8 = 6. Both numbers are negative, so the quotient is positive: <b>6</b>.`) +
+      example('Example: three numbers', `${big('(−3) × 5 × (−2)')}3 × 5 × 2 = 30. There are two negatives, an even number, so the product is positive: <b>30</b>.`),
+    learnEs: p('Multiplica o divide los tamaños (los números sin su signo) como siempre y después decide el signo: <b>signos iguales dan positivo</b> y <b>signos distintos dan negativo</b>. El resultado de una multiplicación es el <b>producto</b>, y el de una división es el <b>cociente</b>.') +
+      p('Cuando multiplicas tres números o más, cuenta los negativos: una cantidad par da un producto positivo y una cantidad impar da uno negativo.') +
+      example('Ejemplo: signos distintos', `${big('(−7) × 6')}7 × 6 = 42. Un número es negativo y el otro positivo, así que el producto es negativo: <b>−42</b>.`) +
+      example('Ejemplo: dividir con signos iguales', `${big('(−48) ÷ (−8)')}48 ÷ 8 = 6. Los dos números son negativos, así que el cociente es positivo: <b>6</b>.`) +
+      example('Ejemplo: tres números', `${big('(−3) × 5 × (−2)')}3 × 5 × 2 = 30. Hay dos negativos, una cantidad par, así que el producto es positivo: <b>30</b>.`),
     make(rng) {
       const kind = rng.pick(['mul', 'mul', 'div', 'triple']);
       const wrap = x => x < 0 ? `(${N(x)})` : N(x);
@@ -139,12 +163,16 @@
 
   A.skill({
     id: 'math7.order-ops-negatives', title: 'Order of operations with negative numbers',
-    learn: p('Work in this order: anything in <b>parentheses</b>, then <b>exponents</b>, then <b>multiplication and division</b> from left to right, then <b>addition and subtraction</b> from left to right.') +
-      p('Negative numbers follow the same order; just keep the sign rules in mind at each step. Writing one step per line keeps the signs straight.') +
-      example('Example', `${big('−4 + 3 × (−5)')}Multiply first: 3 × (−5) = −15. Then −4 + (−15) = <b>−19</b>.`),
-    learnEs: p('Trabaja en este orden: primero lo que está entre <b>paréntesis</b>, luego los <b>exponentes</b>, luego la <b>multiplicación y la división</b> de izquierda a derecha, y al final la <b>suma y la resta</b> de izquierda a derecha.') +
-      p('Los números negativos siguen el mismo orden; solo ten presentes las reglas de los signos en cada paso. Escribir un paso por renglón ayuda a no perder los signos.') +
-      example('Ejemplo', `${big('−4 + 3 × (−5)')}Primero multiplica: 3 × (−5) = −15. Después −4 + (−15) = <b>−19</b>.`),
+    learn: p('The <b>order of operations</b> is the agreed order for working out an expression with more than one step: first anything in <b>parentheses</b>, then <b>exponents</b> (like 3², which means 3 × 3), then <b>multiplication and division</b> from left to right, and last <b>addition and subtraction</b> from left to right.') +
+      p('Negative numbers follow the same order; just use the sign rules at each step. Writing one step per line keeps the signs straight.') +
+      example('Example: multiply before adding', `${big('−4 + 3 × (−5)')}Multiply first: 3 × (−5) = −15. Then add: −4 + (−15) = <b>−19</b>.`) +
+      example('Example: parentheses first', `${big('(−2 + 7) × (−3)')}Parentheses first: −2 + 7 = 5. Then multiply: 5 × (−3) = <b>−15</b>.`) +
+      example('Example: division, then subtraction', `${big('(−20) ÷ 4 − 3 × (−2)')}Do the division and the multiplication first: (−20) ÷ 4 = −5 and 3 × (−2) = −6. Then subtract: −5 − (−6) = −5 + 6 = <b>1</b>.`),
+    learnEs: p('El <b>orden de las operaciones</b> es el orden acordado para resolver una expresión de varios pasos: primero lo que está entre <b>paréntesis</b>, luego los <b>exponentes</b> (como 3², que significa 3 × 3), luego la <b>multiplicación y la división</b> de izquierda a derecha, y al final la <b>suma y la resta</b> de izquierda a derecha.') +
+      p('Los números negativos siguen el mismo orden; solo usa las reglas de los signos en cada paso. Escribir un paso por renglón ayuda a no perder los signos.') +
+      example('Ejemplo: multiplica antes de sumar', `${big('−4 + 3 × (−5)')}Primero multiplica: 3 × (−5) = −15. Después suma: −4 + (−15) = <b>−19</b>.`) +
+      example('Ejemplo: primero los paréntesis', `${big('(−2 + 7) × (−3)')}Primero los paréntesis: −2 + 7 = 5. Después multiplica: 5 × (−3) = <b>−15</b>.`) +
+      example('Ejemplo: división y después resta', `${big('(−20) ÷ 4 − 3 × (−2)')}Primero la división y la multiplicación: (−20) ÷ 4 = −5 y 3 × (−2) = −6. Después resta: −5 − (−6) = −5 + 6 = <b>1</b>.`),
     make(rng) {
       const wrap = x => x < 0 ? `(${N(x)})` : N(x);
       const form = rng.pick(['a+b*c', '(a+b)*c', 'a-b*c', 'a*b-c*d', 'a/b+c']);
@@ -167,9 +195,10 @@
   /* ---------- Unit 3 ---------- */
   A.skill({
     id: 'math7.add-sub-fractions', title: 'Adding and subtracting fractions',
-    learn: p('Fractions can only be added or subtracted when they have the same denominator. Find a common denominator (the least common multiple works best), rewrite each fraction, then add or subtract the numerators and keep the denominator.') +
-      p('Finish by simplifying: divide the top and bottom by their greatest common factor.') +
-      example('Example', `${big(`${F(3, 4)} + ${F(1, 6)}`)}The least common denominator is 12. ${F(3, 4)} = ${F(9, 12, { raw: true })} and ${F(1, 6)} = ${F(2, 12, { raw: true })}. Add: ${F(11, 12)}.`),
+    learn: p('The <b>numerator</b> is the top number of a fraction, and the <b>denominator</b> is the bottom number. You can add or subtract fractions only when they have the same denominator, so first find a <b>common denominator</b>: a number that both denominators divide into. The <b>least common multiple</b> (LCM), the smallest such number, keeps the numbers small.') +
+      p('Rewrite each fraction over the common denominator, add or subtract the numerators, and keep the denominator. Finish by simplifying: divide the top and bottom by their <b>greatest common factor</b>, the largest number that divides both.') +
+      example('Example: adding', `${big(`${F(3, 4)} + ${F(1, 6)}`)}The LCM of 4 and 6 is 12. ${F(3, 4)} = ${R(9, 12)} and ${F(1, 6)} = ${R(2, 12)}. Add the numerators: 9 + 2 = 11, so the sum is <b>${F(11, 12)}</b>. It’s already in simplest form.`) +
+      example('Example: subtracting, then simplifying', `${big(`${F(5, 6)} − ${F(1, 3)}`)}The LCM of 6 and 3 is 6, and ${F(1, 3)} = ${R(2, 6)}. Subtract the numerators: 5 − 2 = 3, giving ${R(3, 6)}. Divide the top and bottom by 3: <b>${F(1, 2)}</b>.`),
     make(rng) {
       const dens = [2, 3, 4, 5, 6, 8, 9, 10, 12];
       let d1 = rng.pick(dens), d2 = rng.pick(dens);
@@ -192,9 +221,11 @@
 
   A.skill({
     id: 'math7.mul-div-fractions', title: 'Multiplying and dividing fractions',
-    learn: p('To multiply fractions, multiply the numerators and multiply the denominators, then simplify. Canceling common factors first keeps the numbers small.') +
-      p('To divide by a fraction, multiply by its reciprocal (flip it): ' + `${F(2, 3)} ÷ ${F(4, 5)} = ${F(2, 3)} × ${F(5, 4)} = ${F(10, 12, { raw: true })} = ${F(5, 6)}.`) +
-      example('Example', `${big(`${F(3, 8)} × ${F(4, 9)}`)}Multiply across: ${F(12, 72, { raw: true })}, which simplifies to <b>${F(1, 6)}</b>.`),
+    learn: p('To multiply fractions, multiply the numerators (the tops) and multiply the denominators (the bottoms), then simplify. You can also <b>cancel</b> first: divide a top and a bottom by the same number before you multiply, which keeps the numbers small. A whole number is a fraction with a denominator of 1, so 6 is 6 over 1.') +
+      p(`To divide by a fraction, multiply by its <b>reciprocal</b>, which is the fraction flipped upside down: the reciprocal of ${F(4, 5)} is ${F(5, 4)}. A short way to remember it: keep the first fraction, change ÷ to ×, and flip the second.`) +
+      example('Example: multiplying', `${big(`${F(3, 8)} × ${F(4, 9)}`)}Multiply across: 3 × 4 = 12 on top and 8 × 9 = 72 on the bottom, giving ${R(12, 72)}. Divide the top and bottom by 12: <b>${F(1, 6)}</b>.`) +
+      example('Example: dividing', `${big(`${F(2, 3)} ÷ ${F(4, 5)}`)}Multiply by the reciprocal of ${F(4, 5)}: ${F(2, 3)} × ${F(5, 4)} = ${R(10, 12)}. Divide the top and bottom by 2: <b>${F(5, 6)}</b>.`) +
+      example('Example: a whole number times a fraction', `${big(`6 × ${F(5, 9)}`)}Write 6 as 6 over 1. Multiply across: 6 × 5 = 30 on top and 1 × 9 = 9 on the bottom, giving ${R(30, 9)}. Divide the top and bottom by 3: <b>${F(10, 3)}</b>, which is ${M.mixed(10, 3)} as a mixed number.`),
     make(rng) {
       const d1 = rng.int(2, 9), d2 = rng.int(2, 9);
       const n1 = rng.int(1, 9), n2 = rng.int(1, 9);
@@ -218,9 +249,11 @@
 
   A.skill({
     id: 'math7.convert-fdp', title: 'Fractions, decimals, and percents',
-    learn: p('A fraction, a decimal and a percent can all name the same number. <b>Fraction → decimal:</b> divide the top by the bottom. <b>Decimal → percent:</b> multiply by 100 (move the point two places right). <b>Percent → fraction:</b> write it over 100 and simplify.') +
-      p(`${F(3, 8)} = 0.375 = 37.5%. &nbsp; 0.6 = 60% = ${F(3, 5)}. &nbsp; 45% = ${F(45, 100, { raw: true })} = ${F(9, 20)}.`) +
-      example('Example', `Write ${F(7, 20)} as a percent. 7 ÷ 20 = 0.35, and 0.35 × 100 = <b>35%</b>.`),
+    learn: p('A fraction, a decimal and a percent can all name the same number. <b>Percent</b> means “out of 100”, so 35% is 35 out of 100.') +
+      p('<b>Fraction → decimal:</b> divide the top by the bottom. <b>Decimal → percent:</b> multiply by 100 (move the point two places right). <b>Percent → decimal:</b> divide by 100 (move the point two places left). <b>Percent or decimal → fraction:</b> write it over 100 (or over 10, 1,000, …) and simplify.') +
+      example('Example: fraction to decimal to percent', `Write ${F(7, 20)} as a decimal and as a percent. 7 ÷ 20 = <b>0.35</b>, and 0.35 × 100 = <b>35%</b>.`) +
+      example('Example: percent to decimal to fraction', `Write 45% as a decimal and as a fraction. 45 ÷ 100 = <b>0.45</b>. As a fraction it’s ${R(45, 100)}; divide the top and bottom by 5: <b>${F(9, 20)}</b>.`) +
+      example('Example: decimal to fraction', `Write 0.375 as a fraction. It has three decimal places, so put it over 1,000: ${R(375, 1000)}. Divide the top and bottom by 125: <b>${F(3, 8)}</b>.`),
     make(rng) {
       const kind = rng.pick(['f2d', 'f2p', 'd2p', 'p2f', 'd2f', 'p2d']);
       const dens = [2, 4, 5, 8, 10, 20, 25, 50];
@@ -240,9 +273,10 @@
 
   A.skill({
     id: 'math7.percent-of', title: 'Percent of a number',
-    learn: p('To find a percent of a number, turn the percent into a decimal and multiply: 35% of 80 is 0.35 × 80 = 28.') +
-      p('Useful landmarks: 10% is one tenth (move the point one place), 50% is half, 25% is a quarter, 1% is one hundredth. 15% of 60 is 10% (6) plus 5% (3), which is 9.') +
-      example('Example', `${big('What is 12% of 250?')}0.12 × 250 = <b>30</b>. Or: 10% is 25 and 2% is 5, so 12% is 30.`),
+    learn: p('To find a <b>percent of a number</b>, turn the percent into a decimal and multiply: 35% of 80 is 0.35 × 80 = 28. In these questions, “of” means multiply.') +
+      p('Useful landmarks: 10% is one tenth (move the point one place left), 50% is half, 25% is a quarter, and 1% is one hundredth. You can build other percents from them: 15% of 60 is 10% (6) plus 5% (3), which is 9.') +
+      example('Example: a percent of a number', `${big('What is 12% of 250?')}0.12 × 250 = <b>30</b>. Or with landmarks: 10% of 250 is 25 and 1% is 2.5, so 2% is 5, and 12% is 25 + 5 = 30.`) +
+      example('Example: a word problem', `A 640-page book is 25% read. How many pages have been read? 25% is a quarter, and 640 ÷ 4 = <b>160 pages</b>. Check: 0.25 × 640 = 160.`),
     make(rng) {
       const pcts = [5, 10, 12, 15, 20, 25, 30, 35, 40, 45, 50, 60, 65, 70, 75, 80, 90];
       const pc = rng.pick(pcts);
@@ -263,9 +297,10 @@
   /* ---------- Unit 4 ---------- */
   A.skill({
     id: 'math7.unit-rate', title: 'Unit rates',
-    learn: p('A rate compares two quantities with different units, like 150 miles in 3 hours. A <b>unit rate</b> tells how much of the first for <b>one</b> of the second: divide. 150 ÷ 3 = 50 miles per hour.') +
-      p('Unit rates make comparisons fair: 12 pens for $9 is $0.75 per pen; 8 pens for $6.40 is $0.80 per pen, so the first pack is the better deal.') +
-      example('Example', `${big('A printer prints 180 pages in 4 minutes. Pages per minute?')}180 ÷ 4 = <b>45</b> pages per minute.`),
+    learn: p('A <b>rate</b> compares two amounts measured in different units, like 150 miles in 3 hours. A <b>unit rate</b> tells how much of the first amount goes with <b>one</b> of the second, such as miles per hour (“per” means “for each”). To find it, divide the first amount by the second: 150 ÷ 3 = 50 miles per hour.') +
+      p('Unit rates make comparisons fair: 12 pens for $9 is $0.75 per pen, and 8 pens for $6.40 is $0.80 per pen, so the first pack is the better deal.') +
+      example('Example: a whole-number rate', `${big('A printer prints 180 pages in 4 minutes. How many pages per minute?')}180 ÷ 4 = <b>45 pages per minute</b>.`) +
+      example('Example: a price per item', `6 notebooks cost $7.50. What is the cost per notebook? 7.50 ÷ 6 = <b>$1.25</b> per notebook. Check: 6 × 1.25 = 7.50.`),
     make(rng) {
       const name = rng.pick(NAMES);
       const kinds = [
@@ -284,9 +319,10 @@
 
   A.skill({
     id: 'math7.proportional-table', title: 'Recognizing proportional relationships',
-    learn: p(`Two quantities are <b>proportional</b> when ${V('y')} is always the same multiple of ${V('x')}: ${V('y')} = ${V('k')}${V('x')}. In a table, check the ratio ${V('y')} ÷ ${V('x')} in every row. If it is the same number each time, the relationship is proportional and that number is the constant ${V('k')}.`) +
-      p('A relationship like y = 3x + 2 is not proportional: the ratio changes from row to row, and the graph does not pass through (0, 0).') +
-      example('Example', `${M.table([V('x'), V('y')], [[2, 10], [5, 25], [8, 40]], { compact: true })}10 ÷ 2 = 5, 25 ÷ 5 = 5, 40 ÷ 8 = 5. Proportional, with ${V('y')} = 5${V('x')}.`),
+    learn: p(`Two amounts are <b>proportional</b> when one is always the same multiple of the other: ${V('y')} = ${V('k')}${V('x')}. The <b>ratio</b> ${V('y')} ÷ ${V('x')} compares them. In a table, work out ${V('y')} ÷ ${V('x')} in every row. If it’s the same number every time, the relationship is proportional, and that number is the <b>constant</b> ${V('k')}.`) +
+      p(`A relationship like ${V('y')} = 3${V('x')} + 2 isn’t proportional: the ratio changes from row to row, and its graph doesn’t pass through (0, 0).`) +
+      example('Example: proportional', `${M.table([V('x'), V('y')], [[2, 10], [5, 25], [8, 40]], { compact: true })}10 ÷ 2 = 5, 25 ÷ 5 = 5 and 40 ÷ 8 = 5. Every ratio is 5, so <b>yes</b>, it’s proportional, with ${V('y')} = 5${V('x')}.`) +
+      example('Example: not proportional', `${M.table([V('x'), V('y')], [[1, 5], [2, 8], [4, 14]], { compact: true })}5 ÷ 1 = 5, but 8 ÷ 2 = 4 and 14 ÷ 4 = 3.5. The ratios aren’t all the same, so <b>no</b>, it isn’t proportional. (Here ${V('y')} = 3${V('x')} + 2.)`),
     make(rng) {
       const k = rng.int(2, 9), prop = rng.chance(0.55), b = rng.nz(-6, 6);
       let xs = rng.sample([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12], 3).sort((a, c) => a - c);
@@ -304,9 +340,11 @@
 
   A.skill({
     id: 'math7.constant-k', title: 'Constant of proportionality',
-    learn: p(`In a proportional relationship ${V('y')} = ${V('k')}${V('x')}, the constant of proportionality ${V('k')} is the unit rate: ${V('k')} = ${V('y')} ÷ ${V('x')} for any pair. It is also the slope of the line through the origin.`) +
-      p('From an equation, read it off directly. From a table or a point, divide. From a sentence like “3 kg costs $7.50”, divide to get $2.50 per kg.') +
-      example('Example', `${V('y')} is proportional to ${V('x')}, and when ${V('x')} = 6, ${V('y')} = 27. ${V('k')} = 27 ÷ 6 = <b>4.5</b>.`),
+    learn: p(`In a proportional relationship ${V('y')} = ${V('k')}${V('x')}, the number ${V('k')} is the <b>constant of proportionality</b>. It’s the unit rate: how much ${V('y')} goes with each 1 of ${V('x')}. On a graph, the line passes through (0, 0) and (1, ${V('k')}).`) +
+      p(`From an equation, read it off: it’s the number multiplying ${V('x')}. From a table or a point, divide ${V('y')} by ${V('x')}. From a sentence like “3 kg costs $7.50”, divide to get $2.50 per kg.`) +
+      example('Example: from an equation', `${big(`${V('y')} = 7${V('x')}`)}The number multiplying ${V('x')} is 7, so ${V('k')} = <b>7</b>.`) +
+      example('Example: from a point', `${V('y')} is proportional to ${V('x')}, and when ${V('x')} = 6, ${V('y')} = 27. ${V('k')} = 27 ÷ 6 = <b>4.5</b>.`) +
+      example('Example: from a sentence', `Strawberries cost $10.50 for 3 kg. ${V('k')} = 10.50 ÷ 3 = <b>3.50</b> dollars per kilogram.`),
     make(rng) {
       const kind = rng.pick(['point', 'equation', 'table', 'words']);
       const k = rng.pick([0.5, 1.5, 2, 2.5, 3, 4, 4.5, 5, 6, 7, 8, 12]);
@@ -321,9 +359,11 @@
 
   A.skill({
     id: 'math7.percent-change', title: 'Percent increase and decrease',
-    learn: p('<b>Percent change</b> = (change ÷ original) × 100. The original amount is always the one you start from, even for a decrease.') +
-      p('To find a new amount after a change, multiply the original by (1 + rate) for an increase or (1 − rate) for a decrease: a $40 jacket at 25% off costs 40 × 0.75 = $30. An 8% sales tax on $50 gives 50 × 1.08 = $54.') +
-      example('Example', `${big('A plant grew from 20 cm to 26 cm.')}Change = 6. 6 ÷ 20 = 0.3, so a <b>30%</b> increase.`),
+    learn: p('<b>Percent change</b> = (change ÷ original) × 100, where the change is how much the amount went up or down. The <b>original</b> is always the amount you start from, even for a decrease.') +
+      p('To find a new amount after a change, multiply the original by (1 + rate) for an increase or (1 − rate) for a decrease, with the rate written as a decimal. A discount is a decrease; a tip or a sales tax is an increase.') +
+      example('Example: a percent increase', `A plant grew from 20 cm to 26 cm. The change is 26 − 20 = 6. Divide by the original: 6 ÷ 20 = 0.3, so it’s a <b>30% increase</b>.`) +
+      example('Example: a percent decrease', `A price dropped from $80 to $60. The change is 80 − 60 = 20. Divide by the original: 20 ÷ 80 = 0.25, so it’s a <b>25% decrease</b>.`) +
+      example('Example: the new amount', `A $40 jacket is 25% off, so you pay 75% of the price: 40 × 0.75 = <b>$30</b>. An 8% sales tax on $50 means you pay 108%: 50 × 1.08 = <b>$54</b>.`),
     make(rng) {
       const kind = rng.pick(['find-pct', 'find-pct', 'after-dec', 'after-inc']);
       const name = rng.pick(NAMES);
@@ -354,9 +394,10 @@
 
   A.skill({
     id: 'math7.combine-like-terms', title: 'Combining like terms',
-    learn: p(`<b>Like terms</b> have exactly the same variable part: 3${X} and −5${X} are like terms; 3${X} and 3 are not. To simplify an expression, add the coefficients of like terms and keep the variable part. Constants combine with constants.`) +
-      p('The sign in front of a term belongs to it. In 7x − 2 − 4x + 9, the terms are 7x, −2, −4x and 9. Group them: (7x − 4x) + (−2 + 9) = 3x + 7.') +
-      example('Example', `${big(`5${X} + 3 − 8${X} + 4`)}${X} terms: 5 − 8 = −3. Constants: 3 + 4 = 7. Simplified: <b>−3${X} + 7</b>.`),
+    learn: p(`A <b>term</b> is one piece of an expression, separated from the others by + or − signs. The number in front of a variable is its <b>coefficient</b>, and a term with no variable is a <b>constant</b>. <b>Like terms</b> have exactly the same variable part: 3${X} and −5${X} are like terms, but 3${X} and 3 aren’t.`) +
+      p(`To simplify, add the coefficients of the like terms and keep the variable part, then combine the constants. The sign in front of a term belongs to it: in 7${X} − 2 − 4${X} + 9, the terms are 7${X}, −2, −4${X} and 9.`) +
+      example('Example: two kinds of terms', `${big(`5${X} + 3 − 8${X} + 4`)}${X} terms: 5 − 8 = −3. Constants: 3 + 4 = 7. Simplified: <b>−3${X} + 7</b>.`) +
+      example('Example: a hidden 1', `${big(`−${X} − 6 + 4${X} − 2`)}−${X} means −1${X}. ${X} terms: −1 + 4 = 3. Constants: −6 − 2 = −8. Simplified: <b>3${X} − 8</b>.`),
     make(rng) {
       let a = rng.nz(-9, 9), c = rng.nz(-9, 9), b = rng.nz(-9, 9), d = rng.nz(-9, 9);
       if (a + c === 0) c = c + (c > 0 ? 1 : -1);
@@ -376,9 +417,10 @@
 
   A.skill({
     id: 'math7.distribute', title: 'The distributive property',
-    learn: p(`Multiplying a number by a sum means multiplying it by <b>each</b> term: ${V('a')}(${V('b')} + ${V('c')}) = ${V('a')}${V('b')} + ${V('a')}${V('c')}. The number outside “distributes” over everything inside the parentheses.`) +
-      p(`Watch the signs: −3(2${X} − 5) = −6${X} + 15, because −3 × (−5) = +15. The most common slip is multiplying only the first term.`) +
-      example('Example', `${big(`4(3${X} − 7)`)}4 × 3${X} = 12${X} and 4 × (−7) = −28, so the result is <b>12${X} − 28</b>.`),
+    learn: p(`The <b>distributive property</b> says that multiplying a number by a sum means multiplying it by <b>each</b> term inside: ${V('a')}(${V('b')} + ${V('c')}) = ${V('a')}${V('b')} + ${V('a')}${V('c')}. The number outside “distributes” over everything inside the parentheses. Writing the expression without the parentheses is called <b>expanding</b> it.`) +
+      p('Watch the signs: each term keeps its own sign when you multiply it. The most common slip is multiplying only the first term.') +
+      example('Example: a positive number outside', `${big(`4(3${X} − 7)`)}4 × 3${X} = 12${X} and 4 × (−7) = −28, so the result is <b>12${X} − 28</b>.`) +
+      example('Example: a negative number outside', `${big(`−5(2${X} − 3)`)}−5 × 2${X} = −10${X} and −5 × (−3) = +15, so the result is <b>−10${X} + 15</b>.`),
     make(rng) {
       const a = rng.nz(-8, 8), b = rng.nz(-7, 7), c = rng.nz(-9, 9);
       const inside = M.poly([b, c]);
@@ -393,9 +435,11 @@
 
   A.skill({
     id: 'math7.two-step-equations', title: 'Two-step equations',
-    learn: p(`A two-step equation like 3${X} + 5 = 20 is undone in the reverse order of operations: first undo the <b>addition or subtraction</b>, then undo the <b>multiplication or division</b>. Whatever you do to one side, do to the other.`) +
-      p(`3${X} + 5 = 20 → subtract 5: 3${X} = 15 → divide by 3: ${X} = 5. Check by substituting: 3(5) + 5 = 20 ✓.`) +
-      example('Example', `${big(`${F(1, 4, { raw: true })}${X} − 2 = 3`)}Add 2 to both sides: ${F(1, 4, { raw: true })}${X} = 5. Multiply both sides by 4: <b>${X} = 20</b>.`),
+    learn: p(`To <b>solve</b> an equation means to find the value of ${X} that makes it true. A two-step equation like 3${X} + 5 = 20 is undone in reverse order: first undo the <b>addition or subtraction</b>, then undo the <b>multiplication or division</b>. Whatever you do to one side, do to the other, so the two sides stay equal.`) +
+      p(`When there are parentheses, like 3(${X} − 2) = 21, you can divide by the number outside first. In a word problem, let ${X} be the unknown and write the equation: if 4 notebooks and a $3 pen cost $15, then 4${X} + 3 = 15, so 4${X} = 12 and ${X} = 3. Check an answer by putting it back into the equation.`) +
+      example('Example: a negative coefficient', `${big(`−4${X} + 7 = 31`)}Subtract 7 from both sides: −4${X} = 24. Divide both sides by −4: <b>${X} = −6</b>. Check: −4 × (−6) + 7 = 24 + 7 = 31 ✓`) +
+      example('Example: a division', `${big(`${F(X, 5)} − 2 = 3`)}Add 2 to both sides: ${F(X, 5)} = 5. Multiply both sides by 5: <b>${X} = 25</b>. Check: 25 ÷ 5 − 2 = 3 ✓`) +
+      example('Example: parentheses', `${big(`3(${X} − 2) = 21`)}Divide both sides by 3: ${X} − 2 = 7. Add 2 to both sides: <b>${X} = 9</b>. Check: 3 × (9 − 2) = 21 ✓`),
     make(rng) {
       const form = rng.pick(['ax+b', 'ax+b', 'x/a+b', 'a(x+b)', 'word']);
       const x = rng.nz(-12, 12);
@@ -430,9 +474,10 @@
 
   A.skill({
     id: 'math7.two-step-inequalities', title: 'Two-step inequalities',
-    learn: p(`Solve an inequality the same way as an equation, with <b>one extra rule</b>: when you multiply or divide both sides by a <b>negative</b> number, flip the inequality sign.`) +
-      p(`−2${X} + 3 > 11 → subtract 3: −2${X} > 8 → divide by −2 and flip: ${X} < −4. Check with ${X} = −5: −2(−5) + 3 = 13 > 11 ✓.`) +
-      example('Example', `${big(`5${X} − 4 ≤ 16`)}Add 4: 5${X} ≤ 20. Divide by 5 (positive, no flip): <b>${X} ≤ 4</b>.`),
+    learn: p(`An <b>inequality</b> compares two sides with &lt; (less than), &gt; (greater than), ≤ (less than or equal to) or ≥ (greater than or equal to). Its solution is every number that makes it true, such as ${X} &lt; −4.`) +
+      p(`Solve it the same way as an equation, with <b>one extra rule</b>: when you multiply or divide both sides by a <b>negative</b> number, flip the inequality sign. Then check with a number from your answer.`) +
+      example('Example: dividing by a positive', `${big(`5${X} − 4 ≤ 16`)}Add 4 to both sides: 5${X} ≤ 20. Divide by 5, which is positive, so the sign stays: <b>${X} ≤ 4</b>. Check with ${X} = 0: 5(0) − 4 = −4, and −4 ≤ 16 ✓`) +
+      example('Example: dividing by a negative', `${big(`−2${X} + 3 &gt; 11`)}Subtract 3 from both sides: −2${X} &gt; 8. Divide by −2, which is negative, so flip the sign: <b>${X} &lt; −4</b>. Check with ${X} = −5: −2(−5) + 3 = 13, and 13 &gt; 11 ✓`),
     make(rng) {
       const a = rng.nz(-8, 8), b = rng.nz(-12, 12), x = rng.nz(-9, 9), c = a * x + b;
       const op = rng.pick(['<', '>', '≤', '≥']);
@@ -452,25 +497,130 @@
     },
   });
 
+  /* ---------- drawings for the geometry skills (inline SVG; colors come from the theme) ---------- */
+  const r1 = v => Math.round(v * 10) / 10;
+  /** a text label inside an SVG drawing */
+  const svgText = (x, y, s, o) => { o = o || {}; return `<text x="${r1(x)}" y="${r1(y)}" text-anchor="${o.anchor || 'middle'}" font-size="${o.size || 13}"${o.bold ? ' font-weight="700"' : ''}${o.italic ? ' font-style="italic"' : ''}${o.muted ? ' style="fill:var(--muted)"' : ''}>${s}</text>`; };
+  /** wrap a drawing: its size, a real text alternative, and the shapes */
+  const figure = (w, h, label, body, shown) => `<svg class="figure" viewBox="0 0 ${w} ${h}" width="${shown || w}" role="img" aria-label="${M.esc(label)}">${body}</svg>`;
+  const notToScale = (w, h) => svgText(w - 6, h - 6, 'not to scale', { anchor: 'end', size: 11, italic: true, muted: true });
+  const seg = (a, b, cls, extra) => `<line class="${cls || 'stroke'}" x1="${r1(a[0])}" y1="${r1(a[1])}" x2="${r1(b[0])}" y2="${r1(b[1])}"${extra || ''}/>`;
+  /** the point at distance r from (cx, cy) in direction d degrees (counterclockwise from east) */
+  const toward = (cx, cy, r, d) => [cx + r * Math.cos(d * Math.PI / 180), cy - r * Math.sin(d * Math.PI / 180)];
+  /** an angle's arc from direction a1 to a2 (counterclockwise) at a vertex, with its label; outside puts the label behind the vertex */
+  function angleMark(cx, cy, a1, a2, label, o) {
+    o = o || {};
+    const r = o.r || 24, span = a2 - a1, [x1, y1] = toward(cx, cy, r, a1), [x2, y2] = toward(cx, cy, r, a2);
+    const mid = (a1 + a2) / 2, lr = o.outside ? 18 : Math.min(o.max || 92, Math.max(r + 16, 15 / Math.sin(Math.min(span, 120) * Math.PI / 360)));
+    const [lx, ly] = toward(cx, cy, lr, o.outside ? mid + 180 : mid);
+    return `<path class="stroke" style="stroke-width:1.5" d="M${r1(x1)} ${r1(y1)} A${r} ${r} 0 ${span > 180 ? 1 : 0} 0 ${r1(x2)} ${r1(y2)}"/>` + svgText(lx, ly + 5, label, { bold: true, size: 14 });
+  }
+
+  /** a circle with its center; the radius ('r') or the diameter ('d') drawn and labeled; an optional line of text under it */
+  function circleSvg(part, partLabel, under, label) {
+    const cx = 130, cy = 96, R = 78;
+    let g = `<circle cx="${cx}" cy="${cy}" r="${R}" class="fill" style="fill-opacity:.45"/>`;
+    g += part === 'd' ? seg([cx - R, cy], [cx + R, cy], 'line') + svgText(cx, cy - 10, partLabel, { bold: true, size: 15 }) : seg([cx, cy], [cx + R, cy], 'line') + svgText(cx + R / 2, cy - 10, partLabel, { bold: true, size: 15 });
+    g += `<circle class="dot" cx="${cx}" cy="${cy}" r="4"/>`;
+    if (under) g += svgText(cx, cy + R + 24, under, { size: 14 });
+    return figure(260, under ? 206 : 182, label, g, 270);
+  }
+  /** the parts of a circle, for the lesson */
+  function circlePartsSvg() {
+    const cx = 130, cy = 100, R = 78, edge = toward(cx, cy, R, 50), rim = toward(cx, cy, R, 135);
+    const g = `<circle cx="${cx}" cy="${cy}" r="${R}" class="fill" style="fill-opacity:.45"/>` +
+      seg([cx - R, cy], [cx + R, cy], 'line') + svgText(cx + 34, cy + 20, 'diameter') +
+      seg([cx, cy], edge) + svgText(cx + 16, cy - 36, 'radius', { anchor: 'end' }) +
+      `<circle class="dot" cx="${cx}" cy="${cy}" r="4"/>` + svgText(cx - 8, cy - 9, 'center', { anchor: 'end' }) +
+      seg([rim[0] - 13, rim[1] - 11], [rim[0] - 2, rim[1] - 2], 'stroke', ' style="stroke-width:1.2"') + svgText(6, 22, 'circumference', { anchor: 'start' });
+    return figure(260, 188, 'A circle. Its center is marked with a dot. A radius goes from the center to the edge, a diameter goes all the way across through the center, and the circumference is the distance around the circle.', g, 240);
+  }
+
+  /** angle-pair pictures, drawn to scale: kind comp | supp | line | vert, with the known angle a and '?' for the one to find */
+  function anglePairSvg(kind, a) {
+    if (kind === 'comp') {
+      const O = [36, 168], g = seg(O, toward(...O, 158, 0)) + seg(O, toward(...O, 150, 90)) + seg(O, toward(...O, 158, a)) +
+        `<polyline class="stroke" style="stroke-width:1.3" points="${O[0] + 12},${O[1]} ${O[0] + 12},${O[1] - 12} ${O[0]},${O[1] - 12}"/>` +
+        angleMark(...O, 0, a, `${a}°`, { r: 40 }) + angleMark(...O, a, 90, '?', { r: 52 });
+      return figure(210, 184, `A right angle split into two angles by a ray: one part is ${a} degrees and the other part is marked with a question mark.`, g, 236);
+    }
+    if (kind === 'vert') {
+      const O = [150, 96], g = seg(toward(...O, 132, 180), toward(...O, 132, 0)) + seg(toward(...O, 104, a + 180), toward(...O, 104, a)) +
+        angleMark(...O, 0, a, `${a}°`) + angleMark(...O, 180, 180 + a, '?');
+      return figure(300, 192, `Two straight lines crossing. One angle between them is ${a} degrees; the angle directly opposite it is marked with a question mark.`, g, 300);
+    }
+    const O = [150, 142], g = seg([16, O[1]], [284, O[1]]) + seg(O, toward(...O, 120, a)) + `<circle class="dot" cx="${O[0]}" cy="${O[1]}" r="3.5"/>` +
+      angleMark(...O, 0, a, `${a}°`) + angleMark(...O, a, 180, '?', { r: 30 });
+    return figure(300, 160, `A ray from a point on a straight line makes two angles side by side: one is ${a} degrees and the other is marked with a question mark.`, g, 300);
+  }
+  /** two crossing lines with all four angles labeled, for the lesson */
+  function crossingSvg(a) {
+    const O = [150, 96], b = 180 - a;
+    const g = seg(toward(...O, 132, 180), toward(...O, 132, 0)) + seg(toward(...O, 104, a + 180), toward(...O, 104, a)) +
+      angleMark(...O, 0, a, `${a}°`) + angleMark(...O, 180, 180 + a, `${a}°`) +
+      [(a + 180) / 2, (a + 540) / 2].map(d => { const [x, y] = toward(...O, 42, d); return svgText(x, y + 5, `${b}°`, { bold: true }); }).join('');
+    return figure(300, 192, `Two straight lines crossing, making four angles: ${a}, ${b}, ${a} and ${b} degrees going around. The opposite angles match.`, g, 300);
+  }
+  /** a triangle drawn with base angles a and b (degrees), the third angle marked '?' (or its value) */
+  function triangleAnglesSvg(a, b, third) {
+    const rad = d => d * Math.PI / 180, C = 180 - a - b, side = Math.sin(rad(b)) / Math.sin(rad(C));      // the side from the left corner to the top
+    const top = [side * Math.cos(rad(a)), side * Math.sin(rad(a))], h = top[1], s = Math.min(250, 128 / h);
+    const P = [24, 150], Q = [24 + s, 150], T = [24 + s * top[0], 150 - s * h];
+    const g = `<polygon class="fill" style="fill-opacity:.45" points="${[P, Q, T].map(q => q.map(r1).join(',')).join(' ')}"/>` +
+      angleMark(...P, 0, a, `${a}°`, { r: 22, outside: a < 32 }) + angleMark(...Q, 180 - b, 180, `${b}°`, { r: 22, outside: b < 32 }) +
+      angleMark(...T, 180 + a, 360 - b, third == null ? '?' : `${third}°`, { r: 20, max: 44 });
+    return figure(r1(48 + s), 172, `A triangle with angles of ${a} degrees and ${b} degrees at the bottom corners; the angle at the top is ${third == null ? 'marked with a question mark' : third + ' degrees'}.`, g, Math.min(320, r1(48 + s)));
+  }
+
+  /** a map with two towns and the distance between them on the map */
+  function mapSvg(dist, scaleText) {
+    const A0 = [64, 108], B0 = [236, 46];
+    const g = `<rect x="6" y="6" width="288" height="150" rx="10" class="stroke" style="stroke-width:1.5"/>` +
+      seg(A0, B0, 'line', ' stroke-dasharray="7 5"') + `<circle class="dot" cx="${A0[0]}" cy="${A0[1]}" r="6"/><circle class="dot" cx="${B0[0]}" cy="${B0[1]}" r="6"/>` +
+      svgText(A0[0], A0[1] + 24, 'Town A') + svgText(B0[0], B0[1] - 14, 'Town B') + svgText(150, 66, dist, { bold: true }) +
+      svgText(286, 146, `Scale ${scaleText}`, { anchor: 'end', size: 12, muted: true });
+    return figure(300, 162, `A map with Town A and Town B joined by a dashed line marked ${dist}. The scale is ${scaleText}.`, g, 300);
+  }
+  /** a room on a floor plan: its real length, and its length on the plan */
+  function planSvg(realText, planText, scaleText) {
+    const g = `<rect x="40" y="26" width="220" height="92" class="fill" style="fill-opacity:.4"/>` + svgText(150, 66, 'room') + svgText(150, 88, `real length ${realText}`, { size: 12 }) +
+      seg([40, 140], [260, 140]) + seg([40, 132], [40, 148]) + seg([260, 132], [260, 148]) + svgText(150, 162, `on the plan: ${planText}`, { bold: true }) +
+      svgText(294, 18, `Scale ${scaleText}`, { anchor: 'end', size: 12, muted: true });
+    return figure(300, 172, `A floor plan of a room. The room is ${realText} long in real life, and its length on the plan is ${planText}. The scale is ${scaleText}.`, g, 300);
+  }
+  /** a triangle and its enlargement, with two pairs of matching sides labeled */
+  function similarSvg(base, side, bigBase, bigSide, k) {
+    const shape = [[0, 0], [1, 0], [0.32, 0.62]], sz = 76, kk = Math.min(Math.max(k, 1.4), 1.9);
+    const at = (x0, y0, f) => shape.map(([x, y]) => [x0 + x * sz * f, y0 - y * sz * f]);
+    const tri = (pts, cls) => `<polygon class="${cls}" style="fill-opacity:.45" points="${pts.map(q => q.map(r1).join(',')).join(' ')}"/>`;
+    const lab = (pts, b, s) => svgText((pts[0][0] + pts[1][0]) / 2, pts[0][1] + 18, b) + svgText((pts[0][0] + pts[2][0]) / 2 - 8, (pts[0][1] + pts[2][1]) / 2, s, { anchor: 'end' });
+    const small = at(56, 124, 1), large = at(176, 124, kk);
+    const g = tri(small, 'fill') + tri(large, 'fill2') + lab(small, base, side) + lab(large, bigBase, bigSide) + notToScale(340, 156);
+    return figure(340, 156, `A triangle with a bottom side of ${base} and a left side of ${side}, and an enlarged copy whose bottom side is ${bigBase} and whose left side is ${bigSide}. Not to scale.`, g, 340);
+  }
+
   /* ---------- Unit 6 ---------- */
   A.skill({
     id: 'math7.circles', title: 'Area and circumference of circles',
-    learn: p(`<b>Circumference</b> is the distance around a circle: ${V('C')} = 2π${V('r')} = π${V('d')}. <b>Area</b> is the space inside: ${V('A')} = π${V('r')}².`) +
-      p('The radius goes from the center to the edge; the diameter goes all the way across, so it is twice the radius. On this site use 3.14 for π and round to two decimal places.') +
-      example('Example', `${big('A circle has radius 5 cm.')}${V('C')} = 2 × 3.14 × 5 = <b>31.4 cm</b>. ${V('A')} = 3.14 × 5² = 3.14 × 25 = <b>78.5 cm²</b>.`),
+    learn: p(`A <b>circle</b> is all the points the same distance from its <b>center</b>. The <b>radius</b> (${V('r')}) goes from the center to the edge, and the <b>diameter</b> (${V('d')}) goes all the way across through the center, so it’s twice the radius. The <b>circumference</b> (${V('C')}) is the distance around the circle.`) + circlePartsSvg() +
+      p(`<b>Circumference: ${V('C')} = 2π${V('r')} = π${V('d')}. Area: ${V('A')} = π${V('r')}²</b>, where ${V('r')}² means ${V('r')} × ${V('r')}. The number π (“pi”) is a little more than 3; on this site use 3.14 for π, and round to two decimal places.`) +
+      example('Example: from the radius', `${big('A circle has radius 5 cm.')}${V('C')} = 2 × 3.14 × 5 = <b>31.4 cm</b>. ${V('A')} = 3.14 × 5² = 3.14 × 25 = <b>78.5 cm²</b>.`) +
+      example('Example: from the diameter', `A circle has diameter 12 m. Its circumference is ${V('C')} = 3.14 × 12 = <b>37.68 m</b>. For the area, first halve the diameter: the radius is 6 m, so ${V('A')} = 3.14 × 6² = 3.14 × 36 = <b>113.04 m²</b>.`) +
+      example('Example: working backward', `A circle’s circumference is 43.96 in. Because ${V('C')} = 2π${V('r')}, divide by 2 × 3.14 = 6.28: ${V('r')} = 43.96 ÷ 6.28 = <b>7 in</b>.`),
     make(rng) {
       const kind = rng.pick(['area-r', 'area-d', 'circ-r', 'circ-d', 'r-from-c']);
       const r = rng.pick([2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15]);
       const unit = rng.pick(['cm', 'm', 'in', 'ft']);
-      if (kind === 'r-from-c') { const C = M.round(6.28 * r, 2); return { prompt: `A circle has a circumference of ${N(C)} ${unit}. What is its radius? Use 3.14 for π.`, type: 'number', answer: r, unit, params: { kind, r }, tolerance: 0.05, hints: [`${V('C')} = 2π${V('r')}, so ${V('r')} = ${V('C')} ÷ (2π).`, `${N(C)} ÷ 6.28 = ${N(r)}.`, `The radius is <b>${N(r)} ${unit}</b>.`] }; }
+      if (kind === 'r-from-c') { const C = M.round(6.28 * r, 2); return { prompt: `A circle has a circumference of ${N(C)} ${unit}. What is its radius? Use 3.14 for π.${circleSvg('r', '?', `circumference ${N(C)} ${unit}`, `A circle whose circumference is ${N(C)} ${unit}; its radius is marked with a question mark.`)}`, type: 'number', answer: r, unit, params: { kind, r }, tolerance: 0.05, hints: [`${V('C')} = 2π${V('r')}, so ${V('r')} = ${V('C')} ÷ (2π).`, `${N(C)} ÷ 6.28 = ${N(r)}.`, `The radius is <b>${N(r)} ${unit}</b>.`] }; }
       const given = kind.endsWith('-d') ? `diameter ${N(2 * r)} ${unit}` : `radius ${N(r)} ${unit}`;
+      const pic = kind.endsWith('-d') ? circleSvg('d', `${N(2 * r)} ${unit}`, null, `A circle with a diameter of ${N(2 * r)} ${unit} drawn across it through the center.`) : circleSvg('r', `${N(r)} ${unit}`, null, `A circle with a radius of ${N(r)} ${unit} drawn from its center to the edge.`);
       if (kind.startsWith('area')) {
         const ans = M.round(3.14 * r * r, 2);
-        return { prompt: `A circle has ${given}. What is its area? Use 3.14 for π.`, type: 'number', answer: ans, unit: unit + '²', params: { kind, r }, tolerance: 0.05,
+        return { prompt: `A circle has ${given}. What is its area? Use 3.14 for π.${pic}`, type: 'number', answer: ans, unit: unit + '²', params: { kind, r }, tolerance: 0.05,
           hints: [kind === 'area-d' ? `The radius is half the diameter: ${N(2 * r)} ÷ 2 = ${N(r)} ${unit}.` : `${V('A')} = π${V('r')}², and the radius is ${N(r)} ${unit}.`, `Square the radius: ${N(r)}² = ${N(r * r)}. Then multiply by 3.14.`, `3.14 × ${N(r * r)} = <b>${N(ans)} ${unit}²</b>.`] };
       }
       const ans = M.round(6.28 * r, 2);
-      return { prompt: `A circle has ${given}. What is its circumference? Use 3.14 for π.`, type: 'number', answer: ans, unit, params: { kind, r }, tolerance: 0.05,
+      return { prompt: `A circle has ${given}. What is its circumference? Use 3.14 for π.${pic}`, type: 'number', answer: ans, unit, params: { kind, r }, tolerance: 0.05,
         hints: [kind === 'circ-d' ? `${V('C')} = π${V('d')}: multiply the diameter by 3.14.` : `${V('C')} = 2π${V('r')}: double the radius to get the diameter, ${N(2 * r)} ${unit}, then multiply by 3.14.`, `3.14 × ${N(2 * r)} = <b>${N(ans)} ${unit}</b>.`] };
     },
     verify(q) { const { kind, r } = q.params; const d = 2 * r; const expect = kind === 'r-from-c' ? r : kind.startsWith('area') ? 3.14 * (d / 2) * (d / 2) : 3.14 * d; return Math.abs(expect - q.answer) < 0.006; },
@@ -478,35 +628,39 @@
 
   A.skill({
     id: 'math7.angle-pairs', title: 'Angle relationships',
-    learn: p('<b>Complementary</b> angles add to 90°. <b>Supplementary</b> angles add to 180°, as do angles on a straight line. <b>Vertical</b> angles, the opposite pair made by two crossing lines, are equal. The three angles of any <b>triangle</b> add to 180°.') +
+    learn: p('Angles are measured in degrees (°), and a square corner, a <b>right angle</b>, is 90°. <b>Complementary</b> angles add to 90°. <b>Supplementary</b> angles add to 180°, and so do angles that sit side by side on a straight line. Where two lines cross, the angles opposite each other are <b>vertical angles</b>, and they’re equal. The three angles of any <b>triangle</b> add to 180°.') + crossingSvg(65) +
       p('Most angle questions are a subtraction: find what the angles must add to, then take away the ones you know.') +
-      example('Example', `${big('Two angles of a triangle are 48° and 67°.')}180 − 48 − 67 = <b>65°</b>.`),
+      example('Example: complementary angles', 'Two angles are complementary, and one is 34°. Together they make 90°, so the other is 90 − 34 = <b>56°</b>.') +
+      example('Example: crossing lines', 'Two lines cross, and one angle is 65°, as in the picture above. The angle opposite it is also <b>65°</b>, and the angle beside it on the straight line is 180 − 65 = <b>115°</b>.') +
+      example('Example: a triangle', `${triangleAnglesSvg(48, 67)}Two angles of a triangle are 48° and 67°. 180 − 48 − 67 = <b>65°</b>.`),
     make(rng) {
       const kind = rng.pick(['comp', 'supp', 'vert', 'tri', 'line']);
       const a = rng.int(15, 75), b = rng.int(20, 80);
-      if (kind === 'comp') return { prompt: `Two angles are complementary. One measures ${a}°. What is the other?`, type: 'number', answer: 90 - a, unit: '°', params: { kind, a }, hints: [`Complementary angles add to 90°.`, `90 − ${a} = <b>${90 - a}°</b>.`] };
-      if (kind === 'supp') { const s = a + 60; return { prompt: `Two angles are supplementary. One measures ${s}°. What is the other?`, type: 'number', answer: 180 - s, unit: '°', params: { kind, a: s }, hints: [`Supplementary angles add to 180°.`, `180 − ${s} = <b>${180 - s}°</b>.`] }; }
-      if (kind === 'line') { const s = a + 30; return { prompt: `Two angles sit side by side on a straight line. One measures ${s}°. What is the other?`, type: 'number', answer: 180 - s, unit: '°', params: { kind, a: s }, hints: [`Angles on a straight line add to 180°.`, `180 − ${s} = <b>${180 - s}°</b>.`] }; }
-      if (kind === 'vert') { const s = a + 40; return { prompt: `Two lines cross. One of the angles formed measures ${s}°. What is the measure of the angle directly opposite it (its vertical angle)?`, type: 'number', answer: s, unit: '°', params: { kind, a: s }, hints: [`Vertical angles are the opposite pair where two lines cross.`, `Vertical angles are equal, so the opposite angle is also <b>${s}°</b>.`] }; }
-      return { prompt: `Two angles of a triangle measure ${a}° and ${b}°. What is the third angle?`, type: 'number', answer: 180 - a - b, unit: '°', params: { kind, a, b }, hints: [`The angles of a triangle add to 180°.`, `${a} + ${b} = ${a + b}, and 180 − ${a + b} = <b>${180 - a - b}°</b>.`] };
+      if (kind === 'comp') return { prompt: `Two angles are complementary. One measures ${a}°. What is the other?${anglePairSvg('comp', a)}`, type: 'number', answer: 90 - a, unit: '°', params: { kind, a }, hints: [`Complementary angles add to 90°.`, `90 − ${a} = <b>${90 - a}°</b>.`] };
+      if (kind === 'supp') { const s = a + 60; return { prompt: `Two angles are supplementary. One measures ${s}°. What is the other?${anglePairSvg('supp', s)}`, type: 'number', answer: 180 - s, unit: '°', params: { kind, a: s }, hints: [`Supplementary angles add to 180°.`, `180 − ${s} = <b>${180 - s}°</b>.`] }; }
+      if (kind === 'line') { const s = a + 30; return { prompt: `Two angles sit side by side on a straight line. One measures ${s}°. What is the other?${anglePairSvg('line', s)}`, type: 'number', answer: 180 - s, unit: '°', params: { kind, a: s }, hints: [`Angles on a straight line add to 180°.`, `180 − ${s} = <b>${180 - s}°</b>.`] }; }
+      if (kind === 'vert') { const s = a + 40; return { prompt: `Two lines cross. One of the angles formed measures ${s}°. What is the measure of the angle directly opposite it (its vertical angle)?${anglePairSvg('vert', s)}`, type: 'number', answer: s, unit: '°', params: { kind, a: s }, hints: [`Vertical angles are the opposite pair where two lines cross.`, `Vertical angles are equal, so the opposite angle is also <b>${s}°</b>.`] }; }
+      return { prompt: `Two angles of a triangle measure ${a}° and ${b}°. What is the third angle?${triangleAnglesSvg(a, b)}`, type: 'number', answer: 180 - a - b, unit: '°', params: { kind, a, b }, hints: [`The angles of a triangle add to 180°.`, `${a} + ${b} = ${a + b}, and 180 − ${a + b} = <b>${180 - a - b}°</b>.`] };
     },
     verify(q) { const { kind, a, b } = q.params; if (kind === 'comp') return q.answer + a === 90; if (kind === 'vert') return q.answer === a; if (kind === 'tri') return q.answer + a + b === 180; return q.answer + a === 180; },
   });
 
   A.skill({
     id: 'math7.scale-drawings', title: 'Scale drawings',
-    learn: p('A scale drawing keeps every length in the same ratio to the real thing. A scale of <b>1 cm : 4 m</b> means each centimeter on the drawing stands for 4 meters in real life.') +
-      p('Drawing → real: multiply by the scale. Real → drawing: divide by the scale. Between two similar figures, the <b>scale factor</b> is new length ÷ original length, and every length (but not the area) is multiplied by it.') +
-      example('Example', `${big('Scale 1 cm : 4 m. A wall is 6.5 cm long on the plan.')}Real length = 6.5 × 4 = <b>26 m</b>.`),
+    learn: p('A <b>scale drawing</b>, like a map or a floor plan, shows a real object with every length shrunk (or enlarged) by the same amount. The <b>scale</b> says how they match: <b>1 cm : 4 m</b> means each centimeter on the drawing stands for 4 meters in real life.') +
+      p('<b>Drawing → real:</b> multiply by the scale. <b>Real → drawing:</b> divide by the scale. Two figures with the same shape but different sizes are <b>similar</b>, and the <b>scale factor</b> between them is new length ÷ original length. Every length (but not the area) is multiplied by it.') +
+      example('Example: drawing to real life', `${mapSvg('6.5 cm', '1 cm : 5 km')}Two towns are 6.5 cm apart on a map with the scale 1 cm : 5 km. Each centimeter stands for 5 km, so the real distance is 6.5 × 5 = <b>32.5 km</b>.`) +
+      example('Example: real life to drawing', 'A floor plan uses the scale 1 cm : 4 m, and a room is 18 m long. On the plan it’s 18 ÷ 4 = <b>4.5 cm</b> long.') +
+      example('Example: a scale factor', `${similarSvg('4 cm', '6 cm', '10 cm', '?', 2.5)}A triangle’s 4 cm side becomes 10 cm when it’s enlarged. The scale factor is 10 ÷ 4 = 2.5, so its 6 cm side becomes 6 × 2.5 = <b>15 cm</b>.`),
     make(rng) {
       const kind = rng.pick(['to-real', 'to-real', 'to-drawing', 'factor']);
       const scale = rng.pick([2, 3, 4, 5, 8, 10, 20, 25, 50]);
       const draw = rng.pick([2, 2.5, 3, 3.5, 4, 4.5, 5, 6, 7.5, 8, 9, 12]);
       const real = M.round(draw * scale, 3);
-      if (kind === 'to-real') return { prompt: `A map uses a scale of 1 cm : ${scale} km. Two towns are ${N(draw)} cm apart on the map. How far apart are they in real life?`, type: 'number', answer: real, unit: 'km', params: { kind, scale, draw, real }, hints: [`Each centimeter stands for ${scale} km, so multiply the map distance by ${scale}.`, `${N(draw)} × ${scale} = <b>${N(real)} km</b>.`] };
-      if (kind === 'to-drawing') return { prompt: `A floor plan uses a scale of 1 cm : ${scale} m. A room is ${N(real)} m long. How long is it on the plan?`, type: 'number', answer: draw, unit: 'cm', params: { kind, scale, draw, real }, hints: [`Going from real life to the drawing, divide by the scale.`, `${N(real)} ÷ ${scale} = <b>${N(draw)} cm</b>.`] };
+      if (kind === 'to-real') return { prompt: `A map uses a scale of 1 cm : ${scale} km. Two towns are ${N(draw)} cm apart on the map. How far apart are they in real life?${mapSvg(`${N(draw)} cm`, `1 cm : ${scale} km`)}`, type: 'number', answer: real, unit: 'km', params: { kind, scale, draw, real }, hints: [`Each centimeter stands for ${scale} km, so multiply the map distance by ${scale}.`, `${N(draw)} × ${scale} = <b>${N(real)} km</b>.`] };
+      if (kind === 'to-drawing') return { prompt: `A floor plan uses a scale of 1 cm : ${scale} m. A room is ${N(real)} m long. How long is it on the plan?${planSvg(`${N(real)} m`, '? cm', `1 cm : ${scale} m`)}`, type: 'number', answer: draw, unit: 'cm', params: { kind, scale, draw, real }, hints: [`Going from real life to the drawing, divide by the scale.`, `${N(real)} ÷ ${scale} = <b>${N(draw)} cm</b>.`] };
       const k = rng.pick([1.5, 2, 2.5, 3, 4]), s = rng.int(2, 9), other = rng.int(2, 9);
-      return { prompt: `A triangle with sides ${s} cm and ${other} cm is enlarged so that the ${s} cm side becomes ${N(s * k)} cm. How long does the ${other} cm side become?`, type: 'number', answer: M.round(other * k, 3), unit: 'cm', params: { kind, s, k, other }, hints: [`Find the scale factor: new ÷ original = ${N(s * k)} ÷ ${s} = ${N(k)}.`, `Every side is multiplied by ${N(k)}: ${other} × ${N(k)} = <b>${N(M.round(other * k, 3))} cm</b>.`] };
+      return { prompt: `A triangle with sides ${s} cm and ${other} cm is enlarged so that the ${s} cm side becomes ${N(s * k)} cm. How long does the ${other} cm side become?${similarSvg(`${s} cm`, `${other} cm`, `${N(s * k)} cm`, '?', k)}`, type: 'number', answer: M.round(other * k, 3), unit: 'cm', params: { kind, s, k, other }, hints: [`Find the scale factor: new ÷ original = ${N(s * k)} ÷ ${s} = ${N(k)}.`, `Every side is multiplied by ${N(k)}: ${other} × ${N(k)} = <b>${N(M.round(other * k, 3))} cm</b>.`] };
     },
     verify(q) { const p = q.params; if (p.kind === 'to-real') return Math.abs(q.answer / p.scale - p.draw) < 1e-9; if (p.kind === 'to-drawing') return Math.abs(q.answer * p.scale - p.real) < 1e-9; return Math.abs(q.answer / p.other - (p.s * p.k) / p.s) < 1e-9; },
   });
@@ -514,9 +668,10 @@
   /* ---------- Unit 7 ---------- */
   A.skill({
     id: 'math7.mean-median', title: 'Mean, median, mode, and range',
-    learn: p('<b>Mean</b>: add everything and divide by how many values there are. <b>Median</b>: put the values in order and take the middle one (with an even count, the mean of the two middle values). <b>Mode</b>: the value that appears most often. <b>Range</b>: largest minus smallest.') +
-      p('The mean is pulled by very large or small values; the median is not. That is why house prices are usually reported with the median.') +
-      example('Example', `${big('4, 9, 2, 9, 6')}Ordered: 2, 4, 6, 9, 9. Mean = 30 ÷ 5 = <b>6</b>. Median = <b>6</b>. Mode = <b>9</b>. Range = 9 − 2 = <b>7</b>.`),
+    learn: p('Four numbers help describe a data set (a list of values). The <b>mean</b> is the average: add all the values and divide by how many there are. The <b>median</b> is the middle value once they’re in order; with an even number of values, it’s the mean of the two middle ones. The <b>mode</b> is the value that appears most often. The <b>range</b> is the largest value minus the smallest.') +
+      p('The mean is pulled by very large or very small values, but the median isn’t. That’s why home prices are usually reported with the median.') +
+      example('Example: an odd number of values', `${big('4, 9, 2, 9, 6')}In order: 2, 4, 6, 9, 9. Mean = 30 ÷ 5 = <b>6</b>. Median (the 3rd of the 5 values) = <b>6</b>. Mode = <b>9</b>, the only value that appears twice. Range = 9 − 2 = <b>7</b>.`) +
+      example('Example: an even number of values', `${big('15, 3, 10, 8')}In order: 3, 8, 10, 15. The two middle values are 8 and 10, so the median is (8 + 10) ÷ 2 = <b>9</b>. Mean = 36 ÷ 4 = <b>9</b>. Range = 15 − 3 = <b>12</b>.`),
     make(rng) {
       const n = rng.pick([5, 5, 6, 7]);
       const kind = rng.pick(['mean', 'median', 'mode', 'range']);
@@ -546,9 +701,10 @@
 
   A.skill({
     id: 'math7.simple-probability', title: 'Simple probability',
-    learn: p('When every outcome is equally likely, <b>probability = favorable outcomes ÷ total outcomes</b>. It is a number from 0 (impossible) to 1 (certain), written as a fraction, decimal or percent.') +
-      p(`A bag with 3 red and 5 blue marbles has 8 marbles, so P(red) = ${F(3, 8)}. The probability of <b>not</b> red is 1 − ${F(3, 8)} = ${F(5, 8)}.`) +
-      example('Example', `${big('Roll a fair six-sided die. P(number greater than 4)?')}The outcomes greater than 4 are 5 and 6: two out of six. P = ${F(2, 6, { raw: true })} = <b>${F(1, 3)}</b>.`),
+    learn: p('<b>Probability</b> measures how likely something is to happen, from 0 (impossible) to 1 (certain). An <b>outcome</b> is one possible result, and the outcomes you’re looking for are the <b>favorable</b> ones. When every outcome is equally likely, <b>probability = favorable outcomes ÷ total outcomes</b>, written as a fraction, a decimal or a percent. P(red) is short for “the probability of red”.') +
+      p('The probability that something does <b>not</b> happen is 1 minus the probability that it does.') +
+      example('Example: rolling a die', `${big('Roll a fair six-sided die. What is P(a number greater than 4)?')}The outcomes greater than 4 are 5 and 6: two out of six. P = ${R(2, 6)} = <b>${F(1, 3)}</b>.`) +
+      example('Example: a bag of marbles, and “not”', `A bag has 3 red and 5 blue marbles, 8 in all. P(red) = <b>${F(3, 8)}</b>. P(not red) = 1 − ${F(3, 8)} = <b>${F(5, 8)}</b>, which matches the 5 blue marbles out of 8.`),
     make(rng) {
       const kind = rng.pick(['bag', 'bag', 'die', 'spinner', 'not']);
       if (kind === 'die') {
@@ -577,9 +733,11 @@
 
   A.skill({
     id: 'math7.compound-probability', title: 'Probability of compound events',
-    learn: p('A <b>compound event</b> combines two or more simple events, like flipping a coin <i>and</i> rolling a die. When the events are <b>independent</b> (one does not change the other), multiply: P(A and B) = P(A) × P(B).') +
-      p(`A sample space lists every possible outcome. Two dice have 6 × 6 = 36 equally likely outcomes, and P(sum is 7) = ${F(6, 36, { raw: true })} = ${F(1, 6)}, because six of them add to 7.`) +
-      example('Example', `${big('Flip a coin and roll a die. P(heads and a 4)?')}P(heads) = ${F(1, 2)}, P(4) = ${F(1, 6)}. Multiply: ${F(1, 2)} × ${F(1, 6)} = <b>${F(1, 12)}</b>.`),
+    learn: p('A <b>compound event</b> combines two or more simple events, like flipping a coin <i>and</i> rolling a die. Two events are <b>independent</b> when one doesn’t change the chances of the other. For independent events, multiply: <b>P(A and B) = P(A) × P(B)</b>.') +
+      p(`The <b>sample space</b> is the list of every possible outcome. Listing it is another way to find a probability: two dice have 6 × 6 = 36 equally likely outcomes, and six of them add to 7, so P(sum is 7) = ${R(6, 36)} = ${F(1, 6)}.`) +
+      example('Example: multiply the probabilities', `${big('Flip a coin and roll a die. What is P(heads and a 4)?')}P(heads) = ${F(1, 2)} and P(4) = ${F(1, 6)}. Multiply: ${F(1, 2)} × ${F(1, 6)} = <b>${F(1, 12)}</b>.`) +
+      example('Example: list the sample space', `Flip 3 coins. What is P(exactly one head)? The 8 outcomes are HHH, HHT, HTH, HTT, THH, THT, TTH and TTT. Three of them have exactly one head (HTT, THT and TTH), so P = <b>${F(3, 8)}</b>.`) +
+      example('Example: picking with replacement', `A bag has 2 red and 3 blue marbles. You pick one, put it back, and pick again. P(red then blue) = ${F(2, 5)} × ${F(3, 5)} = <b>${F(6, 25)}</b>. Putting the marble back keeps the two picks independent.`),
     make(rng) {
       const kind = rng.pick(['coin-die', 'two-coins', 'spinner-twice', 'dice-sum', 'bag-replace']);
       if (kind === 'coin-die') { const face = rng.int(1, 6); const side = rng.pick(['heads', 'tails']); const ev = rng.pick([{ t: `a ${face}`, k: 1 }, { t: 'an even number', k: 3 }, { t: 'a number greater than 4', k: 2 }]); const [sn, sd] = M.simp(ev.k, 12); return { prompt: `You flip a coin and roll a six-sided die. What is the probability of getting ${side} and ${ev.t}? Give your answer as a fraction.`, type: 'number', answer: sn / sd, answerText: M.fracText(sn, sd), params: { kind, fav: ev.k, total: 12 }, hints: [`The events are independent. P(${side}) = ${F(1, 2)} and P(${ev.t}) = ${F(ev.k, 6)}.`, `Multiply: ${F(1, 2)} × ${F(ev.k, 6)} = ${F(ev.k, 12, { raw: true })}.`, `In simplest form: <b>${F(sn, sd)}</b> (${M.fracText(sn, sd)}).`] }; }
@@ -597,19 +755,14 @@
   });
 
   /* ---------- Unit 8: Venn diagrams and probability ---------- */
-  /** a fraction answer in simplest form, ready to spread into a question */
-  const fracAns = (n, d) => { const [sn, sd] = M.simp(n, d); return { answer: sn / sd, answerText: M.fracText(sn, sd) }; };
-  /** the bold last-hint form of a fraction: the stacked fraction and the typed form */
-  const fracBold = (n, d) => { const [sn, sd] = M.simp(n, d); return `<b>${F(sn, sd)}</b>${sd === 1 ? '' : ` (${M.fracText(sn, sd)})`}`; };
-  /** the last hint for a fraction answer: simplify it, or say it already is simple */
-  const simpLine = (n, d) => M.gcd(n, d) === 1 ? `That is already in simplest form: ${fracBold(n, d)}.` : `Divide the top and bottom by ${M.gcd(n, d)}: ${fracBold(n, d)}.`;
-  const R = (n, d) => F(n, d, { raw: true });
 
   /** two overlapping circles in a box; marks = [only A, both, only B, neither], each a number, '?' or '' */
   function vennSvg(la, lb, marks) {
     const t = (x, y, s, size, bold) => `<text x="${x}" y="${y}" text-anchor="middle" font-size="${size}"${bold ? ' font-weight="700"' : ''}>${s}</text>`;
     const m = marks || ['', '', '', ''];
-    return `<svg class="figure" viewBox="0 0 320 196" width="320" role="img" aria-label="Venn diagram with the circles ${M.esc(la)} and ${M.esc(lb)}">` +
+    const where = [`only in ${la}`, 'in the overlap', `only in ${lb}`, 'outside both circles'];
+    const said = m.map((v, i) => v === '' || v == null ? '' : v === '?' ? `a question mark ${where[i]}` : `${v} ${where[i]}`).filter(Boolean);
+    return `<svg class="figure" viewBox="0 0 320 196" width="320" role="img" aria-label="Venn diagram with the circles ${M.esc(la)} and ${M.esc(lb)}${said.length ? ': ' + M.esc(said.join(', ')) : ''}">` +
       `<rect x="3" y="3" width="314" height="190" rx="10" class="stroke" style="stroke-width:1.5"/>` +
       `<circle cx="122" cy="108" r="70" class="fill" style="fill-opacity:.55"/><circle cx="198" cy="108" r="70" class="fill" style="fill-opacity:.55"/>` +
       t(100, 26, M.esc(la), 13, true) + t(220, 26, M.esc(lb), 13, true) +
@@ -658,9 +811,10 @@
 
   A.skill({
     id: 'math7.venn-diagrams', title: 'Venn diagrams',
-    learn: p('A <b>Venn diagram</b> sorts things into overlapping circles. Each circle holds everything with one property. The <b>overlap</b> holds the things that have both properties, and anything with neither property goes inside the box but outside both circles.') +
+    learn: p('A <b>Venn diagram</b> sorts things into overlapping circles inside a box. Each circle holds everything with one property. The <b>overlap</b>, where the circles cross, holds the things that have both properties, and anything with neither property goes inside the box but outside both circles.') +
       p('When you count, remember that a circle’s total <b>includes its share of the overlap</b>. So “only A” is the circle’s total minus the overlap, and adding the two circle totals counts the overlap twice.') +
-      example('Example', `In a class of 30, 18 play soccer, 12 play basketball and 7 play both. Only soccer: 18 − 7 = 11. Only basketball: 12 − 7 = 5. Inside the circles: 11 + 7 + 5 = 23, so <b>7</b> students play neither.`),
+      example('Example: placing a number', 'Where does 12 go in a diagram with the circles “Multiples of 3” and “Even numbers”? 12 = 3 × 4, so it’s a multiple of 3, and it’s even. It fits both labels, so it goes <b>in the overlap</b>. The number 9 fits only the first circle, and 7 goes outside both.') +
+      example('Example: finding a missing count', `In a class of 30, 18 play soccer, 12 play basketball and 7 play both. Only soccer: 18 − 7 = 11. Only basketball: 12 − 7 = 5. Inside the circles: 11 + 7 + 5 = 23, so 30 − 23 = <b>7</b> students play neither.${vennSvg('Soccer', 'Basketball', [11, 7, 5, 7])}`),
     make(rng) {
       const kind = rng.pick(['place', 'place', 'read', 'build', 'build']);
       if (kind === 'place') return vennPlace(rng);
@@ -710,9 +864,11 @@
 
   A.skill({
     id: 'math7.experimental-probability', title: 'Experimental and theoretical probability',
-    learn: p('<b>Theoretical probability</b> comes from reasoning about equally likely outcomes: a fair coin lands heads with probability ½, because one of its two sides is heads. <b>Experimental probability</b> comes from doing the experiment: <b>times it happened ÷ number of trials</b>.') +
+    learn: p('<b>Theoretical probability</b> comes from reasoning about equally likely outcomes: a fair coin lands heads with probability ½, because one of its two sides is heads. <b>Experimental probability</b> comes from actually doing the experiment: <b>times it happened ÷ number of trials</b>, where a <b>trial</b> is one try, such as one flip.') +
       p('The two rarely match exactly, but with more trials the experimental probability usually gets closer to the theoretical one. Either kind can make a prediction: <b>expected count = probability × number of trials</b>.') +
-      example('Example', `Chloe flips a coin 50 times and gets 30 heads. The experimental probability of heads is ${R(30, 50)} = <b>${F(3, 5)}</b>. The theoretical probability is ${F(1, 2)}, so in 50 flips she would expect 25 heads: 5 fewer than she got.`),
+      example('Example: experimental probability', `Chloe flips a coin 50 times and gets 30 heads. The experimental probability of heads is ${R(30, 50)} = <b>${F(3, 5)}</b>. The theoretical probability, ${F(1, 2)}, predicts ${F(1, 2)} × 50 = 25 heads, so she got 5 more than expected.`) +
+      example('Example: a prediction from theory', `A fair six-sided die is rolled 120 times. About how many 6s should you expect? P(6) = ${F(1, 6)}, and ${F(1, 6)} × 120 = <b>20</b>.`) +
+      example('Example: a prediction from an experiment', `Omar makes 12 of his first 20 free throws. The experimental probability is ${R(12, 20)} = ${F(3, 5)}. In 50 free throws he’d expect to make about ${F(3, 5)} × 50 = <b>30</b>.`),
     make(rng) {
       const kind = rng.pick(['exp', 'exp', 'expected', 'predict', 'diff']);
       const name = rng.pick(NAMES);
@@ -777,9 +933,10 @@
   const DIE_EVENTS = [['a 1', [1]], ['a 2', [2]], ['a 3', [3]], ['a 4', [4]], ['a 5', [5]], ['a 6', [6]], ['an even number', [2, 4, 6]], ['an odd number', [1, 3, 5]], ['a number less than 3', [1, 2]], ['a number greater than 4', [5, 6]], ['a multiple of 3', [3, 6]]];
   A.skill({
     id: 'math7.or-probability', title: 'Probability of one event or another',
-    learn: p('Two events are <b>mutually exclusive</b> when they cannot happen at the same time: one roll of a die cannot be both a 2 and a 5. For events like that, <b>P(A or B) = P(A) + P(B)</b>.') +
-      p('If the two probabilities have different denominators, rewrite them over a common denominator before adding. And because something must happen, the probability that <b>neither</b> event happens is 1 − P(A or B).') +
-      example('Example', `A spinner lands on red with probability ${F(1, 4)} and on blue with probability ${F(1, 3)}. P(red or blue) = ${R(3, 12)} + ${R(4, 12)} = <b>${F(7, 12)}</b>. P(neither) = 1 − ${F(7, 12)} = ${F(5, 12)}.`),
+    learn: p('Two events are <b>mutually exclusive</b> when they can’t happen at the same time: one roll of a die can’t be both a 2 and a 5. For events like that, <b>P(A or B) = P(A) + P(B)</b>.') +
+      p('If the two probabilities have different denominators, rewrite them over a common denominator before adding. Percents add the same way. And because something must happen, the probability that <b>neither</b> event happens is 1 − P(A or B), or 100% minus the chance as a percent.') +
+      example('Example: one roll of a die', `What is P(a 1 or an even number)? A 1 is one face, and the even numbers 2, 4 and 6 are three faces. No face is both, so add: ${R(1, 6)} + ${R(3, 6)} = ${R(4, 6)} = <b>${F(2, 3)}</b>.`) +
+      example('Example: different denominators, and “neither”', `A spinner lands on red with probability ${F(1, 4)} and on blue with probability ${F(1, 3)}. P(red or blue) = ${R(3, 12)} + ${R(4, 12)} = <b>${F(7, 12)}</b>. P(neither) = 1 − ${F(7, 12)} = <b>${F(5, 12)}</b>.`),
     make(rng) {
       const kind = rng.pick(['bag', 'bag', 'die', 'fractions', 'fractions', 'percent']);
       const neither = rng.chance(0.3);
@@ -844,9 +1001,11 @@
 
   A.skill({
     id: 'math7.repeating-decimals', title: 'Repeating decimals as fractions',
-    learn: p(`Every fraction becomes a decimal that either <b>terminates</b> (stops, like ${F(3, 8)} = 0.375) or <b>repeats</b> forever (like ${F(1, 3)} = 0.333…, written ${repBar(0, '', '3')}). In simplest form, a fraction terminates exactly when its denominator has <b>no prime factors other than 2 and 5</b>.`) +
+    learn: p(`Every fraction becomes a decimal that either <b>terminates</b> (stops, like ${F(3, 8)} = 0.375) or <b>repeats</b> forever (like ${F(1, 3)} = 0.333…). A bar over digits means they repeat: 0.333… is written ${repBar(0, '', '3')}. In simplest form, a fraction terminates exactly when its denominator has <b>no prime factors other than 2 and 5</b> (its prime factors are the prime numbers that multiply to make it). ${F(7, 40)} terminates because 40 = 2 × 2 × 2 × 5, but ${F(5, 12)} repeats because 12 = 2 × 2 × 3.`) +
       p(`To turn a repeating decimal into a fraction, call it ${X}. <b>Multiply by 10, 100, … so that the repeating tails line up, then subtract</b>: the tails cancel and leave an equation with whole numbers. One repeating digit needs 10${X} − ${X} = 9${X}; two repeating digits need 100${X} − ${X} = 99${X}.`) +
-      example('Example', `${big(`${X} = 0.272727…`)}Two digits repeat, so 100${X} = 27.272727…. Subtract: 100${X} − ${X} = 27, so 99${X} = 27 and ${X} = ${R(27, 99)} = <b>${F(3, 11)}</b>.`),
+      example('Example: one repeating digit', `${big(`${X} = 0.444…`)}Multiply by 10: 10${X} = 4.444…. Subtract: 10${X} − ${X} = 4.444… − 0.444… = 4, so 9${X} = 4 and ${X} = <b>${F(4, 9)}</b>.`) +
+      example('Example: two repeating digits', `${big(`${X} = 0.272727…`)}Two digits repeat, so multiply by 100: 100${X} = 27.272727…. Subtract: 100${X} − ${X} = 27, so 99${X} = 27 and ${X} = ${R(27, 99)} = <b>${F(3, 11)}</b>.`) +
+      example('Example: the repeat starts one place later', `${big(`${X} = 0.1666…`)}10${X} = 1.666… and 100${X} = 16.666…. Subtract: 100${X} − 10${X} = 15, so 90${X} = 15 and ${X} = ${R(15, 90)} = <b>${F(1, 6)}</b>.`),
     make(rng) {
       const kind = rng.pick(['one', 'one', 'two', 'two', 'mixed', 'mixed', 'which']);
       if (kind === 'which') {
@@ -888,9 +1047,11 @@
 
   A.skill({
     id: 'math7.add-sub-rationals', title: 'Adding and subtracting negative fractions and decimals',
-    learn: p('Negative fractions and decimals follow the same rules as negative integers. First turn any subtraction into adding the opposite: <b>a − b = a + (−b)</b>. Then: <b>same signs, add the sizes and keep the sign; different signs, subtract the smaller size from the larger and keep the sign of the larger</b>.') +
-      p(`With fractions, rewrite both over a common denominator first: ${F(-2, 3)} + ${F(1, 4)} = ${R(-8, 12)} + ${R(3, 12)} = ${F(-5, 12)}, because the signs differ, 8 − 3 = 5, and the larger size was negative. With decimals, line up the decimal points.`) +
-      example('Example', `${big('−1.5 − 2.75')}Add the opposite: −1.5 + (−2.75). Both are negative, so add the sizes, 1.5 + 2.75 = 4.25, and keep the sign: <b>−4.25</b>.`),
+    learn: p('A <b>rational number</b> is any number that can be written as a fraction, including negative fractions and decimals. They follow the same rules as negative integers. First turn any subtraction into adding the opposite: <b>a − b = a + (−b)</b>. Then: <b>same signs, add the sizes and keep the sign; different signs, subtract the smaller size from the larger and keep the sign of the larger</b>.') +
+      p('With fractions, rewrite both over a common denominator first. With mixed numbers, it’s often easiest to change them to fractions. With decimals, line up the decimal points.') +
+      example('Example: fractions', `${big(`${F(-2, 3)} + ${F(1, 4)}`)}Use 12 as the common denominator: ${R(-8, 12)} + ${R(3, 12)}. The signs differ, so 8 − 3 = 5, and the larger size was negative: <b>${F(-5, 12)}</b>.`) +
+      example('Example: mixed numbers', `${big(`${M.mixed(-3, 2)} + ${M.mixed(11, 4)}`)}As fractions: ${R(-3, 2)} + ${R(11, 4)} = ${R(-6, 4)} + ${R(11, 4)}. The signs differ: 11 − 6 = 5, and the positive one is larger: ${R(5, 4)} = <b>${M.mixed(5, 4)}</b>.`) +
+      example('Example: decimals', `${big('−1.5 − 2.75')}Add the opposite: −1.5 + (−2.75). Both are negative, so add the sizes, 1.5 + 2.75 = 4.25, and keep the sign: <b>−4.25</b>.`),
     make(rng) {
       const kind = rng.pick(['frac', 'frac', 'mixed', 'dec', 'dec', 'word']);
       const wrap = s => s.startsWith('−') ? `(${s})` : s;
@@ -944,9 +1105,11 @@
 
   A.skill({
     id: 'math7.simple-interest', title: 'Simple interest',
-    learn: p('<b>Interest</b> is money paid for the use of money: a bank pays you interest on savings, and you pay interest on a loan. With <b>simple interest</b>, the interest is the same every year, because it is always worked out from the starting amount, the <b>principal</b>.') +
-      p(`<b>${V('I')} = ${V('P')}${V('r')}${V('t')}</b>: interest = principal × yearly rate (as a decimal) × time in years. The total at the end is the principal plus the interest. A time given in months is a fraction of a year: 6 months is 0.5 years and 18 months is 1.5 years.`) +
-      example('Example', `${big('$800 at 3% simple interest for 5 years')}${V('I')} = 800 × 0.03 × 5 = <b>$120</b>. After 5 years the account holds 800 + 120 = <b>$920</b>.`),
+    learn: p('<b>Interest</b> is money paid for the use of money: a bank pays you interest on savings, and you pay interest on a loan. The <b>principal</b> is the starting amount. With <b>simple interest</b>, the interest is the same every year, because it’s always worked out from the principal.') +
+      p(`<b>${V('I')} = ${V('P')}${V('r')}${V('t')}</b>: interest = principal × yearly rate (as a decimal) × time in years. The total at the end is the principal plus the interest. A time given in months is a fraction of a year: 6 months is 0.5 years and 18 months is 1.5 years. To work backward, divide: the rate is ${V('I')} ÷ (${V('P')} × ${V('t')}), and the time is ${V('I')} ÷ (one year’s interest).`) +
+      example('Example: interest and total', `${big('$800 at 3% simple interest for 5 years')}${V('I')} = 800 × 0.03 × 5 = <b>$120</b>. After 5 years the account holds 800 + 120 = <b>$920</b>.`) +
+      example('Example: a time in months', `$1,200 is borrowed at 4% simple interest for 18 months. 18 months is 18 ÷ 12 = 1.5 years, so ${V('I')} = 1,200 × 0.04 × 1.5 = <b>$72</b>.`) +
+      example('Example: finding the rate', `$500 earns $90 in simple interest over 4 years. ${V('P')} × ${V('t')} = 500 × 4 = 2,000, and 90 ÷ 2,000 = 0.045, so the rate is <b>4.5%</b> per year.`),
     make(rng) {
       const kind = rng.pick(['interest', 'total', 'total', 'rate', 'time', 'months']);
       const name = rng.pick(NAMES), save = rng.bool();
@@ -1036,9 +1199,11 @@
 
   A.skill({
     id: 'math7.number-properties', title: 'Naming the properties of operations',
-    learn: p(`The <b>commutative</b> property says order does not matter: ${V('a')} + ${V('b')} = ${V('b')} + ${V('a')} and ${V('a')} × ${V('b')} = ${V('b')} × ${V('a')}. The <b>associative</b> property says grouping does not matter: (${V('a')} + ${V('b')}) + ${V('c')} = ${V('a')} + (${V('b')} + ${V('c')}), and the same for ×.`) +
-      p(`The <b>identity</b> properties: adding 0 or multiplying by 1 changes nothing. The <b>inverse</b> properties: a number plus its opposite is 0, and a number times its reciprocal is 1. The <b>distributive</b> property: ${V('a')}(${V('b')} + ${V('c')}) = ${V('a')}${V('b')} + ${V('a')}${V('c')}.`) +
-      example('Example', `${big('(4 × 7) × 5 = 4 × (7 × 5)')}The numbers are in the same order on both sides; only the parentheses moved. That is the <b>associative property of multiplication</b>.`),
+    learn: p(`The <b>properties</b> of operations are rules that are true for every number. The <b>commutative</b> property says order doesn’t matter: ${V('a')} + ${V('b')} = ${V('b')} + ${V('a')} and ${V('a')} × ${V('b')} = ${V('b')} × ${V('a')}. The <b>associative</b> property says grouping (where the parentheses go) doesn’t matter: (${V('a')} + ${V('b')}) + ${V('c')} = ${V('a')} + (${V('b')} + ${V('c')}), and the same for ×.`) +
+      p(`The <b>identity</b> properties: adding 0 or multiplying by 1 changes nothing. The <b>inverse</b> properties: a number plus its opposite is 0, and a number times its reciprocal (the fraction flipped) is 1. The <b>distributive</b> property: ${V('a')}(${V('b')} + ${V('c')}) = ${V('a')}${V('b')} + ${V('a')}${V('c')}.`) +
+      example('Example: grouping', `${big('(4 × 7) × 5 = 4 × (7 × 5)')}The numbers are in the same order on both sides; only the parentheses moved. That’s the <b>associative property of multiplication</b>.`) +
+      example('Example: order', `${big('8 + (−3) = −3 + 8')}The same two numbers are added in the opposite order. That’s the <b>commutative property of addition</b>.`) +
+      example('Example: a number and its reciprocal', `${big(`${F(2, 5)} × ${F(5, 2)} = 1`)}A number times its reciprocal gives 1. That’s the <b>inverse property of multiplication</b>.`),
     make(rng) {
       const keys = Object.keys(PROPS), k = rng.pick(keys);
       const others = rng.sample(PROP_MIXUPS[k], 3);
@@ -1080,9 +1245,10 @@
 
   A.skill({
     id: 'math7.compare-expressions', title: 'Comparing expressions',
-    learn: p(`To compare two expressions, <b>simplify each side first</b>: combine like terms and remove zero pairs. Then you may remove the same thing from both sides (the same number of ${X}s, or the same constant) without changing which side is greater.`) +
-      p(`If both sides end up with the same number of ${X}s, the constants decide, and the answer is the same for every ${X}. If the ${X} terms are different, <b>which side is greater depends on ${X}</b>: the two sides are equal at one value and swap places there.`) +
-      example('Example', `Left: 3${X} + 5 − ${X} + 2. Right: 2${X} + 4. The left simplifies to 2${X} + 7. Remove 2${X} from both sides: 7 is more than 4, so <b>the left is always greater</b>.`),
+    learn: p(`To compare two expressions, <b>simplify each side first</b>: combine like terms and remove zero pairs (a number and its opposite, which add to 0). Then you may remove the same thing from both sides (the same number of ${X}s, or the same constant) without changing which side is greater.`) +
+      p(`If both sides end up with the same number of ${X}s, the constants decide, and the answer is the same for every ${X}. If the ${X} terms are different, <b>which side is greater depends on ${X}</b>: the two sides are equal at one value of ${X} and swap places there. To find that value, set the sides equal and solve.`) +
+      example('Example: one side is always greater', `Left: 3${X} + 5 − ${X} + 2. Right: 2${X} + 4. The left simplifies to 2${X} + 7. Remove 2${X} from both sides: 7 is more than 4, so <b>the left is always greater</b>.`) +
+      example('Example: it depends', `Left: 3${X} + 1. Right: ${X} + 7. The ${X} terms differ. Set them equal: 3${X} + 1 = ${X} + 7, so 2${X} = 6 and ${X} = 3. At ${X} = 0 the right is greater (1 and 7), and at ${X} = 5 the left is greater (16 and 12), so <b>it depends on ${X}</b>.`),
     make(rng) {
       const kind = rng.pick(['same', 'same', 'equal', 'depends', 'solve', 'test']);
       const aL = rng.int(-3, 5), x0 = rng.int(-5, 5);
@@ -1183,9 +1349,10 @@
 
   A.skill({
     id: 'math7.five-d-problems', title: 'Word problems with related unknowns (the 5-D Process)',
-    learn: p('The <b>5-D Process</b> organizes a word problem: <b>Describe</b> it, <b>Define</b> what to call the unknown, <b>Do</b> a trial, <b>Decide</b> whether the trial is too big or too small, and <b>Declare</b> the answer. A table with one row per trial keeps the work tidy.') +
+    learn: p('The <b>5-D Process</b> organizes a word problem in five steps: <b>Describe</b> it, <b>Define</b> what to call the unknown, <b>Do</b> a trial (try a number), <b>Decide</b> whether the trial is too big or too small, and <b>Declare</b> the answer. A table with one row per trial keeps the work tidy.') +
       p(`After a trial or two, let ${X} stand for the trial value. Every column of the table becomes an expression in ${X}, and the last column gives an <b>equation</b>. Solving it finds the answer without more guessing.`) +
-      example('Example', `Ana has 3 times as many stickers as Ben, and together they have 36. Trial: Ben 10, Ana 30, total 40: too big. Define Ben = ${X}, Ana = 3${X}: ${X} + 3${X} = 36, so 4${X} = 36 and ${X} = 9. Declare: Ben has <b>9</b>, Ana has <b>27</b>.`),
+      example('Example: one amount is a multiple of another', `Ana has 3 times as many stickers as Ben, and together they have 36.${M.table(['Ben (trial)', 'Ana', 'Total', 'Check'], [['10', '30', '40', 'too big'], ['8', '24', '32', 'too small'], [X, `3${X}`, `4${X}`, '= 36']], { compact: true })}So 4${X} = 36 and ${X} = 9. Declare: Ben has <b>9</b> stickers and Ana has <b>27</b>.`) +
+      example('Example: consecutive integers', `Three consecutive integers (whole numbers in a row, like 7, 8 and 9) add to 54. Define the smallest as ${X}; the others are ${X} + 1 and ${X} + 2. Then ${X} + (${X} + 1) + (${X} + 2) = 54, so 3${X} + 3 = 54, 3${X} = 51 and ${X} = 17. Declare: the integers are <b>17, 18 and 19</b>.`),
     make(rng) {
       const kind = rng.pick(Object.keys(FIVE_D));
       const P = FIVE_D[kind](rng, rng.sample(NAMES, 3));
@@ -1263,9 +1430,11 @@
 
   A.skill({
     id: 'math7.fraction-busters', title: 'Fraction Busters: equations with fractions',
-    learn: p(`Fractions in an equation are easier to handle once they are gone. <b>Fraction Busters: multiply every term on both sides by a common multiple of the denominators</b> (the least common multiple keeps the numbers smallest). Each fraction becomes a whole-number term, and the equation solves as usual.`) +
+    learn: p(`Fractions in an equation are easier to handle once they’re gone. <b>Fraction Busters: multiply every term on both sides by a common multiple of the denominators</b> (the least common multiple, LCM, keeps the numbers smallest). Each fraction becomes a whole-number term, and the equation solves as usual.`) +
       p(`Multiply <b>every</b> term, including the constants. When a numerator has two terms, like ${F(xPlus(1), 2)}, keep it in parentheses and distribute. Decimals work the same way: multiply by 10 or 100 to make the coefficients whole numbers.`) +
-      example('Example', `${big(`${F(X, 3)} + ${F(X, 4)} = 7`)}Multiply every term by 12: 4${X} + 3${X} = 84. Combine: 7${X} = 84, so <b>${X} = 12</b>. Check: 4 + 3 = 7 ✓.`),
+      example('Example: two fractions', `${big(`${F(X, 3)} + ${F(X, 4)} = 7`)}The LCM of 3 and 4 is 12. Multiply every term by 12: 4${X} + 3${X} = 84. Combine: 7${X} = 84, so <b>${X} = 12</b>. Check: 12 ÷ 3 + 12 ÷ 4 = 4 + 3 = 7 ✓`) +
+      example('Example: two-term numerators', `${big(`${F(xPlus(1), 2)} = ${F(xPlus(-3), 4)}`)}Multiply both sides by 4: 2(${X} + 1) = ${X} − 3. Distribute: 2${X} + 2 = ${X} − 3. Subtract ${X} and 2 from both sides: <b>${X} = −5</b>. Check: (−5 + 1) ÷ 2 = −2 and (−5 − 3) ÷ 4 = −2 ✓`) +
+      example('Example: decimals', `${big(`0.3${X} + 1.2 = 0.1${X} + 2`)}Multiply every term by 10: 3${X} + 12 = ${X} + 20. Subtract ${X} and 12 from both sides: 2${X} = 8, so <b>${X} = 4</b>.`),
     make(rng) {
       const form = rng.pick(['sum2', 'sum2', 'three', 'both', 'binomial', 'binomial', 'split', 'decimal', 'lcd']);
       if (form === 'lcd') {
@@ -1304,7 +1473,8 @@
       if (lab) g += `<text x="${x(i)}" y="68" text-anchor="middle" font-size="13">${N(M.round(v0 + st * i, 4))}</text>`;
     }
     if (at != null) g += `<circle cx="${x(at)}" cy="40" r="6" fill="var(--primary)"/><text x="${x(at)}" y="22" text-anchor="middle" font-size="14" font-weight="700">A</text>`;
-    return `<svg class="figure" viewBox="0 0 420 76" width="420" role="img" aria-label="number line with equal spaces${at != null ? ' and point A' : ''}">${g}</svg>`;
+    const said = labelAt.map(i => `mark ${i + 1} is labeled ${N(M.round(v0 + st * i, 4))}`).join(', ');
+    return `<svg class="figure" viewBox="0 0 420 76" width="420" role="img" aria-label="number line with 11 evenly spaced marks, counted from the left: ${said}${at != null ? `; point A is on mark ${at + 1}` : ''}">${g}</svg>`;
   }
   const NICE_SCALES = [1, 2, 5, 10, 20, 25, 50, 100, 200, 250, 500, 1000];
   /** how many equal spaces of size c an axis needs to reach from lo up to hi, with 0 on a mark */
@@ -1312,9 +1482,11 @@
 
   A.skill({
     id: 'math7.axis-scales', title: 'Choosing and reading axis scales',
-    learn: p('The marks on a graph’s axis must be <b>evenly spaced</b>, and every space must stand for the same amount: the <b>scale</b>. Not every mark has to be labeled. To find the scale, take two labeled marks, subtract their values and divide by the number of spaces between them.') +
+    learn: p('The marks on a graph’s axis must be <b>evenly spaced</b>, and every space must stand for the same amount: that amount is the <b>scale</b>. Not every mark has to be labeled. To find the scale, take two labeled marks, subtract their values and divide by the number of spaces between them.') +
       p('To choose a scale, find the range the axis must cover and divide it by the number of spaces you have. Then round <b>up</b> to a friendly number such as 1, 2, 5, 10, 20, 25 or 50, so that all of the data fits. Rounding down would leave some data off the graph.') +
-      example('Example', `Data run from 0 to 470 on an axis with 10 spaces. 470 ÷ 10 = 47, so each space must be at least 47. The smallest friendly scale that fits is <b>50</b>, and the axis runs from 0 to 500.`),
+      example('Example: reading a point', `${axisSvg(0, 4, [0, 5, 10], 7)}The labels 0 and 20 are 5 spaces apart, so each space is 20 ÷ 5 = 4. Point A is 2 spaces past 20: 20 + 2 × 4 = <b>28</b>.`) +
+      example('Example: two labeled marks', 'Two marks labeled −10 and 50 are 4 spaces apart. 50 − (−10) = 60, and 60 ÷ 4 = <b>15</b> per space.') +
+      example('Example: choosing a scale', 'Data run from 0 to 470 on an axis with 10 spaces. 470 ÷ 10 = 47, so each space must be at least 47. The smallest friendly scale that fits is <b>50</b>, and the axis runs from 0 to 500.'),
     make(rng) {
       const kind = rng.pick(['read', 'read', 'read', 'tick', 'choose', 'choose']);
       const name = rng.pick(NAMES);
@@ -1377,9 +1549,10 @@
 
   A.skill({
     id: 'math7.representative-samples', title: 'Representative and biased samples',
-    learn: p('A <b>population</b> is the whole group you want to know about; a <b>sample</b> is the part of it you actually ask. A sample is <b>representative</b> when it looks like the population in the ways that matter. The surest way to get one is a <b>random sample</b>: everyone in the population has the same chance of being picked.') +
-      p('A sample is <b>biased</b> when the way it was chosen favors some answers. Two common causes: asking only <b>one group</b> (the soccer team, the people in one shop), and letting people <b>choose themselves</b> (call-in polls, online surveys), because people with strong opinions answer most. A random sample also only represents the population it was drawn from.') +
-      example('Example', 'To learn what all students think of the lunch menu, asking the cooking club is biased: they may care about food more than others. Picking 60 names at random from a list of every student is <b>representative</b>.'),
+    learn: p('A <b>population</b> is the whole group you want to know about; a <b>sample</b> is the part of it you actually ask. A sample is <b>representative</b> when it looks like the population in the ways that matter. The surest way to get one is a <b>random sample</b>, where everyone in the population has the same chance of being picked.') +
+      p('A sample is <b>biased</b> when the way it was chosen favors some answers. Two common causes: asking only <b>one group</b> (the soccer team, the people in one store), and letting people <b>choose themselves</b> (call-in polls, online surveys), because people with strong opinions answer most. A random sample also only represents the population it was picked from.') +
+      example('Example: choosing a fair sample', 'To learn what all students think of the lunch menu, asking the cooking club is biased: they may care about food more than others. Picking 60 names at random from a list of every student is <b>representative</b>.') +
+      example('Example: what a sample can tell you', 'Mei picks 40 names at random from the list of 6th graders at her school and asks how they get to school. Her results describe <b>all 6th graders at her school</b>, not every student at the school and not every 6th grader in the country.'),
     make(rng) {
       const name = rng.pick(NAMES);
       if (rng.chance(0.35)) {
@@ -1402,9 +1575,10 @@
 
   A.skill({
     id: 'math7.population-estimate', title: 'Estimating a population from a sample',
-    learn: p('If a sample is random, the fraction of the sample with some feature is a good estimate of the fraction of the whole population with it. <b>Set up a proportion: part of sample ÷ sample size = part of population ÷ population size</b>, and solve for the missing number.') +
-      p('Biologists use the same idea to count animals. They catch some, tag them and let them go. Later they catch a new sample: the fraction of tagged animals in it estimates the fraction of the whole population that is tagged.') +
-      example('Example', `In a random sample of 50 of a school’s 800 students, 18 bike to school. ${R(18, 50)} = ${R(V('n'), 800)}, so ${V('n')} = 800 × 18 ÷ 50 = <b>288</b> students.`),
+    learn: p('If a sample is random, the fraction of the sample with some feature is a good estimate of the fraction of the whole population with it. <b>Set up a proportion</b> (two equal fractions): <b>part of sample ÷ sample size = part of population ÷ population size</b>, and solve for the missing number.') +
+      p('Scientists use the same idea to count animals. They catch some, tag them and let them go. Later they catch a new sample: the fraction of tagged animals in it estimates the fraction of the whole population that is tagged.') +
+      example('Example: a survey', `In a random sample of 50 of a school’s 800 students, 18 bike to school. ${R(18, 50)} = ${R(V('n'), 800)}, so ${V('n')} = 800 × 18 ÷ 50 = <b>288</b> students.`) +
+      example('Example: tagging animals', `Scientists tag 40 fish in a lake and release them. Later they catch 30 fish, and 6 of them have tags. ${R(6, 30)} = ${R(40, V('n'))}, so ${V('n')} = 40 × 30 ÷ 6 = <b>200</b> fish.`),
     make(rng) {
       const kind = rng.pick(['survey', 'survey', 'defect', 'tag', 'tag']);
       const name = rng.pick(NAMES);
@@ -1437,9 +1611,10 @@
 
   A.skill({
     id: 'math7.compare-mad', title: 'Comparing data sets with the MAD',
-    learn: p('The <b>mean absolute deviation</b> (MAD) is the average distance of the values from their mean. A small MAD means the values are close together: repeated measurements with a small MAD are more <b>precise</b>.') +
+    learn: p('The <b>mean absolute deviation</b> (MAD) is the average distance of the values from their mean. To find it, find the mean, find how far each value is from the mean, and take the mean of those distances. A small MAD means the values are close together: repeated measurements with a small MAD are more <b>precise</b>.') +
       p('To compare two groups whose spreads are about the same, measure the gap between their means <b>in MADs</b>: <b>difference of the means ÷ MAD</b>. A gap of several MADs means the groups barely overlap; a gap of less than one MAD means they overlap a lot.') +
-      example('Example', `Class A’s mean score is 82 and Class B’s is 70; both have a MAD of 4. The means are 82 − 70 = 12 apart, and 12 ÷ 4 = <b>3 MADs</b>.`),
+      example('Example: which is more precise', 'Method A measures 50, 52, 48 and 50 mm; Method B measures 46, 54, 50 and 50 mm. Both means are 50. A’s distances from 50 are 0, 2, 2 and 0, so its MAD is 4 ÷ 4 = 1. B’s are 4, 4, 0 and 0, so its MAD is 8 ÷ 4 = 2. A has the smaller MAD, so <b>Method A</b> is more precise.') +
+      example('Example: how many MADs apart', 'Class A’s mean score is 82 and Class B’s is 70; both have a MAD of 4. The means are 82 − 70 = 12 apart, and 12 ÷ 4 = <b>3 MADs</b>.'),
     make(rng) {
       const kind = rng.pick(['given', 'data', 'data', 'precise']);
       const pat = rng.pick(MAD_PATTERNS), mad = madOf(pat);
@@ -1477,12 +1652,33 @@
   /* ---------- Unit 12: Building triangles and slicing solids ---------- */
   const triOk = (a, b, c) => a + b > c && a + c > b && b + c > a;
   const sidesText = s => s.map(v => `${v} cm`).join(', ');
+  /** a triangle with sides a (left) and b (right) labeled, and the bottom side marked with a question mark */
+  function thirdSideSvg(a, b) {
+    const c = b, x = (a * a - b * b + c * c) / (2 * c), h = Math.sqrt(Math.max(a * a - x * x, 0.01)), s = Math.min(250 / c, 120 / h);
+    const x0 = (340 - c * s) / 2, P = [x0, 140], Q = [x0 + c * s, 140], T = [x0 + x * s, 140 - h * s];
+    const g = `<polygon class="fill" style="fill-opacity:.45" points="${[P, Q, T].map(q => q.map(r1).join(',')).join(' ')}"/>` +
+      svgText((P[0] + T[0]) / 2 - 8, (P[1] + T[1]) / 2, `${a} cm`, { anchor: 'end', bold: true }) + svgText((Q[0] + T[0]) / 2 + 8, (Q[1] + T[1]) / 2, `${b} cm`, { anchor: 'start', bold: true }) +
+      svgText((P[0] + Q[0]) / 2, 160, '?', { bold: true, size: 15 }) + notToScale(340, 176);
+    return figure(340, 176, `A triangle with two sides labeled ${a} cm and ${b} cm; the third side is marked with a question mark. Not to scale.`, g, 330);
+  }
+  /** for the lesson: 4, 7 and 12 cannot meet; 5, 6 and 9 make a triangle (drawn to scale, 12.5 pixels to a centimeter) */
+  function triangleRuleSvg() {
+    const u = 12.5, L = [16, 128], R0 = [16 + 12 * u, 128], e1 = toward(...L, 4 * u, 62), e2 = toward(...R0, 7 * u, 122);
+    const P = [196, 128], Q = [196 + 9 * u, 128], T = [196 + 70 / 18 * u, 128 - Math.sqrt(25 - Math.pow(70 / 18, 2)) * u];
+    const g = seg(L, R0, 'line') + seg(L, e1) + seg(R0, e2) + `<circle class="dot" cx="${r1(e1[0])}" cy="${r1(e1[1])}" r="3.5"/><circle class="dot" cx="${r1(e2[0])}" cy="${r1(e2[1])}" r="3.5"/>` +
+      svgText(L[0] + 4, 106, '4', { anchor: 'end' }) + svgText(R0[0] - 12, 82, '7', { anchor: 'start' }) + svgText((L[0] + R0[0]) / 2, 146, '12') + svgText((L[0] + R0[0]) / 2, 168, '4 + 7 &lt; 12: the ends can’t meet', { size: 12 }) +
+      `<polygon class="fill" style="fill-opacity:.45" points="${[P, Q, T].map(q => q.map(r1).join(',')).join(' ')}"/>` +
+      svgText((P[0] + T[0]) / 2 - 6, (P[1] + T[1]) / 2, '5', { anchor: 'end' }) + svgText((Q[0] + T[0]) / 2 + 6, (Q[1] + T[1]) / 2, '6', { anchor: 'start' }) + svgText((P[0] + Q[0]) / 2, 146, '9') +
+      svgText((P[0] + Q[0]) / 2, 168, '5 + 6 &gt; 9: a triangle', { size: 12 });
+    return figure(340, 178, 'Left: a 12 cm side with a 4 cm side and a 7 cm side hinged at its ends; even laid flat they only reach 11 cm, so their ends cannot meet. Right: sides of 5, 6 and 9 cm do make a triangle, because 5 + 6 is more than 9.', g, 340);
+  }
 
   A.skill({
     id: 'math7.triangle-inequality', title: 'The triangle inequality',
-    learn: p('Three lengths make a triangle only when <b>the two shorter sides add up to more than the longest side</b>. If they add up to exactly the longest side, the two short pieces lie flat along it; if they add up to less, their ends cannot meet.') +
+    learn: p('Three lengths make a triangle only when <b>the two shorter sides add up to more than the longest side</b>. This rule is called the <b>triangle inequality</b>. If the two shorter sides add up to exactly the longest side, they lie flat along it; if they add up to less, their ends can’t meet.') + triangleRuleSvg() +
       p(`So when two sides are ${V('a')} and ${V('b')} (with ${V('b')} the longer), the third side ${V('c')} must be longer than their difference and shorter than their sum: <b>${V('b')} − ${V('a')} &lt; ${V('c')} &lt; ${V('a')} + ${V('b')}</b>.`) +
-      example('Example', `Can 4 cm, 7 cm and 12 cm make a triangle? 4 + 7 = 11, which is less than 12, so <b>no</b>. If two sides are 5 cm and 9 cm, the third side must be between 9 − 5 = 4 cm and 9 + 5 = 14 cm.`),
+      example('Example: testing three lengths', 'Can 4 cm, 7 cm and 12 cm make a triangle? 4 + 7 = 11, which is less than 12, so <b>no</b>. Can 5 cm, 6 cm and 9 cm? 5 + 6 = 11, which is more than 9, so <b>yes</b>.') +
+      example('Example: the third side', `Two sides are 5 cm and 9 cm. The third side must be longer than 9 − 5 = 4 cm and shorter than 9 + 5 = 14 cm: <b>4 &lt; ${V('c')} &lt; 14</b>. As a whole number of centimeters it can be 5, 6, … up to 13: that’s <b>9</b> possible lengths.`),
     make(rng) {
       const kind = rng.pick(['which', 'which', 'range', 'max', 'min', 'count']);
       let a = rng.int(2, 12), b = rng.int(2, 14); if (a === b) b += 3; if (a > b) [a, b] = [b, a];
@@ -1504,7 +1700,7 @@
       if (kind === 'range') {
         const right = `${lo} &lt; ${xx} &lt; ${hi}`;
         const choices = [right].concat(distinct(right, rng.shuffle([`${a} &lt; ${xx} &lt; ${b}`, `${lo} &lt; ${xx} &lt; ${b}`, `${b} &lt; ${xx} &lt; ${hi}`, `${a} &lt; ${xx} &lt; ${hi}`]), 3));
-        return { prompt: `${intro} Which inequality describes every possible length ${xx} of the third side, in centimeters?`, type: 'choice', choices, answer: choices[0], params: { kind, a, b },
+        return { prompt: `${intro} Which inequality describes every possible length ${xx} of the third side, in centimeters?${thirdSideSvg(a, b)}`, type: 'choice', choices, answer: choices[0], params: { kind, a, b },
           hints: [`If the third side were ${hi} cm or longer, the two given sides could not reach across it.`, `If it were ${lo} cm or shorter, it and the ${a} cm side could not reach across the ${b} cm side.`, `${bounds} <b>${lo} &lt; ${xx} &lt; ${hi}</b>.`] };
       }
       const Q = {
@@ -1512,7 +1708,7 @@
         min: [`What is the <b>shortest</b> whole number of centimeters the third side could be?`, lo + 1, `It must be longer than ${lo}, so the shortest whole number is <b>${lo + 1}</b>.`],
         count: [`How many different whole-number lengths, in centimeters, could the third side have?`, hi - lo - 1, `The whole numbers from ${lo + 1} to ${hi - 1}: ${hi - 1} − ${lo + 1} + 1 = <b>${hi - lo - 1}</b>.`],
       }[kind];
-      return { prompt: `${intro} ${Q[0]}`, type: 'number', answer: Q[1], unit: kind === 'count' ? undefined : 'cm', params: { kind, a, b },
+      return { prompt: `${intro} ${Q[0]}${thirdSideSvg(a, b)}`, type: 'number', answer: Q[1], unit: kind === 'count' ? undefined : 'cm', params: { kind, a, b },
         hints: ['The two shorter sides of a triangle must add to more than the longest side.', bounds, Q[2]] };
     },
     verify(q) {
@@ -1531,6 +1727,12 @@
 
   /** a line-drawing of a solid; hidden edges dashed */
   function solidSvg(kind, dims) {
+    const name = kind === 'tprism' ? 'triangular prism' : kind === 'spyr' ? 'square pyramid' : kind === 'tpyr' ? 'triangular pyramid' : kind === 'box' ? 'box' : kind;
+    const label = `Drawing of a ${name}${dims ? ` ${dims[0]} cm long, ${dims[1]} cm wide and ${dims[2]} cm tall` : ''}; hidden edges are dashed.`;
+    return figure(dims ? 250 : 200, 180, label, solidG(kind, dims));
+  }
+  /** the shapes of solidSvg's drawing, without the svg around them */
+  function solidG(kind, dims) {
     const ln = (pts, dash) => `<polyline class="stroke" points="${pts.map(q => q.join(',')).join(' ')}"${dash ? ' stroke-dasharray="5 4" style="stroke-width:1.3"' : ''}/>`;
     const box = (x, y, w, h, dx, dy) => {
       const A = [x, y + h], B = [x + w, y + h], C = [x + w, y], D = [x, y], o = q => [q[0] + dx, q[1] - dy];
@@ -1545,7 +1747,15 @@
     else if (kind === 'tpyr') { const A0 = [30, 155], B0 = [150, 155], C0 = [105, 118], E = [88, 30]; g = `<polygon class="fill" points="${[A0, B0, E].map(q => q.join(',')).join(' ')}" style="fill-opacity:.5"/>` + ln([A0, B0, E, A0]) + ln([A0, C0, B0], true) + ln([C0, E], true); }
     else if (kind === 'cylinder') g = `<rect x="50" y="45" width="100" height="105" class="fill" style="fill-opacity:.5;stroke:none"/>` + arcs(100, 45, 50, 14, true) + arcs(100, 150, 50, 14, false) + ln([[50, 45], [50, 150]]) + ln([[150, 45], [150, 150]]);
     else g = `<polygon class="fill" points="45,152 155,152 100,32" style="fill-opacity:.5;stroke:none"/>` + arcs(100, 152, 55, 15, false) + ln([[45, 152], [100, 32], [155, 152]]);
-    return `<svg class="figure" viewBox="0 0 ${dims ? 250 : 200} 180" width="${dims ? 250 : 200}" role="img" aria-label="drawing of a ${kind === 'tprism' ? 'triangular prism' : kind === 'spyr' ? 'square pyramid' : kind === 'tpyr' ? 'triangular pyramid' : kind}">${g}</svg>`;
+    return g;
+  }
+  /** for the lesson: a box sliced parallel to its base (a rectangle) and a square pyramid sliced through its top point (a triangle) */
+  function slicesSvg() {
+    const poly = (pts, extra) => `<polygon class="fill2" style="fill-opacity:.85"${extra || ''} points="${pts.map(q => q.join(',')).join(' ')}"/>`;
+    const boxSlice = poly([[25, 127.5], [145, 127.5], [181, 99.5], [61, 99.5]]), pyrSlice = poly([[51, 138.5], [151, 138.5], [100, 28]]);
+    const g = `<g>${solidG('box')}${boxSlice}</g>` + svgText(100, 196, 'parallel to the base:', { size: 12 }) + svgText(100, 212, 'a rectangle', { size: 12, bold: true }) +
+      `<g transform="translate(200 0)">${solidG('spyr')}${pyrSlice}</g>` + svgText(300, 196, 'through the top point:', { size: 12 }) + svgText(300, 212, 'a triangle', { size: 12, bold: true });
+    return figure(400, 220, 'Two sliced solids. Left: a box cut by a flat slice parallel to its base; the slice is a rectangle. Right: a square pyramid cut by a slice straight down through its top point; the slice is a triangle.', g, 360);
   }
   const SOLID_NAMES = { cube: 'cube', box: 'rectangular prism (a box)', tprism: 'triangular prism standing on one of its triangular ends', spyr: 'square pyramid', tpyr: 'triangular pyramid', cylinder: 'cylinder', cone: 'cone' };
   /** each slice: the solid, how it is cut, the shape, why; plane = [normal, offset] for the polyhedra in SOLIDS_3D */
@@ -1602,9 +1812,12 @@
 
   A.skill({
     id: 'math7.cross-sections', title: 'Cross sections of prisms and pyramids',
-    learn: p('A <b>cross section</b> is the flat face you see when you slice straight through a solid. <b>A slice parallel to the base of a prism is an exact copy of the base; a slice parallel to the base of a pyramid has the base’s shape, but smaller.</b>') +
+    learn: p('A <b>cross section</b> is the flat shape you see when you slice straight through a solid. A <b>prism</b> has two matching ends (its bases) joined by flat sides, like a box; a <b>pyramid</b> has one base and sloping sides that meet at a top point. <b>Parallel</b> means running the same way and never meeting, like a floor and a ceiling.') +
+      p('<b>A slice parallel to the base of a prism is an exact copy of the base; a slice parallel to the base of a pyramid has the base’s shape, but smaller.</b>') + slicesSvg() +
       p('Slices in other directions take other shapes. A slice straight down through a prism, parallel to a side face, is a rectangle. A slice straight down through the top point of a pyramid is a triangle; move it off the top point and the top of the triangle is cut off, leaving a trapezoid. Slicing a corner off a cube leaves a triangle.') +
-      example('Example', 'A square pyramid is sliced straight down through its top point, parallel to one edge of its base. The slice crosses the base along a straight line and rises to the top point: the cross section is a <b>triangle</b>.'),
+      example('Example: the shape', 'A square pyramid is sliced straight down through its top point, parallel to one edge of its base. The slice crosses the base along a straight line and rises to the top point: the cross section is a <b>triangle</b>.') +
+      example('Example: the area', 'A box 8 cm long, 5 cm wide and 3 cm tall is sliced parallel to its base. The slice is a copy of the base, an 8 cm by 5 cm rectangle, so its area is 8 × 5 = <b>40 cm²</b>.') +
+      example('Example: halfway up a pyramid', 'A square pyramid with a base 10 cm on each side is sliced parallel to the base, halfway up. The slice is a square whose sides are half the base’s: 10 ÷ 2 = <b>5 cm</b>.'),
     make(rng) {
       if (rng.chance(0.3)) {
         const kind = rng.pick(['box', 'box', 'cube', 'pyramid']);
@@ -1651,9 +1864,11 @@
   /* ---------- sports statistics ---------- */
   A.skill({
     id: 'math7.sports-stats', title: 'Sports statistics',
-    learn: p('Sports use a few kinds of numbers again and again. A <b>shooting percentage</b> is made ÷ tried × 100: 18 made out of 24 tries is 18 ÷ 24 = 0.75, or 75%.') +
-      p('An <b>average per game</b> is the total ÷ the number of games, the mean. To find what a player needs next game for a new average, multiply the target average by the new number of games, then subtract the total so far.') +
-      example('Example', `${big('Points in four games: 12, 15, 9 and 20. What is the average?')}The total is 12 + 15 + 9 + 20 = 56, and 56 ÷ 4 = <b>14 points per game</b>.`),
+    learn: p('Sports use a few kinds of numbers again and again. A <b>shooting percentage</b> is made ÷ tried × 100.') +
+      p('An <b>average per game</b> is the total ÷ the number of games, which is the mean. To find what a player needs in the next game to reach a new average, multiply the target average by the new number of games, then subtract the total so far.') +
+      example('Example: a percentage', `Ana made 18 of 24 free throws. 18 ÷ 24 = 0.75, and 0.75 × 100 = <b>75%</b>.`) +
+      example('Example: an average', `${big('Points in four games: 12, 15, 9 and 20. What is the average?')}The total is 12 + 15 + 9 + 20 = 56, and 56 ÷ 4 = <b>14 points per game</b>.`) +
+      example('Example: what’s needed next game', `Dev scored 12, 15 and 9 points in three games. To average 14 over four games, the total must be 14 × 4 = 56. So far it’s 12 + 15 + 9 = 36, so Dev needs 56 − 36 = <b>20 points</b>.`),
     make(rng) {
       const name = rng.pick(NAMES), kind = rng.pick(['pct', 'avg', 'need']);
       if (kind === 'pct') {
