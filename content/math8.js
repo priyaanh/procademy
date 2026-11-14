@@ -4,7 +4,9 @@
 (function () {
   const A = window.ACADEMY, M = window.M;
   const F = M.frac, N = M.n, V = M.v, S = M.sup, PT = M.pt;
-  const NAMES = ['Ana', 'Ben', 'Chloe', 'Dev', 'Ella', 'Finn', 'Grace', 'Hugo', 'Iris', 'Jai', 'Kai', 'Lena', 'Milo', 'Nora', 'Omar', 'Ravi', 'Sara', 'Theo', 'Uma', 'Zoe'];
+  const NAMES = ['Ana', 'Ben', 'Chloe', 'Dev', 'Ella', 'Finn', 'Grace', 'Hugo', 'Iris', 'Jai', 'Kai', 'Lena', 'Milo', 'Nora', 'Omar', 'Ravi', 'Sara', 'Theo', 'Uma', 'Zoe',
+    'Aisha', 'Mateo', 'Mei', 'Kwame', 'Diego', 'Yuki', 'Fatima', 'Liam', 'Amara', 'Hana', 'Sofia', 'Jamal', 'Leila', 'Arjun', 'Noor', 'Tariq', 'Rosa', 'Kenji', 'Imani', 'Lucas',
+    'Elena', 'Malik', 'Anika', 'Owen', 'Zara', 'Nikhil', 'Chidi', 'Ines', 'Rafael', 'Sana'];
   const p = (s) => `<p>${s}</p>`;
   const example = (title, body) => `<div class="example"><div class="ex-title">${title}</div>${body}</div>`;
   const big = s => `<div class="big">${s}</div>`;
@@ -36,6 +38,8 @@
     for (const c of candidates) { const key = A.normText(A.stripTags(c)); if (!seen.has(key)) { seen.add(key); out.push(c); } if (out.length === k) break; }
     return out;
   };
+  const r2 = v => Math.round(v * 100) / 100;
+  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 
   A.course({
     id: 'math-8', title: '8th grade math', subject: 'Middle school', grade: 8, icon: '8', hue: 265,
@@ -56,10 +60,12 @@
   /* ---------- Unit 1: Numbers and operations ---------- */
   A.skill({
     id: 'math8.exponent-properties', title: 'Exponent properties',
-    learn: p(`An exponent counts repeated multiplication: ${S(X, 4)} means ${X} · ${X} · ${X} · ${X}. Three rules follow from that counting, and they only apply when the <b>bases are the same</b>.`) +
-      p(`<b>Product rule:</b> ${S(X, 'm')} × ${S(X, 'n')} = ${S(X, 'm + n')} — add the exponents.<br><b>Quotient rule:</b> ${S(X, 'm')} ÷ ${S(X, 'n')} = ${S(X, 'm − n')} — subtract the exponents.<br><b>Power of a power:</b> (${S(X, 'm')})${S('', 'n')} = ${S(X, 'mn')} — multiply the exponents.`) +
-      p(`The base never changes: ${S(3, 4)} × ${S(3, 2)} is ${S(3, 6)}, not ${S(9, 6)}. Check small cases if you forget a rule: ${S(2, 3)} × ${S(2, 2)} = 8 × 4 = 32 = ${S(2, 5)}.`) +
-      example('Example', `${big(`${S(5, 7)} ÷ ${S(5, 3)}`)}Same base, a division, so subtract the exponents: 7 − 3 = 4. The answer is <b>${S(5, 4)}</b>.`),
+    learn: p(`In ${S(X, 4)}, the <b>base</b> is ${X}, the number being multiplied, and the <b>exponent</b> is 4, the small raised number that counts how many times: ${S(X, 4)} means ${X} · ${X} · ${X} · ${X}. Three shortcuts follow from that counting, and they only work when the <b>bases are the same</b>.`) +
+      p(`<b>Product rule:</b> ${S(X, 'm')} × ${S(X, 'n')} = ${S(X, 'm + n')}. When you multiply, add the exponents.<br><b>Quotient rule:</b> ${S(X, 'm')} ÷ ${S(X, 'n')} = ${S(X, 'm − n')}. When you divide, subtract them.<br><b>Power of a power:</b> (${S(X, 'm')})${S('', 'n')} = ${S(X, 'mn')}. When a power is raised to another power, multiply them.`) +
+      p(`The base never changes: ${S(3, 4)} × ${S(3, 2)} is ${S(3, 6)}, not ${S(9, 6)}. If you forget a rule, try a small case: ${S(2, 3)} × ${S(2, 2)} = 8 × 4 = 32, and 32 is ${S(2, 5)}.`) +
+      example('Example: multiplying', `${big(`${S(X, 3)} × ${S(X, 5)}`)}Same base, and you’re multiplying, so add the exponents: 3 + 5 = 8. Three ${X}’s times five more ${X}’s is eight ${X}’s in a row, so the answer is <b>${S(X, 8)}</b>.`) +
+      example('Example: dividing', `${big(`${S(5, 7)} ÷ ${S(5, 3)}`)}Same base, and you’re dividing, so subtract the exponents: 7 − 3 = 4. The answer is <b>${S(5, 4)}</b>.`) +
+      example('Example: a power of a power', `${big(`(${S(2, 4)})${S('', 3)}`)}This is ${S(2, 4)} used three times, so multiply the exponents: 4 × 3 = 12. The answer is <b>${S(2, 12)}</b>. (Adding them, 4 + 3 = 7, is the usual slip.)`),
     make(rng) {
       const rule = rng.pick(['product', 'quotient', 'power']);
       const base = rng.pick(['2', '3', '5', '7', '10', 'x', 'x', 'y', 'a']);
@@ -96,9 +102,12 @@
 
   A.skill({
     id: 'math8.negative-exponents', title: 'Negative exponents',
-    learn: p(`A negative exponent means “one over”: <b>${S(X, '−n')} = ${fracH('1', S(X, 'n'))}</b>. So ${S(2, '−3')} = ${F(1, 8)} and ${S(10, '−2')} = ${F(1, 100, { raw: true })} = 0.01. The result is small, but it is still positive.`) +
-      p(`Here is why. The quotient rule says ${S(2, 2)} ÷ ${S(2, 5)} = ${S(2, '−3')}, and working it out directly gives 4 ÷ 32 = ${F(1, 8)}. For a fraction, flipping it makes the exponent positive: (${F(2, 3)})${S('', '−2')} = (${F(3, 2)})${S('', 2)} = ${F(9, 4)}.`) +
-      example('Example', `${big(S(5, '−2'))}${S(5, '−2')} = 1 ÷ ${S(5, 2)} = 1 ÷ 25 = <b>${F(1, 25)}</b>, which is 0.04.`),
+    learn: p(`A negative exponent means “one over”: <b>${S(X, '−n')} = ${fracH('1', S(X, 'n'))}</b>. So ${S(2, '−3')} = ${F(1, 8)} and ${S(10, '−2')} = ${F(1, 100, { raw: true })} = 0.01. The result is small, but it’s still positive. The negative sign tells you to divide, not to make the answer negative.`) +
+      p(`Here’s why. The quotient rule says ${S(2, 2)} ÷ ${S(2, 5)} = ${S(2, '−3')}, and working it out directly gives 4 ÷ 32 = ${F(1, 8)}. For a fraction, flip it over (use its <b>reciprocal</b>, the fraction turned upside down) and the exponent becomes positive: (${F(2, 3)})${S('', '−2')} = (${F(3, 2)})${S('', 2)} = ${F(9, 4)}.`) +
+      example('Example: a whole number', `${big(S(5, '−2'))}${S(5, '−2')} = 1 ÷ ${S(5, 2)} = 1 ÷ 25 = <b>${F(1, 25)}</b>, which is 0.04.`) +
+      example('Example: a power of ten', `${big(S(10, '−3'))}${S(10, '−3')} = 1 ÷ ${S(10, 3)} = 1 ÷ 1,000. Dividing by 1,000 moves the decimal point 3 places left, so the value is <b>0.001</b>.`) +
+      example('Example: a fraction', `${big(`(${F(3, 4)})${S('', '−2')}`)}Flip the fraction to make the exponent positive: (${F(4, 3)})${S('', 2)}. Square the top and the bottom: ${S(4, 2)} = 16 and ${S(3, 2)} = 9, so the value is <b>${F(16, 9)}</b>.`) +
+      example('Example: a product', `${big(`${S(3, 2)} × ${S(3, '−5')}`)}Same base, so add the exponents: 2 + (−5) = −3. Then ${S(3, '−3')} = 1 ÷ ${S(3, 3)} = <b>${F(1, 27)}</b>.`),
     make(rng) {
       const kind = rng.pick(['plain', 'plain', 'ten', 'frac', 'product']);
       if (kind === 'ten') {
@@ -137,7 +146,9 @@
     learn: p(`<b>Scientific notation</b> writes a number as a value from 1 up to (but not including) 10, times a power of ten: 3,600,000 = ${sci(3.6, 6)} and 0.00042 = ${sci(4.2, -4)}. The exponent tells how many places the decimal point moved: positive for big numbers, negative for small ones.`) +
       p(`<b>To write a number in scientific notation</b>, move the decimal point until exactly one non-zero digit is in front of it, and count the places. <b>To write it out</b>, move the point back: a positive exponent moves it right, a negative exponent moves it left, filling with zeros.`) +
       p(`<b>To multiply</b>, multiply the front numbers and add the exponents: (${sci(2, 3)})(${sci(4, 5)}) = ${sci(8, 8)}. If the front number comes out 10 or more, slide the point one more place and add 1 to the exponent: ${sci(24, 8)} becomes ${sci(2.4, 9)}.`) +
-      example('Example', `${big('Write 0.00075 in scientific notation.')}Move the point 4 places right to get 7.5, so the exponent is −4: <b>${sci(7.5, -4)}</b>.`),
+      example('Example: a small number', `${big('Write 0.00075 in scientific notation.')}Move the point 4 places right to get 7.5. The number is small, so the exponent is negative: <b>${sci(7.5, -4)}</b>.`) +
+      example('Example: writing it out', `${big(sci(6.02, 4))}The exponent is positive, so move the point 4 places right, filling with zeros: 6.02 → 60.2 → 602 → 6,020 → <b>60,200</b>.`) +
+      example('Example: multiplying', `${big(`(${sci(4, 3)}) × (${sci(5, 6)})`)}Multiply the front numbers: 4 × 5 = 20. Add the exponents: 3 + 6 = 9. That gives ${sci(20, 9)}, but 20 isn’t between 1 and 10, so write 20 as ${sci(2, 1)} and add 1 to the exponent: <b>${sci(2, 10)}</b>.`),
     make(rng) {
       const kind = rng.pick(['in', 'in', 'out', 'multiply', 'multiply']);
       const mants = [1.2, 1.5, 2, 2.4, 3, 3.6, 4.2, 4.5, 5, 5.8, 6.3, 7, 7.5, 8.1, 9, 9.6];
@@ -181,10 +192,12 @@
 
   A.skill({
     id: 'math8.roots', title: 'Square roots and cube roots',
-    learn: p(`The <b>square root</b> of a number is the number that, squared, gives it back: ${M.sqrt(49)} = 7 because ${S(7, 2)} = 49. The <b>cube root</b> undoes cubing: ${cbrt(64)} = 4 because ${S(4, 3)} = 64. A cube root can be negative (${cbrt('−8')} = −2), but ${M.sqrt(X)} always means the positive root.`) +
-      p(`Learn the perfect squares up to 15² = 225 and the cubes up to 10³ = 1000; most problems use them. A square with area 81 cm² has sides of ${M.sqrt(81)} = 9 cm; a cube with volume 125 cm³ has edges of ${cbrt(125)} = 5 cm.`) +
-      p(`When a number is <b>not</b> a perfect square, its square root lies between two whole numbers. Find the perfect squares on either side: 36 < 40 < 49, so 6 < ${M.sqrt(40)} < 7, and because 40 is closer to 36 the root is a bit above 6 (it is about 6.3).`) +
-      example('Example', `${big(M.sqrt(144))}Which number times itself is 144? 12 × 12 = 144, so ${M.sqrt(144)} = <b>12</b>.`),
+    learn: p(`The <b>square root</b> of a number is the number that, multiplied by itself, gives it back: ${M.sqrt(49)} = 7 because ${S(7, 2)} = 7 × 7 = 49. The <b>cube root</b> undoes cubing (using a number three times in a product): ${cbrt(64)} = 4 because ${S(4, 3)} = 4 × 4 × 4 = 64. A cube root can be negative (${cbrt('−8')} = −2, since (−2) × (−2) × (−2) = −8), but ${M.sqrt(X)} always means the positive root.`) +
+      p(`A <b>perfect square</b> is a whole number times itself (1, 4, 9, 16, 25, …), and a <b>perfect cube</b> is a whole number used three times (1, 8, 27, 64, …). Learn the squares up to ${S(15, 2)} = 225 and the cubes up to ${S(10, 3)} = 1,000; most problems use them. A square with area 81 cm² has sides of ${M.sqrt(81)} = 9 cm, and a cube with volume 125 cm³ has edges of ${cbrt(125)} = 5 cm.`) +
+      p(`When a number is <b>not</b> a perfect square, its square root lies between two whole numbers. Find the perfect squares on either side: 36 &lt; 40 &lt; 49, so 6 &lt; ${M.sqrt(40)} &lt; 7. Because 40 is closer to 36, the root is a bit above 6 (it’s about 6.3).`) +
+      example('Example: a square root', `${big(M.sqrt(144))}Which number times itself is 144? 12 × 12 = 144, so ${M.sqrt(144)} = <b>12</b>.`) +
+      example('Example: a negative cube root', `${big(cbrt('−27'))}Which number, used three times, gives −27? 3 × 3 × 3 = 27, and an odd number of negatives makes a negative, so (−3) × (−3) × (−3) = −27. The answer is <b>−3</b>.`) +
+      example('Example: between two whole numbers', `${big(M.sqrt(75))}75 isn’t a perfect square. The squares on either side are ${S(8, 2)} = 64 and ${S(9, 2)} = 81, and 64 &lt; 75 &lt; 81. So ${M.sqrt(75)} is between <b>8 and 9</b>, a little closer to 9.`),
     make(rng) {
       const kind = rng.pick(['square', 'square', 'cube', 'area', 'volume', 'estimate', 'estimate']);
       if (kind === 'square') {
@@ -232,9 +245,10 @@
 
   A.skill({
     id: 'math8.variables-both-sides', title: 'Equations with variables on both sides',
-    learn: p(`When ${X} appears on both sides, first gather the ${X}-terms on one side and the plain numbers on the other. <b>Whatever you do to one side, do to the other</b>, so the equation stays balanced.`) +
-      p(`A good habit: subtract the smaller ${X}-term from both sides, so the ${X}-coefficient left over is positive. Then it is an ordinary two-step equation. Finish by checking: put your answer back into <b>both</b> sides and make sure they match.`) +
-      example('Example', `${big(`5${X} − 4 = 2${X} + 11`)}Subtract 2${X} from both sides: 3${X} − 4 = 11. Add 4: 3${X} = 15. Divide by 3: <b>${X} = 5</b>. Check: 5(5) − 4 = 21 and 2(5) + 11 = 21. ✓`),
+    learn: p(`When ${X} appears on both sides, first gather the <b>${X}-terms</b> (the parts with ${X} in them, such as 5${X}) on one side and the plain numbers on the other. <b>Whatever you do to one side, do to the other</b>, so the equation stays balanced.`) +
+      p(`The number in front of ${X} is its <b>coefficient</b>: in 5${X} it’s 5. A good habit is to take away the ${X}-term with the smaller coefficient from both sides, so the one left over is positive. Then it’s an ordinary two-step equation. Finish by checking: put your answer back into <b>both</b> sides and make sure they match.`) +
+      example('Example: gather on the left', `${big(`5${X} − 4 = 2${X} + 11`)}Subtract 2${X} from both sides: 3${X} − 4 = 11. Add 4: 3${X} = 15. Divide by 3: <b>${X} = 5</b>. Check: 5(5) − 4 = 21 and 2(5) + 11 = 21. ✓`) +
+      example('Example: gather on the right', `${big(`2${X} + 9 = 6${X} + 17`)}The smaller ${X}-term is on the left, so subtract 2${X} from both sides: 9 = 4${X} + 17. Subtract 17: −8 = 4${X}. Divide by 4: <b>${X} = −2</b>. Check: 2(−2) + 9 = 5 and 6(−2) + 17 = 5. ✓`),
     make(rng) {
       const x = rng.int(-10, 10);
       let a = rng.nz(-9, 9), c = rng.nz(-9, 9);
@@ -257,8 +271,10 @@
   A.skill({
     id: 'math8.distributive-equations', title: 'Equations with parentheses',
     learn: p(`When an equation has parentheses, use the <b>distributive property</b> first: multiply the number outside by <b>every</b> term inside. 3(${X} − 4) = 3${X} − 12, and −2(${X} + 5) = −2${X} − 10 (the negative multiplies both terms).`) +
-      p(`Then combine like terms on each side, gather the ${X}-terms on one side, and solve as usual. The most common slip is multiplying only the first term inside the parentheses.`) +
-      example('Example', `${big(`4(${X} − 3) = 2${X} + 6`)}Distribute: 4${X} − 12 = 2${X} + 6. Subtract 2${X}: 2${X} − 12 = 6. Add 12: 2${X} = 18. So <b>${X} = 9</b>.`),
+      p(`Then combine <b>like terms</b> on each side (terms of the same kind, such as 3${X} and 5${X}, or 10 and −7), gather the ${X}-terms on one side, and solve as usual. The most common slip is multiplying only the first term inside the parentheses.`) +
+      example('Example: a number on the other side', `${big(`−3(${X} + 4) = 6`)}Distribute −3 to both terms: −3${X} − 12 = 6. Add 12: −3${X} = 18. Divide by −3: <b>${X} = −6</b>. Check: −3(−6 + 4) = −3(−2) = 6. ✓`) +
+      example(`Example: ${X} on both sides`, `${big(`4(${X} − 3) = 2${X} + 6`)}Distribute: 4${X} − 12 = 2${X} + 6. Subtract 2${X}: 2${X} − 12 = 6. Add 12: 2${X} = 18. So <b>${X} = 9</b>.`) +
+      example('Example: combine first', `${big(`2(${X} + 5) − 7 = 5${X} + 9`)}Distribute: 2${X} + 10 − 7 = 5${X} + 9. Combine 10 − 7: 2${X} + 3 = 5${X} + 9. Subtract 2${X}: 3 = 3${X} + 9. Subtract 9: −6 = 3${X}, so <b>${X} = −2</b>.`),
     make(rng) {
       const x = rng.int(-9, 9), form = rng.pick(['a(x+b)=c', 'a(x+b)=cx+d', 'a(x+b)+e=cx+d']);
       const a = rng.pick([-5, -4, -3, -2, 2, 3, 4, 5, 6]), b = rng.nz(-8, 8);
@@ -283,7 +299,9 @@
     id: 'math8.number-of-solutions', title: 'Number of solutions to equations',
     learn: p(`Simplify both sides completely, then compare. If the ${X}-terms are <b>different</b>, the equation has <b>exactly one solution</b>.`) +
       p(`If the ${X}-terms are the same, they cancel when you subtract. What is left decides it: a true statement such as 6 = 6 means <b>infinitely many solutions</b> (every ${X} works, because the two sides are the same expression); a false statement such as 6 = 2 means <b>no solution</b> (no ${X} can make it true).`) +
-      example('Example', `${big(`3(${X} + 2) = 3${X} + 2`)}Distribute: 3${X} + 6 = 3${X} + 2. Subtract 3${X}: 6 = 2, which is false. <b>No solution.</b>`),
+      example('Example: no solution', `${big(`3(${X} + 2) = 3${X} + 2`)}Distribute: 3${X} + 6 = 3${X} + 2. Subtract 3${X}: 6 = 2, which is false. <b>No solution.</b>`) +
+      example('Example: infinitely many', `${big(`2(${X} − 3) + ${X} = 3${X} − 6`)}Distribute and combine: 2${X} − 6 + ${X} = 3${X} − 6, so 3${X} − 6 = 3${X} − 6. Subtract 3${X}: −6 = −6, which is always true. <b>Infinitely many solutions.</b>`) +
+      example('Example: exactly one', `${big(`4(${X} + 1) = 2${X} + 10`)}Distribute: 4${X} + 4 = 2${X} + 10. The ${X}-terms are different (4${X} and 2${X}), so they don’t cancel: 2${X} = 6 and ${X} = 3. <b>Exactly one solution.</b>`),
     make(rng) {
       const kind = rng.pick(['one', 'none', 'many']);
       const pp = rng.pick([2, 3, 4, 5, -2, -3]), qq = rng.nz(-6, 6), r = rng.int(-3, 3);   // left: p(x + q) + r·x
@@ -313,7 +331,9 @@
     id: 'math8.slope', title: 'Slope and rate of change',
     learn: p(`The <b>slope</b> of a line says how steep it is: how much ${Y} changes for each step of 1 in ${X}. From two points, <b>slope = (change in ${Y}) ÷ (change in ${X}) = (${M.sub(Y, 2)} − ${M.sub(Y, 1)}) ÷ (${M.sub(X, 2)} − ${M.sub(X, 1)})</b>. Subtract in the same order on top and bottom.`) +
       p(`A positive slope rises from left to right, a negative slope falls, and a horizontal line has slope 0. In a word problem the slope is the <b>rate of change</b>, with units such as dollars per hour or centimeters per day.`) +
-      example('Example', `${big(`${PT(1, 2)} and ${PT(5, 10)}`)}Change in ${Y}: 10 − 2 = 8. Change in ${X}: 5 − 1 = 4. Slope = 8 ÷ 4 = <b>2</b>.`),
+      example('Example: two points', `${big(`${PT(1, 2)} and ${PT(5, 10)}`)}Change in ${Y}: 10 − 2 = 8. Change in ${X}: 5 − 1 = 4. Slope = 8 ÷ 4 = <b>2</b>.`) +
+      example('Example: a table', `${M.table([X, Y], [[N(-2), N(5)], [N(4), N(1)]], { compact: true })}Change in ${Y}: 1 − 5 = −4. Change in ${X}: 4 − (−2) = 6. Slope = −4 ÷ 6 = <b>−${F(2, 3)}</b>. It’s negative, so the line falls from left to right.`) +
+      example('Example: a rate of change', `After 2 hours a candle is 18 cm tall, and after 6 hours it’s 12 cm tall. The rate of change is (12 − 18) ÷ (6 − 2) = −6 ÷ 4 = <b>−1.5 cm per hour</b>. It’s negative because the candle is getting shorter.`),
     make(rng) {
       const kind = rng.pick(['points', 'points', 'table', 'word']);
       if (kind === 'word') return slopeWord(rng);
@@ -340,8 +360,13 @@
     const story = rng.pick([
       () => { const r = rng.pick([12, 15, 18, 20, 25]), v1 = r * t1 + rng.int(0, 4) * 10; return { r, v1, text: v => `${name}'s savings grow at a steady rate. After ${t1} weeks there is ${M.money(v1)} in the account; after ${t2} weeks there is ${M.money(v)}. What is the rate of change, in dollars per week?`, unitOut: '$/week', per: 'week' }; },
       () => { const r = -rng.pick([1.5, 2, 2.5, 3, 4]), v1 = rng.int(20, 30); return { r, v1, unitOut: 'cm/hour', per: 'hour', text: v => `A candle burns down at a steady rate. After ${t1} hours it is ${N(v1)} cm tall; after ${t2} hours it is ${N(v)} cm tall. What is the rate of change of its height, in centimeters per hour?` }; },
-      () => { const r = rng.pick([45, 50, 55, 60, 65]), v1 = r * t1 + rng.int(0, 3) * 20; return { r, v1, unitOut: 'km/hour', per: 'hour', text: v => `A bus travels at a steady speed. After ${t1} hours it has gone ${N(v1)} km; after ${t2} hours it has gone ${N(v)} km. What is the rate of change, in kilometers per hour?` }; },
+      () => { const r = rng.pick([45, 50, 55, 60, 65, 70, 75]), v1 = r * t1; return { r, v1, unitOut: 'km/hour', per: 'hour', text: v => `A bus travels at a steady speed. After ${t1} hours it has gone ${N(v1)} km; after ${t2} hours it has gone ${N(v)} km. What is the rate of change, in kilometers per hour?` }; },
       () => { const r = -rng.pick([3, 4, 5, 6, 8]), v1 = rng.int(60, 90); return { r, v1, unitOut: 'L/min', per: 'minute', text: v => `A tank is drained at a steady rate. After ${t1} minutes it holds ${N(v1)} liters; after ${t2} minutes it holds ${N(v)} liters. What is the rate of change, in liters per minute?` }; },
+      () => { const r = rng.pick([1.5, 2, 2.5, 3, 3.5]), v1 = rng.int(4, 12); return { r, v1, unitOut: 'cm/week', per: 'week', text: v => `A bean plant in ${name}'s garden grows at a steady rate. After ${t1} weeks it is ${N(v1)} cm tall; after ${t2} weeks it is ${N(v)} cm tall. What is the rate of change of its height, in centimeters per week?` }; },
+      () => { const r = rng.pick([20, 25, 30, 40, 45]), v1 = rng.int(3, 9) * 50; return { r, v1, unitOut: 'L/min', per: 'minute', text: v => `The pool at the community center is being filled at a steady rate. After ${t1} minutes it holds ${N(v1)} liters; after ${t2} minutes it holds ${N(v)} liters. What is the rate of change, in liters per minute?` }; },
+      () => { const r = rng.pick([24, 30, 36, 42, 48]), v1 = r * t1; return { r, v1, unitOut: 'rolls/hour', per: 'hour', text: v => `A bakery makes bread rolls at a steady rate. By ${t1} hours after opening it has made ${N(v1)} rolls; by ${t2} hours it has made ${N(v)}. What is the rate of change, in rolls per hour?` }; },
+      () => { const r = -rng.pick([6, 8, 10, 12, 15]), v1 = rng.int(18, 24) * 10; return { r, v1, unitOut: 'books/day', per: 'day', text: v => `A library is giving away old books at a steady rate. After ${t1} days ${N(v1)} books are left on the table; after ${t2} days ${N(v)} are left. What is the rate of change, in books per day?` }; },
+      () => { const r = -rng.pick([4, 5, 6, 8, 10]), v1 = rng.int(20, 30) * 10; return { r, v1, unitOut: 'm/min', per: 'minute', text: v => `${name} hikes down a hill trail at a park at a steady rate. After ${t1} minutes ${name} is at a height of ${N(v1)} m; after ${t2} minutes, ${N(v)} m. What is the rate of change of ${name}'s height, in meters per minute?` }; },
     ])();
     const v2 = M.round(story.v1 + story.r * (t2 - t1), 2);
     return { prompt: story.text(v2), type: 'number', answer: story.r, unit: story.unitOut, params: { kind: 'word', t1, t2, v1: story.v1, v2 },
@@ -351,9 +376,10 @@
 
   A.skill({
     id: 'math8.slope-intercept-form', title: 'Writing slope-intercept equations',
-    learn: p(`<b>Slope-intercept form</b> is ${Y} = ${V('m')}${X} + ${V('b')}, where ${V('m')} is the slope and ${V('b')} is the ${Y}-intercept (where the line crosses the ${Y}-axis, at ${X} = 0).`) +
+    learn: p(`<b>Slope-intercept form</b> is ${Y} = ${V('m')}${X} + ${V('b')}, where ${V('m')} is the slope and ${V('b')} is the <b>${Y}-intercept</b>: the ${Y}-value where the line crosses the ${Y}-axis, at ${X} = 0.`) +
       p(`If you know the slope and one point, put them into ${Y} = ${V('m')}${X} + ${V('b')} and solve for ${V('b')}. If you know two points, find the slope first, then use either point.`) +
-      example('Example', `${big(`Slope 3, through ${PT(2, 1)}`)}1 = 3(2) + ${V('b')}, so 1 = 6 + ${V('b')} and ${V('b')} = −5. The equation is <b>${eqn(3, -5)}</b>.`),
+      example('Example: a slope and a point', `${big(`Slope 3, through ${PT(2, 1)}`)}Put ${X} = 2 and ${Y} = 1 into ${Y} = 3${X} + ${V('b')}: 1 = 3(2) + ${V('b')}, so 1 = 6 + ${V('b')} and ${V('b')} = −5. The equation is <b>${eqn(3, -5)}</b>.`) +
+      example('Example: two points', `${big(`Through ${PT(-1, 7)} and ${PT(2, -2)}`)}Slope first: (−2 − 7) ÷ (2 − (−1)) = −9 ÷ 3 = −3. Then use ${PT(-1, 7)}: 7 = −3(−1) + ${V('b')}, so 7 = 3 + ${V('b')} and ${V('b')} = 4. The equation is <b>${eqn(-3, 4)}</b>.`),
     make(rng) {
       const kind = rng.pick(['slope-point', 'two-points']);
       const m = rng.nz(-5, 5), b = rng.int(-9, 9);
@@ -379,9 +405,10 @@
 
   A.skill({
     id: 'math8.recognize-functions', title: 'Recognizing functions',
-    learn: p(`A <b>function</b> is a rule that gives <b>exactly one output for each input</b>. In a table or a list of ordered pairs, look at the inputs (the ${X}-values): if the same ${X} ever appears with two <b>different</b> ${Y}-values, it is not a function.`) +
-      p(`Repeated <b>outputs</b> are fine. ${PT(1, 5)} and ${PT(2, 5)} can both belong to a function: two inputs share an output, but each input still has only one. A repeated pair like ${PT(3, 4)} written twice is also fine — it is the same input with the same output.`) +
-      example('Example', `${big(`${PT(1, 4)}, ${PT(2, 6)}, ${PT(1, 8)}`)}The input 1 is paired with both 4 and 8. <b>Not a function.</b>`),
+    learn: p(`A <b>relation</b> is any set of input-output pairs, like a table or a list of ordered pairs. A <b>function</b> is a relation that gives <b>exactly one output for each input</b>. So look at the inputs (the ${X}-values): if the same ${X} ever appears with two <b>different</b> ${Y}-values, it’s not a function.`) +
+      p(`Repeated <b>outputs</b> are fine. ${PT(1, 5)} and ${PT(2, 5)} can both belong to a function: two inputs share an output, but each input still has only one. A repeated pair like ${PT(3, 4)} written twice is also fine, because it’s the same input with the same output.`) +
+      example('Example: not a function', `${big(`${PT(1, 4)}, ${PT(2, 6)}, ${PT(1, 8)}`)}The input 1 is paired with both 4 and 8. <b>Not a function.</b>`) +
+      example('Example: a function', `${M.table([`Input ${X}`, `Output ${Y}`], [[N(-1), 4], [0, 6], [2, 4], [3, 9]], { compact: true })}The inputs −1, 0, 2 and 3 are all different, so each one has just one output. The output 4 shows up twice, and that’s allowed. <b>It’s a function.</b>`),
     make(rng) {
       const isFn = rng.bool(), form = rng.pick(['table', 'pairs']);
       const xs = rng.sample([-4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7], 5);
@@ -408,9 +435,10 @@
 
   A.skill({
     id: 'math8.linear-nonlinear', title: 'Linear and nonlinear functions',
-    learn: p(`A function is <b>linear</b> when its rate of change is constant: every time ${X} goes up by the same step, ${Y} changes by the same amount. Its graph is a straight line, and its equation can be written ${Y} = ${V('m')}${X} + ${V('b')}.`) +
+    learn: p(`A function is <b>linear</b> when its rate of change is <b>constant</b> (always the same): every time ${X} goes up by the same step, ${Y} changes by the same amount. Its graph is a straight line, and its equation can be written ${Y} = ${V('m')}${X} + ${V('b')}.`) +
       p(`To test a table, find the change in ${Y} between rows and divide by the change in ${X}. If that rate is the same everywhere, the function is linear and the rate is its slope. If it changes (as with ${Y} = ${S(X, 2)} or a quantity that doubles), the function is <b>nonlinear</b>.`) +
-      example('Example', `${M.table([X, Y], [[0, 1], [2, 7], [4, 13], [6, 19]], { compact: true })}${X} goes up by 2 each row and ${Y} goes up by 6 each row. The rate of change is 6 ÷ 2 = 3 every time, so it is <b>linear</b> with rate of change 3.`),
+      example('Example: linear', `${M.table([X, Y], [[0, 1], [2, 7], [4, 13], [6, 19]], { compact: true })}${X} goes up by 2 each row and ${Y} goes up by 6 each row. The rate of change is 6 ÷ 2 = 3 every time, so it’s <b>linear</b> with rate of change 3.`) +
+      example('Example: nonlinear', `${M.table([X, Y], [[0, 1], [1, 2], [2, 5], [3, 10]], { compact: true })}${X} goes up by 1 each row, but ${Y} goes up by 1, then 3, then 5. The changes aren’t the same, so it’s <b>nonlinear</b>. (These are ${S(X, 2)} + 1, a curve.)`),
     make(rng) {
       const linear = rng.bool(), step = rng.pick([1, 1, 2]), x0 = rng.int(-2, 2);
       const xs = [0, 1, 2, 3].map(i => x0 + i * step);
@@ -440,9 +468,10 @@
   /* ---------- Unit 4: Systems of equations ---------- */
   A.skill({
     id: 'math8.solve-systems', title: 'Solving systems of equations',
-    learn: p(`A <b>system</b> is two equations that must both be true at once. Its solution is the ordered pair ${PT('x', 'y').replace('x', X).replace('y', Y)} that works in <b>both</b> — the point where the two lines cross.`) +
+    learn: p(`A <b>system of equations</b> is two equations that must both be true at once. Its solution is the ordered pair ${PT('x', 'y').replace('x', X).replace('y', Y)} that works in <b>both</b>: the point where the two lines cross.`) +
       p(`<b>Substitution:</b> if one equation already says ${Y} = …, replace ${Y} in the other equation with that expression and solve for ${X}. <b>Elimination:</b> add or subtract the equations (multiplying one first if needed) so that one variable cancels. Either way, find the second variable by putting the first back into an equation, and check the pair in both.`) +
-      example('Example', `${big(`${Y} = 2${X} + 1 and 3${X} + ${Y} = 16`)}Substitute: 3${X} + (2${X} + 1) = 16, so 5${X} = 15 and ${X} = 3. Then ${Y} = 2(3) + 1 = 7. The solution is <b>${PT(3, 7)}</b>.`),
+      example('Example: substitution', `${big(`${Y} = 2${X} + 1 and 3${X} + ${Y} = 16`)}Substitute: 3${X} + (2${X} + 1) = 16, so 5${X} + 1 = 16, 5${X} = 15 and ${X} = 3. Then ${Y} = 2(3) + 1 = 7. The solution is <b>${PT(3, 7)}</b>.`) +
+      example('Example: elimination', `${big(`2${X} + ${Y} = 11 and 3${X} − ${Y} = 4`)}The ${Y}-terms are +${Y} and −${Y}, so adding the equations cancels ${Y}: 5${X} = 15 and ${X} = 3. Put it into the first: 2(3) + ${Y} = 11, so ${Y} = 5. Check the second: 3(3) − 5 = 4. ✓ The solution is <b>${PT(3, 5)}</b>. (If the ${Y}-terms were the same, such as +${Y} and +${Y}, you would subtract instead.)`),
     make(rng) {
       const x = rng.int(-6, 6), y = rng.int(-6, 6), form = rng.pick(['sub', 'elim']), ask = rng.pick(['x', 'pair', 'pair']);
       let e1, e2, coef, hints;
@@ -487,9 +516,11 @@
 
   A.skill({
     id: 'math8.systems-solutions', title: 'Number of solutions to systems of equations',
-    learn: p(`Two lines in a plane can meet in three ways. Different slopes: they cross once, so <b>exactly one solution</b>. Same slope, different ${Y}-intercepts: they are parallel and never meet, so <b>no solution</b>. Same slope and same intercept: they are the same line, so <b>infinitely many solutions</b>.`) +
+    learn: p(`Two lines can meet in three ways. Different slopes: they cross once, so <b>exactly one solution</b>. Same slope, different ${Y}-intercepts: they’re <b>parallel</b> (always the same distance apart) and never meet, so <b>no solution</b>. Same slope and same intercept: they’re the same line, so <b>infinitely many solutions</b>.`) +
       p(`So rewrite both equations in slope-intercept form ${Y} = ${V('m')}${X} + ${V('b')} and compare ${V('m')} first, then ${V('b')}. To rewrite 4${X} + 2${Y} = 6, subtract 4${X} and divide by 2: ${Y} = −2${X} + 3.`) +
-      example('Example', `${big(`${Y} = 3${X} − 2 and 6${X} − 2${Y} = 4`)}The second becomes −2${Y} = −6${X} + 4, so ${Y} = 3${X} − 2. The same line: <b>infinitely many solutions</b>.`),
+      example('Example: the same line', `${big(`${Y} = 3${X} − 2 and 6${X} − 2${Y} = 4`)}Subtract 6${X} from both sides of the second: −2${Y} = −6${X} + 4. Divide by −2: ${Y} = 3${X} − 2. It’s the same line: <b>infinitely many solutions</b>.`) +
+      example('Example: parallel lines', `${big(`${Y} = 2${X} + 1 and 4${X} − 2${Y} = 6`)}The second becomes −2${Y} = −4${X} + 6, so ${Y} = 2${X} − 3. Both slopes are 2, but the intercepts are 1 and −3: parallel lines, so <b>no solution</b>.`) +
+      example('Example: lines that cross', `${big(`${Y} = −${X} + 4 and 3${X} + ${Y} = 2`)}The second becomes ${Y} = −3${X} + 2. The slopes are −1 and −3, which are different, so the lines cross once: <b>exactly one solution</b>.`),
     make(rng) {
       const kind = rng.pick(['one', 'none', 'many']);
       const m1 = rng.nz(-4, 4), b1 = rng.int(-7, 7), k = rng.pick([1, 2, 3, -1, -2]);
@@ -517,29 +548,55 @@
 
   /* ---------- Unit 5: Geometry ---------- */
   const TRIPLES = [[3, 4, 5], [5, 12, 13], [8, 15, 17], [7, 24, 25], [20, 21, 29], [9, 40, 41]];
+  /** right-triangle stories: a and b are the legs (b is the one asked for in a 'leg' story), c the hypotenuse */
+  const PY_STORIES = [
+    { id: 'ladder', find: 'leg', units: ['ft'], ks: [1, 2, 3, 4, 5], fit: (a, b, c) => c >= 10 && c <= 30 && b >= 1.3 * a, hyp: 'The ladder', legs: 'The ground and the wall',
+      text: (n, a, b, c, u) => `${n} leans a ${N(c)} ${u} ladder against a wall. The foot of the ladder is ${N(a)} ${u} from the wall. How high up the wall does the ladder reach?` },
+    { id: 'kite', find: 'leg', units: ['m'], ks: [2, 3, 4, 5, 6, 10], fit: (a, b, c) => c >= 20 && c <= 90 && b >= 1.3 * a, hyp: 'The string', legs: 'The ground and the line straight up to the kite',
+      text: (n, a, b, c, u) => `${n} is flying a kite at the park. The string is ${N(c)} ${u} long and pulled straight, and the kite is right above a tree ${N(a)} ${u} away from ${n}. Leaving out ${n}'s own height, how high is the kite?` },
+    { id: 'garden', find: 'leg', units: ['ft'], ks: [1, 2, 3], fit: (a, b, c) => c <= 26, hyp: 'The diagonal', legs: 'The two sides of the bed',
+      text: (n, a, b, c, u) => `A rectangular bed in the school garden has a diagonal of ${N(c)} ${u}. One side is ${N(a)} ${u} long. How long is the other side?` },
+    { id: 'park', find: 'hyp', units: ['m', 'yd'], ks: [10, 20, 25, 30, 50], fit: (a, b, c) => c >= 100 && c <= 600, hyp: 'The path across', legs: 'The length and the width of the park', wide: true,
+      text: (n, a, b, c, u) => `A rectangular park is ${N(a)} ${u} long and ${N(b)} ${u} wide. ${n} walks straight across it, from one corner to the opposite corner. How long is that walk?` },
+    { id: 'ramp', find: 'hyp', units: ['in'], ks: [1, 2, 3, 4], fit: (a, b, c) => b <= 30 && a >= 2 * b, hyp: 'The sloping surface of the ramp', legs: 'The rise and the flat distance', wide: true,
+      text: (n, a, b, c, u) => `A ramp at the community center rises ${N(b)} ${u} over a flat distance of ${N(a)} ${u}. How long is the sloping surface of the ramp?` },
+    { id: 'tent', find: 'hyp', units: ['ft'], ks: [1, 2, 3], fit: (a, b, c) => b >= 3 && b <= 12 && c <= 17, hyp: 'The rope', legs: 'The pole and the ground',
+      text: (n, a, b, c, u) => `At a campground, a rope runs from the top of a tent pole ${N(b)} ${u} tall to a stake in the ground ${N(a)} ${u} from the bottom of the pole. How long is the rope, pulled tight?` },
+  ];
 
   A.skill({
     id: 'math8.pythagorean-theorem', title: 'Pythagorean theorem and distance',
-    learn: p(`In a right triangle the two shorter sides are the <b>legs</b> (${V('a')} and ${V('b')}) and the side opposite the right angle is the <b>hypotenuse</b> (${V('c')}), always the longest side. The <b>Pythagorean theorem</b>: <b>${S(V('a'), 2)} + ${S(V('b'), 2)} = ${S(V('c'), 2)}</b>.`) +
+    learn: p(`A <b>right triangle</b> has one square corner, a 90° angle called the <b>right angle</b>. The two sides that make the right angle are the <b>legs</b> (${V('a')} and ${V('b')}), and the side across from it is the <b>hypotenuse</b> (${V('c')}), always the longest side. The <b>Pythagorean theorem</b> links them: <b>${S(V('a'), 2)} + ${S(V('b'), 2)} = ${S(V('c'), 2)}</b>.`) +
       p(`To find the hypotenuse, add the squares of the legs and take the square root. To find a missing leg, <b>subtract</b>: ${S(V('b'), 2)} = ${S(V('c'), 2)} − ${S(V('a'), 2)}. The distance between two points is a hypotenuse too: the horizontal and vertical gaps are the legs.`) +
-      example('Example', `${big(`Distance from ${PT(1, 2)} to ${PT(7, 10)}`)}The legs are 7 − 1 = 6 and 10 − 2 = 8. ${S(6, 2)} + ${S(8, 2)} = 36 + 64 = 100, and ${M.sqrt(100)} = <b>10</b>.`),
+      example('Example: the hypotenuse', `${big('Legs of 5 cm and 12 cm')}${S(5, 2)} + ${S(12, 2)} = 25 + 144 = 169, so ${S(V('c'), 2)} = 169 and ${V('c')} = ${M.sqrt(169)} = <b>13 cm</b>.`) +
+      example('Example: a missing leg', `${big('A 10 ft ladder, its foot 6 ft from the wall')}The ladder is the hypotenuse. ${S(V('b'), 2)} = ${S(10, 2)} − ${S(6, 2)} = 100 − 36 = 64, so the ladder reaches ${M.sqrt(64)} = <b>8 ft</b> up the wall.`) +
+      example('Example: a distance', `${big(`Distance from ${PT(1, 2)} to ${PT(7, 10)}`)}The legs are 7 − 1 = 6 and 10 − 2 = 8. ${S(6, 2)} + ${S(8, 2)} = 36 + 64 = 100, and ${M.sqrt(100)} = <b>10</b> units.`),
     make(rng) {
-      const kind = rng.pick(['hyp', 'leg', 'distance', 'ladder']);
+      const kind = rng.pick(['hyp', 'leg', 'distance', 'story', 'story']);
       const t = rng.pick(TRIPLES), k = t[2] > 25 ? 1 : rng.int(1, t[2] > 13 ? 2 : 4);
       let [a, b, c] = t.map(v => v * k); if (rng.bool()) [a, b] = [b, a];
       if (kind === 'distance') {
         const x1 = rng.int(-9, 9), y1 = rng.int(-9, 9), sx = rng.sign(), sy = rng.sign();
-        const [dx, dy] = t[2] > 13 ? [t[0] * sx, t[1] * sy] : [a * sx, b * sy], d = Math.sqrt(dx * dx + dy * dy);
+        const tt = t[2] > 17 ? rng.pick(TRIPLES.slice(0, 3)) : t, kk = tt[2] > 5 ? 1 : rng.int(1, 3), flip = rng.bool();      // gaps of at most 15, so the points stay near the grid
+        const [dx, dy] = [tt[flip ? 1 : 0] * kk * sx, tt[flip ? 0 : 1] * kk * sy], d = Math.sqrt(dx * dx + dy * dy);
         const x2 = x1 + dx, y2 = y1 + dy;
         return { prompt: `What is the distance between ${PT(x1, y1)} and ${PT(x2, y2)}?`, type: 'number', answer: d, unit: 'units', params: { kind, x1, y1, x2, y2 },
           hints: [`Make a right triangle: the horizontal leg is |${N(x2)} − ${wrap(x1)}| = ${Math.abs(dx)} and the vertical leg is |${N(y2)} − ${wrap(y1)}| = ${Math.abs(dy)}.`,
             `${S(Math.abs(dx), 2)} + ${S(Math.abs(dy), 2)} = ${dx * dx} + ${dy * dy} = ${dx * dx + dy * dy}.`, `${M.sqrt(dx * dx + dy * dy)} = <b>${N(d)}</b> units.`] };
       }
-      if (kind === 'ladder') {
-        const name = rng.pick(NAMES);
-        if (a > b) [a, b] = [b, a];                                // the foot is the short leg, so the ladder stands up steeply
-        return { prompt: `${name} leans a ${N(c)} ft ladder against a wall. The foot of the ladder is ${N(a)} ft from the wall. How high up the wall does the ladder reach?`, type: 'number', answer: b, unit: 'ft', params: { kind, a, b, c },
-          hints: [`The ladder is the hypotenuse (${N(c)} ft); the ground and the wall are the legs.`, `${S(V('b'), 2)} = ${S(c, 2)} − ${S(a, 2)} = ${c * c} − ${a * a} = ${c * c - a * a}.`, `${M.sqrt(c * c - a * a)} = <b>${N(b)} ft</b>.`] };
+      if (kind === 'story') {
+        const st = rng.pick(PY_STORIES), name = rng.pick(NAMES), u = rng.pick(st.units);
+        for (let i = 0; i < 80; i++) {                              // a triangle the right size and shape for the story
+          const tr = rng.pick(TRIPLES), kk = rng.pick(st.ks);
+          [a, b, c] = tr.map(v => v * kk); if ((a > b) !== !!st.wide) [a, b] = [b, a];
+          if (st.fit(a, b, c)) break;
+          [a, b, c] = [3, 4, 5].map(v => v * st.ks[0]); if (st.wide) [a, b] = [b, a];
+        }
+        const ask = st.text(name, a, b, c, u);
+        if (st.find === 'hyp') return { prompt: ask, type: 'number', answer: c, unit: u, params: { kind: 'hyp', a, b, c, story: st.id },
+          hints: [`${st.legs} meet at a right angle, so they are the legs. ${st.hyp} is the hypotenuse.`, `${S(V('c'), 2)} = ${S(a, 2)} + ${S(b, 2)} = ${a * a} + ${b * b} = ${c * c}.`, `${V('c')} = ${M.sqrt(c * c)} = <b>${N(c)} ${u}</b>.`] };
+        return { prompt: ask, type: 'number', answer: b, unit: u, params: { kind: 'leg', a, b, c, story: st.id },
+          hints: [`${st.hyp} is the hypotenuse (${N(c)} ${u}), across from the right angle. ${st.legs} are the legs.`, `Subtract to find a leg: ${S(V('b'), 2)} = ${S(c, 2)} − ${S(a, 2)} = ${c * c} − ${a * a} = ${c * c - a * a}.`, `${M.sqrt(c * c - a * a)} = <b>${N(b)} ${u}</b>.`] };
       }
       if (kind === 'hyp') {
         return { prompt: `A right triangle has legs of ${N(a)} cm and ${N(b)} cm. How long is the hypotenuse?`, type: 'number', answer: c, unit: 'cm', params: { kind, a, b, c },
@@ -558,9 +615,12 @@
 
   A.skill({
     id: 'math8.volume', title: 'Volume of cylinders, cones, and spheres',
-    learn: p(`Each of these solids has a formula built on the area of a circle, π${S(V('r'), 2)}. <b>Cylinder:</b> ${V('V')} = π${S(V('r'), 2)}${V('h')} (the circle's area times the height). <b>Cone:</b> ${V('V')} = ${F(1, 3)}π${S(V('r'), 2)}${V('h')}, exactly one third of the cylinder with the same base and height. <b>Sphere:</b> ${V('V')} = ${F(4, 3)}π${S(V('r'), 3)}.`) +
-      p(`Watch for a <b>diameter</b>: the radius is half of it. Volume is measured in cubic units such as cm³. In these exercises use <b>3.14 for π</b> and round to two decimal places.`) +
-      example('Example', `${big('A cone with radius 3 cm and height 5 cm')}${V('V')} = ${F(1, 3)} × 3.14 × ${S(3, 2)} × 5 = ${F(1, 3)} × 3.14 × 45 = <b>47.1 cm³</b>.`),
+    learn: p(`<b>Volume</b> is the space inside a solid, counted in cubes such as cm³. A <b>cylinder</b> is a can shape, a <b>cone</b> narrows from a circle to a point, and a <b>sphere</b> is a ball. Each formula is built on the area of a circle, π${S(V('r'), 2)}, where ${V('r')} is the <b>radius</b> (the distance from the center to the edge).`) +
+      p(`<b>Cylinder:</b> ${V('V')} = π${S(V('r'), 2)}${V('h')}, the circle’s area times the height. <b>Cone:</b> ${V('V')} = ${F(1, 3)}π${S(V('r'), 2)}${V('h')}, exactly one third of the cylinder with the same base and height. <b>Sphere:</b> ${V('V')} = ${F(4, 3)}π${S(V('r'), 3)}.`) +
+      p(`Watch for a <b>diameter</b>, the distance all the way across: the radius is half of it. In these exercises use <b>3.14 for π</b> and round to two decimal places.`) +
+      example('Example: a cylinder', `${big('A cylinder with diameter 8 cm and height 10 cm')}The radius is 8 ÷ 2 = 4 cm. ${V('V')} = 3.14 × ${S(4, 2)} × 10 = 3.14 × 160 = <b>502.4 cm³</b>.`) +
+      example('Example: a cone', `${big('A cone with radius 3 cm and height 5 cm')}${V('V')} = ${F(1, 3)} × 3.14 × ${S(3, 2)} × 5 = ${F(1, 3)} × 3.14 × 45 = <b>47.1 cm³</b>.`) +
+      example('Example: a sphere', `${big('A sphere with radius 3 cm')}${V('V')} = ${F(4, 3)} × 3.14 × ${S(3, 3)} = ${F(4, 3)} × 3.14 × 27 = 4 × 3.14 × 9 = <b>113.04 cm³</b>.`),
     make(rng) {
       const shape = rng.pick(['cylinder', 'cone', 'sphere']), useD = rng.chance(0.3);
       const r = rng.int(1, 9), h = rng.int(2, 15), d = 2 * r;
@@ -584,9 +644,11 @@
 
   A.skill({
     id: 'math8.triangle-angles', title: 'Angles in triangles',
-    learn: p(`The three <b>interior angles</b> of any triangle add up to <b>180°</b>. So if you know two of them, subtract their sum from 180° to get the third.`) +
-      p(`An <b>exterior angle</b> is formed by extending one side. It sits on a straight line with its neighboring interior angle, so the two add to 180°. That makes the exterior angle equal to the <b>sum of the two remote interior angles</b> (the two that are not next to it).`) +
-      example('Example', `A triangle has angles 48° and 67°. The third is 180° − (48° + 67°) = 180° − 115° = <b>65°</b>. The exterior angle next to it is 48° + 67° = 115°.`),
+    learn: p(`The three <b>interior angles</b> of a triangle are the angles inside it, at its corners. In any triangle they add up to <b>180°</b>. So if you know two of them, subtract their sum from 180° to get the third.`) +
+      p(`An <b>exterior angle</b> is the angle outside the triangle that you get by extending one side past a corner. It sits on a straight line with the interior angle next to it, so the two add to 180°. That makes the exterior angle equal to the <b>sum of the two remote interior angles</b>, the two that aren’t next to it.`) +
+      example('Example: the third angle', `A triangle has angles of 48° and 67°. The third is 180° − (48° + 67°) = 180° − 115° = <b>65°</b>. The exterior angle next to it is 48° + 67° = 115°.`) +
+      example('Example: a remote interior angle', `An exterior angle measures 130°, and one remote interior angle is 55°. The two remote angles add to 130°, so the other one is 130° − 55° = <b>75°</b>.`) +
+      example('Example: with algebra', `A triangle’s angles are 50°, ${X}°, and (2${X} + 10)°. They add to 180: 50 + ${X} + 2${X} + 10 = 180, so 3${X} + 60 = 180, 3${X} = 120 and <b>${X} = 40</b>. Check: 50 + 40 + 90 = 180. ✓`),
     make(rng) {
       const kind = rng.pick(['third', 'third', 'exterior', 'remote', 'algebra']);
       let A1 = rng.int(25, 95), B1 = rng.int(20, 155 - A1); const C1 = 180 - A1 - B1;
@@ -611,9 +673,11 @@
 
   A.skill({
     id: 'math8.transformations', title: 'Translations, reflections, and rotations',
-    learn: p(`A <b>translation</b> slides a point: “3 left and 2 up” sends ${PT('x', 'y').replace('x', X).replace('y', Y)} to (${X} − 3, ${Y} + 2). A <b>reflection over the ${X}-axis</b> flips the sign of ${Y}: (${X}, −${Y}). A <b>reflection over the ${Y}-axis</b> flips the sign of ${X}: (−${X}, ${Y}).`) +
-      p(`Rotations about the origin: <b>90° counterclockwise</b> sends (${X}, ${Y}) to (−${Y}, ${X}); <b>90° clockwise</b> sends it to (${Y}, −${X}); <b>180°</b> sends it to (−${X}, −${Y}). Sketching the point on a grid is a quick way to check you turned the right way.`) +
-      example('Example', `Rotate ${PT(4, 1)} by 90° counterclockwise about the origin. (${X}, ${Y}) → (−${Y}, ${X}) gives <b>${PT(-1, 4)}</b>.`),
+    learn: p(`A <b>transformation</b> moves a point or a shape, and the new position is called its <b>image</b>. A <b>translation</b> slides it: “3 left and 2 up” sends ${PT('x', 'y').replace('x', X).replace('y', Y)} to (${X} − 3, ${Y} + 2). A <b>reflection</b> flips it over a line like a mirror. Over the ${X}-axis, the sign of ${Y} changes: (${X}, −${Y}). Over the ${Y}-axis, the sign of ${X} changes: (−${X}, ${Y}).`) +
+      p(`A <b>rotation</b> turns it around a point, here the <b>origin</b> ${PT(0, 0)}. <b>90° counterclockwise</b> sends (${X}, ${Y}) to (−${Y}, ${X}); <b>90° clockwise</b> sends it to (${Y}, −${X}); <b>180°</b> sends it to (−${X}, −${Y}). Sketching the point on a grid is a quick way to check that you turned the right way.`) +
+      example('Example: a translation', `Translate ${PT(-2, 5)} 4 units right and 3 units down. Add 4 to ${X} and subtract 3 from ${Y}: (−2 + 4, 5 − 3) = <b>${PT(2, 2)}</b>.`) +
+      example('Example: a reflection', `Reflect ${PT(3, -6)} over the ${X}-axis. Keep ${X} and change the sign of ${Y}: <b>${PT(3, 6)}</b>.`) +
+      example('Example: a rotation', `Rotate ${PT(4, 1)} 90° counterclockwise about the origin. (${X}, ${Y}) → (−${Y}, ${X}) gives <b>${PT(-1, 4)}</b>.`),
     make(rng) {
       const x = rng.nz(-8, 8), y = rng.nz(-8, 8);
       const kind = rng.pick(['translate', 'reflect-x', 'reflect-y', 'rot90ccw', 'rot90cw', 'rot180']);
@@ -644,14 +708,11 @@
   A.skill({
     id: 'math8.two-way-tables', title: 'Two-way tables',
     learn: p(`A <b>two-way table</b> sorts the same group of people by two questions at once: one along the rows, one along the columns. Each cell counts the people who fit both. The totals at the end of each row and column add up the cells, so a missing cell can be found by subtracting.`) +
-      p(`A <b>row relative frequency</b> compares a cell with its row total: cell ÷ row total, written as a percent. It answers questions like “what percent of the 8th graders chose soccer?” Use the row total, not the grand total, as the bottom of the fraction.`) +
-      example('Example', `40 students in 7th grade were asked; 30 of them have a pet. The row relative frequency is 30 ÷ 40 = 0.75 = <b>75%</b>.`),
+      p(`A <b>relative frequency</b> is a count compared with a total. A <b>row relative frequency</b> compares a cell with its row total: cell ÷ row total, written as a percent. It answers questions like “what percent of the 8th graders chose soccer?” Use the row total, not the grand total, as the bottom of the fraction.`) +
+      example('Example: a missing cell', `${M.table(['', 'Has a pet', 'No pet', 'Total'], [['<b>7th grade</b>', '18', '?', '30'], ['<b>8th grade</b>', '14', '11', '25'], ['<b>Total</b>', '32', '23', '55']], { compact: true })}The 7th grade row adds to 30, so ? = 30 − 18 = <b>12</b>. Check with the column: 23 − 11 = 12. ✓`) +
+      example('Example: a percent of a row', `What percent of the 7th graders have a pet? Use the 7th grade row only: 18 ÷ 30 = 0.6 = <b>60%</b>. (Dividing by the grand total, 55, is the usual slip.)`),
     make(rng) {
-      const set = rng.pick([
-        { rows: ['7th grade', '8th grade'], cols: ['Has a pet', 'No pet'], who: 'students', q: (r, c) => `${c === 0 ? 'have a pet' : 'have no pet'}`, of: r => `${r} students` },
-        { rows: ['Plays a sport', 'No sport'], cols: ['Plays music', 'No music'], who: 'students', q: (r, c) => `${c === 0 ? 'play music' : 'do not play music'}`, of: r => `students who ${r === 'Plays a sport' ? 'play a sport' : 'do not play a sport'}` },
-        { rows: ['Walks to school', 'Rides to school'], cols: ['Eats breakfast', 'Skips breakfast'], who: 'students', q: (r, c) => `${c === 0 ? 'eat breakfast' : 'skip breakfast'}`, of: r => `students who ${r === 'Walks to school' ? 'walk' : 'ride'} to school` },
-      ]);
+      const set = rng.pick(TWO_WAY);
       const totals = [rng.pick([20, 25, 40, 50]), rng.pick([20, 25, 40, 50])];
       const cell = totals.map(t => { const step = 100 / t; return t * rng.pick([20, 30, 40, 60, 70, 80, 25, 75].filter(pc => (pc / step) % 1 === 0)) / 100; });
       const grid = [[cell[0], totals[0] - cell[0]], [cell[1], totals[1] - cell[1]]];
@@ -659,14 +720,15 @@
       const kind = rng.pick(['missing', 'pct', 'pct']);
       const r = rng.int(0, 1), c = rng.int(0, 1);
       const shownGrid = grid.map((row, i) => row.map((v, j) => (kind === 'missing' && i === r && j === c) ? '?' : N(v)));
+      const survey = `${set.where} asked ${N(all)} ${set.who} two questions.`;
       const table = M.table(['', set.cols[0], set.cols[1], 'Total'], [[`<b>${set.rows[0]}</b>`, ...shownGrid[0], N(totals[0])], [`<b>${set.rows[1]}</b>`, ...shownGrid[1], N(totals[1])], ['<b>Total</b>', N(colT[0]), N(colT[1]), N(all)]]);
       if (kind === 'missing') {
         const other = grid[r][1 - c];
-        return { prompt: `A survey of ${all} students. What number belongs in the cell marked “?”${table}`, type: 'number', answer: grid[r][c], params: { kind, grid, r, c, totals },
+        return { prompt: `${survey} What number belongs in the cell marked “?”${table}`, type: 'number', answer: grid[r][c], params: { kind, grid, r, c, totals },
           hints: [`Use the row total for “${set.rows[r]}”: the two cells in that row add to ${N(totals[r])}.`, `The other cell in the row is ${N(other)}, so ? = ${N(totals[r])} − ${N(other)}.`, `? = <b>${N(grid[r][c])}</b>. (Check with the column total: ${N(colT[c])} − ${N(grid[1 - r][c])} = ${N(grid[r][c])}.)`] };
       }
       const pc = M.round(grid[r][c] / totals[r] * 100, 4);
-      return { prompt: `A survey of ${all} students. What percent of the ${set.of(set.rows[r])} ${set.q(r, c)}?${table}`, type: 'number', answer: pc, unit: '%', params: { kind, grid, r, c, totals },
+      return { prompt: `${survey} What percent of the ${set.of[r]} ${set.q[c]}?${table}`, type: 'number', answer: pc, unit: '%', params: { kind, grid, r, c, totals },
         hints: [`This is a row relative frequency: use the “${set.rows[r]}” row only.`, `The cell is ${N(grid[r][c])} and the row total is ${N(totals[r])}: ${N(grid[r][c])} ÷ ${N(totals[r])} = ${N(pc / 100)}.`, `${N(pc / 100)} × 100 = <b>${N(pc)}%</b>.`] };
     },
     verify(q) {
@@ -676,6 +738,19 @@
       return Math.abs(q.answer * totals[r] - 100 * grid[r][c]) < 1e-6;          // cross-multiply instead of dividing
     },
   });
+
+  /** two-way table surveys: where, who, the row and column headings, how to say "the people in row r" and "answer c" */
+  const TWO_WAY = [
+    { where: 'A middle school', who: 'students', rows: ['7th grade', '8th grade'], cols: ['Has a pet', 'No pet'], of: ['7th graders', '8th graders'], q: ['have a pet', 'have no pet'] },
+    { where: 'A middle school', who: 'students', rows: ['Plays a sport', 'No sport'], cols: ['Plays music', 'No music'], of: ['students who play a sport', 'students who don’t play a sport'], q: ['play music', 'don’t play music'] },
+    { where: 'A middle school', who: 'students', rows: ['Walks to school', 'Rides to school'], cols: ['Eats breakfast', 'Skips breakfast'], of: ['students who walk to school', 'students who ride to school'], q: ['eat breakfast', 'skip breakfast'] },
+    { where: 'The town library', who: 'young readers', rows: ['Ages 10 to 12', 'Ages 13 to 15'], cols: ['Likes fiction best', 'Likes nonfiction best'], of: ['readers aged 10 to 12', 'readers aged 13 to 15'], q: ['like fiction best', 'like nonfiction best'] },
+    { where: 'The community center', who: 'members', rows: ['Takes swim lessons', 'No swim lessons'], cols: ['Uses the gym', 'Doesn’t use the gym'], of: ['members who take swim lessons', 'members who don’t take swim lessons'], q: ['use the gym', 'don’t use the gym'] },
+    { where: 'A science museum', who: 'visitors', rows: ['Came with a school', 'Came with family'], cols: ['Saw the planetarium', 'Skipped the planetarium'], of: ['visitors who came with a school', 'visitors who came with family'], q: ['saw the planetarium', 'skipped the planetarium'] },
+    { where: 'A farmers market', who: 'shoppers', rows: ['Weekday shoppers', 'Weekend shoppers'], cols: ['Bought fruit', 'No fruit'], of: ['weekday shoppers', 'weekend shoppers'], q: ['bought fruit', 'didn’t buy fruit'] },
+    { where: 'The school garden club', who: 'members', rows: ['Grows vegetables', 'Grows only flowers'], cols: ['Composts at home', 'Doesn’t compost'], of: ['members who grow vegetables', 'members who grow only flowers'], q: ['compost at home', 'don’t compost at home'] },
+    { where: 'A soccer league', who: 'players', rows: ['Under 12', '12 and over'], cols: ['Plays every week', 'Plays some weeks'], of: ['players under 12', 'players 12 and over'], q: ['play every week', 'play only some weeks'] },
+  ];
 
   /** an inline SVG scatter plot of points in 0–10 × 0–10 */
   function scatterSvg(pts, xl, yl) {
@@ -701,7 +776,9 @@
     id: 'math8.scatter-plots', title: 'Describing scatter plots',
     learn: p(`A <b>scatter plot</b> shows pairs of measurements as dots, one dot per person or thing. Read it from left to right. If the dots tend to <b>rise</b>, the two quantities have a <b>positive association</b>: as one goes up, the other tends to go up. If they tend to <b>fall</b>, it is a <b>negative association</b>.`) +
       p(`If the dots form a shapeless cloud with no upward or downward drift, there is <b>no association</b>. When the dots hug a straight line the association is <b>linear</b>; the closer they hug it, the stronger it is. An association is a tendency, not a rule for every single dot.`) +
-      example('Example', `Hours spent practicing piano each week against mistakes made in a recital: more practice, fewer mistakes. The dots fall from left to right, a <b>negative association</b>.`),
+      example('Example: negative', `Hours spent practicing piano each week against mistakes made in a recital: more practice tends to go with fewer mistakes. The dots fall from left to right, a <b>negative association</b>.`) +
+      example('Example: positive', `The age of a tree against the width of its trunk: older trees tend to be wider. The dots rise from left to right, a <b>positive association</b>.`) +
+      example('Example: none', `Each student’s birth month against their height: the dots are spread all over, with no drift up or down. There’s <b>no association</b>.`),
     make(rng) {
       const kind = rng.pick(['positive', 'negative', 'none']);
       const ctx = rng.pick([
@@ -740,7 +817,6 @@
   });
 
   /* ---------- Unit 7: Reading and graphing lines ---------- */
-  const r2 = v => Math.round(v * 100) / 100;
   const LETTERS = ['A', 'B', 'C', 'D', 'E'];
   /** the x-term of y = mx + b for a slope mn/md: "2x", "−x", or a stacked fraction times x */
   const slopeX = (mn, md) => { [mn, md] = M.simp(mn, md); return md === 1 ? M.term(mn, 'x') : `${mn < 0 ? '−' : ''}${F(Math.abs(mn), md)}${X}`; };
@@ -821,6 +897,10 @@
     { who: 'car', rel: 'that', xl: 'Age of car', yl: 'Top speed', most: ['oldest', 'fastest'], least: ['newest', 'slowest'], more: ['older', 'faster'], less: ['newer', 'slower'] },
     { who: 'house', rel: 'that', xl: 'Size', yl: 'Price', most: ['largest', 'most expensive'], least: ['smallest', 'cheapest'], more: ['larger', 'more expensive'], less: ['smaller', 'cheaper'] },
     { who: 'dog', rel: 'that', xl: 'Weight', yl: 'Age', most: ['heaviest', 'oldest'], least: ['lightest', 'youngest'], more: ['heavier', 'older'], less: ['lighter', 'younger'] },
+    { who: 'puppy', many: 'puppies', rel: 'that', xl: 'Age', yl: 'Weight', most: ['oldest', 'heaviest'], least: ['youngest', 'lightest'], more: ['older', 'heavier'], less: ['younger', 'lighter'] },
+    { who: 'book', rel: 'that', xl: 'Number of pages', yl: 'Price', most: ['longest', 'most expensive'], least: ['shortest', 'cheapest'], more: ['longer', 'more expensive'], less: ['shorter', 'cheaper'] },
+    { who: 'runner', rel: 'who', xl: 'Age', yl: 'Running speed', most: ['oldest', 'fastest'], least: ['youngest', 'slowest'], more: ['older', 'faster'], less: ['younger', 'slower'] },
+    { who: 'sunflower', rel: 'that', xl: 'Age', yl: 'Height', most: ['oldest', 'tallest'], least: ['youngest', 'shortest'], more: ['older', 'taller'], less: ['younger', 'shorter'] },
   ];
 
   /** distance from home at time t, read off the corners of a walk by straight-line interpolation */
@@ -831,7 +911,8 @@
     id: 'math8.interpret-graphs', title: 'Interpreting graphs',
     learn: p(`Before reading any point on a graph, read the <b>axes</b>: what each one measures and which way is “more”. <b>Further right means more of the horizontal quantity; higher up means more of the vertical quantity.</b> A point is one thing (a person, a bag, a moment in time) described by both quantities at once.`) +
       p(`To compare two points, compare their positions: a point to the right of and below another has more of the horizontal quantity but less of the vertical one. On a graph of <b>distance from home against time</b>, the steepness tells the story: going up means moving away, a flat part means standing still, going down means coming back, and a steeper part means moving faster.`) +
-      example('Example', `On a graph of height against age, point C is furthest to the right and point A is highest. So C is the <b>oldest</b> person and A is the <b>tallest</b>. If B is to the right of A and lower, then B is older and shorter than A.`),
+      example('Example: points on a graph', `On a graph of height against age, point C is furthest to the right and point A is highest. So C is the <b>oldest</b> person and A is the <b>tallest</b>. If B is to the right of A and lower, then B is <b>older and shorter</b> than A.`) +
+      example('Example: a walk', `On a graph of distance from home against time, the line stays at 400 m from 10 to 15 minutes, so the walker is <b>standing still</b>. From 15 to 20 minutes it drops from 400 m to 0 m, so the walker is <b>going back home</b>, at 400 ÷ 5 = 80 m per minute.`),
     make(rng) {
       const kind = rng.pick(['points', 'points', 'points', 'walk', 'walk']);
       return kind === 'points' ? graphPoints(rng) : graphWalk(rng);
@@ -867,7 +948,7 @@
       tries++;
     } while (tries < 100 && pts.some((a, i) => pts.some((b, j) => j > i && Math.abs(a[0] - b[0]) <= 1 && Math.abs(a[1] - b[1]) <= 1)));
     const choices = LETTERS.map(l => `Point ${l}`);
-    const intro = `The graph compares the ${c.xl.toLowerCase()} and the ${c.yl.toLowerCase()} of five ${c.who === 'person' ? 'people' : c.who === 'bag of rice' ? 'bags of rice' : c.who + 's'}.`;
+    const intro = `The graph compares the ${c.xl.toLowerCase()} and the ${c.yl.toLowerCase()} of five ${c.who === 'person' ? 'people' : c.who === 'bag of rice' ? 'bags of rice' : c.many || c.who + 's'}.`;
     const axesHint = `Read the axes first. The horizontal axis shows ${c.xl.toLowerCase()}: further right means ${c.more[0]}. The vertical axis shows ${c.yl.toLowerCase()}: higher up means ${c.more[1]}.`;
     // a two-condition question when some point has exactly one other point in one of its corners
     const opts = [];
@@ -907,7 +988,7 @@
     }
     const xmax = Math.max(20, Math.ceil(t / 10) * 10);
     const graph = plotSvg({ xmax, xstep: 5, ymax: 1200, ystep: 200, xl: 'Time (minutes)', yl: 'Distance from home (m)', path: verts, label: `${name}'s distance from home over time` });
-    const intro = `The graph shows ${name}'s distance from home during a walk.`;
+    const intro = `The graph shows ${name}'s distance from home during ${rng.pick(['a walk', 'a walk to the park', 'a bike ride', 'a run', 'a trip to the library', 'a walk with the dog'])}.`;
     const segs = types.map((ty, i) => ({ ty, t0: verts[i][0], t1: verts[i + 1][0], d0: verts[i][1], d1: verts[i + 1][1] }));
     const moving = segs.filter(s => s.ty !== 'stop').map(s => ({ s, v: Math.abs(s.d1 - s.d0) / (s.t1 - s.t0) })).sort((a, b) => b.v - a.v);
     const ask = rng.pick(['segment', 'segment', 'read', 'fastest']);
@@ -937,7 +1018,9 @@
     learn: p(`Every point on the graph of a rule is a <b>solution</b> of the rule: its coordinates make the equation true. So to test whether a point lies on the line ${eqn(2, 1)}, <b>substitute its ${X}-value into the rule and check that you get its ${Y}-value</b>.`) +
       p(`For ${PT(3, 7)}: 2(3) + 1 = 7, which matches, so ${PT(3, 7)} is on the line. For ${PT(7, 3)}: 2(7) + 1 = 15, not 3, so it is not. Keep the order straight: the first number is always ${X}.`) +
       p(`The same idea finds a missing coordinate. If ${PT(4, V('k'))} is on the line, then ${V('k')} = 2(4) + 1 = 9. If it is the ${Y}-value you know, put it in for ${Y} and solve for ${X}.`) +
-      example('Example', `${big(`Is ${PT(-2, 5)} on the line ${eqn(-3, -1)}?`)}Substitute ${X} = −2: −3(−2) − 1 = 6 − 1 = 5. That is the point's ${Y}-value, so <b>yes</b>, it is on the line.`),
+      example('Example: testing a point', `${big(`Is ${PT(-2, 5)} on the line ${eqn(-3, -1)}?`)}Substitute ${X} = −2: −3(−2) − 1 = 6 − 1 = 5. That’s the point’s ${Y}-value, so <b>yes</b>, it’s on the line.`) +
+      example(`Example: a missing ${Y}-value`, `${big(`${PT(-3, V('k'))} is on ${eqn(2, 7)}`)}Put ${X} = −3 into the rule: ${V('k')} = 2(−3) + 7 = −6 + 7 = <b>1</b>.`) +
+      example(`Example: a missing ${X}-value`, `${big(`${PT(V('k'), 11)} is on ${eqn(3, -4)}`)}Put ${Y} = 11 into the rule: 11 = 3${X} − 4. Add 4: 15 = 3${X}. Divide by 3: <b>${V('k')} = 5</b>.`),
     make(rng) {
       const kind = rng.pick(['which', 'which', 'find-y', 'find-x']);
       const m = rng.nz(-5, 5), b = rng.int(-9, 9), rule = eqn(m, b);
@@ -981,10 +1064,11 @@
 
   A.skill({
     id: 'math8.graph-lines', title: 'Graphing lines from slope-intercept form',
-    learn: p(`An equation in the form ${Y} = ${V('m')}${X} + ${V('b')} tells you how to draw its line without making a table. <b>Start at the ${Y}-intercept ${PT(0, V('b'))}, then use the slope as rise over run</b> to step to a second point, and draw the line through both.`) +
+    learn: p(`An equation in the form ${Y} = ${V('m')}${X} + ${V('b')} tells you how to draw its line without making a table. <b>Start at the ${Y}-intercept ${PT(0, V('b'))}, then use the slope as rise over run</b> to step to a second point, and draw the line through both. The <b>rise</b> is how far you go up or down, and the <b>run</b> is how far you go right.`) +
       p(`Write the slope as a fraction: 3 is ${fracH('3', '1')}, so from the intercept go up 3 and right 1. A negative slope such as −${F(2, 3)} means go <b>down</b> 2 and right 3. Check the result: a positive slope rises from left to right, a negative slope falls.`) +
       p(`Reading a graph works the same way backwards: the line crosses the ${Y}-axis at ${V('b')}, and counting the rise and the run between two grid points gives ${V('m')}.`) +
-      example('Example', `${big(lineF(2, 3, -1))}Plot the ${Y}-intercept ${PT(0, -1)}. The slope ${F(2, 3)} means up 2 and right 3, which lands on ${PT(3, 1)}. The line through <b>${PT(0, -1)} and ${PT(3, 1)}</b> is the graph.`),
+      example('Example: drawing a line', `${big(lineF(2, 3, -1))}Plot the ${Y}-intercept ${PT(0, -1)}. The slope ${F(2, 3)} means up 2 and right 3, which lands on ${PT(3, 1)}. The line through <b>${PT(0, -1)} and ${PT(3, 1)}</b> is the graph.`) +
+      example('Example: reading a line', `A line crosses the ${Y}-axis at ${PT(0, 3)} and also passes through ${PT(2, -1)}. From ${PT(0, 3)} to ${PT(2, -1)} it goes right 2 and down 4, so the slope is −4 ÷ 2 = −2. The equation is <b>${eqn(-2, 3)}</b>.`),
     make(rng) {
       const [mn, md] = rng.pick(SLOPES), b = rng.int(-4, 4), kind = rng.pick(['pick-graph', 'pick-equation', 'next-point']);
       const rule = lineF(mn, md, b), [flip, ...rest] = lineSlips(rng, mn, md, b), slips = [flip].concat(rng.shuffle(rest));
@@ -1030,13 +1114,20 @@
   });
 
   /* ---------- Unit 8: Circle graphs and trend lines ---------- */
+  /** who was asked (as in "120 students were asked …"), what they are called afterward, the question, the answers */
   const PIE_SETS = [
-    { q: 'how they get to school', cats: ['Walk', 'Bike', 'Bus', 'Car', 'Scooter'] },
-    { q: 'to name their favorite fruit', cats: ['Apple', 'Banana', 'Mango', 'Grapes', 'Orange'] },
-    { q: 'to name their favorite sport', cats: ['Soccer', 'Basketball', 'Swimming', 'Tennis', 'Track'] },
-    { q: 'to name their favorite season', cats: ['Spring', 'Summer', 'Autumn', 'Winter'] },
-    { q: 'what kind of pet they have', cats: ['Dog', 'Cat', 'Fish', 'Bird', 'No pet'] },
-    { q: 'which club they would join', cats: ['Art', 'Music', 'Chess', 'Drama', 'Robotics'] },
+    { who: 'students', w: 'students', q: 'how they get to school', cats: ['Walk', 'Bike', 'Bus', 'Car', 'Scooter'] },
+    { who: 'students', w: 'students', q: 'to name their favorite fruit', cats: ['Apple', 'Banana', 'Mango', 'Grapes', 'Orange'] },
+    { who: 'students', w: 'students', q: 'to name their favorite sport', cats: ['Soccer', 'Basketball', 'Swimming', 'Tennis', 'Track'] },
+    { who: 'students', w: 'students', q: 'to name their favorite season', cats: ['Spring', 'Summer', 'Autumn', 'Winter'] },
+    { who: 'students', w: 'students', q: 'what kind of pet they have', cats: ['Dog', 'Cat', 'Fish', 'Bird', 'No pet'] },
+    { who: 'students', w: 'students', q: 'which club they would join', cats: ['Art', 'Music', 'Chess', 'Drama', 'Robotics'] },
+    { who: 'students', w: 'students', q: 'what they would plant in the school garden', cats: ['Tomatoes', 'Sunflowers', 'Herbs', 'Peppers', 'Beans'] },
+    { who: 'shoppers at a farmers market', w: 'shoppers', q: 'what they came to buy', cats: ['Fruit', 'Vegetables', 'Bread', 'Honey', 'Flowers'] },
+    { who: 'visitors to the town library', w: 'visitors', q: 'which kind of book they borrowed', cats: ['Mystery', 'Science', 'History', 'Comics', 'Poetry'] },
+    { who: 'visitors to a museum', w: 'visitors', q: 'which exhibit they liked best', cats: ['Dinosaurs', 'Space', 'Oceans', 'Art', 'Inventions'] },
+    { who: 'customers at a bakery', w: 'customers', q: 'what they came in for', cats: ['Bagels', 'Muffins', 'Bread', 'Cookies', 'Pie'] },
+    { who: 'members of the community center', w: 'members', q: 'which class they take', cats: ['Yoga', 'Dance', 'Swimming', 'Painting', 'Cooking'] },
   ];
   const PIE_FILLS = ['var(--primary)', 'var(--ok)', 'var(--warn)', 'var(--bad)', 'var(--lvl2)'];
   /** a circle graph; shares are percents, labels are what each sector shows beside its name */
@@ -1051,14 +1142,15 @@
       g += `<text x="${lx}" y="${ly}" text-anchor="${anchor}" font-size="12"><tspan font-weight="700">${M.esc(cats[i])}</tspan><tspan x="${lx}" dy="14">${labels[i]}</tspan></text>`;
       a = a1;
     });
-    return `<svg class="figure" viewBox="0 0 320 224" width="320" role="img" aria-label="circle graph">${g}</svg>`;
+    return `<svg class="figure" viewBox="0 0 320 224" width="320" role="img" aria-label="${M.esc(`circle graph: ${cats.map((c, i) => `${c} ${labels[i]}`).join(', ')}`)}">${g}</svg>`;
   }
 
   A.skill({
     id: 'math8.circle-graphs', title: 'Circle graphs',
-    learn: p(`A <b>circle graph</b> (pie chart) shows how a whole splits into parts. The whole circle stands for everyone, 100% of the data, and each sector's share of the circle equals its category's share of the total.`) +
-      p(`A full turn is 360°, so <b>central angle = (part ÷ whole) × 360°</b>, and <b>percent = (part ÷ whole) × 100</b>. Going the other way, a sector's angle ÷ 360° gives its fraction of the whole: 90° is a quarter, 25%. To turn a percent back into a count, multiply it (as a decimal) by the total.`) +
-      example('Example', `${big('12 of 48 students walk to school.')}12 ÷ 48 = 0.25, so walkers are 25% of the students, and their sector has a central angle of 0.25 × 360° = <b>90°</b>.`),
+    learn: p(`A <b>circle graph</b> (pie chart) shows how a whole splits into parts. The whole circle stands for everyone, 100% of the data. Each slice is a <b>sector</b>, and a sector’s share of the circle equals its category’s share of the total.`) +
+      p(`The <b>central angle</b> of a sector is its angle at the center of the circle. A full turn is 360°, so <b>central angle = (part ÷ whole) × 360°</b>, and <b>percent = (part ÷ whole) × 100</b>. Going the other way, a sector’s angle ÷ 360° gives its fraction of the whole: 90° is a quarter, 25%. To turn a percent back into a count, multiply it (as a decimal) by the total.`) +
+      example('Example: count to angle', `${big('12 of 48 students walk to school.')}12 ÷ 48 = 0.25, so walkers are 25% of the students, and their sector has a central angle of 0.25 × 360° = <b>90°</b>.`) +
+      example('Example: angle to count', `${big('60 students; the Bus sector is 72°.')}72° ÷ 360° = 0.2, which is 20% of the circle. So 0.2 × 60 = <b>12 students</b> ride the bus.`),
     make(rng) {
       const set = rng.pick(PIE_SETS), k = rng.int(3, Math.min(5, set.cats.length));
       const cats = rng.sample(set.cats, k), units = cats.map(() => 2);           // shares in steps of 5%, each at least 10%
@@ -1067,25 +1159,25 @@
       const pcts = units.map(u => u * 5), counts = units.map(u => u * T / 20), degs = units.map(u => u * 18);
       const i = rng.int(0, k - 1), cat = cats[i], pct = pcts[i], count = counts[i], deg = degs[i], frac = N(pct / 100);
       const kind = rng.pick(['angle', 'angle', 'percent', 'read-count', 'angle-percent', 'angle-count']);
-      const intro = `${N(T)} students were asked ${set.q}.`;
+      const intro = `${N(T)} ${set.who} were asked ${set.q}.`, W = set.w;
       const params = { kind, T, count, pct, deg, counts, pcts };
       if (kind === 'angle' || kind === 'percent') {
-        const table = M.table(['Answer', 'Students'], cats.map((c, j) => [c, N(counts[j])]).concat([['<b>Total</b>', `<b>${N(T)}</b>`]]));
-        const share = `${cat}: ${N(count)} of the ${N(T)} students, and ${N(count)} ÷ ${N(T)} = ${frac}.`;
+        const table = M.table(['Answer', W[0].toUpperCase() + W.slice(1)], cats.map((c, j) => [c, N(counts[j])]).concat([['<b>Total</b>', `<b>${N(T)}</b>`]]));
+        const share = `${cat}: ${N(count)} of the ${N(T)} ${W}, and ${N(count)} ÷ ${N(T)} = ${frac}.`;
         if (kind === 'angle') return { prompt: `${intro} The results will be shown in a circle graph. What is the central angle of the “${cat}” sector?${table}`, type: 'number', answer: deg, unit: '°', params,
-          hints: [`A full circle is 360°. Each sector gets the same share of 360° as its answer has of all ${N(T)} students.`, share, `${frac} × 360° = <b>${deg}°</b>.`] };
+          hints: [`A full circle is 360°. Each sector gets the same share of 360° as its answer has of all ${N(T)} ${W}.`, share, `${frac} × 360° = <b>${deg}°</b>.`] };
         return { prompt: `${intro} In a circle graph of the results, what percent of the circle is the “${cat}” sector?${table}`, type: 'number', answer: pct, unit: '%', params,
-          hints: [`The whole circle is all ${N(T)} students, so the sector's percent is the percent of students: part ÷ whole × 100.`, share, `${frac} × 100 = <b>${pct}%</b>.`] };
+          hints: [`The whole circle is all ${N(T)} ${W}, so the sector’s percent is the percent of ${W}: part ÷ whole × 100.`, share, `${frac} × 100 = <b>${pct}%</b>.`] };
       }
       const byAngle = kind !== 'read-count';
       const graph = pieSvg(cats, pcts, byAngle ? degs.map(d => `${d}°`) : pcts.map(v => `${v}%`));
-      if (kind === 'read-count') return { prompt: `${intro} The circle graph shows the results. How many students answered “${cat}”?${graph}`, type: 'number', answer: count, unit: 'students', params,
-        hints: [`The ${cat} sector is ${pct}% of the circle, so ${pct}% of the ${N(T)} students gave that answer.`, `${pct}% = ${frac}, and ${frac} × ${N(T)} = ${N(count)}.`, `<b>${N(count)}</b> students answered “${cat}”.`] };
+      if (kind === 'read-count') return { prompt: `${intro} The circle graph shows the results. How many ${W} answered “${cat}”?${graph}`, type: 'number', answer: count, unit: W, params,
+        hints: [`The ${cat} sector is ${pct}% of the circle, so ${pct}% of the ${N(T)} ${W} gave that answer.`, `${pct}% = ${frac}, and ${frac} × ${N(T)} = ${N(count)}.`, `<b>${N(count)}</b> ${W} answered “${cat}”.`] };
       const share = `${deg}° ÷ 360° = ${frac}${kind === 'angle-count' ? `, which is ${pct}% of the circle` : ''}.`;
-      if (kind === 'angle-percent') return { prompt: `${intro} The circle graph shows the central angle of each sector. What percent of the students answered “${cat}”?${graph}`, type: 'number', answer: pct, unit: '%', params,
-        hints: [`The whole circle, 360°, stands for all the students. Divide the ${cat} sector's angle by 360° to get its share.`, share, `${frac} = <b>${pct}%</b>.`] };
-      return { prompt: `${intro} The circle graph shows the central angle of each sector. How many students answered “${cat}”?${graph}`, type: 'number', answer: count, unit: 'students', params,
-        hints: [`The whole circle, 360°, stands for all ${N(T)} students. Find the ${cat} sector's share of 360° first.`, share, `${frac} × ${N(T)} = <b>${N(count)}</b> students.`] };
+      if (kind === 'angle-percent') return { prompt: `${intro} The circle graph shows the central angle of each sector. What percent of the ${W} answered “${cat}”?${graph}`, type: 'number', answer: pct, unit: '%', params,
+        hints: [`The whole circle, 360°, stands for all the ${W}. Divide the ${cat} sector’s angle by 360° to get its share.`, share, `${frac} = <b>${pct}%</b>.`] };
+      return { prompt: `${intro} The circle graph shows the central angle of each sector. How many ${W} answered “${cat}”?${graph}`, type: 'number', answer: count, unit: W, params,
+        hints: [`The whole circle, 360°, stands for all ${N(T)} ${W}. Find the ${cat} sector’s share of 360° first.`, share, `${frac} × ${N(T)} = <b>${N(count)}</b> ${W}.`] };
     },
     verify(q) {
       const { kind, T, count, pct, deg, counts, pcts } = q.params, a = q.answer;
@@ -1109,6 +1201,10 @@
       ask: x => `the value, in thousands of dollars, of a car that is ${N(x)} years old`, slopeQ: 'By how many thousand dollars does the predicted value go down for each extra year?', per: 'year', unit: '', say: 'thousand dollars' },
     { xl: 'Screen time (hours)', yl: 'Sleep (hours)', xw: 'hours of screen time', yw: 'hours of sleep', xmax: 8, xstep: 2, ymax: 12, ystep: 2, ms: [-0.5, -0.75], bs: [10, 11], xs: [2, 3, 4, 5, 6],
       ask: x => `the hours of sleep of a student with ${N(x)} hours of screen time`, slopeQ: 'By how many hours does the predicted sleep go down for each extra hour of screen time?', per: 'hour of screen time', unit: 'hours' },
+    { xl: 'People in line', yl: 'Wait (minutes)', xw: 'number of people in line at a bakery', yw: 'wait in minutes', xmax: 16, xstep: 4, ymax: 40, ystep: 10, ms: [1.5, 1.75, 2], bs: [2, 3, 4], xs: [5, 9, 13, 18, 20],
+      ask: x => `the wait at the bakery when ${N(x)} people are in line`, slopeQ: 'By how many minutes does the predicted wait go up for each extra person in line?', per: 'person in line', unit: 'minutes' },
+    { xl: 'Days since it rained', yl: 'Water in barrel (L)', xw: 'number of days since it rained', yw: 'number of liters of water in the school garden’s rain barrel', xmax: 10, xstep: 2, ymax: 200, ystep: 40, ms: [-12, -15, -16], bs: [170, 180, 190], xs: [3, 5, 7, 9],
+      ask: x => `how many liters will be left in the rain barrel ${N(x)} days after it rained`, slopeQ: 'By how many liters does the predicted amount of water go down each day?', per: 'day', unit: 'L' },
   ];
   /** "y = 3.5x + 40" back to [3.5, 40] */
   const parseDecEqn = html => {
@@ -1122,7 +1218,8 @@
     learn: p(`When a scatter plot shows a linear association, a <b>trend line</b> (line of best fit) sums it up. A good trend line <b>follows the direction of the dots and passes through the middle of the cloud</b>, with about as many dots above it as below. It does not have to touch any dot.`) +
       p(`Write its equation like any line: read the ${Y}-intercept where it crosses the ${Y}-axis, and find the slope from two points on the line (not two dots of data). The slope is the predicted change in ${Y} for each extra unit of ${X}.`) +
       p(`To <b>predict</b>, substitute the ${X}-value into the equation. A prediction is an estimate: real data points sit near the line, not exactly on it.`) +
-      example('Example', `${big(`Trend line: ${eqn(3.5, 40)}`)}For a student who practices 6 hours, ${Y} = 3.5(6) + 40 = 21 + 40 = <b>61 points</b>. The slope says each extra hour goes with about 3.5 more points.`),
+      example('Example: a prediction', `${big(`Trend line: ${eqn(3.5, 40)}`)}For a student who practices 6 hours, ${Y} = 3.5(6) + 40 = 21 + 40 = <b>61 points</b>. The slope says each extra hour goes with about 3.5 more points.`) +
+      example('Example: writing the equation', `A trend line crosses the ${Y}-axis at ${PT(0, 20)} and passes through ${PT(10, 45)}. The slope is (45 − 20) ÷ (10 − 0) = 25 ÷ 10 = 2.5, and the ${Y}-intercept is 20, so the equation is <b>${eqn(2.5, 20)}</b>.`),
     make(rng) {
       const c = rng.pick(TREND_CTX), m = rng.pick(c.ms), b = rng.pick(c.bs), kind = rng.pick(['predict', 'predict', 'meaning', 'choose', 'read']);
       const step = c.xmax / 20, noise = c.ymax * 0.06, ydp = c.ymax >= 100 ? 0 : 1;
@@ -1175,7 +1272,6 @@
   });
 
   /* ---------- Unit 9: More with the Pythagorean theorem ---------- */
-  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
   const QUADS = [];                                                   // whole-number boxes whose long diagonal is whole too
   for (let a = 1; a <= 12; a++) for (let b = a; b <= 12; b++) for (let c = b; c <= 12; c++) { const d = Math.sqrt(a * a + b * b + c * c); if (Number.isInteger(d)) QUADS.push([a, b, c, d]); }
 
@@ -1213,7 +1309,9 @@
     learn: p(`The longest straight line inside a box runs from one corner to the opposite corner, through the middle: the <b>space diagonal</b>. Find it by using the Pythagorean theorem <b>twice</b>.`) +
       p(`First, the diagonal across the bottom of the box (AC) is the hypotenuse of a right triangle whose legs are the length and the width: AC² = ${S(V('l'), 2)} + ${S(V('w'), 2)}. Second, AC and the height stand at right angles, so the space diagonal AG is the hypotenuse of another right triangle: AG² = AC² + ${S(V('h'), 2)}. Put together, <b>AG² = ${S(V('l'), 2)} + ${S(V('w'), 2)} + ${S(V('h'), 2)}</b>.`) +
       p(`The same idea finds the longest stick that fits in a can: it is the hypotenuse of a triangle with the can's height and its diameter (twice the radius) as legs.`) +
-      example('Example', `${big('A box 3 cm by 4 cm by 12 cm')}Base diagonal: 3² + 4² = 9 + 16 = 25, so AC = 5 cm. Space diagonal: 5² + 12² = 25 + 144 = 169, so AG = ${M.sqrt(169)} = <b>13 cm</b>.`),
+      example('Example: a space diagonal', `${big('A box 3 cm by 4 cm by 12 cm')}Base diagonal: ${S(3, 2)} + ${S(4, 2)} = 9 + 16 = 25, so AC = 5 cm. Space diagonal: ${S(5, 2)} + ${S(12, 2)} = 25 + 144 = 169, so AG = ${M.sqrt(169)} = <b>13 cm</b>.`) +
+      example('Example: a missing height', `${big('A box 2 cm by 3 cm, with a space diagonal of 7 cm')}${S(V('h'), 2)} = ${S(7, 2)} − ${S(2, 2)} − ${S(3, 2)} = 49 − 4 − 9 = 36, so the box is ${M.sqrt(36)} = <b>6 cm</b> tall.`) +
+      example('Example: a can', `${big('A can 8 cm tall with a radius of 3 cm')}The diameter is 2 × 3 = 6 cm. The longest stick is the hypotenuse: ${S(6, 2)} + ${S(8, 2)} = 36 + 64 = 100, so it’s ${M.sqrt(100)} = <b>10 cm</b> long.`),
     make(rng) {
       const kind = rng.pick(['space', 'space', 'base', 'rounded', 'missing', 'can']), u = rng.pick(['cm', 'cm', 'in', 'ft']);
       const dim = v => `${N(v)} ${u}`;
@@ -1272,7 +1370,9 @@
     learn: p(`The Pythagorean theorem also works backwards. Its <b>converse</b> says: <b>if the side lengths of a triangle fit ${S(V('a'), 2)} + ${S(V('b'), 2)} = ${S(V('c'), 2)}, where ${V('c')} is the longest side, then the triangle is a right triangle</b>, with the right angle opposite the longest side.`) +
       p(`So to test three lengths, square the two shorter sides and add, then compare with the square of the longest side. If ${S(V('a'), 2)} + ${S(V('b'), 2)} is <b>larger</b> than ${S(V('c'), 2)}, the longest side is too short to reach across a right angle, so the angle opposite it is less than 90°: an <b>acute</b> triangle. If ${S(V('a'), 2)} + ${S(V('b'), 2)} is <b>smaller</b>, that angle is more than 90°: an <b>obtuse</b> triangle.`) +
       p(`Builders use this to check a square corner: 3 units along one edge, 4 along the other, and the diagonal between the marks must be exactly 5.`) +
-      example('Example', `${big('Sides 8, 15, 17')}The longest side is 17. 8² + 15² = 64 + 225 = 289, and 17² = 289. They are equal, so this is a <b>right triangle</b>.`),
+      example('Example: right', `${big('Sides 8, 15, 17')}The longest side is 17. ${S(8, 2)} + ${S(15, 2)} = 64 + 225 = 289, and ${S(17, 2)} = 289. They’re equal, so this is a <b>right triangle</b>.`) +
+      example('Example: obtuse', `${big('Sides 5, 7, 10')}The longest side is 10. ${S(5, 2)} + ${S(7, 2)} = 25 + 49 = 74, and ${S(10, 2)} = 100. 74 is smaller, so the angle across from the longest side is more than 90°: an <b>obtuse triangle</b>.`) +
+      example('Example: acute', `${big('Sides 6, 7, 8')}${S(6, 2)} + ${S(7, 2)} = 36 + 49 = 85, and ${S(8, 2)} = 64. 85 is larger, so every angle is less than 90°: an <b>acute triangle</b>.`),
     make(rng) {
       const kind = rng.pick(['classify', 'classify', 'which', 'corner']);
       const t0 = rng.pick(TRIPLES.slice(0, 4)), k = rng.int(1, t0[2] > 13 ? 1 : 3), t = t0.map(v => v * k);
@@ -1298,7 +1398,7 @@
         }
       }
       if (kind === 'corner') {
-        const [a, b, c] = s, name = rng.pick(NAMES), thing = rng.pick(['garden bed', 'picture frame', 'deck', 'tabletop', 'sandbox']), u = rng.pick(['ft', 'in', 'cm']);
+        const [a, b, c] = s, name = rng.pick(NAMES), thing = rng.pick(['garden bed', 'picture frame', 'deck', 'tabletop', 'sandbox', 'bookshelf', 'patio', 'dog house', 'stage at the community center', 'soccer goal frame']), u = rng.pick(['ft', 'in', 'cm']);
         const sum = a * a + b * b, cc = c * c, res = sum === cc ? 0 : sum > cc ? 1 : 2;
         return { prompt: `${name} wants to check that a corner of a ${thing} is a right angle. ${name} marks a point ${N(a)} ${u} along one edge from the corner and a point ${N(b)} ${u} along the other edge, then measures the diagonal between the two marks: ${N(c)} ${u}. Is the corner a right angle?`, type: 'choice', choices: CORNER.slice(), answer: CORNER[res], keepOrder: true, params: { kind, s },
           hints: [`The two edges and the diagonal make a triangle, and the corner is the angle opposite the diagonal. Compare ${S(N(a), 2)} + ${S(N(b), 2)} with ${S(N(c), 2)}.`,

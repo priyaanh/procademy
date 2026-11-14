@@ -5,7 +5,8 @@
 (function () {
   const A = window.ACADEMY, M = window.M;
   const F = M.frac, N = M.n, V = M.v, X = M.v('x');
-  const NAMES = ['Ana', 'Ben', 'Chloe', 'Dev', 'Ella', 'Finn', 'Grace', 'Hugo', 'Iris', 'Jai', 'Kai', 'Lena', 'Milo', 'Nora', 'Omar', 'Ravi', 'Sara', 'Theo', 'Uma', 'Zoe'];
+  const NAMES = ['Ana', 'Ben', 'Chloe', 'Dev', 'Ella', 'Finn', 'Grace', 'Hugo', 'Iris', 'Jai', 'Kai', 'Lena', 'Milo', 'Nora', 'Omar', 'Ravi', 'Sara', 'Theo', 'Uma', 'Zoe',
+    'Aiko', 'Amara', 'Anika', 'Diego', 'Fatima', 'Hana', 'Kwame', 'Leila', 'Mateo', 'Mei', 'Nikhil', 'Rosa', 'Tariq', 'Wei', 'Yusuf', 'Zara'];
   const p = (s) => `<p>${s}</p>`;
   const example = (title, body) => `<div class="example"><div class="ex-title">${title}</div>${body}</div>`;
   const big = s => `<div class="big">${s}</div>`;
@@ -20,6 +21,8 @@
   }
   /** a fraction n/d (or a whole number) printed as a mixed number when it is bigger than 1 */
   const MX = (n, d) => M.mixed(n, d);
+  /** the same number as plain text for a drawing (no HTML inside an <svg>): 5/2 → "2 1/2", 3/4 → "3/4", 6/2 → "3" */
+  const mixTxt = (n, d) => { const [a, b] = M.simp(n, d), w = Math.floor(a / b), r = a % b; return r === 0 ? String(w) : w ? `${w} ${r}/${b}` : `${r}/${b}`; };
 
   A.course({
     id: 'math-6', title: '6th grade math', subject: 'Middle school', grade: 6, icon: '6', hue: 165,
@@ -45,10 +48,11 @@
   /* ---------- Unit 1: Ratios ---------- */
   A.skill({
     id: 'g6.ratio-language', title: 'Ratio language',
-    learn: p('A <b>ratio</b> compares two amounts. If a fruit bowl has 3 apples and 5 bananas, the ratio of apples to bananas is <b>3 : 5</b>, said “3 to 5”. You can also write it as “3 for every 5”.') +
-      p('<b>Order matters.</b> The ratio of bananas to apples is 5 : 3, not 3 : 5. The first thing named goes first.') +
-      p('A ratio can also compare a part to the <b>whole</b>. There are 3 + 5 = 8 pieces of fruit, so the ratio of apples to all the fruit is 3 : 8.') +
-      example('Example', `${M.items([[2, 'circle', 'orange'], [5, 'square', 'blue']], { per: 0, size: 28 })}The ratio of squares to circles is <b>5 : 2</b>. The ratio of circles to all the shapes is <b>2 : 7</b>.`),
+    learn: p('A <b>ratio</b> compares two amounts. If a fruit bowl has 3 apples and 5 bananas, the ratio of apples to bananas is <b>3 : 5</b>. You say it “3 to 5”, and you can also write it as “3 for every 5”.') +
+      p('<b>Order matters.</b> The ratio of bananas to apples is 5 : 3, not 3 : 5. Whatever is named first gets its number first.') +
+      p('A ratio can also compare a part to the <b>whole</b>, which means everything put together. There are 3 + 5 = 8 pieces of fruit, so the ratio of apples to all the fruit is 3 : 8.') +
+      example('Example: part to part', `${M.items([[2, 'circle', 'orange'], [5, 'square', 'blue']], { per: 0, size: 28 })}Count each kind: 2 circles and 5 squares. The question names squares first, so the ratio of squares to circles is <b>5 : 2</b>.`) +
+      example('Example: part to whole', `${big('A shelf holds 4 mystery books and 7 science books.')}What is the ratio of science books to all the books? The whole is 4 + 7 = 11 books. The part goes first and the whole second: <b>7 : 11</b>.`),
     make(rng) {
       const kind = rng.pick(['pic', 'pic', 'words', 'whole']);
       let a = rng.int(2, 9), b = rng.int(2, 9);
@@ -84,10 +88,12 @@
 
   A.skill({
     id: 'g6.ratio-tables', title: 'Equivalent ratios and ratio tables',
-    learn: p('Two ratios are <b>equivalent</b> when you get one from the other by <b>multiplying (or dividing) both numbers by the same number</b>. 2 : 3 is equivalent to 4 : 6 and to 10 : 15.') +
+    learn: p('Two ratios are <b>equivalent</b> when they make the same comparison. You get one from the other by <b>multiplying (or dividing) both numbers by the same number</b>. 2 : 3 is equivalent to 4 : 6 and to 10 : 15.') +
       p('A <b>ratio table</b> lists equivalent ratios in rows. To fill in a missing number, find what the known number was multiplied by, then multiply the other number by the same thing.') +
-      p('When you know the <b>total</b>, add the parts of the ratio to see how many “groups” fit in it.') +
-      example('Example', `${big('3 : 4 = 15 : ?')}3 × 5 = 15, so multiply 4 by 5 too: the missing number is <b>20</b>.`),
+      p('When you know the <b>total</b>, add the two parts of the ratio to get the size of one “group”. Then see how many groups fit in the total.') +
+      example('Example: a missing number', `${big('3 : 4 = 15 : ?')}3 × 5 = 15, so multiply 4 by 5 too. The missing number is <b>20</b>.`) +
+      example('Example: a ratio table', `${M.table(['Cups of juice', 'Cups of water'], [['2', '7'], ['4', '14'], ['?', '35']])}Look at the water: 7 × 5 = 35. Multiply the juice by 5 too: 2 × 5 = <b>10</b> cups of juice.`) +
+      example('Example: using the total', `${big('Cats to dogs at a shelter is 2 : 3. There are 30 animals.')}How many are dogs? One group is 2 + 3 = 5 animals, and 30 ÷ 5 = 6 groups. Dogs: 3 × 6 = <b>18</b>. Check: there are 2 × 6 = 12 cats, and 12 + 18 = 30 ✓`),
     make(rng) {
       const kind = rng.pick(['table', 'equiv', 'recipe', 'total']);
       let a = rng.int(1, 6), b = rng.int(2, 9);
@@ -125,10 +131,12 @@
   /* ---------- Unit 2: Rates and percentages ---------- */
   A.skill({
     id: 'g6.unit-rates', title: 'Unit rates and unit price',
-    learn: p('A <b>rate</b> compares two different kinds of amounts, like miles and hours. A <b>unit rate</b> tells you how much for <b>one</b>: miles per hour, words per minute, dollars per pen.') +
+    learn: p('A <b>rate</b> compares two different kinds of amounts, like miles and hours. A <b>unit rate</b> tells you how much for <b>one</b>: miles per hour, words per minute, dollars per pen. “Per” means “for each”.') +
       p('<b>To find a unit rate, divide</b> the first amount by the second. 150 miles in 3 hours is 150 ÷ 3 = 50 miles per hour. Once you know the unit rate, multiply to find any other amount.') +
-      p('The <b>unit price</b> is the cost of one item. To find the better buy, compare unit prices: the lower one is the better deal.') +
-      example('Example', `${big('6 pens cost $4.50')}Unit price = $4.50 ÷ 6 = <b>$0.75</b> per pen.`),
+      p('The <b>unit price</b> is the cost of one item. To find the <b>better buy</b>, compare unit prices: the lower one is the better deal.') +
+      example('Example: unit price', `${big('6 pens cost $4.50')}Unit price = $4.50 ÷ 6 = <b>$0.75</b> per pen.`) +
+      example('Example: using a unit rate', `${big('Mei types 240 words in 6 minutes. How many words in 10 minutes?')}Unit rate: 240 ÷ 6 = 40 words per minute. In 10 minutes: 40 × 10 = <b>400 words</b>.`) +
+      example('Example: the better buy', `${big('A 4-pack of juice boxes costs $3.00. A 10-pack costs $6.50.')}4-pack: $3.00 ÷ 4 = $0.75 each. 10-pack: $6.50 ÷ 10 = $0.65 each. $0.65 is lower, so <b>the 10-pack</b> is the better buy.`),
     make(rng) {
       const kind = rng.pick(['rate', 'price', 'better', 'use']);
       const name = rng.pick(NAMES);
@@ -169,8 +177,10 @@
     id: 'g6.percents', title: 'Percent problems',
     learn: p('<b>Percent means “out of 100”.</b> 35% is 35 out of 100, which is the fraction ' + F(35, 100, { raw: true }) + ' or the decimal 0.35.') +
       p('<b>Percent of a number:</b> change the percent to a decimal and multiply. 35% of 80 = 0.35 × 80 = 28.') +
-      p('<b>Finding the whole:</b> if 25% of a number is 12, then the whole is 12 × 100 ÷ 25 = 48. <b>Finding the percent:</b> divide the part by the whole and multiply by 100.') +
-      example('Example', `${big('18 is 30% of what number?')}18 × 100 = 1,800 and 1,800 ÷ 30 = <b>60</b>. Check: 0.3 × 60 = 18 ✓`),
+      p('<b>Finding the whole:</b> if 25% of a number is 12, then the whole is 12 × 100 ÷ 25 = 48. <b>Finding the percent:</b> divide the part by the whole, then multiply by 100.') +
+      example('Example: percent of a number', `${big('What is 15% of 60?')}15% as a decimal is 0.15, and 0.15 × 60 = <b>9</b>.`) +
+      example('Example: finding the whole', `${big('18 is 30% of what number?')}18 × 100 = 1,800 and 1,800 ÷ 30 = <b>60</b>. Check: 0.3 × 60 = 18 ✓`) +
+      example('Example: finding the percent', `${big('12 is what percent of 40?')}12 ÷ 40 = 0.3, and 0.3 × 100 = <b>30%</b>.`),
     make(rng) {
       const kind = rng.pick(['of', 'of-word', 'whole', 'whole-word', 'what']);
       const pct = rng.pick([5, 10, 15, 20, 25, 30, 40, 45, 50, 60, 70, 75, 80, 90]);
@@ -180,9 +190,14 @@
       const ofHints = [`Write ${pct}% as a decimal: ${N(pct / 100)}.`, `Multiply: ${N(pct / 100)} × ${whole} = <b>${N(part)}</b>.`];
       const wholeHints = [`${pct}% of the whole is ${N(part)}. To undo “× ${N(pct / 100)}”, multiply by 100 and divide by ${pct}.`, `${N(part)} × 100 = ${N(part * 100)}, and ${N(part * 100)} ÷ ${pct} = <b>${whole}</b>.`, `Check: ${pct}% of ${whole} is ${N(part)} ✓`];
       if (kind === 'of') return { prompt: `What is ${pct}% of ${whole}?${big(`${pct}% of ${whole} = ?`)}`, type: 'number', answer: part, params, hints: ofHints };
-      if (kind === 'of-word') return { prompt: `A test has ${whole} questions. ${name} got ${pct}% of them right. How many questions did ${name} get right?`, type: 'number', answer: part, params, hints: ofHints };
+      if (kind === 'of-word') return { prompt: rng.pick([
+        `A test has ${whole} questions. ${name} got ${pct}% of them right. How many questions did ${name} get right?`,
+        `A community garden has ${whole} plots. ${pct}% of them are growing tomatoes. How many plots are growing tomatoes?`,
+        `The school library has ${whole} new books. ${pct}% of them are mysteries. How many new books are mysteries?`,
+        `${name} planted ${whole} seeds, and ${pct}% of them sprouted. How many seeds sprouted?`,
+        `A farmers market has ${whole} stalls. ${pct}% of them sell fruit. How many stalls sell fruit?`]), type: 'number', answer: part, params, hints: ofHints };
       if (kind === 'whole') return { prompt: `${N(part)} is ${pct}% of what number?`, type: 'number', answer: whole, params, hints: wholeHints };
-      if (kind === 'whole-word') return { prompt: `${name} has saved ${M.money(part)}. That is ${pct}% of the price of a bike. How much does the bike cost?`, type: 'number', answer: whole, unit: '$', params, hints: wholeHints };
+      if (kind === 'whole-word') return { prompt: `${name} has saved ${M.money(part)}. That is ${pct}% of the price of ${rng.pick(['a bike', 'a keyboard', 'a tent', 'a telescope', 'a pair of skates', 'a sewing kit'])}. How much does it cost?`, type: 'number', answer: whole, unit: '$', params, hints: wholeHints };
       return { prompt: `${N(part)} is what percent of ${whole}?`, type: 'number', answer: pct, unit: '%', params,
         hints: [`Divide the part by the whole: ${N(part)} ÷ ${whole} = ${N(part / whole)}.`, `Multiply by 100 to make a percent: ${N(part / whole)} × 100 = <b>${pct}%</b>.`] };
     },
@@ -197,10 +212,12 @@
   /* ---------- Unit 3: Dividing fractions ---------- */
   A.skill({
     id: 'g6.divide-fractions', title: 'Dividing fractions by fractions',
-    learn: p(`Dividing asks “how many of these fit into that?”. ${F(3, 4)} ÷ ${F(1, 8)} asks how many eighths fit into three quarters. The answer is 6.`) +
-      p('<b>To divide by a fraction, multiply by its reciprocal.</b> The reciprocal is the fraction flipped upside down: the reciprocal of ' + F(2, 5) + ' is ' + F(5, 2, { raw: true }) + '. A whole number like 3 is ' + F(3, 1, { raw: true }) + ', so its reciprocal is ' + F(1, 3) + '. Change a mixed number to an improper fraction first.') +
+    learn: p(`Dividing asks “how many of these fit into that?” ${F(3, 4)} ÷ ${F(1, 8)} asks how many eighths fit into three-fourths. The answer is 6.`) +
+      p('<b>To divide by a fraction, multiply by its reciprocal.</b> The <b>reciprocal</b> is the fraction flipped upside down: the reciprocal of ' + F(2, 5) + ' is ' + F(5, 2, { raw: true }) + '. A whole number like 3 is ' + F(3, 1, { raw: true }) + ', so its reciprocal is ' + F(1, 3) + '. Change a mixed number to an <b>improper fraction</b> (one with the top bigger than the bottom) first.') +
       p('In short: <b>keep</b> the first fraction, <b>change</b> ÷ to ×, <b>flip</b> the second fraction. Then simplify.') +
-      example('Example', `${big(`${F(2, 3)} ÷ ${F(4, 5)}`)}Keep, change, flip: ${F(2, 3)} × ${F(5, 4, { raw: true })} = ${F(10, 12, { raw: true })} = <b>${F(5, 6)}</b>.`),
+      example('Example: a fraction by a fraction', `${big(`${F(2, 3)} ÷ ${F(4, 5)}`)}Keep, change, flip: ${F(2, 3)} × ${F(5, 4, { raw: true })} = ${F(10, 12, { raw: true })} = <b>${F(5, 6)}</b>.`) +
+      example('Example: with a whole number', `${big(`6 ÷ ${F(3, 4)}`)}Write 6 as ${F('6', '1')}. Keep, change, flip: ${F('6', '1')} × ${F(4, 3, { raw: true })} = ${F(24, 3, { raw: true })} = <b>8</b>. A fraction divided by a whole number works the same way: ${F(3, 5)} ÷ 2 = ${F(3, 5)} × ${F(1, 2)} = <b>${F(3, 10)}</b>.`) +
+      example('Example: with a mixed number', `${big(`${MX(5, 2)} ÷ ${F(3, 4)}`)}First, ${MX(5, 2)} = ${F(5, 2, { raw: true })}. Then ${F(5, 2, { raw: true })} × ${F(4, 3, { raw: true })} = ${F(20, 6, { raw: true })} = ${F(10, 3, { raw: true })} = <b>${MX(10, 3)}</b>.`),
     make(rng) {
       const kind = rng.pick(['ff', 'ff', 'wf', 'fw', 'mixed']);
       let n1, d1, n2, d2, shown;
@@ -227,7 +244,9 @@
     learn: p('A story calls for division when you <b>split an amount into equal groups</b> or ask <b>how many groups fit</b>. “How many ' + F(1, 4) + '-cup servings are in 3 cups?” is 3 ÷ ' + F(1, 4) + '.') +
       p('Rates work the same way: if you walk ' + F(1, 2) + ' mile in ' + F(1, 4) + ' hour, your speed is ' + F(1, 2) + ' ÷ ' + F(1, 4) + ' = 2 miles per hour. And a rectangle’s missing side is <b>area ÷ the side you know</b>.') +
       p('<b>Write the division first</b> (total ÷ size of one group), then keep, change, flip.') +
-      example('Example', `${big(`A ribbon is ${F(3, 4)} m long. Each bow needs ${F(1, 8)} m.`)}${F(3, 4)} ÷ ${F(1, 8)} = ${F(3, 4)} × 8 = <b>6 bows</b>.`),
+      example('Example: how many groups fit', `${big(`A ribbon is ${F(3, 4)} m long. Each bow needs ${F(1, 8)} m.`)}${F(3, 4)} ÷ ${F(1, 8)} = ${F(3, 4)} × 8 = ${F(24, 4, { raw: true })} = <b>6 bows</b>.`) +
+      example('Example: sharing equally', `${big(`3 friends share ${F(3, 4)} pound of trail mix equally.`)}${F(3, 4)} ÷ 3 = ${F(3, 4)} × ${F(1, 3)} = ${F(3, 12, { raw: true })} = <b>${F(1, 4)} pound</b> for each friend.`) +
+      example('Example: a missing side', `${big(`A rectangle has an area of ${F(2, 3)} square meter. Its width is ${F(1, 2)} meter.`)}Length = area ÷ width: ${F(2, 3)} ÷ ${F(1, 2)} = ${F(2, 3)} × ${F(2, 1, { raw: true })} = ${F(4, 3, { raw: true })}, so the length is <b>${MX(4, 3)} m</b>.`),
     make(rng) {
       const kind = rng.pick(['groups', 'groups', 'speed', 'side', 'share']);
       const name = rng.pick(NAMES);
@@ -240,14 +259,16 @@
         prompt = `${name} has ${MX(tn, td)} ${u}${tn > td ? 's' : ''} of ${thing}. ${each} ${fr(gn, gd)} ${u}. How many ${ask.replace('NAME', name)}?`;
       } else if (kind === 'speed') {
         [tn, td] = M.simp(rng.int(1, 5), rng.pick([2, 3, 4, 5])); gd = rng.pick([2, 3, 4, 6]); gn = 1;
-        prompt = `${name} walks ${MX(tn, td)} mile${tn > td ? 's' : ''} in ${fr(gn, gd)} of an hour. At that speed, how many miles does ${name} walk in one hour?`; unit = 'miles';
+        const [go, goes] = rng.pick([['walk', 'walks'], ['bike', 'bikes'], ['jog', 'jogs'], ['paddle', 'paddles'], ['skate', 'skates']]);
+        prompt = `${name} ${goes} ${MX(tn, td)} mile${tn > td ? 's' : ''} in ${fr(gn, gd)} of an hour. At that speed, how many miles does ${name} ${go} in one hour?`; unit = 'miles';
       } else if (kind === 'side') {
         const d1 = rng.pick([2, 3, 4, 5, 6, 8]), d2 = rng.pick([2, 3, 4, 5]);
         [tn, td] = M.simp(rng.int(1, d1 - 1), d1); [gn, gd] = M.simp(rng.int(1, d2 - 1), d2);
         prompt = `A rectangle has an area of ${fr(tn, td)} square meter. Its width is ${fr(gn, gd)} meter. How long is it?`; unit = 'm';
       } else {
         const d = rng.pick([2, 3, 4, 5, 8]); [tn, td] = M.simp(rng.int(1, d - 1), d); gn = rng.int(2, 6); gd = 1;
-        prompt = `${name} shares ${fr(tn, td)} pound of trail mix equally among ${gn} friends. How many pounds does each friend get?`; unit = 'lb';
+        const [stuff, among] = rng.pick([['trail mix', 'friends'], ['clay', 'classmates'], ['birdseed', 'feeders'], ['dried apples', 'campers'], ['modeling sand', 'tables']]);
+        prompt = `${name} shares ${fr(tn, td)} pound of ${stuff} equally among ${gn} ${among}. How many pounds does each get?`; unit = 'lb';
       }
       const [sn, sd] = M.simp(tn * gd, td * gn);
       const div = `${MX(tn, td)} ÷ ${gd === 1 ? gn : fr(gn, gd)}`;
@@ -273,10 +294,12 @@
   }
   A.skill({
     id: 'g6.long-division', title: 'Multi-digit division',
-    learn: p('Long division breaks a big division into small steps, working from the left. At each step: <b>divide, multiply, subtract, bring down</b> the next digit, and repeat.') +
-      p('Estimate first so you know about how big the answer should be. 1,512 ÷ 36 is close to 1,500 ÷ 40, which is slightly less than 40.') +
-      p('If something is left at the end, that is the <b>remainder</b>. In a story, think about what it means: if 10 children are left without a seat on the bus, you need <b>one more bus</b>.') +
-      example('Example', `${big('1,512 ÷ 36')}151 ÷ 36 = 4 remainder 7. Bring down the 2 to make 72. 72 ÷ 36 = 2 remainder 0. The answer is <b>42</b>.`),
+    learn: p('<b>Long division</b> breaks a big division into small steps, working from the left. At each step: <b>divide, multiply, subtract, bring down</b> the next digit, and repeat.') +
+      p('Estimate first so you know about how big the answer should be. 1,512 ÷ 36 is close to 1,600 ÷ 40 = 40, so the answer should be around 40.') +
+      p('If something is left at the end, that is the <b>remainder</b>. In a story, think about what it means: if 10 children are left without a seat on the bus, you need <b>one more bus</b>. You can also keep dividing past the decimal point: write zeros after it and bring them down.') +
+      example('Example: no remainder', `${big('1,512 ÷ 36')}151 ÷ 36 = 4 remainder 7. Bring down the 2 to make 72. 72 ÷ 36 = 2 remainder 0. The answer is <b>42</b>.`) +
+      example('Example: a remainder in a story', `${big('250 students ride in vans that hold 12 each.')}How many vans are needed? 25 ÷ 12 = 2 remainder 1. Bring down the 0 to make 10, and 10 ÷ 12 = 0 remainder 10. So 250 ÷ 12 = 20 remainder 10. The 10 students left over need a van too: <b>21 vans</b>.`) +
+      example('Example: past the decimal point', `${big('54 ÷ 8')}54 ÷ 8 = 6 remainder 6. Write 54 as 54.00 and keep going: 60 ÷ 8 = 7 remainder 4, then 40 ÷ 8 = 5 remainder 0. So 54 ÷ 8 = <b>6.75</b>.`),
     make(rng) {
       const kind = rng.pick(['exact', 'exact', 'rem', 'bus', 'decimal']);
       if (kind === 'decimal') {
@@ -293,8 +316,14 @@
         hints: [`Estimate: ${N(D)} ÷ ${d} is about ${N(Math.round(D / d / 10) * 10)}.`, `Work from the left: ${steps.join('; ')}.`, `${N(D)} ÷ ${d} = <b>${qt}</b>.`] };
       if (kind === 'rem') return { prompt: `What is the <b>remainder</b> when you divide?${big(`${N(D)} ÷ ${d}`)}`, type: 'number', answer: r, params: { kind, D, d, qt },
         hints: [`Work from the left: ${steps.join('; ')}.`, `${d} × ${qt} = ${N(d * qt)}, and ${N(D)} − ${N(d * qt)} = ${r}.`, `The remainder is <b>${r}</b>.`] };
-      return { prompt: `${N(D)} people are going to a fair. Each bus holds ${d} people. How many buses are needed to take everyone?`, type: 'number', answer: qt + 1, unit: 'buses', params: { kind, D, d },
-        hints: [`Divide: ${steps.join('; ')}.`, `So ${N(D)} ÷ ${d} = ${qt} remainder ${r}: ${qt} buses are full and ${r} ${r === 1 ? 'person is' : 'people are'} left over.`, `The leftover people need a bus too: <b>${qt + 1} buses</b>.`] };
+      const [story, box, boxes, who, whoOne] = rng.pick([
+        [`${N(D)} people are going to a fair. Each bus holds ${d} people. How many buses are needed to take everyone?`, 'bus', 'buses', 'people', 'person'],
+        [`${N(D)} students are going to the science museum. Each van holds ${d} students. How many vans are needed?`, 'van', 'vans', 'students', 'student'],
+        [`${N(D)} guests are coming to a dinner at the community center. Each table seats ${d}. How many tables are needed so everyone has a seat?`, 'table', 'tables', 'guests', 'guest'],
+        [`The library is packing ${N(D)} books into boxes that hold ${d} books each. How many boxes are needed for all the books?`, 'box', 'boxes', 'books', 'book'],
+        [`A bakery has ${N(D)} muffins to pack into trays of ${d}. How many trays are needed for all the muffins?`, 'tray', 'trays', 'muffins', 'muffin']]);
+      return { prompt: story, type: 'number', answer: qt + 1, unit: boxes, params: { kind, D, d },
+        hints: [`Divide: ${steps.join('; ')}.`, `So ${N(D)} ÷ ${d} = ${qt} remainder ${r}: ${qt} ${boxes} are full and ${r} ${r === 1 ? whoOne + ' is' : who + ' are'} left over.`, `The leftover ${r === 1 ? whoOne : who} need${r === 1 ? 's' : ''} a ${box} too: <b>${qt + 1} ${boxes}</b>.`] };
     },
     verify(q) {
       const { kind, D, d } = q.params;
@@ -308,9 +337,11 @@
   A.skill({
     id: 'g6.decimals', title: 'Adding, subtracting, multiplying, and dividing decimals',
     learn: p('<b>Adding and subtracting:</b> line up the decimal points, fill empty places with zeros, and work as with whole numbers. 12.4 − 3.75 is 12.40 − 3.75 = 8.65.') +
-      p('<b>Multiplying:</b> multiply as if there were no decimal points, then <b>count the decimal places</b> in both numbers and give the answer that many. 2.4 × 0.3: 24 × 3 = 72, and there are two places, so 0.72.') +
-      p('<b>Dividing:</b> move the decimal point in the divisor to make it a whole number, and move the one in the dividend the same number of places. 6.3 ÷ 0.7 becomes 63 ÷ 7 = 9.') +
-      example('Example', `${big('4.5 ÷ 0.15')}Move both points two places: 450 ÷ 15 = <b>30</b>.`),
+      p('<b>Multiplying:</b> multiply as if there were no decimal points. Then <b>count the decimal places</b> (the digits after the point) in both numbers, and give the answer that many. 2.4 × 0.3: 24 × 3 = 72, and there are two places in all, so the answer is 0.72.') +
+      p('<b>Dividing:</b> the <b>divisor</b> is the number you divide by. Move its decimal point to make it a whole number, and move the point in the other number the same number of places. 6.3 ÷ 0.7 becomes 63 ÷ 7 = 9.') +
+      example('Example: adding', `${big('7.85 + 12.6')}Line up the points and fill in a zero: 7.85 + 12.60 = <b>20.45</b>.`) +
+      example('Example: multiplying', `${big('0.6 × 3.5')}6 × 35 = 210. There is one decimal place in 0.6 and one in 3.5, so two in all: 2.10 = <b>2.1</b>.`) +
+      example('Example: dividing', `${big('4.5 ÷ 0.15')}Move both points two places to the right: 450 ÷ 15 = <b>30</b>.`),
     make(rng) {
       const op = rng.pick(['+', '−', '×', '÷']);
       const mk = places => { const pl = rng.pick(places); return { pl, v: rng.int(Math.pow(10, pl), 99 * Math.pow(10, pl)) / Math.pow(10, pl) }; };
@@ -363,10 +394,12 @@
   }
   A.skill({
     id: 'g6.number-line', title: 'Negative numbers and absolute value',
-    learn: p('Numbers less than zero are <b>negative</b>. On a number line they sit to the <b>left</b> of zero. Every number has an <b>opposite</b> the same distance from zero on the other side: the opposite of 4 is −4, and the opposite of −4 is 4.') +
-      p('<b>Further left is smaller.</b> −8 is less than −3, because −8 is further left. Think of temperature: −8° is colder than −3°.') +
-      p('The <b>absolute value</b> of a number is its distance from zero, so it is never negative: |−6| = 6 and |6| = 6.') +
-      example('Example', `${big('Order from least to greatest: 2, −5, 0, −1')}The furthest left is −5, then −1, then 0, then 2: <b>−5, −1, 0, 2</b>.`),
+    learn: p('Numbers less than zero are <b>negative</b>. On a number line they sit to the <b>left</b> of zero. Every number has an <b>opposite</b>: the number the same distance from zero on the other side. The opposite of 4 is −4, and the opposite of −4 is 4.') +
+      p('<b>Farther left is smaller.</b> −8 is less than −3, because −8 is farther left. Think of temperature: −8° is colder than −3°.') +
+      p('The <b>absolute value</b> of a number is its distance from zero, so it is never negative. It is written with two straight bars: |−6| = 6 and |6| = 6.') +
+      example('Example: putting numbers in order', `${big('Order from least to greatest: 2, −5, 0, −1')}The farthest left is −5, then −1, then 0, then 2: <b>−5, −1, 0, 2</b>.`) +
+      example('Example: comparing', `${big('−7 &nbsp;?&nbsp; −2')}−7 is farther left than −2, so <b>−7 &lt; −2</b>. A temperature of −7° is colder than −2°.`) +
+      example('Example: absolute value', `${big('|−9| + |4|')}−9 is 9 steps from zero and 4 is 4 steps from zero, so this is 9 + 4 = <b>13</b>. In the same way, a diver at −30 feet is <b>30 feet</b> from the surface.`),
     make(rng) {
       const kind = rng.pick(['point', 'compare', 'order', 'abs', 'abs-word', 'opposite', 'coldest']);
       if (kind === 'point') {
@@ -380,7 +413,7 @@
         const opts = ['&lt;', '&gt;', '='].map(o => `${N(a)} ${o} ${N(b)}`);
         const answer = opts[a < b ? 0 : 1];
         return { prompt: `Which is true?${big(`${N(a)} &nbsp;?&nbsp; ${N(b)}`)}`, type: 'choice', answer, choices: opts, keepOrder: true, params: { kind, a, b },
-          hints: [`Picture both numbers on a number line. The one further left is smaller.`, `${N(Math.min(a, b))} is further left than ${N(Math.max(a, b))}.`, `So <b>${answer}</b>.`] };
+          hints: [`Picture both numbers on a number line. The one farther left is smaller.`, `${N(Math.min(a, b))} is farther left than ${N(Math.max(a, b))}.`, `So <b>${answer}</b>.`] };
       }
       if (kind === 'order') {
         const k = rng.int(2, 3);
@@ -398,7 +431,7 @@
         if (t.every(v => v > 0)) t[0] = -t[0];
         const answer = `${N(Math.min(...t))}°C`;
         return { prompt: `Which temperature is the <b>coldest</b>?`, type: 'choice', answer, choices: t.map(v => `${N(v)}°C`), params: { kind, t },
-          hints: [`Colder means lower: on a thermometer, further down. On a number line, further left.`, `The smallest of ${M.list(t.map(N))} is ${N(Math.min(...t))}.`, `The coldest is <b>${answer}</b>.`] };
+          hints: [`Colder means lower: on a thermometer, farther down. On a number line, farther left.`, `The smallest of ${M.list(t.map(N))} is ${N(Math.min(...t))}.`, `The coldest is <b>${answer}</b>.`] };
       }
       if (kind === 'opposite') {
         const a = rng.nz(-30, 30), dbl = rng.bool();
@@ -428,7 +461,7 @@
     },
   });
 
-  function gridSvg(points) {
+  function gridSvg(points, opts) {
     const C = 100, u = 14, sx = x => C + u * x, sy = y => C - u * y;
     let g = '';
     for (let i = -6; i <= 6; i++) {
@@ -436,17 +469,22 @@
       if (i !== 0 && i % 2 === 0) g += `<text x="${sx(i)}" y="${C + 12}" font-size="8" text-anchor="middle" fill="var(--muted)">${N(i)}</text><text x="${C - 4}" y="${sy(i) + 3}" font-size="8" text-anchor="end" fill="var(--muted)">${N(i)}</text>`;
     }
     g += `<line x1="${sx(-6.8)}" y1="${C}" x2="${sx(6.8)}" y2="${C}" stroke="var(--muted)" stroke-width="1.2"/><line x1="${C}" y1="${sy(6.8)}" x2="${C}" y2="${sy(-6.8)}" stroke="var(--muted)" stroke-width="1.2"/>`;
-    g += `<text x="192" y="${C - 4}" font-size="9" fill="var(--muted)">x</text><text x="${C + 4}" y="10" font-size="9" fill="var(--muted)">y</text>`;
+    g += `<text x="192" y="${C - 4}" font-size="9" font-style="italic" fill="var(--muted)">x</text><text x="${C + 4}" y="10" font-size="9" font-style="italic" fill="var(--muted)">y</text>`;
+    if (opts && opts.quads) [['I', 3.5, 2.5], ['II', -3.5, 2.5], ['III', -3.5, -2.5], ['IV', 3.5, -2.5]].forEach(([t, x, y]) => { g += `<text x="${sx(x)}" y="${sy(y) + 5}" font-size="14" font-weight="700" text-anchor="middle" fill="var(--muted)">${t}</text>`; });
+    if (opts && opts.seg) { const [[x1, y1], [x2, y2]] = opts.seg; g += `<line class="line" x1="${sx(x1)}" y1="${sy(y1)}" x2="${sx(x2)}" y2="${sy(y2)}"/>`; }
     points.forEach(([x, y, label]) => { g += `<circle cx="${sx(x)}" cy="${sy(y)}" r="3.4" fill="currentColor"/><text x="${sx(x) + 5}" y="${sy(y) - 5}" font-size="11" font-weight="700" fill="currentColor">${label}</text>`; });
-    return `<svg class="figure" viewBox="0 0 200 200" width="240" height="240" role="img" aria-label="coordinate grid">${g}</svg>`;
+    return `<svg class="figure" viewBox="0 0 200 200" width="240" height="240" role="img" aria-label="${(opts && opts.label) || 'coordinate grid'}">${g}</svg>`;
   }
   const QUADS = ['Quadrant I', 'Quadrant II', 'Quadrant III', 'Quadrant IV'];
   A.skill({
     id: 'g6.coordinate-plane', title: 'Coordinate plane in four quadrants',
-    learn: p(`A point is written (${V('x')}, ${V('y')}): first go <b>left or right</b> by ${V('x')}, then <b>up or down</b> by ${V('y')}. Negative ${V('x')} means left; negative ${V('y')} means down.`) +
-      p('The axes split the plane into four <b>quadrants</b>, numbered counter-clockwise from the top right: <b>I (+, +), II (−, +), III (−, −), IV (+, −)</b>.') +
-      p(`<b>Reflecting</b> across the ${V('x')}-axis changes the sign of ${V('y')}; across the ${V('y')}-axis changes the sign of ${V('x')}. Two points with the <b>same ${V('x')}</b> (or same ${V('y')}) are on one line, and their distance is found by subtracting the other coordinates, or adding their sizes if one is negative.`) +
-      example('Example', `${big('(−3, 4) and (5, 4)')}Same ${V('y')}. From −3 to 0 is 3, and from 0 to 5 is 5, so the distance is 3 + 5 = <b>8</b>.`),
+    learn: p(`The <b>coordinate plane</b> is made of two number lines that cross at zero. The <b>${V('x')}-axis</b> goes across and the <b>${V('y')}-axis</b> goes up and down. They cross at the <b>origin</b>, the point (0, 0).`) +
+      p(`A point is written (${V('x')}, ${V('y')}). Start at the origin, go <b>left or right</b> by ${V('x')}, then <b>up or down</b> by ${V('y')}. Negative ${V('x')} means left; negative ${V('y')} means down.`) +
+      p('The axes split the plane into four <b>quadrants</b>, numbered counterclockwise from the top right: <b>I (+, +), II (−, +), III (−, −), IV (+, −)</b>.' +
+        gridSvg([[-3, 4, 'A'], [5, 4, 'B']], { quads: true, seg: [[-3, 4], [5, 4]], label: 'a coordinate plane from −6 to 6 with the quadrants labeled I (top right), II (top left), III (bottom left) and IV (bottom right); point A is at (−3, 4) and point B is at (5, 4), joined by a line' })) +
+      p(`<b>Reflecting</b> a point makes its mirror image. Across the ${V('x')}-axis, the sign of ${V('y')} changes; across the ${V('y')}-axis, the sign of ${V('x')} changes. Two points with the <b>same ${V('x')}</b> (or the same ${V('y')}) are on one straight line. To find the distance between them, subtract the other coordinates, or add their distances from 0 when one is negative.`) +
+      example('Example: a distance', `${big('A (−3, 4) and B (5, 4)')}They have the same ${V('y')}, so they are on a line going across, like A and B in the picture. From −3 to 0 is 3, and from 0 to 5 is 5, so the distance is 3 + 5 = <b>8</b>.`) +
+      example('Example: quadrants and reflections', `${big('(4, −2)')}Go 4 right and 2 down: the point is in <b>Quadrant IV</b> (+, −). Reflected across the ${V('x')}-axis it lands at <b>(4, 2)</b>, and across the ${V('y')}-axis at <b>(−4, −2)</b>.`),
     make(rng) {
       const kind = rng.pick(['read', 'quadrant', 'reflect', 'distance', 'distance']);
       let x = rng.nz(-6, 6), y = rng.nz(-6, 6);
@@ -492,10 +530,12 @@
   const factorsOf = n => { const f = []; for (let k = 1; k <= n; k++) if (n % k === 0) f.push(k); return f; };
   A.skill({
     id: 'g6.gcf-lcm', title: 'Greatest common factor and least common multiple',
-    learn: p('The <b>greatest common factor (GCF)</b> of two numbers is the biggest number that divides both. List the factors of each and pick the largest one they share. Factors of 18: 1, 2, 3, 6, 9, 18. Factors of 24: 1, 2, 3, 4, 6, 8, 12, 24. The GCF is 6.') +
-      p('The <b>least common multiple (LCM)</b> is the smallest number that both divide into. List multiples of the larger number until you reach one the smaller number also goes into. Multiples of 8: 8, 16, 24. Since 6 goes into 24, the LCM of 6 and 8 is 24.') +
-      p('In stories, <b>splitting into identical groups</b> uses the GCF; <b>things lining up again</b> or <b>buying equal amounts</b> uses the LCM.') +
-      example('Example', `${big('GCF of 36 and 54')}Factors of 36: 1, 2, 3, 4, 6, 9, 12, 18, 36. Of those, 18 also divides 54, and nothing bigger does. GCF = <b>18</b>.`),
+    learn: p('A <b>factor</b> of a number divides into it with nothing left over: 6 is a factor of 18. A <b>multiple</b> of a number is what you get when you multiply it by 1, 2, 3 and so on: 24 is a multiple of 8.') +
+      p('The <b>greatest common factor (GCF)</b> of two numbers is the biggest number that is a factor of both. List the factors of each and pick the largest one they share. Factors of 18: 1, 2, 3, 6, 9, 18. Factors of 24: 1, 2, 3, 4, 6, 8, 12, 24. The GCF is 6.') +
+      p('The <b>least common multiple (LCM)</b> is the smallest number that is a multiple of both. List multiples of the larger number until you reach one the smaller number also divides. Multiples of 8: 8, 16, 24. Since 6 divides 24, the LCM of 6 and 8 is 24.') +
+      p('In stories, <b>splitting things into identical groups</b> uses the GCF; <b>things lining up again</b> or <b>buying equal amounts</b> uses the LCM.') +
+      example('Example: GCF', `${big('GCF of 36 and 54')}Factors of 36: 1, 2, 3, 4, 6, 9, 12, 18, 36. Of those, 18 also divides 54, and nothing bigger does. GCF = <b>18</b>.`) +
+      example('Example: LCM in a story', `${big('Cups come in packs of 6. Plates come in packs of 10.')}What is the smallest number of cups you can buy to have the same number of each? Multiples of 10: 10, 20, 30. 6 divides 30, so the LCM is <b>30</b>: 5 packs of cups and 3 packs of plates.`),
     make(rng) {
       const kind = rng.pick(['gcf', 'gcf', 'lcm', 'lcm', 'gcf-word', 'lcm-word']);
       const name = rng.pick(NAMES);
@@ -503,14 +543,19 @@
         const g = rng.int(2, 12); let m = rng.int(2, 9), n = rng.int(2, 9);
         while (n === m || M.gcd(m, n) !== 1) n = n === 9 ? 2 : n + 1;
         const a = g * Math.min(m, n), b = g * Math.max(m, n);
-        const prompt = kind === 'gcf' ? `Find the greatest common factor of ${a} and ${b}.` : `${name} has ${a} pencils and ${b} erasers to put into identical gift bags, with nothing left over. What is the greatest number of bags ${name} can make?`;
-        return { prompt, type: 'number', answer: g, unit: kind === 'gcf' ? undefined : 'bags', params: { kind, a, b },
+        const [x1, x2, grp] = rng.pick([['pencils', 'erasers', 'gift bags'], ['apples', 'granola bars', 'snack bags'], ['roses', 'daisies', 'bouquets'], ['red beads', 'blue beads', 'bracelet kits'], ['crayons', 'markers', 'art boxes']]);
+        const prompt = kind === 'gcf' ? `Find the greatest common factor of ${a} and ${b}.` : `${name} has ${a} ${x1} and ${b} ${x2} to put into identical ${grp}, with nothing left over. What is the greatest number of ${grp} ${name} can make?`;
+        return { prompt, type: 'number', answer: g, unit: kind === 'gcf' ? undefined : grp.split(' ').pop(), params: { kind, a, b },
           hints: [`List the factors of ${a}: ${factorsOf(a).join(', ')}.`, `Find the biggest one that also divides ${b}. ${b} ÷ ${g} = ${b / g}.`, `The GCF is <b>${g}</b>.`] };
       }
       let a = rng.int(2, 15), b = rng.int(3, 15); if (a === b) b = a + 1;
       if (a > b) [a, b] = [b, a];
       const l = a * b / M.gcd(a, b), mults = []; for (let k = b; k <= l; k += b) mults.push(k);
-      const prompt = kind === 'lcm' ? `Find the least common multiple of ${a} and ${b}.` : `Veggie dogs come in packs of ${b} and buns come in packs of ${a}. ${name} wants exactly the same number of each. What is the smallest number of veggie dogs ${name} can buy?`;
+      const prompt = kind === 'lcm' ? `Find the least common multiple of ${a} and ${b}.` : rng.pick([
+        `Veggie dogs come in packs of ${b} and buns come in packs of ${a}. ${name} wants exactly the same number of each. What is the smallest number of veggie dogs ${name} can buy?`,
+        `Paper cups come in packs of ${b} and plates come in packs of ${a}. ${name} wants exactly the same number of cups and plates for a party. What is the smallest number of cups ${name} can buy?`,
+        `At the park, one fountain sprays every ${a} minutes and another every ${b} minutes. They both spray right now. In how many minutes will they next spray at the same time?`,
+        `${name} waters the ferns every ${a} days and the cactus every ${b} days. Both were watered today. In how many days will both be watered on the same day again?`]);
       return { prompt, type: 'number', answer: l, params: { kind, a, b },
         hints: [`List multiples of ${b}: ${mults.slice(0, 8).join(', ')}${mults.length > 8 ? ', …' : ''}.`, `The first one that ${a} also divides is ${l} (${l} ÷ ${a} = ${l / a}).`, `The LCM is <b>${l}</b>.`] };
     },
@@ -524,9 +569,10 @@
   A.skill({
     id: 'g6.distributive-factor', title: 'The distributive property',
     learn: p(`The <b>distributive property</b> says ${V('a')}(${V('b')} + ${V('c')}) = ${V('a')}${V('b')} + ${V('a')}${V('c')}: multiplying a sum is the same as multiplying each part and adding. It makes mental math easier: 7 × 46 = 7 × 40 + 7 × 6 = 280 + 42 = 322.`) +
-      p('It also works backwards. To write a sum like 36 + 48 as a product, <b>take out the greatest common factor</b>: 36 = 12 × 3 and 48 = 12 × 4, so 36 + 48 = 12(3 + 4).') +
+      p('It also works backward. To write a sum like 36 + 48 as a product, <b>take out the greatest common factor</b> (GCF, the biggest number that divides both): 36 = 12 × 3 and 48 = 12 × 4, so 36 + 48 = 12(3 + 4).') +
       p('Check your answer by multiplying back out: 12 × 3 + 12 × 4 = 36 + 48 ✓') +
-      example('Example', `${big('24 + 60')}The GCF of 24 and 60 is 12. 24 ÷ 12 = 2 and 60 ÷ 12 = 5, so 24 + 60 = <b>12(2 + 5)</b>.`),
+      example('Example: a sum as a product', `${big('24 + 60')}The GCF of 24 and 60 is 12. 24 ÷ 12 = 2 and 60 ÷ 12 = 5, so 24 + 60 = <b>12(2 + 5)</b>.`) +
+      example('Example: mental math', `${big('6 × 58')}Split 58 into 50 + 8: 6 × (50 + 8) = 6 × 50 + 6 × 8 = 300 + 48 = <b>348</b>.`),
     make(rng) {
       const kind = rng.pick(['factor', 'factor', 'fill', 'mental']);
       if (kind === 'mental') {
@@ -564,8 +610,10 @@
     id: 'g6.evaluate-expressions', title: 'Exponents, order of operations, and evaluating expressions',
     learn: p(`An <b>exponent</b> says how many times to multiply a number by itself: ${M.sup(2, 4)} = 2 × 2 × 2 × 2 = 16. It is <i>not</i> 2 × 4.`) +
       p('<b>Order of operations:</b> first <b>parentheses</b>, then <b>exponents</b>, then <b>multiply and divide</b> from left to right, then <b>add and subtract</b> from left to right.') +
-      p(`To <b>evaluate</b> an expression, put the number in place of the letter, then follow the order of operations. When ${X} = 5, 3${X} + 7 means 3 × 5 + 7 = 22.`) +
-      example('Example', `${big(`(8 + 4) ÷ 3 + ${M.sup(2, 3)}`)}Parentheses: 12 ÷ 3 + ${M.sup(2, 3)}. Exponent: 12 ÷ 3 + 8. Divide: 4 + 8 = <b>12</b>.`),
+      p(`To <b>evaluate</b> an expression means to find its value. Put the number in place of the letter, then follow the order of operations. When ${X} = 5, 3${X} + 7 means 3 × 5 + 7 = 22.`) +
+      example('Example: order of operations', `${big(`(8 + 4) ÷ 3 + ${M.sup(2, 3)}`)}Parentheses: 12 ÷ 3 + ${M.sup(2, 3)}. Exponent: 12 ÷ 3 + 8. Divide: 4 + 8 = <b>12</b>.`) +
+      example('Example: exponents', `${big(`${M.sup(3, 4)} and ${M.sup('0.3', 2)}`)}${M.sup(3, 4)} = 3 × 3 × 3 × 3 = <b>81</b>. With a decimal: ${M.sup('0.3', 2)} = 0.3 × 0.3 = <b>0.09</b>.`) +
+      example('Example: putting in values', `${big(`${M.sup(X, 2)} + 5${V('y')} when ${X} = 4 and ${V('y')} = 3`)}Put the numbers in: ${M.sup(4, 2)} + 5 × 3. Exponent first: 16 + 5 × 3. Multiply: 16 + 15 = <b>31</b>.`),
     make(rng) {
       const kind = rng.pick(['power', 'order', 'order', 'sub', 'sub']);
       if (kind === 'power') {
@@ -611,8 +659,10 @@
     id: 'g6.write-expressions', title: 'Writing and equivalent expressions',
     learn: p(`A letter like ${V('n')} can stand for a number we do not know yet. Turn words into symbols piece by piece: “<b>more than</b>” and “sum” mean +, “<b>less than</b>” and “fewer” mean −, “<b>times</b>” and “product” mean ×, “divided by” and “quotient” mean ÷.`) +
       p(`Watch the order with “less than”: “5 less than ${V('n')}” starts with ${V('n')} and takes 5 away, so it is ${V('n')} − 5, not 5 − ${V('n')}. A number next to a letter means multiply: 4${V('n')} is 4 × ${V('n')}.`) +
-      p(`<b>Equivalent expressions</b> are equal for every value of the letter. You can make one by distributing, 3(${X} + 4) = 3${X} + 12, or by <b>combining like terms</b>, 4${X} + 2${X} = 6${X}.`) +
-      example('Example', `${big(`“3 times the sum of ${V('n')} and 4”`)}The sum comes first, so it goes in parentheses: <b>3(${V('n')} + 4)</b>. It is equivalent to 3${V('n')} + 12.`),
+      p(`<b>Equivalent expressions</b> are equal for every value of the letter. You can make one by distributing, 3(${X} + 4) = 3${X} + 12, or by <b>combining like terms</b>, 4${X} + 2${X} = 6${X}. <b>Like terms</b> have the same letter part, so they can be added.`) +
+      example('Example: words to symbols', `${big(`“3 times the sum of ${V('n')} and 4”`)}The sum comes first, so it goes in parentheses: <b>3(${V('n')} + 4)</b>. It is equivalent to 3${V('n')} + 12.`) +
+      example('Example: from a story', `${big(`Jai has ${V('n')} marbles. Lena has 4 fewer than Jai.`)}“Fewer” means take away, and you start from Jai’s amount: Lena has <b>${V('n')} − 4</b> marbles.`) +
+      example('Example: equivalent expressions', `${big(`6(${X} + 2) and 4${X} + 3${X} + 2`)}Distribute: 6(${X} + 2) = <b>6${X} + 12</b>. Combine like terms: 4${X} + 3${X} + 2 = <b>7${X} + 2</b>.`),
     make(rng) {
       const kind = rng.pick(['words', 'words', 'story', 'equiv']);
       const k = rng.int(2, 9); let m = rng.int(2, 9); if (m === k) m = k === 9 ? 3 : k + 1;
@@ -665,10 +715,12 @@
   /* ---------- Unit 8: Equations and inequalities ---------- */
   A.skill({
     id: 'g6.one-step-equations', title: 'One-step equations',
-    learn: p(`An equation is a balance: both sides are equal. To find ${X}, <b>do the opposite operation to both sides</b> so that ${X} is left alone.`) +
+    learn: p(`An <b>equation</b> says two amounts are equal, like a balance. To <b>solve</b> it means to find the value of ${X} that makes it true. <b>Do the opposite operation to both sides</b> so that ${X} is left alone.`) +
       p(`Undo + with −, − with +, × with ÷ and ÷ with ×. If ${X} + 7 = 19, subtract 7 from both sides: ${X} = 12. If 4${X} = 36, divide both sides by 4: ${X} = 9.`) +
       p(`Always <b>check</b> by putting your answer back in: 12 + 7 = 19 ✓`) +
-      example('Example', `${big(`${F(X, 6)} = 5`)}${X} is divided by 6, so multiply both sides by 6: ${X} = <b>30</b>. Check: 30 ÷ 6 = 5 ✓`),
+      example('Example: undoing division', `${big(`${F(X, 6)} = 5`)}${X} is divided by 6, so multiply both sides by 6: ${X} = <b>30</b>. Check: 30 ÷ 6 = 5 ✓`) +
+      example('Example: a fraction times x', `${big(`${F(2, 3)}${X} = 8`)}Undo × ${F(2, 3)} by multiplying both sides by the reciprocal (the flipped fraction), ${F(3, 2, { raw: true })}: ${X} = 8 × ${F(3, 2, { raw: true })} = ${F(24, 2, { raw: true })} = <b>12</b>. Check: ${F(2, 3)} × 12 = 8 ✓`) +
+      example('Example: a story', `${big('After a friend gives Ravi 9 cards, he has 25.')}Let ${X} be the cards he had at first: ${X} + 9 = 25. Subtract 9 from both sides: ${X} = <b>16</b>. Check: 16 + 9 = 25 ✓`),
     make(rng) {
       const kind = rng.pick(['add', 'sub', 'mul', 'div', 'frac', 'dec', 'word']);
       const name = rng.pick(NAMES);
@@ -701,8 +753,15 @@
           hints: [`${X} is multiplied by ${F(sn, sd)}. Undo it by multiplying both sides by the reciprocal, ${F(sd, sn, { raw: true })}.`, `${X} = ${b} × ${F(sd, sn, { raw: true })} = ${F(b * sd, sn, { raw: true })}.`, `<b>${X} = ${xx}</b>. Check: ${F(sn, sd)} × ${xx} = ${b} ✓`] };
       }
       const total = x + a;
-      return { prompt: `${name} had some trading cards. After a friend gave ${name} ${a} more, ${name} had ${total}. How many cards did ${name} have at first?`, type: 'number', answer: x, unit: 'cards', params: { kind: 'add', a, b: total },
-        hints: [`Let ${X} be the number at first. Then ${X} + ${a} = ${total}.`, `Subtract ${a} from both sides: ${X} = ${total} − ${a}.`, `<b>${X} = ${x}</b>: ${name} had ${x} cards.`] };
+      if (rng.bool()) {
+        const [thing, unit, ask] = rng.pick([['tickets to the school play', 'tickets', 'ticket'], ['art kits at the craft fair', 'kits', 'kit'], ['museum passes', 'passes', 'pass'], ['T-shirts for the science club', 'shirts', 'T-shirt']]), cost = a * x;
+        return { prompt: `${name} bought ${a} ${thing} for $${cost} in all. Each one cost the same. How much did one ${ask} cost?`, type: 'number', answer: x, unit: '$', params: { kind: 'mul', a, b: cost },
+          hints: [`Let ${X} be the cost of one ${ask}. Then ${a}${X} = ${cost}.`, `Divide both sides by ${a}: ${X} = ${cost} ÷ ${a}.`, `<b>${X} = ${x}</b>: one ${ask} cost $${x}.`] };
+      }
+      const [had, got, unit] = rng.pick([['some trading cards', `a friend gave ${name} ${a} more`, 'cards'], ['some stickers', `${name} won ${a} more at the community center`, 'stickers'],
+        ['some library books', `${name} checked out ${a} more`, 'books'], ['some seashells', `${name} found ${a} more at the beach`, 'shells'], ['some coins saved', `${name} added ${a} more`, 'coins']]);
+      return { prompt: `${name} had ${had}. After ${got}, ${name} had ${total}. How many ${unit} did ${name} have at first?`, type: 'number', answer: x, unit, params: { kind: 'add', a, b: total },
+        hints: [`Let ${X} be the number at first. Then ${X} + ${a} = ${total}.`, `Subtract ${a} from both sides: ${X} = ${total} − ${a}.`, `<b>${X} = ${x}</b>: ${name} had ${x} ${unit}.`] };
     },
     verify(q) {
       const { kind, a, b, n, d } = q.params, x = q.answer;
@@ -731,7 +790,9 @@
     learn: p(`An <b>inequality</b> says one side is bigger or smaller. ${X} &lt; 5 means “${X} is less than 5”; ${X} &gt; 5 means “greater than 5”. With a line underneath, ≤ means “less than <b>or equal to</b>” and ≥ means “greater than or equal to”.`) +
       p(`Watch the words: “<b>at least</b> 12” and “a minimum of 12” mean ≥ 12; “<b>at most</b> 12” and “no more than 12” mean ≤ 12. An inequality has many solutions: to test a number, put it in and see if the statement is true.`) +
       p(`On a number line, an <b>open circle</b> means the number itself is not included (&lt; or &gt;); a <b>filled circle</b> means it is (≤ or ≥). The arrow points toward the solutions.`) +
-      example('Example', `${big(`Is ${X} = 4 a solution of ${X} + 3 &gt; 6?`)}4 + 3 = 7, and 7 &gt; 6 is true, so <b>yes</b>. But ${X} = 3 is not: 3 + 3 = 6, and 6 &gt; 6 is false.`),
+      example('Example: testing a value', `${big(`Is ${X} = 4 a solution of ${X} + 3 &gt; 6?`)}4 + 3 = 7, and 7 &gt; 6 is true, so <b>yes</b>. But ${X} = 3 is not: 3 + 3 = 6, and 6 &gt; 6 is false.`) +
+      example('Example: words to an inequality', `${big('You must be at least 10 years old to ride.')}“At least 10” means 10 or more, and 10 itself is allowed, so the age ${V('a')} must be <b>${V('a')} ≥ 10</b>.`) +
+      example('Example: reading a number line', `${rayLine(3, '<')}The circle at 3 is open, so 3 is not included, and the arrow points left, toward smaller numbers: <b>${X} &lt; 3</b>.`),
     make(rng) {
       const kind = rng.pick(['write', 'write', 'test', 'graph']);
       if (kind === 'write') {
@@ -777,15 +838,19 @@
 
   /* ---------- Unit 9: Geometry ---------- */
   const shoelace = pts => Math.abs(pts.reduce((s, [x, y], i) => { const [x2, y2] = pts[(i + 1) % pts.length]; return s + x * y2 - x2 * y; }, 0)) / 2;
-  const svgShape = (poly, extra, label) => `<svg class="figure" viewBox="0 0 300 190" width="300" role="img" aria-label="${label}"><polygon class="fill" points="${poly}"/>${extra}<text x="296" y="186" text-anchor="end" font-size="9" fill="var(--muted)">not to scale</text></svg>`;
+  const svgShape = (poly, extra, label, w) => `<svg class="figure" viewBox="0 0 300 190" width="${w || 300}" role="img" aria-label="${label}"><polygon class="fill" points="${poly}"/>${extra}<text x="296" y="186" text-anchor="end" font-size="9" fill="var(--muted)">not to scale</text></svg>`;
   const dash = (x1, y1, x2, y2) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="5 4"/><path class="stroke" d="M${x2},${y2 - 10} h10 v10" style="stroke-width:1"/>`;
   const lab = (x, y, t, anchor) => `<text x="${x}" y="${y}" text-anchor="${anchor || 'middle'}" font-size="13">${t}</text>`;
   A.skill({
     id: 'g6.area', title: 'Area of triangles, parallelograms, trapezoids, and composite shapes',
-    learn: p(`<b>Parallelogram:</b> ${V('A')} = base × height. Cut a triangle off one end, slide it to the other, and you have a rectangle. The <b>height</b> is the straight-up distance (the dashed line), not the slanted side.`) +
-      p(`<b>Triangle:</b> ${V('A')} = ${F(1, 2)} × base × height, because a triangle is half of a parallelogram. <b>Trapezoid:</b> ${V('A')} = ${F(1, 2)} × (base 1 + base 2) × height, the average of the two parallel sides times the height.`) +
+    learn: p(`The <b>area</b> of a shape is how many unit squares it covers, so it is measured in square units such as cm². The <b>base</b> is the side the shape sits on, and the <b>height</b> is the straight-up distance from the base to the top: the dashed line in the pictures, not a slanted side.`) +
+      p(`<b>Parallelogram</b> (a four-sided shape whose opposite sides are parallel): ${V('A')} = base × height. Cut a triangle off one end, slide it to the other, and you have a rectangle.`) +
+      p(`<b>Triangle:</b> ${V('A')} = ${F(1, 2)} × base × height, because a triangle is half of a parallelogram. <b>Trapezoid</b> (a four-sided shape with just one pair of parallel sides, called its bases): ${V('A')} = ${F(1, 2)} × (base 1 + base 2) × height.`) +
       p('A <b>composite shape</b> is made of simpler shapes. Split it into rectangles and triangles, find each area, and add. Or find a big rectangle and subtract the missing piece.') +
-      example('Example', `${big('A trapezoid with bases 6 cm and 10 cm and height 4 cm')}${F(1, 2)} × (6 + 10) × 4 = ${F(1, 2)} × 16 × 4 = <b>32 cm²</b>.`),
+      example('Example: parallelogram', `${svgShape('20,150 200,150 270,40 90,40', dash(90, 40, 90, 150) + lab(110, 172, '9 cm') + lab(96, 100, '4 cm', 'start') + lab(240, 96, '5 cm', 'start'), 'parallelogram with a base of 9 cm, a slanted side of 5 cm and a dashed height of 4 cm', 250)}The height is the dashed line, 4 cm, not the slanted 5 cm side. ${V('A')} = 9 × 4 = <b>36 cm²</b>.`) +
+      example('Example: triangle', `${svgShape('30,150 250,150 100,30', dash(100, 30, 100, 150) + lab(140, 172, '10 m') + lab(106, 96, '6 m', 'start'), 'triangle with a base of 10 m and a dashed height of 6 m', 250)}${V('A')} = ${F(1, 2)} × 10 × 6 = ${F(1, 2)} × 60 = <b>30 m²</b>. Working backward: if you knew the area was 30 m² and the base was 10 m, then ${F(1, 2)} × 10 = 5, and the height is 30 ÷ 5 = <b>6 m</b>.`) +
+      example('Example: trapezoid', `${svgShape('20,150 270,150 200,40 80,40', dash(80, 40, 80, 150) + lab(145, 172, '10 cm') + lab(140, 32, '6 cm') + lab(86, 100, '4 cm', 'start'), 'trapezoid with parallel bases of 10 cm and 6 cm and a dashed height of 4 cm', 250)}Add the bases, then take half of that times the height: ${F(1, 2)} × (6 + 10) × 4 = ${F(1, 2)} × 16 × 4 = <b>32 cm²</b>.`) +
+      example('Example: composite shape', `${svgShape('40,160 250,160 250,90 150,90 150,30 40,30', lab(145, 178, '10 ft') + lab(34, 100, '8 ft', 'end') + lab(95, 24, '6 ft') + lab(256, 130, '5 ft', 'start'), 'an L-shaped figure: the bottom is 10 ft long, the left side is 8 ft tall, the top is 6 ft long, and the short right side is 5 ft tall', 250)}The full rectangle would be 10 × 8 = 80 ft². The missing corner is 10 − 6 = 4 ft wide and 8 − 5 = 3 ft tall, so it is 4 × 3 = 12 ft². The area is 80 − 12 = <b>68 ft²</b>.`),
     make(rng) {
       const kind = rng.pick(['tri', 'para', 'trap', 'house', 'L', 'missing']);
       const u = rng.pick(['cm', 'm', 'in', 'ft']), U = s => `${s} ${u}`;
@@ -793,7 +858,7 @@
       const ask = `What is the area of this ${{ tri: 'triangle', para: 'parallelogram', trap: 'trapezoid', house: 'shape', L: 'shape' }[kind]}?`;
       if (kind === 'tri' || kind === 'missing') {
         const b = rng.int(4, 16), h = rng.int(3, 12);
-        fig = svgShape('30,150 250,150 100,30', dash(100, 30, 100, 150) + lab(140, 172, U(b)) + lab(106, 96, kind === 'missing' ? '?' : U(h), 'start'), 'triangle');
+        fig = svgShape('30,150 250,150 100,30', dash(100, 30, 100, 150) + lab(140, 172, U(b)) + lab(106, 96, kind === 'missing' ? '?' : U(h), 'start'), `triangle with a base of ${U(b)} and a dashed height of ${kind === 'missing' ? 'unknown length' : U(h)}`);
         if (kind === 'missing') {
           const area = b * h / 2;
           return { prompt: `This triangle has an area of ${N(area)} ${u}² and a base of ${U(b)}. What is its height?${fig}`, type: 'number', answer: h, unit: u, params: { kind, area, b },
@@ -803,22 +868,22 @@
         hints = [`${V('A')} = ${F(1, 2)} × base × height.`, `${F(1, 2)} × ${b} × ${h} = ${F(1, 2)} × ${b * h}.`, `The area is <b>${N(ans)} ${u}²</b>.`];
       } else if (kind === 'para') {
         const b = rng.int(4, 15), h = rng.int(3, 10), side = h + rng.int(1, 4);
-        fig = svgShape('20,150 200,150 270,40 90,40', dash(90, 40, 90, 150) + lab(110, 172, U(b)) + lab(96, 100, U(h), 'start') + lab(240, 96, U(side), 'start'), 'parallelogram');
+        fig = svgShape('20,150 200,150 270,40 90,40', dash(90, 40, 90, 150) + lab(110, 172, U(b)) + lab(96, 100, U(h), 'start') + lab(240, 96, U(side), 'start'), `parallelogram with a base of ${U(b)}, a slanted side of ${U(side)} and a dashed height of ${U(h)}`);
         ans = b * h; pts = [[0, 0], [b, 0], [b + 3, h], [3, h]];
         hints = [`${V('A')} = base × height. The height is the dashed line, ${U(h)}, not the slanted side.`, `${b} × ${h} = <b>${ans} ${u}²</b>.`];
       } else if (kind === 'trap') {
         const b1 = rng.int(6, 16), b2 = rng.int(2, b1 - 2), h = rng.int(2, 10);
-        fig = svgShape('20,150 270,150 200,40 80,40', dash(80, 40, 80, 150) + lab(145, 172, U(b1)) + lab(140, 32, U(b2)) + lab(86, 100, U(h), 'start'), 'trapezoid');
+        fig = svgShape('20,150 270,150 200,40 80,40', dash(80, 40, 80, 150) + lab(145, 172, U(b1)) + lab(140, 32, U(b2)) + lab(86, 100, U(h), 'start'), `trapezoid with parallel bases of ${U(b1)} and ${U(b2)} and a dashed height of ${U(h)}`);
         ans = (b1 + b2) * h / 2; pts = [[0, 0], [b1, 0], [1 + b2, h], [1, h]];
         hints = [`${V('A')} = ${F(1, 2)} × (base 1 + base 2) × height.`, `Add the bases: ${b1} + ${b2} = ${b1 + b2}. Then ${F(1, 2)} × ${b1 + b2} × ${h} = ${F(1, 2)} × ${(b1 + b2) * h}.`, `The area is <b>${N(ans)} ${u}²</b>.`];
       } else if (kind === 'house') {
         const w = rng.int(4, 12), h1 = rng.int(3, 9), h2 = rng.int(2, 6);
-        fig = svgShape('50,160 250,160 250,85 150,20 50,85', dash(150, 20, 150, 85) + lab(150, 178, U(w)) + lab(44, 126, U(h1), 'end') + lab(156, 60, U(h2), 'start'), 'a rectangle with a triangle on top');
+        fig = svgShape('50,160 250,160 250,85 150,20 50,85', dash(150, 20, 150, 85) + lab(150, 178, U(w)) + lab(44, 126, U(h1), 'end') + lab(156, 60, U(h2), 'start'), `a rectangle ${U(w)} wide and ${U(h1)} tall with a triangle on top whose dashed height is ${U(h2)}`);
         ans = w * h1 + w * h2 / 2; pts = [[0, 0], [w, 0], [w, h1], [w / 2, h1 + h2], [0, h1]];
         hints = [`Split the shape into a rectangle (${w} by ${h1}) and a triangle on top (base ${w}, height ${h2}).`, `Rectangle: ${w} × ${h1} = ${w * h1}. Triangle: ${F(1, 2)} × ${w} × ${h2} = ${N(w * h2 / 2)}.`, `Total: ${w * h1} + ${N(w * h2 / 2)} = <b>${N(ans)} ${u}²</b>.`];
       } else {
         const W = rng.int(7, 15), H = rng.int(6, 12), cw = rng.int(2, W - 3), ch = rng.int(2, H - 2);
-        fig = svgShape('40,160 250,160 250,90 150,90 150,30 40,30', lab(145, 178, U(W)) + lab(34, 100, U(H), 'end') + lab(95, 24, U(W - cw)) + lab(256, 130, U(H - ch), 'start'), 'L-shaped figure');
+        fig = svgShape('40,160 250,160 250,90 150,90 150,30 40,30', lab(145, 178, U(W)) + lab(34, 100, U(H), 'end') + lab(95, 24, U(W - cw)) + lab(256, 130, U(H - ch), 'start'), `an L-shaped figure: the bottom is ${U(W)} long, the left side is ${U(H)} tall, the top is ${U(W - cw)} long, and the short right side is ${U(H - ch)} tall`);
         ans = W * H - cw * ch; pts = [[0, 0], [W, 0], [W, H - ch], [W - cw, H - ch], [W - cw, H], [0, H]];
         hints = [`Imagine the full rectangle: ${W} by ${H}, area ${W * H}. A corner piece is missing.`, `The missing piece is ${W} − ${W - cw} = ${cw} wide and ${H} − ${H - ch} = ${ch} tall, so its area is ${cw * ch}.`, `${W * H} − ${cw * ch} = <b>${ans} ${u}²</b>.`];
       }
@@ -831,12 +896,71 @@
     },
   });
 
+  /** a box drawn in 3-D: the front, the top and the right side, with dashed hidden edges and its three edges labeled.
+      labs = [length, width, height] as plain text; opts.grid = [along the length, the width, the height] draws the small
+      cubes on the faces; opts.exact keeps the true proportions (otherwise a thin side is drawn a bit thicker, not to scale) */
+  function boxSvg(l, w, h, labs, label, opts) {
+    opts = opts || {};
+    const m = Math.max(l, w, h), fit = v => opts.exact ? v : 0.4 + 0.6 * v / m;
+    const kx = 0.52, ky = 0.3;                                          // the depth goes up and to the right
+    let L = fit(l), W = fit(w), H = fit(h);
+    const s = Math.min(205 / (L + W * kx), 140 / (H + W * ky));
+    L *= s; H *= s; const dx = W * s * kx, dy = W * s * ky, x0 = 64, y0 = 14 + dy;
+    const pt = a => a.map(([x, y]) => `${M.round(x, 1)},${M.round(y, 1)}`).join(' ');
+    const r = v => M.round(v, 1), line = (x1, y1, x2, y2, extra) => `<line x1="${r(x1)}" y1="${r(y1)}" x2="${r(x2)}" y2="${r(y2)}" ${extra}/>`;
+    let g = `<polygon class="fill" points="${pt([[x0, y0], [x0 + L, y0], [x0 + L, y0 + H], [x0, y0 + H]])}"/>`;
+    g += `<polygon class="fill" style="fill:var(--surface)" points="${pt([[x0, y0], [x0 + dx, y0 - dy], [x0 + L + dx, y0 - dy], [x0 + L, y0]])}"/>`;
+    g += `<polygon class="fill" style="fill:var(--tint-2)" points="${pt([[x0 + L, y0], [x0 + L + dx, y0 - dy], [x0 + L + dx, y0 - dy + H], [x0 + L, y0 + H]])}"/>`;
+    const hidden = 'stroke="var(--muted)" stroke-width="1" stroke-dasharray="4 4"';           // the three edges at the back corner, seen through
+    g += line(x0 + dx, y0 - dy + H, x0, y0 + H, hidden) + line(x0 + dx, y0 - dy + H, x0 + dx, y0 - dy, hidden) + line(x0 + dx, y0 - dy + H, x0 + L + dx, y0 - dy + H, hidden);
+    if (opts.grid) {
+      const [nl, nw, nh] = opts.grid, thin = 'stroke="var(--primary)" stroke-width="0.8"';
+      for (let i = 1; i < nl; i++) { const x = x0 + L * i / nl; g += line(x, y0, x, y0 + H, thin) + line(x, y0, x + dx, y0 - dy, thin); }
+      for (let j = 1; j < nh; j++) { const y = y0 + H * j / nh; g += line(x0, y, x0 + L, y, thin) + line(x0 + L, y, x0 + L + dx, y - dy, thin); }
+      for (let k = 1; k < nw; k++) { const ox = dx * k / nw, oy = dy * k / nw; g += line(x0 + ox, y0 - oy, x0 + L + ox, y0 - oy, thin) + line(x0 + L + ox, y0 - oy, x0 + L + ox, y0 - oy + H, thin); }
+    }
+    g += `<text x="${r(x0 + L / 2)}" y="${r(y0 + H + 20)}" text-anchor="middle" font-size="13">${labs[0]}</text>`;
+    g += `<text x="${r(x0 + L + dx / 2 + 8)}" y="${r(y0 + H - dy / 2 + 14)}" text-anchor="start" font-size="13">${labs[1]}</text>`;
+    g += `<text x="${x0 - 8}" y="${r(y0 + H / 2 + 5)}" text-anchor="end" font-size="13">${labs[2]}</text>`;
+    const Wd = Math.ceil(x0 + L + dx + 90), Hd = Math.ceil(y0 + H + 34);
+    if (!opts.exact) g += `<text x="${Wd - 4}" y="${Hd - 4}" text-anchor="end" font-size="9" fill="var(--muted)">not to scale</text>`;
+    return `<svg class="figure" viewBox="0 0 ${Wd} ${Hd}" width="${Wd}" role="img" aria-label="${label}">${g}</svg>`;
+  }
+  /** the net of a box, unfolded into a cross: the four side faces in a row, the top above the front and the bottom below it.
+      Each face shows its two edge lengths; the three matching pairs are shaded alike. */
+  function netSvg(l, w, h, label) {
+    const k = Math.min((330 - 64) / (2 * (l + w)), (214 - 48) / (h + 2 * w)), D = v => 16 + v * k;
+    const Lw = D(l), Ww = D(w), Hh = D(h), x0 = 8, y0 = 8, r = v => M.round(v, 1);
+    const shade = { lw: '', lh: ' style="fill:var(--surface)"', wh: ' style="fill:var(--tint-2)"' };
+    const face = (x, y, fw, fh, txt, sh) => `<rect class="fill"${shade[sh]} x="${r(x)}" y="${r(y)}" width="${r(fw)}" height="${r(fh)}"/><text x="${r(x + fw / 2)}" y="${r(y + fh / 2 + 4)}" text-anchor="middle" font-size="11">${txt}</text>`;
+    const row = y0 + Ww;
+    let g = face(x0, row, Ww, Hh, `${w} × ${h}`, 'wh') + face(x0 + Ww, row, Lw, Hh, `${l} × ${h}`, 'lh') + face(x0 + Ww + Lw, row, Ww, Hh, `${w} × ${h}`, 'wh') + face(x0 + 2 * Ww + Lw, row, Lw, Hh, `${l} × ${h}`, 'lh');
+    g += face(x0 + Ww, y0, Lw, Ww, `${l} × ${w}`, 'lw') + face(x0 + Ww, row + Hh, Lw, Ww, `${l} × ${w}`, 'lw');
+    const Wd = Math.ceil(x0 * 2 + 2 * (Lw + Ww)), Hd = Math.ceil(y0 + Hh + 2 * Ww + 18);
+    g += `<text x="${Wd - 4}" y="${Hd - 4}" text-anchor="end" font-size="9" fill="var(--muted)">not to scale</text>`;
+    return `<svg class="figure" viewBox="0 0 ${Wd} ${Hd}" width="${Wd}" role="img" aria-label="${label}">${g}</svg>`;
+  }
+  /** the net of a square pyramid: a square with a triangle on each side; one triangle shows its dashed height */
+  function pyramidNetSvg(sd, t, u) {
+    const k = Math.min(9, 190 / (sd + 2 * t)), S = 44 + sd * k, T = 26 + t * k, C = T + S / 2 + 8, r = v => M.round(v, 1);
+    const a = C - S / 2, b = C + S / 2;
+    let g = `<polygon class="fill" style="fill:var(--surface)" points="${r(a)},${r(a)} ${r(b)},${r(a)} ${r(b)},${r(b)} ${r(a)},${r(b)}"/>`;
+    g += [[[a, a], [b, a], [C, a - T]], [[b, a], [b, b], [b + T, C]], [[b, b], [a, b], [C, b + T]], [[a, b], [a, a], [a - T, C]]].map(tr => `<polygon class="fill" points="${tr.map(([x, y]) => `${r(x)},${r(y)}`).join(' ')}"/>`).join('');
+    g += `<line x1="${r(C)}" y1="${r(a)}" x2="${r(C)}" y2="${r(a - T)}" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="5 4"/>`;
+    g += `<text x="${r(C + 9)}" y="${r(a - T / 2 + 4)}" text-anchor="start" font-size="12">${t} ${u}</text><text x="${r(C)}" y="${r(b - 8)}" text-anchor="middle" font-size="12">${sd} ${u}</text>`;
+    const Wd = Math.ceil(2 * C);
+    g += `<text x="${Wd - 4}" y="${Wd - 4}" text-anchor="end" font-size="9" fill="var(--muted)">not to scale</text>`;
+    return `<svg class="figure" viewBox="0 0 ${Wd} ${Wd}" width="${Math.min(Wd, 260)}" role="img" aria-label="the net of a square pyramid: a square with sides of ${sd} ${u} and four triangles, each with a base of ${sd} ${u} and a dashed height of ${t} ${u}">${g}</svg>`;
+  }
   A.skill({
     id: 'g6.volume-surface-area', title: 'Volume and surface area',
-    learn: p(`The <b>volume</b> of a box (rectangular prism) is ${V('V')} = length × width × height, in cubic units. This works with fractions too: a box ${F(1, 2)} m by 3 m by 2 m has volume ${F(1, 2)} × 3 × 2 = 3 m³. Turn mixed numbers into improper fractions before multiplying.`) +
-      p(`You can also fill a box with small cubes. A cube with side ${F(1, 2)} has volume ${F(1, 8)}, so <b>8 of them make one unit cube</b>.`) +
-      p('The <b>surface area</b> is the total area of all the faces. Unfold the solid into a flat <b>net</b>, find the area of each piece, and add. A box has 6 rectangles in 3 matching pairs.') +
-      example('Example', `${big('A box 5 cm × 3 cm × 2 cm')}Faces: two 5 × 3 = 15, two 5 × 2 = 10, two 3 × 2 = 6. Surface area = 2 × (15 + 10 + 6) = <b>62 cm²</b>.`),
+    learn: p(`<b>Volume</b> is the amount of space inside a solid, measured in <b>cubic units</b> such as cm³. For a box (a <b>rectangular prism</b>), ${V('V')} = length × width × height. This works with fractions too: a box ${F(1, 2)} m by 3 m by 2 m has a volume of ${F(1, 2)} × 3 × 2 = 3 m³. Turn mixed numbers into improper fractions before multiplying.`) +
+      p(`You can also fill a box with small cubes. A cube with edges of ${F(1, 2)} unit has a volume of ${F(1, 8)} cubic unit, so <b>8 of them make one unit cube</b>. Count how many small cubes fit along each edge, then multiply.`) +
+      p('The <b>surface area</b> is the total area of all the faces, the flat sides of the solid. Unfold the solid into a flat <b>net</b>, find the area of each piece, and add. A box has 6 rectangles in 3 matching pairs.') +
+      example('Example: volume', `${boxSvg(4, 2.5, 3, ['4 cm', '2 1/2 cm', '3 cm'], 'a box 4 cm long, 2 1/2 cm wide and 3 cm tall')}${V('V')} = 4 × ${MX(5, 2)} × 3 = 4 × ${F(5, 2, { raw: true })} × 3 = ${F(60, 2, { raw: true })} = <b>30 cm³</b>.`) +
+      example('Example: filling with small cubes', `${boxSvg(2, 1.5, 1, ['2', '1 1/2', '1'], 'a box 2 units long, 1 1/2 units wide and 1 unit tall, filled with cubes whose edges are 1/2 unit: 4 along the length, 3 along the width and 2 up the height', { exact: true, grid: [4, 3, 2] })}How many cubes with ${F(1, 2)}-unit edges fill a box 2 by ${MX(3, 2)} by 1 units? 4 halves fit along the 2, 3 along the ${MX(3, 2)}, and 2 along the 1. 4 × 3 × 2 = <b>24 cubes</b>. Check: 24 × ${F(1, 8)} = 3, and 2 × ${MX(3, 2)} × 1 = 3 ✓`) +
+      example('Example: surface area from a net', `${netSvg(5, 3, 2, 'the net of a box 5 cm long, 3 cm wide and 2 cm tall: two faces 5 by 3, two faces 5 by 2 and two faces 3 by 2')}The box is 5 cm × 3 cm × 2 cm. Faces: two 5 × 3 = 15, two 5 × 2 = 10, two 3 × 2 = 6. Surface area = 2 × (15 + 10 + 6) = <b>62 cm²</b>.`) +
+      example('Example: a square pyramid', `${pyramidNetSvg(4, 5, 'in')}The square is 4 × 4 = 16 in². Each triangle is ${F(1, 2)} × 4 × 5 = 10 in², and there are 4 of them: 40 in². Surface area = 16 + 40 = <b>56 in²</b>.`),
     make(rng) {
       const kind = rng.pick(['vol', 'vol', 'cubes', 'sa-box', 'sa-net', 'sa-pyramid']);
       const u = rng.pick(['cm', 'm', 'in', 'ft']);
@@ -844,26 +968,28 @@
         const edge = () => { const d = rng.pick([1, 2, 2, 4]); return [rng.int(1, 5) * d + (d === 1 ? 0 : rng.pick(d === 2 ? [1] : [1, 3])), d]; };
         const e = [edge(), edge(), edge()]; if (e.every(([, d]) => d === 1)) e[0] = [e[0][0] * 2 + 1, 2];
         const num = e[0][0] * e[1][0] * e[2][0], den = e[0][1] * e[1][1] * e[2][1], [sn, sd] = M.simp(num, den);
-        const show = e.map(([n, d]) => `${MX(n, d)} ${u}`);
-        return { prompt: `A box is ${show[0]} long, ${show[1]} wide and ${show[2]} tall. What is its volume? Give your answer as a fraction or mixed number.`, type: 'number', answer: sn / sd, answerText: M.fracText(sn, sd), unit: `${u}³`, params: { kind, e },
+        const show = e.map(([n, d]) => `${MX(n, d)} ${u}`), txt = e.map(([n, d]) => `${mixTxt(n, d)} ${u}`);
+        const pic = boxSvg(e[0][0] / e[0][1], e[1][0] / e[1][1], e[2][0] / e[2][1], txt, `a box ${txt[0]} long, ${txt[1]} wide and ${txt[2]} tall`);
+        return { prompt: `A box is ${show[0]} long, ${show[1]} wide and ${show[2]} tall. What is its volume? Give your answer as a fraction or mixed number.${pic}`, type: 'number', answer: sn / sd, answerText: M.fracText(sn, sd), unit: `${u}³`, params: { kind, e },
           hints: [`${V('V')} = length × width × height.`, `As fractions: ${e.map(([n, d]) => F(n, d, { raw: true })).join(' × ')} = ${F(num, den, { raw: true })}.`, `Simplify: <b>${MX(sn, sd)} ${u}³</b>${sd > 1 ? ` (${M.fracText(sn, sd)})` : ''}.`] };
       }
       if (kind === 'cubes') {
         const h = [rng.int(2, 8), rng.int(2, 8), rng.int(2, 6)];                 // edges in halves
-        const show = h.map(k => MX(k, 2));
-        return { prompt: `A box is ${show[0]} by ${show[1]} by ${show[2]} units. How many cubes with edges of ${F(1, 2)} unit does it take to fill it?`, type: 'number', answer: h[0] * h[1] * h[2], unit: 'cubes', params: { kind, h },
+        const show = h.map(k => MX(k, 2)), txt = h.map(k => mixTxt(k, 2));
+        const pic = boxSvg(h[0], h[1], h[2], txt, `a box ${txt[0]} units long, ${txt[1]} units wide and ${txt[2]} units tall`);
+        return { prompt: `A box is ${show[0]} by ${show[1]} by ${show[2]} units. How many cubes with edges of ${F(1, 2)} unit does it take to fill it?${pic}`, type: 'number', answer: h[0] * h[1] * h[2], unit: 'cubes', params: { kind, h },
           hints: [`Along each edge, count how many halves fit: ${show.map((s, i) => `${s} has ${h[i]}`).join(', ')}.`, `Multiply to count the cubes: ${h.join(' × ')}.`, `It takes <b>${h[0] * h[1] * h[2]} cubes</b>.`] };
       }
       if (kind === 'sa-pyramid') {
         const sd = rng.int(2, 10), t = rng.int(sd, 12);
         const ans = sd * sd + 4 * sd * t / 2;
-        return { prompt: `The net of a square pyramid is a square with sides of ${sd} ${u} and four triangles, each with a base of ${sd} ${u} and a height of ${t} ${u}. What is the surface area?`, type: 'number', answer: ans, unit: `${u}²`, params: { kind, s: sd, t },
+        return { prompt: `The net of a square pyramid is a square with sides of ${sd} ${u} and four triangles, each with a base of ${sd} ${u} and a height of ${t} ${u}. What is the surface area?${pyramidNetSvg(sd, t, u)}`, type: 'number', answer: ans, unit: `${u}²`, params: { kind, s: sd, t },
           hints: [`Square: ${sd} × ${sd} = ${sd * sd}.`, `Each triangle: ${F(1, 2)} × ${sd} × ${t} = ${N(sd * t / 2)}. Four of them: ${N(2 * sd * t)}.`, `Total: ${sd * sd} + ${N(2 * sd * t)} = <b>${N(ans)} ${u}²</b>.`] };
       }
       const [l, w, h] = rng.sample([2, 3, 4, 5, 6, 7, 8, 9, 10], 3).sort((a, b) => b - a);
       const ans = 2 * (l * w + l * h + w * h);
-      const prompt = kind === 'sa-net' ? `A box is unfolded into a net of 6 rectangles: two are ${l} ${u} by ${w} ${u}, two are ${l} ${u} by ${h} ${u}, and two are ${w} ${u} by ${h} ${u}. What is the surface area of the box?`
-        : `A box is ${l} ${u} long, ${w} ${u} wide and ${h} ${u} tall. What is its surface area?`;
+      const prompt = kind === 'sa-net' ? `A box is unfolded into a net of 6 rectangles: two are ${l} ${u} by ${w} ${u}, two are ${l} ${u} by ${h} ${u}, and two are ${w} ${u} by ${h} ${u}. What is the surface area of the box?${netSvg(l, w, h, `the net of a box: two faces ${l} ${u} by ${w} ${u}, two faces ${l} ${u} by ${h} ${u} and two faces ${w} ${u} by ${h} ${u}`)}`
+        : `A box is ${l} ${u} long, ${w} ${u} wide and ${h} ${u} tall. What is its surface area?${boxSvg(l, w, h, [`${l} ${u}`, `${w} ${u}`, `${h} ${u}`], `a box ${l} ${u} long, ${w} ${u} wide and ${h} ${u} tall`)}`;
       return { prompt, type: 'number', answer: ans, unit: `${u}²`, params: { kind, l, w, h },
         hints: [`A box has 3 pairs of matching faces: ${l} × ${w}, ${l} × ${h} and ${w} × ${h}.`, `${l * w} + ${l * h} + ${w * h} = ${l * w + l * h + w * h}. Each face has a twin, so double it.`, `Surface area = 2 × ${l * w + l * h + w * h} = <b>${ans} ${u}²</b>.`] };
     },
@@ -879,12 +1005,24 @@
 
   /* ---------- Unit 10: Data and statistics ---------- */
   const median = s => { const n = s.length; return n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2; };
+  /** a box plot over a number line from lo to hi, its five numbers named above it */
+  function boxPlotSvg(five, lo, hi, step, label) {
+    const X0 = 22, X1 = 318, px = v => M.round(X0 + (v - lo) * (X1 - X0) / (hi - lo), 1), [mn, q1, md, q3, mx] = five, y = 48;
+    let g = `<line class="stroke" x1="${X0}" y1="86" x2="${X1}" y2="86" style="stroke-width:1.5"/>`;
+    for (let v = lo; v <= hi; v += step) g += `<line class="stroke" x1="${px(v)}" y1="81" x2="${px(v)}" y2="91" style="stroke-width:1"/><text x="${px(v)}" y="106" text-anchor="middle" font-size="12">${v}</text>`;
+    g += `<line class="stroke" x1="${px(mn)}" y1="${y}" x2="${px(q1)}" y2="${y}"/><line class="stroke" x1="${px(q3)}" y1="${y}" x2="${px(mx)}" y2="${y}"/>`;
+    g += [mn, mx].map(v => `<line class="stroke" x1="${px(v)}" y1="${y - 9}" x2="${px(v)}" y2="${y + 9}"/>`).join('');
+    g += `<rect class="fill" x="${px(q1)}" y="${y - 16}" width="${M.round(px(q3) - px(q1), 1)}" height="32"/><line class="stroke" x1="${px(md)}" y1="${y - 16}" x2="${px(md)}" y2="${y + 16}" style="stroke-width:3"/>`;
+    g += [[mn, 'Min'], [q1, 'Q1'], [md, 'Median'], [q3, 'Q3'], [mx, 'Max']].map(([v, t]) => `<text x="${px(v)}" y="20" text-anchor="middle" font-size="11" fill="var(--muted)">${t}</text>`).join('');
+    return `<svg class="figure" viewBox="0 0 340 114" width="340" role="img" aria-label="${label}">${g}</svg>`;
+  }
   A.skill({
     id: 'g6.mean-median', title: 'Mean and median',
     learn: p('The <b>mean</b> (average) shares the total out equally: <b>add all the values and divide by how many there are</b>.') +
       p('The <b>median</b> is the middle value once the data is <b>in order</b>. With an even number of values there are two in the middle; the median is halfway between them (their mean).') +
       p('If you know the mean, you know the total: total = mean × how many. That lets you find a missing value.') +
-      example('Example', `${big('7, 3, 10, 4, 6, 12')}Mean: 42 ÷ 6 = <b>7</b>. In order: 3, 4, 6, 7, 10, 12. The middle two are 6 and 7, so the median is <b>6.5</b>.`),
+      example('Example: mean and median', `${big('7, 3, 10, 4, 6, 12')}Mean: 7 + 3 + 10 + 4 + 6 + 12 = 42, and 42 ÷ 6 = <b>7</b>. Median: in order, 3, 4, 6, 7, 10, 12. The middle two are 6 and 7, so the median is halfway between them, <b>6.5</b>.`) +
+      example('Example: a missing value', `${big('The mean of 4 numbers is 9. Three of them are 6, 10 and 7.')}The total of all 4 is 9 × 4 = 36. The three you know add to 6 + 10 + 7 = 23. The missing number is 36 − 23 = <b>13</b>.`),
     make(rng) {
       const kind = rng.pick(['mean', 'median', 'median', 'missing', 'mean-word']);
       const n = rng.int(4, 7);
@@ -902,7 +1040,9 @@
           hints: [`Put the values in order: ${sorted.join(', ')}.`, n % 2 ? `There are ${n} values, so the middle one is the ${M.ordinal((n + 1) / 2)}.` : `There are ${n} values, so there are two middle ones: ${sorted[n / 2 - 1]} and ${sorted[n / 2]}. Find the number halfway between them.`, `The median is <b>${N(ans)}</b>.`] };
       }
       const ans = sum / n;
-      const prompt = kind === 'mean' ? `Find the <b>mean</b>.${big(data.join(', '))}` : `${rng.pick(NAMES)} scored these points in ${n} basketball games. What is the mean number of points per game?${big(data.join(', '))}`;
+      const nm = rng.pick(NAMES), [did, per] = rng.pick([[`${nm} scored these points in ${n} basketball games.`, 'points per game'], [`${nm} read for these numbers of minutes on ${n} days.`, 'minutes per day'],
+        [`${nm} swam these numbers of laps at ${n} swim practices.`, 'laps per practice'], [`The bakery sold these numbers of loaves on ${n} days.`, 'loaves per day'], [`${nm} picked these numbers of strawberries on ${n} visits to the farm.`, 'strawberries per visit']]);
+      const prompt = kind === 'mean' ? `Find the <b>mean</b>.${big(data.join(', '))}` : `${did} What is the mean number of ${per}?${big(data.join(', '))}`;
       return { prompt, type: 'number', answer: ans, params: { kind, data },
         hints: [`Add the values: ${data.join(' + ')} = ${sum}.`, `Divide by how many there are: ${sum} ÷ ${n}.`, `The mean is <b>${N(ans)}</b>.`] };
     },
@@ -919,10 +1059,13 @@
 
   A.skill({
     id: 'g6.spread', title: 'MAD, IQR, and box plots',
-    learn: p('Spread tells you how far apart the values are. The <b>mean absolute deviation (MAD)</b> is the average distance from the mean: find the mean, find how far each value is from it, then take the mean of those distances.') +
-      p('The <b>interquartile range (IQR)</b> measures the middle half. Put the data in order and find the median. <b>Q1</b> is the median of the lower half and <b>Q3</b> the median of the upper half (leave the middle value out when the count is odd). <b>IQR = Q3 − Q1.</b>') +
-      p('A <b>box plot</b> shows five numbers: minimum, Q1, median, Q3, maximum. The box goes from Q1 to Q3 and holds the middle 50% of the data; each whisker holds 25%. The range is maximum − minimum.') +
-      example('Example', `${big('2, 4, 6, 8')}Mean = 5. Distances: 3, 1, 1, 3. MAD = 8 ÷ 4 = <b>2</b>.`),
+    learn: p('The <b>spread</b> of a data set tells you how far apart the values are. The <b>mean absolute deviation (MAD)</b> is the average distance from the mean: find the mean, find how far each value is from it, then take the mean of those distances.') +
+      p('The <b>interquartile range (IQR)</b> measures the spread of the middle half. Put the data in order and find the median. <b>Q1</b> is the median of the lower half and <b>Q3</b> is the median of the upper half (leave the middle value out when the count is odd). These are the <b>quartiles</b>: with the median, they cut the data into four parts of about the same size. <b>IQR = Q3 − Q1.</b>') +
+      p('A <b>box plot</b> shows five numbers: the minimum, Q1, the median, Q3 and the maximum. The box goes from Q1 to Q3 and holds the middle 50% of the data; each whisker holds about 25%. The range is maximum − minimum.' +
+        boxPlotSvg([12, 18, 23, 30, 41], 10, 45, 5, 'a box plot on a number line from 10 to 45: the minimum is 12, Q1 is 18, the median is 23, Q3 is 30 and the maximum is 41')) +
+      example('Example: MAD', `${big('2, 4, 6, 8')}The mean is 20 ÷ 4 = 5. The distances from 5 are 3, 1, 1 and 3. MAD = (3 + 1 + 1 + 3) ÷ 4 = 8 ÷ 4 = <b>2</b>.`) +
+      example('Example: IQR', `${big('3, 5, 6, 8, 10, 12, 13, 15, 20')}There are 9 values, so the median is the 5th, 10. Leave it out. Lower half: 3, 5, 6, 8, so Q1 = 5.5. Upper half: 12, 13, 15, 20, so Q3 = 14. IQR = 14 − 5.5 = <b>8.5</b>.`) +
+      example('Example: reading a box plot', `In the box plot above, the IQR is 30 − 18 = <b>12</b> and the range is 41 − 12 = <b>29</b>. About <b>25%</b> of the values are above Q3, 30, and about <b>50%</b> are in the box, from 18 to 30.`),
     make(rng) {
       const kind = rng.pick(['mad', 'mad', 'iqr', 'iqr', 'box']);
       if (kind === 'mad') {
@@ -993,7 +1136,9 @@
     learn: p(`A fraction is a division. <b>${F(V('a'), V('b'))} means ${V('a')} ÷ ${V('b')}</b>: the top number divided by the bottom number. So when ${V('a')} things are shared equally among ${V('b')} people, each person gets ${F(V('a'), V('b'))} of a thing.`) +
       p(`Picture 3 pizzas shared by 4 friends. Cut every pizza into 4 equal slices. Each friend takes one slice from each pizza: 3 slices of ${F(1, 4)}, which is ${F(3, 4)} of a pizza. So 3 ÷ 4 = ${F(3, 4)}.`) +
       p(`When there are more things than people, each person gets more than one whole. Divide to see how many wholes each person gets, then share what is left over: 7 ÷ 3 is 2 with 1 left over, so each person gets ${MX(7, 3)}.`) +
-      example('Example', `${big('3 campers share 8 liters of juice equally.')}8 ÷ 3 = ${F(8, 3)}. Each camper gets 2 liters, and the 2 liters left over are split into 3 parts, so each camper gets <b>${MX(8, 3)} liters</b>.`),
+      example('Example: sharing', `${big('3 campers share 8 liters of juice equally.')}8 ÷ 3 = ${F(8, 3)}. Each camper gets 2 liters, and the 2 liters left over are split into 3 parts, so each camper gets <b>${MX(8, 3)} liters</b>.`) +
+      example('Example: a division as a fraction', `${big('17 ÷ 5')}As a fraction, 17 ÷ 5 = ${F(17, 5, { raw: true })}. 5 goes into 17 three times (15), with 2 left over, so ${F(17, 5, { raw: true })} = <b>${MX(17, 5)}</b>.`) +
+      example('Example: working backward', `${big(`6 friends shared some pizzas equally. Each got ${F(2, 3)} of a pizza.`)}How many pizzas were there? Each share is the total ÷ 6, so the total is ${F(2, 3)} × 6 = ${F(12, 3, { raw: true })} = <b>4 pizzas</b>.`),
     make(rng) {
       const kind = rng.pick(['share', 'share', 'share', 'divide', 'which', 'reverse']);
       const c = rng.pick(SHARE_CTX), [who, whoOne] = rng.pick(SHARERS);
@@ -1051,7 +1196,9 @@
     learn: p(`To multiply mixed numbers, <b>first rewrite each one as a fraction greater than one</b>. Multiply the whole number by the denominator and add the numerator: ${MX(7, 3)} = ${F('2 × 3 + 1', 3)} = ${F(7, 3, { raw: true })}. Then multiply the numerators, multiply the denominators, simplify, and change the answer back into a mixed number.`) +
       p(`<b>Do not just multiply the whole numbers and the fractions on their own.</b> ${MX(5, 2)} × ${MX(5, 2)} is not ${MX(17, 4)}. An area model shows why: (2 + ${F(1, 2)}) × (2 + ${F(1, 2)}) has four parts, 4 + 1 + 1 + ${F(1, 4)} = ${MX(25, 4)}. The two middle parts are the ones people forget.`) +
       p(`Estimate to check your answer: ${MX(7, 3)} × ${MX(3, 2)} must be between 2 × 1 = 2 and 3 × 2 = 6.`) +
-      example('Example', `${big(`${MX(7, 3)} × ${MX(3, 2)}`)}${F(7, 3, { raw: true })} × ${F(3, 2, { raw: true })} = ${F(21, 6, { raw: true })} = ${F(7, 2, { raw: true })} = <b>${MX(7, 2)}</b>.`),
+      example('Example: two mixed numbers', `${big(`${MX(7, 3)} × ${MX(3, 2)}`)}${F(7, 3, { raw: true })} × ${F(3, 2, { raw: true })} = ${F(21, 6, { raw: true })} = ${F(7, 2, { raw: true })} = <b>${MX(7, 2)}</b>.`) +
+      example('Example: times a whole number', `${big(`${MX(11, 4)} × 3`)}${MX(11, 4)} = ${F(11, 4, { raw: true })}, and 3 = ${F('3', '1')}. ${F(11, 4, { raw: true })} × ${F('3', '1')} = ${F(33, 4, { raw: true })} = <b>${MX(33, 4)}</b>.`) +
+      example('Example: an area model', `${areaModelSvg({ w: 2, r: 1, d: 2 }, { w: 1, r: 1, d: 3 })}${MX(5, 2)} × ${MX(4, 3)} has four parts: 2 × 1 = 2, 2 × ${F(1, 3)} = ${F(2, 3)}, ${F(1, 2)} × 1 = ${F(1, 2)} and ${F(1, 2)} × ${F(1, 3)} = ${F(1, 6)}. With sixths: 2 + ${F(4, 6, { raw: true })} + ${F(3, 6, { raw: true })} + ${F(1, 6)} = 2 + ${F(8, 6, { raw: true })} = <b>${MX(10, 3)}</b>. Check: ${F(5, 2, { raw: true })} × ${F(4, 3, { raw: true })} = ${F(20, 6, { raw: true })} = ${MX(10, 3)} ✓`),
     make(rng) {
       const kind = rng.pick(['mm', 'mm', 'mw', 'mf', 'area', 'recipe', 'model', 'mistake']);
       const dens = [2, 3, 4, 5, 6], name = rng.pick(NAMES);
@@ -1145,7 +1292,8 @@
     learn: p('A <b>statistical question</b> is one you answer by collecting data, and it <b>expects answers that vary</b>. “How many hours do sixth graders sleep on a school night?” is statistical: different students sleep for different amounts of time, so you would ask many of them and look at all the answers.') +
       p('A question with <b>one fixed answer</b> is not statistical. “How many legs does a spider have?” has one answer. So does “How tall is Ana?”: it is about one person at one moment.') +
       p('To test a question, ask yourself: <b>would I expect to get different answers?</b> Questions about a whole group, such as the students in a class or the dogs at a shelter, usually are statistical.') +
-      example('Example', `${big('“How old is Ben?” → “How old are the students in Ben’s class?”')}The first question has one answer. The second asks about a whole group whose ages vary, so <b>the second is a statistical question</b>.`),
+      example('Example: making a question statistical', `${big('“How old is Ben?” → “How old are the students in Ben’s class?”')}The first question has one answer. The second asks about a whole group whose ages vary, so <b>the second is a statistical question</b>.`) +
+      example('Example: one answer or many?', `${big('“How many days are in a week?” and “How many hours a week do our classmates practice music?”')}Every week has 7 days, so the first has <b>one fixed answer</b>. Different classmates practice for different amounts of time, so the second <b>is statistical</b>.`),
     make(rng) {
       const kind = rng.pick(['pick', 'pick', 'not', 'rewrite']), name = rng.pick(NAMES);
       const why = 'A statistical question expects answers that <b>vary</b>, so you would collect many pieces of data to answer it.';
@@ -1193,7 +1341,8 @@
     g += `<line x1="${X0}" y1="${Y}" x2="${right}" y2="${Y}" class="stroke"/><line x1="${X0}" y1="${Y}" x2="${X0}" y2="${Y - 158}" class="stroke"/>`;
     g += `<text x="${(X0 + right) / 2}" y="${Y + 40}" text-anchor="middle" font-size="13" font-weight="700">${t.xl}</text>`;
     g += `<text x="16" y="${Y - 75}" transform="rotate(-90 16 ${Y - 75})" text-anchor="middle" font-size="13" font-weight="700">${t.yl}</text>`;
-    return `<svg class="figure" viewBox="0 0 ${right + 16} 240" width="${right + 16}" role="img" aria-label="a histogram of ${t.title.toLowerCase()}">${g}</svg>`;
+    const label = `a histogram of ${t.title.toLowerCase()}. ${t.yl} in each interval: ${counts.map((c, i) => `${binLabel(t, i)}, ${c}`).join('; ')}.`;
+    return `<svg class="figure" viewBox="0 0 ${right + 16} 240" width="${right + 16}" role="img" aria-label="${label}"><desc>${label}</desc>${g}</svg>`;
   }
   // which display does each job? Each description fits exactly one of the four.
   const DISPLAYS = ['Stem-and-leaf plot', 'Histogram', 'Box plot', 'Bar graph'];
@@ -1208,7 +1357,9 @@
     learn: p('A <b>histogram</b> is a bar graph for numbers. The data is grouped into <b>intervals of equal width</b>, such as 0–9, 10–19 and 20–29, and the height of each bar shows <b>how many values</b> fall in that interval. The bars touch, because each interval starts right where the last one ended.') +
       p('To read a bar, look across from its top to the scale. To answer “how many are at least 20?”, <b>add up every bar from 20 upward</b>. Adding all the bars gives the number of values in the data set.') +
       p('A histogram does <b>not</b> show the exact values. You can see that 7 students spent 20–29 minutes on homework, but not whether any of them spent exactly 25.') +
-      example('Example', `${histSvg(HIST[0], [2, 5, 7, 3])}How many students spent at least 20 minutes? Add the bars for 20–29 and 30–39: 7 + 3 = <b>10 students</b>.`),
+      p('Other displays do other jobs. A <b>stem-and-leaf plot</b> keeps every value, a <b>box plot</b> is drawn from five summary numbers, and a <b>bar graph</b> counts categories, like favorite fruits, that aren’t numbers on a scale.') +
+      example('Example: at least', `${histSvg(HIST[0], [2, 5, 7, 3])}How many students spent at least 20 minutes? Add the bars for 20–29 and 30–39: 7 + 3 = <b>10 students</b>.`) +
+      example('Example: all, and how many more', `In the same histogram, the bars are 2, 5, 7 and 3, so it shows 2 + 5 + 7 + 3 = <b>17 students</b> in all. The 20–29 bar is 7 and the 0–9 bar is 2, so <b>5 more</b> students spent 20–29 minutes than 0–9 minutes.`),
     make(rng) {
       const kind = rng.pick(['count', 'count', 'most', 'total', 'atleast', 'less', 'more', 'display']);
       if (kind === 'display') {
@@ -1296,8 +1447,9 @@
     id: 'g6.stem-and-leaf', title: 'Stem-and-leaf plots',
     learn: p('A <b>stem-and-leaf plot</b> shows every value in a data set. Each value is split into a <b>stem</b>, the tens digit, and a <b>leaf</b>, the ones digit. The stems run down the left side, and <b>each leaf on the right is one value</b>. The key tells you how to read it: 3 | 7 means 37.') +
       p('The leaves in each row are written <b>in order</b>, so the plot lists the data from smallest to largest. That makes it quick to find the least and greatest values, the range, and the <b>median</b>: count the leaves until you reach the middle one.') +
-      p('Count every leaf, including repeats: a row 4 | 2 2 5 holds three values, 42, 42 and 45. A stem with no leaves means there are no values in that ten.') +
-      example('Example', `${stemPlot([12, 15, 21, 24, 24, 28, 33])}There are 7 leaves, so the median is the 4th value: 12, 15, 21, <b>24</b>. The range is 33 − 12 = <b>21</b>.`),
+      p('Count every leaf, including repeats: a row 4 | 2 2 5 holds three values, 42, 42 and 45. A stem with no leaves means there are no values in that ten. The <b>mode</b> is the value that appears most often, so look for a leaf repeated in the same row.') +
+      example('Example: median and range', `${stemPlot([12, 15, 21, 24, 24, 28, 33])}There are 7 leaves, so the median is the 4th value: 12, 15, 21, <b>24</b>. The range is 33 − 12 = <b>21</b>.`) +
+      example('Example: mode and “at least”', `${stemPlot([31, 34, 34, 34, 40, 42, 45, 47, 52])}The leaf 4 appears three times in the 3 row, so the mode is <b>34</b>. The values that are at least 42 are 42, 45, 47 and 52: <b>4 values</b>.`),
     make(rng) {
       const kind = rng.pick(['count', 'extreme', 'stem', 'median', 'median', 'range', 'atleast', 'mode']);
       const t = rng.pick(STEM_DATA), n = rng.int(9, 15);
@@ -1395,7 +1547,8 @@
     learn: p('In a logic puzzle, every person gets a different item, and the clues tell you what is <b>not</b> true as well as what is. A <b>grid</b> keeps track of it all: names down the side, items across the top.') +
       p('Put an <b>✗</b> in a box for each “not” clue. Every row and every column ends up with exactly <b>one ✓</b>, so <b>when a row or a column has only one empty box left, that box must be the ✓</b>. Then cross out the rest of that row and column, and look again.') +
       p('Keep going until every row has its ✓. Check your answer against every clue before you finish.') +
-      example('Example', `<p><b>Ana, Ben and Chloe each have a different pet: a cat, a dog and a fish.</b></p>Clues: Ana does not have the dog. Ben has neither the dog nor the cat. Ben’s row now has only the fish box left, so Ben has the fish. The dog column has only Chloe’s box left, so Chloe has the dog, and <b>Ana has the cat</b>.`),
+      example('Example: “not” clues', `<p><b>Ana, Ben and Chloe each have a different pet: a cat, a dog and a fish.</b></p>Clues: Ana does not have the dog. Ben has neither the dog nor the cat. Ben’s row now has only the fish box left, so Ben has the fish. The dog column has only Chloe’s box left, so Chloe has the dog, and <b>Ana has the cat</b>.${M.table(['', 'Cat', 'Dog', 'Fish'], [['<b>Ana</b>', '✓', '✗', '✗'], ['<b>Ben</b>', '✗', '✗', '✓'], ['<b>Chloe</b>', '✗', '✓', '✗']])}`) +
+      example('Example: a clue that says yes', `<p><b>Dev, Iris and Omar each joined a different club: art, chess or drama.</b></p>Clues: Iris is in the chess club. Dev is not in the art club. Put a ✓ for Iris and chess, then cross out the rest of Iris’s row and the chess column. Dev’s row now has only drama left, so Dev is in drama, and <b>Omar is in the art club</b>.`),
     make(rng) {
       const t = rng.pick(LOGIC);
       for (let tries = 0; ; tries++) {
@@ -1477,7 +1630,8 @@
     learn: p('A <b>Venn diagram</b> sorts things into overlapping circles. Each circle is one group. The <b>overlap</b>, where the circles cross, holds everything that belongs to <b>both</b> groups, and anything in <b>neither</b> group goes outside the circles, inside the rectangle.') +
       p('“<b>Only</b> A” means the part of circle A outside the overlap. “<b>All</b> of A” means the whole circle, so add its two parts: only A plus the overlap. To find the total, add all four numbers.') +
       p('To place a number, test it against each circle in turn. If it fits both, it goes in the overlap.') +
-      example('Example', `${vennSvg('Soccer', 'Piano', [7, 3, 5, 4])}3 students play both. 7 + 3 = <b>10</b> play soccer. 7 + 3 + 5 + 4 = <b>19</b> students were asked.`),
+      example('Example: reading a Venn diagram', `${vennSvg('Soccer', 'Piano', [7, 3, 5, 4])}3 students play both. 7 + 3 = <b>10</b> play soccer. 7 + 3 + 5 + 4 = <b>19</b> students were asked.`) +
+      example('Example: placing numbers', `${big('Circle A: multiples of 4. Circle B: multiples of 6.')}12 = 4 × 3 and 12 = 6 × 2, so 12 goes <b>in the overlap</b>. 8 is a multiple of 4 but not of 6, so it goes <b>only in circle A</b>. 9 is neither, so it goes <b>outside both circles</b>.`),
     make(rng) {
       const kind = rng.pick(['read', 'read', 'read', 'place', 'place']);
       if (kind === 'place') {
@@ -1525,16 +1679,18 @@
     id: 'g6.percent-in-head', title: 'Percents in your head: tips and discounts',
     learn: p('Start from <b>10%</b>: move the decimal point one place left (10% of $48 is $4.80). From there: <b>20%</b> is double 10%, <b>5%</b> is half of 10%, and <b>15%</b> is 10% plus 5%. <b>25%</b> is a quarter, and <b>1%</b> moves the point two places.') +
       p('This is how people work out a tip or a discount at a glance. For a sale price, take the discount away from the price.') +
-      example('Example', `${big('A $48 meal: what is a 15% tip?')}10% is $4.80, and 5% is half of that, $2.40. So 15% is $4.80 + $2.40 = <b>$7.20</b>.`),
+      example('Example: a tip', `${big('A $48 meal: what is a 15% tip?')}10% is $4.80, and 5% is half of that, $2.40. So 15% is $4.80 + $2.40 = <b>$7.20</b>.`) +
+      example('Example: a sale price', `${big('A $35 backpack is 20% off.')}10% of $35 is $3.50, so 20% is $7.00. Take it off the price: $35.00 − $7.00 = <b>$28.00</b>.`) +
+      example('Example: 25% and 30%', `${big('25% and 30% of $36')}25% is a quarter: $36 ÷ 4 = <b>$9.00</b>. 30% is three times 10%: 3 × $3.60 = <b>$10.80</b>.`),
     make(rng) {
       const kind = rng.pick(['tip15', 'tip20', 'off25', 'pct5', 'pct30', 'sale']);
       let price, ans, prompt, hints;
-      if (kind === 'tip15') { price = rng.int(6, 40) * 4; const t = price / 10, f = t / 2; ans = t + f; prompt = `A meal costs ${money(price)}. Work out a 15% tip in your head.`; hints = [`10% of ${money(price)} is ${money(t)}.`, `5% is half of 10%: ${money(f)}.`, `15% = ${money(t)} + ${money(f)} = <b>${money(ans)}</b>.`]; }
-      else if (kind === 'tip20') { price = rng.int(12, 90) * 2; const t = price / 10; ans = 2 * t; prompt = `A haircut costs ${money(price)}. What is a 20% tip?`; hints = [`10% of ${money(price)} is ${money(t)}.`, '20% is double 10%.', `2 × ${money(t)} = <b>${money(ans)}</b>.`]; }
-      else if (kind === 'off25') { price = rng.int(5, 40) * 4; ans = price / 4; prompt = `A jacket costs ${money(price)} and is 25% off. How much is taken off the price?`; hints = ['25% is one quarter.', `Divide by 4: ${money(price)} ÷ 4.`, `<b>${money(ans)}</b> is taken off.`]; }
-      else if (kind === 'pct5') { price = rng.int(10, 99) * 2; ans = price / 20; prompt = `Sales tax is 5%. How much tax is added to a ${money(price)} bike helmet?`; hints = [`10% of ${money(price)} is ${money(price / 10)}.`, '5% is half of 10%.', `Half of ${money(price / 10)} is <b>${money(ans)}</b>.`]; }
-      else if (kind === 'pct30') { price = rng.int(5, 60) * 10; ans = price * 3 / 10; prompt = `A game costs ${money(price)}. How much is 30% of the price?`; hints = [`10% of ${money(price)} is ${money(price / 10)}.`, '30% is three times 10%.', `3 × ${money(price / 10)} = <b>${money(ans)}</b>.`]; }
-      else { price = rng.int(4, 30) * 10; const off = price / 10 * 2; ans = price - off; prompt = `Sneakers cost ${money(price)}. They are 20% off. What is the sale price?`; hints = [`10% of ${money(price)} is ${money(price / 10)}, so 20% is ${money(off)}.`, `Take the discount off the price: ${money(price)} − ${money(off)}.`, `The sale price is <b>${money(ans)}</b>.`]; }
+      if (kind === 'tip15') { price = rng.int(6, 40) * 4; const t = price / 10, f = t / 2; ans = t + f; prompt = `${rng.pick(['A meal', 'A pizza delivery', 'A family dinner', 'A taxi ride'])} costs ${money(price)}. Work out a 15% tip in your head.`; hints = [`10% of ${money(price)} is ${money(t)}.`, `5% is half of 10%: ${money(f)}.`, `15% = ${money(t)} + ${money(f)} = <b>${money(ans)}</b>.`]; }
+      else if (kind === 'tip20') { price = rng.int(12, 90) * 2; const t = price / 10; ans = 2 * t; prompt = `${rng.pick(['A haircut', 'A restaurant bill', 'A food delivery', 'A car wash'])} costs ${money(price)}. What is a 20% tip?`; hints = [`10% of ${money(price)} is ${money(t)}.`, '20% is double 10%.', `2 × ${money(t)} = <b>${money(ans)}</b>.`]; }
+      else if (kind === 'off25') { price = rng.int(5, 40) * 4; ans = price / 4; prompt = `${rng.pick(['A jacket', 'A backpack', 'A lamp', 'A soccer ball'])} costs ${money(price)} and is 25% off. How much is taken off the price?`; hints = ['25% is one quarter.', `Divide by 4: ${money(price)} ÷ 4.`, `<b>${money(ans)}</b> is taken off.`]; }
+      else if (kind === 'pct5') { price = rng.int(10, 99) * 2; ans = price / 20; prompt = `Sales tax is 5%. How much tax is added to a ${money(price)} ${rng.pick(['bike helmet', 'desk chair', 'rain jacket', 'board game'])}?`; hints = [`10% of ${money(price)} is ${money(price / 10)}.`, '5% is half of 10%.', `Half of ${money(price / 10)} is <b>${money(ans)}</b>.`]; }
+      else if (kind === 'pct30') { price = rng.int(5, 60) * 10; ans = price * 3 / 10; prompt = `${rng.pick(['A game', 'A bookshelf', 'A guitar', 'A camping stove'])} costs ${money(price)}. How much is 30% of the price?`; hints = [`10% of ${money(price)} is ${money(price / 10)}.`, '30% is three times 10%.', `3 × ${money(price / 10)} = <b>${money(ans)}</b>.`]; }
+      else { price = rng.int(4, 30) * 10; const off = price / 10 * 2; ans = price - off; const [what, are] = rng.pick([['Sneakers cost', 'They are'], ['A coat costs', 'It’s'], ['Headphones cost', 'They are'], ['A scooter costs', 'It’s']]); prompt = `${what} ${money(price)}. ${are} 20% off. What is the sale price?`; hints = [`10% of ${money(price)} is ${money(price / 10)}, so 20% is ${money(off)}.`, `Take the discount off the price: ${money(price)} − ${money(off)}.`, `The sale price is <b>${money(ans)}</b>.`]; }
       return { prompt, type: 'number', unit: '$', answer: Math.round(ans * 100) / 100, params: { kind, price }, hints };
     },
     verify(q) {
@@ -1548,7 +1704,9 @@
     id: 'g6.recipe-scaling', title: 'Scaling a recipe',
     learn: p('A recipe is a <b>ratio</b>: the amounts stay in proportion when you make more or less. Find the <b>scale factor</b>, the new number of servings divided by the old, and multiply every amount by it.') +
       p('Another way: find the amount for <b>one serving</b> (divide), then multiply by the servings you want. Both give the same answer. Quarter and half amounts are common, like 1.5 cups.') +
-      example('Example', `${big('A recipe for 4 servings uses 3 cups of flour. How much for 6 servings?')}The scale factor is 6 ÷ 4 = 1.5, and 3 × 1.5 = <b>4.5 cups</b>.`),
+      example('Example: the scale factor', `${big('A recipe for 4 servings uses 3 cups of flour. How much for 6 servings?')}The scale factor is 6 ÷ 4 = 1.5, and 3 × 1.5 = <b>4.5 cups</b>.`) +
+      example('Example: one serving first', `${big('A recipe for 8 muffins uses 2 cups of milk. How much for 12 muffins?')}For one muffin: 2 ÷ 8 = 0.25 cup. For 12 muffins: 0.25 × 12 = <b>3 cups</b>.`) +
+      example('Example: making less', `${big('A soup for 6 bowls uses 1.5 teaspoons of salt. How much for 4 bowls?')}The scale factor is 4 ÷ 6 = ${F(2, 3)}, so 1.5 × ${F(2, 3)} = 3 ÷ 3 = <b>1 teaspoon</b>.`),
     make(rng) {
       const [dish, what, unit] = rng.pick(RECIPES);
       let from, to, amt;
@@ -1566,7 +1724,9 @@
     id: 'g6.money-plans', title: 'Planning with money',
     learn: p('Money problems often take <b>two or three steps</b>. Write down what you know, then decide the order: find a total cost first, or how much is still needed, before dividing or subtracting.') +
       p('When saving up, find how much is <b>still needed</b>, then divide by the amount saved each week. If it doesn’t divide evenly, you need <b>one more week</b>, because you can’t buy it until you have enough.') +
-      example('Example', `${big('A $126 bike. You have $30 and save $12 a week. How many weeks?')}Still needed: $126 − $30 = $96. Then 96 ÷ 12 = <b>8 weeks</b>.`),
+      example('Example: saving up', `${big('A $126 bike. You have $30 and save $12 a week. How many weeks?')}Still needed: $126 − $30 = $96. Then 96 ÷ 12 = <b>8 weeks</b>.`) +
+      example('Example: when it doesn’t divide evenly', `${big('A $100 tent. You have $25 and save $10 a week.')}Still needed: $100 − $25 = $75. 75 ÷ 10 = 7.5, but after 7 weeks you’d still be $5 short, so it takes <b>8 weeks</b>.`) +
+      example('Example: spending', `${big('You have $20. You buy 3 notebooks at $2.25 each and a pen for $1.40.')}Notebooks: 3 × $2.25 = $6.75. With the pen: $6.75 + $1.40 = $8.15. Left over: $20.00 − $8.15 = <b>$11.85</b>.`),
     make(rng) {
       const name = rng.pick(NAMES);
       if (rng.bool()) {
@@ -1588,42 +1748,87 @@
 
   /* ---------- double bar graphs ---------- */
   const PAIRS = [{ title: 'Books read', a: 'Class A', b: 'Class B', cats: ['Sept', 'Oct', 'Nov', 'Dec'], what: 'books' }, { title: 'Goals scored', a: 'Hawks', b: 'Owls', cats: ['Game 1', 'Game 2', 'Game 3', 'Game 4'], what: 'goals' },
-    { title: 'Favorite fruit', a: 'Grade 5', b: 'Grade 6', cats: ['Apple', 'Banana', 'Grape', 'Mango'], what: 'votes' }, { title: 'Hours of practice', a: 'Piano', b: 'Soccer', cats: ['Week 1', 'Week 2', 'Week 3', 'Week 4'], what: 'hours' }];
+    { title: 'Favorite fruit', a: 'Grade 5', b: 'Grade 6', cats: ['Apple', 'Banana', 'Grape', 'Mango'], what: 'votes' }, { title: 'Hours of practice', a: 'Piano', b: 'Soccer', cats: ['Week 1', 'Week 2', 'Week 3', 'Week 4'], what: 'hours' },
+    { title: 'Cans collected for the food drive', a: 'Room 12', b: 'Room 14', cats: ['Week 1', 'Week 2', 'Week 3', 'Week 4'], what: 'bags of cans' }, { title: 'Laps swum', a: 'Dolphins', b: 'Otters', cats: ['Mon', 'Tue', 'Wed', 'Thu'], what: 'laps' },
+    { title: 'Seedlings sprouted', a: 'Garden A', b: 'Garden B', cats: ['Beans', 'Peas', 'Corn', 'Squash'], what: 'seedlings' }, { title: 'Library visits', a: 'Grade 7', b: 'Grade 8', cats: ['Mon', 'Tue', 'Wed', 'Thu'], what: 'visits' },
+    { title: 'Tickets sold', a: 'Choir', b: 'Band', cats: ['Thu', 'Fri', 'Sat', 'Sun'], what: 'tickets' }, { title: 'Favorite lunch', a: 'Grade 4', b: 'Grade 6', cats: ['Tacos', 'Pasta', 'Salad', 'Soup'], what: 'votes' }];
+  const DB_UY = 13;                                                       // pixels per unit on the bar graph's scale
   function doubleBars(g, as, bs) {
-    const max = 12, uy = 13, x0 = 34, y0 = 34 + max * uy, bw = 20, gap = 24, W = x0 + g.cats.length * (2 * bw + gap) + 14;
-    let s = `<svg class="figure" viewBox="0 0 ${W} ${y0 + 54}" width="${W}" height="${y0 + 54}" role="img" aria-label="double bar graph: ${g.title}"><text x="${W / 2}" y="14" text-anchor="middle" font-size="13" font-weight="700">${g.title}</text>`;
+    const max = 12, uy = DB_UY, x0 = 34, y0 = 34 + max * uy, bw = 20, gap = 24, W = x0 + g.cats.length * (2 * bw + gap) + 14;
+    const say = (grp, vs) => `${grp}: ${g.cats.map((c, i) => `${c} ${vs[i]}`).join(', ')}`, label = `double bar graph of ${g.title.toLowerCase()}. ${say(g.a, as)}. ${say(g.b, bs)}.`;
+    let s = `<svg class="figure" viewBox="0 0 ${W} ${y0 + 54}" width="${W}" height="${y0 + 54}" role="img" aria-label="${label}"><desc>${label}</desc><text x="${W / 2}" y="14" text-anchor="middle" font-size="13" font-weight="700">${g.title}</text>`;
     for (let v = 0; v <= max; v += 2) s += `<line class="light" x1="${x0}" y1="${y0 - v * uy}" x2="${W - 6}" y2="${y0 - v * uy}" style="stroke-width:1"/><text x="${x0 - 6}" y="${y0 - v * uy + 4}" text-anchor="end" font-size="11">${v}</text>`;
     g.cats.forEach((c, i) => {
       const x = x0 + gap / 2 + i * (2 * bw + gap);
-      s += `<rect class="fill" x="${x}" y="${y0 - as[i] * uy}" width="${bw}" height="${as[i] * uy}"/><rect class="fill2" x="${x + bw}" y="${y0 - bs[i] * uy}" width="${bw}" height="${bs[i] * uy}"/><text x="${x + bw}" y="${y0 + 16}" text-anchor="middle" font-size="11">${c}</text>`;
+      s += `<rect class="fill" data-bar="a${i}" x="${x}" y="${y0 - as[i] * uy}" width="${bw}" height="${as[i] * uy}"/><rect class="fill2" data-bar="b${i}" x="${x + bw}" y="${y0 - bs[i] * uy}" width="${bw}" height="${bs[i] * uy}"/><text x="${x + bw}" y="${y0 + 16}" text-anchor="middle" font-size="11">${c}</text>`;
     });
     const ly = y0 + 38;
     s += `<rect class="fill" x="${x0}" y="${ly - 10}" width="12" height="12"/><text x="${x0 + 18}" y="${ly}" font-size="11">${g.a}</text><rect class="fill2" x="${x0 + 90}" y="${ly - 10}" width="12" height="12"/><text x="${x0 + 108}" y="${ly}" font-size="11">${g.b}</text>`;
     return s + `<line class="stroke" x1="${x0}" y1="${y0}" x2="${W - 6}" y2="${y0}"/><line class="stroke" x1="${x0}" y1="28" x2="${x0}" y2="${y0}"/></svg>`;
   }
+  /** the bars read back off a drawn graph: { a: [...], b: [...] } */
+  function barsOf(html) {
+    const out = { a: [], b: [] };
+    for (const m of html.matchAll(/data-bar="([ab])(\d)"[^>]*height="([\d.]+)"/g)) out[m[1]][Number(m[2])] = Number(m[3]) / DB_UY;
+    return out;
+  }
+  const sum = l => l.reduce((x, y) => x + y, 0);
+  function doubleBarQ(rng, hard) {
+    const g = rng.pick(PAIRS), as = g.cats.map(() => rng.int(1, 12)), bs = g.cats.map(() => rng.int(1, 12));
+    const kind = hard ? rng.pick(['diff-total', 'mean', 'combo']) : rng.pick(['diff', 'total', 'most', 'both', 'read', 'cat-more']);
+    const look = 'Look at the double bar graph.', cat = i => g.cats[i];
+    let i = rng.int(0, 3), j = (i + rng.int(1, 3)) % 4;
+    // fix the numbers first, then draw the graph, so the picture always matches the question
+    if (kind === 'diff' && as[i] === bs[i]) bs[i] = as[i] > 6 ? as[i] - rng.int(1, 4) : as[i] + rng.int(1, 4);
+    if (kind === 'diff-total' && sum(as) === sum(bs)) bs[i] = bs[i] > 6 ? bs[i] - rng.int(1, 4) : bs[i] + rng.int(1, 4);
+    const which = rng.bool(), mine = which ? as : bs, grp = which ? g.a : g.b;
+    if (kind === 'mean') { const r = sum(mine) % 4; if (r) mine[i] += mine[i] + 4 - r <= 12 ? 4 - r : -r; }
+    if (kind === 'combo' && as[i] + bs[i] === as[j] + bs[j]) bs[i] = bs[i] > 6 ? bs[i] - rng.int(1, 4) : bs[i] + rng.int(1, 4);
+    if (kind === 'combo' && as[i] + bs[i] < as[j] + bs[j]) [i, j] = [j, i];
+    const pic = doubleBars(g, as, bs), params = { kind, i, j, which };
+    if (kind === 'read') return { prompt: `${look}${pic}How many ${g.what} did ${grp} have in ${cat(i)}?`, type: 'number', answer: mine[i], params,
+      hints: [`The key shows which shade is ${grp}. Find that bar above ${cat(i)}.`, `Follow the top of the bar across to the scale on the left.`, `It reaches <b>${mine[i]}</b>.`] };
+    if (kind === 'diff') { const ans = Math.abs(as[i] - bs[i]); return { prompt: `${look}${pic}In ${cat(i)}, how many more ${g.what} did ${as[i] > bs[i] ? g.a : g.b} have than ${as[i] > bs[i] ? g.b : g.a}?`, type: 'number', answer: ans, params,
+      hints: [`In ${cat(i)}, ${g.a} has ${as[i]} and ${g.b} has ${bs[i]}.`, `Subtract the smaller from the larger.`, `${Math.max(as[i], bs[i])} − ${Math.min(as[i], bs[i])} = <b>${ans}</b>.`] }; }
+    if (kind === 'total') { const ans = sum(mine); return { prompt: `${look}${pic}How many ${g.what} did ${grp} have in all four categories altogether?`, type: 'number', answer: ans, params,
+      hints: [`Read the ${grp} bars: ${mine.join(', ')}.`, `Add them: ${mine.join(' + ')}.`, `The total is <b>${ans}</b>.`] }; }
+    if (kind === 'cat-more') { const n = as.filter((x, k) => x > bs[k]).length; return { prompt: `${look}${pic}In how many of the four categories did ${g.a} have <b>more</b> ${g.what} than ${g.b}?`, type: 'number', answer: n, params,
+      hints: [`Compare the two bars in each category: ${g.cats.map((c, k) => `${c} ${as[k]} and ${bs[k]}`).join('; ')}.`, `${g.a}’s bar is taller in ${n === 0 ? 'none of them' : M.list(g.cats.filter((c, k) => as[k] > bs[k]))}. Equal bars don’t count.`, `The answer is <b>${n}</b>.`] }; }
+    if (kind === 'diff-total') { const ta = sum(as), tb = sum(bs), big = ta > tb, ans = Math.abs(ta - tb); return { prompt: `${look}${pic}Altogether, how many more ${g.what} did ${big ? g.a : g.b} have than ${big ? g.b : g.a} in the four categories?`, type: 'number', answer: ans, params,
+      hints: [`Add the ${g.a} bars: ${as.join(' + ')} = ${ta}.`, `Add the ${g.b} bars: ${bs.join(' + ')} = ${tb}.`, `Subtract: ${Math.max(ta, tb)} − ${Math.min(ta, tb)} = <b>${ans}</b>.`] }; }
+    if (kind === 'mean') { const t = sum(mine); return { prompt: `${look}${pic}What is the mean (average) number of ${g.what} per category for ${grp}?`, type: 'number', answer: t / 4, params,
+      hints: [`Read the ${grp} bars: ${mine.join(', ')}.`, `Add them: ${mine.join(' + ')} = ${t}.`, `Share the total equally over the 4 categories: ${t} ÷ 4 = <b>${t / 4}</b>.`] }; }
+    if (kind === 'combo') { const si = as[i] + bs[i], sj = as[j] + bs[j]; return { prompt: `${look}${pic}With both groups together, how many more ${g.what} were there in ${cat(i)} than in ${cat(j)}?`, type: 'number', answer: si - sj, params,
+      hints: [`${cat(i)}: ${as[i]} + ${bs[i]} = ${si}.`, `${cat(j)}: ${as[j]} + ${bs[j]} = ${sj}.`, `${si} − ${sj} = <b>${si - sj}</b>.`] }; }
+    const both = as.map((x, k) => x + bs[k]), gaps = as.map((x, k) => Math.abs(x - bs[k])), list = kind === 'most' ? gaps : both, top = Math.max.apply(null, list);
+    if (list.filter(x => x === top).length > 1) { const ans = as[i] + bs[i]; return { prompt: `${look}${pic}How many ${g.what} were there in ${cat(i)} for both groups together?`, type: 'number', answer: ans, params: Object.assign(params, { kind: 'sum' }),
+      hints: [`In ${cat(i)}: ${g.a} ${as[i]}, ${g.b} ${bs[i]}.`, 'Add the two bars.', `${as[i]} + ${bs[i]} = <b>${ans}</b>.`] }; }
+    const k = list.indexOf(top), answer = g.cats[k];
+    return { prompt: `${look}${pic}${kind === 'most' ? `In which category is the difference between ${g.a} and ${g.b} the greatest?` : 'In which category is the total for both groups together the greatest?'}`, type: 'choice', choices: g.cats.slice(), keepOrder: true, answer, params: Object.assign(params, { k }),
+      hints: [kind === 'most' ? `Find the gap between the two bars in each category: ${gaps.join(', ')}.` : `Add the two bars in each category: ${both.join(', ')}.`, `The greatest is ${top}.`, `<b>${answer}</b>.`] };
+  }
   A.skill({
     id: 'g6.double-bar-graphs', title: 'Reading double bar graphs',
     learn: p('A <b>double bar graph</b> compares two groups side by side. The key shows which shade is which group. For each category on the bottom, there is one bar for each group.') +
       p('Read each bar by following its top across to the scale. To compare the groups in one category, <b>subtract</b> the shorter bar from the taller one; to find a group’s total, <b>add</b> its bars across all the categories.') +
-      example('Example', 'If Class A read 8 books in October and Class B read 5, Class A read 8 − 5 = <b>3</b> more books that month.'),
-    make(rng) {
-      const g = rng.pick(PAIRS), as = g.cats.map(() => rng.int(1, 12)), bs = g.cats.map(() => rng.int(1, 12));
-      const pic = doubleBars(g, as, bs), kind = rng.pick(['diff', 'total', 'most', 'both']);
-      if (kind === 'diff') { let i = rng.int(0, 3); if (as[i] === bs[i]) bs[i] = as[i] > 6 ? as[i] - rng.int(1, 4) : as[i] + rng.int(1, 4); const ans = Math.abs(as[i] - bs[i]); return { prompt: `Look at the double bar graph.${pic}In ${g.cats[i]}, how many more ${g.what} did ${as[i] > bs[i] ? g.a : g.b} have than ${as[i] > bs[i] ? g.b : g.a}?`, type: 'number', answer: ans, params: { kind, as, bs, i }, hints: [`In ${g.cats[i]}, ${g.a} has ${as[i]} and ${g.b} has ${bs[i]}.`, `Subtract the smaller from the larger.`, `${Math.max(as[i], bs[i])} − ${Math.min(as[i], bs[i])} = <b>${ans}</b>.`] }; }
-      if (kind === 'total') { const which = rng.bool(), list = which ? as : bs, ans = list.reduce((x, y) => x + y, 0); return { prompt: `Look at the double bar graph.${pic}How many ${g.what} did ${which ? g.a : g.b} have in all four categories altogether?`, type: 'number', answer: ans, params: { kind, as, bs, which }, hints: [`Read the ${which ? g.a : g.b} bars: ${list.join(', ')}.`, `Add them: ${list.join(' + ')}.`, `The total is <b>${ans}</b>.`] }; }
-      const both = as.map((x, i) => x + bs[i]), gaps = as.map((x, i) => Math.abs(x - bs[i])), list = kind === 'most' ? gaps : both, top = Math.max.apply(null, list);
-      if (list.filter(x => x === top).length > 1) { const i = rng.int(0, 3); const ans = as[i] + bs[i]; return { prompt: `Look at the double bar graph.${pic}How many ${g.what} were there in ${g.cats[i]} for both groups together?`, type: 'number', answer: ans, params: { kind: 'sum', as, bs, i }, hints: [`In ${g.cats[i]}: ${g.a} ${as[i]}, ${g.b} ${bs[i]}.`, 'Add the two bars.', `${as[i]} + ${bs[i]} = <b>${ans}</b>.`] }; }
-      const k = list.indexOf(top), answer = g.cats[k];
-      return { prompt: `Look at the double bar graph.${pic}${kind === 'most' ? `In which category is the difference between ${g.a} and ${g.b} the greatest?` : 'In which category is the total for both groups together the greatest?'}`, type: 'choice', choices: g.cats.slice(), keepOrder: true, answer, params: { kind, as, bs, k },
-        hints: [kind === 'most' ? `Find the gap between the two bars in each category: ${gaps.join(', ')}.` : `Add the two bars in each category: ${both.join(', ')}.`, `The greatest is ${top}.`, `<b>${answer}</b>.`] };
-    },
+      example('Example: comparing one category', `${doubleBars(PAIRS[0], [5, 8, 6, 9], [7, 5, 6, 10])}In Oct, Class A read 8 books and Class B read 5, so Class A read 8 − 5 = <b>3</b> more books that month.`) +
+      example('Example: a total, and the biggest gap', `In the same graph, Class A’s bars are 5, 8, 6 and 9, so Class A read 5 + 8 + 6 + 9 = <b>28 books</b> in all. The gaps between the bars are 2, 3, 0 and 1, so the groups differ most in <b>Oct</b>.`),
+    make: rng => doubleBarQ(rng, false),
+    challenge: rng => doubleBarQ(rng, true),
     verify(q) {
-      const P = q.params;
-      if (P.kind === 'diff') return q.answer === Math.abs(P.as[P.i] - P.bs[P.i]) && q.answer > 0;
-      if (P.kind === 'total') return q.answer === (P.which ? P.as : P.bs).reduce((x, y) => x + y, 0);
-      if (P.kind === 'sum') return q.answer === P.as[P.i] + P.bs[P.i];
-      const list = P.kind === 'most' ? P.as.map((x, i) => Math.abs(x - P.bs[i])) : P.as.map((x, i) => x + P.bs[i]), top = Math.max.apply(null, list);
-      return list.indexOf(top) === P.k && list.filter(x => x === top).length === 1;
+      const P = q.params, { a: as, b: bs } = barsOf(q.prompt), mine = P.which ? as : bs;        // read the bars off the drawing
+      if (as.length !== 4 || bs.length !== 4 || as.concat(bs).some(v => !Number.isInteger(v))) return false;
+      let t = 0;
+      if (P.kind === 'read') return q.answer === mine[P.i];
+      if (P.kind === 'diff') return q.answer === Math.abs(as[P.i] - bs[P.i]) && q.answer > 0;
+      if (P.kind === 'total') { mine.forEach(v => { t += v; }); return q.answer === t; }
+      if (P.kind === 'sum') return q.answer === as[P.i] + bs[P.i];
+      if (P.kind === 'cat-more') { as.forEach((v, k) => { if (v > bs[k]) t++; }); return q.answer === t; }
+      if (P.kind === 'diff-total') { as.forEach((v, k) => { t += v - bs[k]; }); return q.answer === Math.abs(t) && t !== 0; }
+      if (P.kind === 'mean') { mine.forEach(v => { t += v; }); return close(q.answer * 4, t); }
+      if (P.kind === 'combo') return q.answer === as[P.i] + bs[P.i] - as[P.j] - bs[P.j] && q.answer > 0;
+      const list = P.kind === 'most' ? as.map((x, k) => Math.abs(x - bs[k])) : as.map((x, k) => x + bs[k]), top = Math.max.apply(null, list);
+      return list.indexOf(top) === P.k && list.filter(x => x === top).length === 1 && q.answer === q.choices[P.k];
     },
   });
 

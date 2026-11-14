@@ -14,7 +14,7 @@ ACADEMY.cpmBook({
     { n: 1, title: 'Functions', lessons: [
       { id: '1.1.1', title: 'Solving Puzzles in Teams',
         topic: 'Working through a puzzle with a team: sharing ideas, explaining your reasoning and checking each other’s work.',
-        skills: [] },
+        skills: ['logic.matching', 'logic.ordering', 'g6.logic-puzzles'] },
       { id: '1.1.2', title: 'Investigating the Growth of Patterns',
         topic: 'Describing how a tile pattern grows from one figure to the next, and predicting later figures from that growth.',
         skills: ['int1.arithmetic-sequences', 'math8.linear-nonlinear'] },

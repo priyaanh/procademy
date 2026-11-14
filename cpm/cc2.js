@@ -23,7 +23,7 @@ ACADEMY.cpmBook({
         skills: ['math7.simple-probability'] },
       { id: '1.1.3', title: 'Finding Unknowns',
         topic: 'Working with a team to figure out unknown values in a puzzle by using the clues and checking each guess.',
-        skills: [] },
+        skills: ['math7.five-d-problems', 'g6.logic-puzzles'] },
       { id: '1.1.4', title: 'Investigating a Proportional Relationship',
         topic: 'Collecting data in an experiment and looking at how two quantities change together in a table and a graph.',
         skills: ['math7.proportional-table', 'g6.ratio-tables'] },
