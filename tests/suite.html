@@ -674,7 +674,7 @@
   ok(shown && shown.querySelector('b') && !shown.querySelector('script') && text(shown).includes('<script>') && shown.querySelector('.frac .num') && shown.querySelector('.frac .num').textContent === '1' && shown.querySelector('.frac .den').textContent === '2' && shown.querySelectorAll('li').length === 2, 'tutor: replies render a little markdown, escape HTML and tidy LaTeX (a fraction is stacked)');
   const req = cloudCalls[0];
   ok(req && req.url === TU.PROVIDERS[0].url && req.body.model === 'gpt-oss:20b' && req.body.stream === true && req.body.messages[0].role === 'system' && req.body.messages[0].content.includes('Lesson notes'), 'tutor: the first cloud request goes to LLM7, streams, and carries the lesson as context');
-  ok(!JSON.stringify(req.body).includes('Sam') && !JSON.stringify(req.body).includes('points'), 'tutor: the request carries no name and no progress');
+  ok(!JSON.stringify(req.body).includes('Sam') && !new RegExp('\\b' + STORE.get().points + '\\s*(points|pts)\\b|points\\W{1,3}' + STORE.get().points + '\\b', 'i').test(JSON.stringify(req.body)), 'tutor: the request carries no name and no progress');   // a lesson may say “all the points on a circle”; a points total is what mustn't go
   ok(/LLM7/.test(text(panel.querySelector('#tutor-note'))) && /Pollinations/.test(text(panel.querySelector('#tutor-note'))), 'tutor: the panel says where cloud answers come from');
   const free = () => { Object.keys(TU._nextFree).forEach(k => delete TU._nextFree[k]); };
   // LLM7 busy for a moment while Pollinations is free: Pollinations answers at once
