@@ -6,7 +6,8 @@
   const A = window.ACADEMY, M = window.M;
   const F = M.frac, N = M.n, V = M.v;
   const X = V('x'), Y = V('y');
-  const NAMES = ['Amara', 'Bilal', 'Cora', 'Dario', 'Esme', 'Felix', 'Gita', 'Hana', 'Ivo', 'Jonah', 'Keira', 'Luca', 'Maya', 'Nico', 'Orla', 'Pablo', 'Rhea', 'Soren', 'Tess', 'Wren'];
+  const NAMES = ['Amara', 'Bilal', 'Cora', 'Dario', 'Esme', 'Felix', 'Gita', 'Hana', 'Ivo', 'Jonah', 'Keira', 'Luca', 'Maya', 'Nico', 'Orla', 'Pablo', 'Rhea', 'Soren', 'Tess', 'Wren',
+    'Aiko', 'Chidi', 'Daniela', 'Farid', 'Ines', 'Kofi', 'Leilani', 'Mei', 'Nadia', 'Rosa', 'Sanjay', 'Tariq', 'Yusuf', 'Zainab', 'Mateo', 'Anya', 'Kwame', 'Lucia', 'Arjun', 'Saoirse'];
   const p = s => `<p>${s}</p>`;
   const example = (title, body) => `<div class="example"><div class="ex-title">${title}</div>${body}</div>`;
   const big = s => `<div class="big">${s}</div>`;
@@ -416,6 +417,29 @@
     ['cup', 'min', 'gal', 'h', 15, 4, [2, 4, 8, 1, 6], '16 cups = 1 gallon, so divide by 16.', '1 hour = 60 minutes, so per hour is 60 times bigger: multiply by 60.'],
   ];
   const un = (u, k) => UNAME[u][k === 1 ? 0 : 1];
+  /* everyday settings: for one unit, (amount, name) → a sentence that names the amount; for a rate, (rate, name) → the same */
+  const SINGLE_CTX = {
+    'ft>in': [(U, n) => `${n} cuts a plank ${U} long for a garden fence.`, U => `A hallway rug is ${U} long.`],
+    'yd>ft': [U => `A community garden bed is ${U} long.`, (U, n) => `${n} buys ${U} of fabric for a costume.`],
+    'mi>ft': [(U, n) => `${n} walks ${U} to school.`, U => `A charity fun run is ${U} long.`],
+    'h>s': [U => `A bus trip across town takes ${U}.`, (U, n) => `${n}’s shift at the library lasts ${U}.`],
+    'km>cm': [U => `A bike trail through a park is ${U} long.`, U => `A relay race covers ${U}.`],
+    'gal>cup': [U => `A pot of soup for a shelter dinner holds ${U}.`, (U, n) => `${n} fills a cooler with ${U} of water.`],
+    'lb>oz': [U => `A baker measures out ${U} of flour.`, (U, n) => `${n} mails a package that weighs ${U}.`],
+    'in>ft': [U => `A sunflower grew ${U} tall.`, U => `A carpenter cuts a piece of trim ${U} long.`],
+    'min>h': [(U, n) => `${n} spends ${U} on a science project.`, U => `A field trip bus ride takes ${U}.`],
+    'cm>m': [U => `A ribbon for a school banner is ${U} long.`, U => `A measuring tape is pulled out to ${U}.`],
+    'day>min': [U => `A camping trip lasts ${U}.`, (U, n) => `${n}’s family visits relatives for ${U}.`],
+  };
+  const RATE_CTX = [
+    [R => `A car travels at ${R}.`, R => `A delivery van drives at ${R}.`],
+    [R => `A gust of wind is measured at ${R}.`, R => `A drone flies at ${R}.`],
+    [R => `A drone flies at ${R}.`, R => `A car on a test track drives at ${R}.`],
+    [R => `A conveyor belt in a bakery moves at ${R}.`, R => `An escalator at a train station moves at ${R}.`],
+    [R => `A garden sprinkler uses water at ${R}.`, R => `A pump drains a flooded basement at ${R}.`],
+    [R => `A bakery uses yeast at ${R}.`, R => `A community garden uses fertilizer at ${R}.`],
+    [R => `A faucet left running pours out ${R}.`, R => `A park’s drinking fountain pours out ${R}.`],
+  ];
 
   A.skill({
     id: 'alg1.unit-conversion', title: 'Converting units and rates',
@@ -427,13 +451,16 @@
       if (rng.chance(0.45)) {
         const i = rng.int(0, SINGLE.length - 1), [from, to, num, den, vals] = SINGLE[i], v = rng.pick(vals);
         const ans = M.round(v * num / den, 6);
-        return { prompt: `Convert ${N(v)} ${un(from, v)} to ${un(to, 2)}.`, type: 'number', answer: ans, unit: to, params: { kind: 'single', from, to, v },
+        const U = `${N(v)} ${un(from, v)}`, how = rng.int(0, 2);
+        const prompt = how === 2 ? `Convert ${U} to ${un(to, 2)}.` : `${SINGLE_CTX[from + '>' + to][how](U, rng.pick(NAMES))} How many ${un(to, 2)} is that?`;
+        return { prompt, type: 'number', answer: ans, unit: to, params: { kind: 'single', from, to, v },
           hints: [num > 1 ? `There are ${N(num)} ${un(to, 2)} in 1 ${un(from, 1)}, so you will get a bigger number: multiply by ${N(num)}.` : `There are ${N(den)} ${un(from, 2)} in 1 ${un(to, 1)}, so you will get a smaller number: divide by ${N(den)}.`,
             `${N(v)} ${num > 1 ? '×' : '÷'} ${N(num > 1 ? num : den)} = <b>${N(ans)} ${un(to, ans)}</b>.`] };
       }
       const i = rng.int(0, RATES.length - 1), [f1, f2, t1, t2, num, den, vals, h1, h2] = RATES[i], v = rng.pick(vals);
       const ans = M.round(v * num / den, 6), name = rng.pick(NAMES);
-      const ctx = rng.pick([`Convert ${N(v)} ${un(f1, 2)} per ${un(f2, 1)} to ${un(t1, 2)} per ${un(t2, 1)}.`, `${name} measures a rate of ${N(v)} ${un(f1, 2)} per ${un(f2, 1)}. What is that rate in ${un(t1, 2)} per ${un(t2, 1)}?`]);
+      const R = `${N(v)} ${un(f1, 2)} per ${un(f2, 1)}`, how = rng.int(0, 3);
+      const ctx = how === 3 ? `Convert ${R} to ${un(t1, 2)} per ${un(t2, 1)}.` : how === 2 ? `${name} measures a rate of ${R}. What is that rate in ${un(t1, 2)} per ${un(t2, 1)}?` : `${RATE_CTX[i][how](R)} What is that rate in ${un(t1, 2)} per ${un(t2, 1)}?`;
       return { prompt: ctx, type: 'number', answer: ans, unit: `${t1}/${t2}`, params: { kind: 'rate', f1, f2, t1, t2, v },
         hints: [`Convert the top unit: ${h1}`, `Convert the bottom unit: ${h2}`, `Altogether: ${N(v)} × ${F(num, den)} = <b>${N(ans)} ${un(t1, 2)} per ${un(t2, 1)}</b>.`] };
     },
@@ -598,6 +625,15 @@
         text: `${name} buys ${x + y} snacks for a club meeting: muffins at ${M.money(pa)} each and juices at ${M.money(pb)} each. The bill is ${M.money(pa * x + pb * y)}.` }; } },
     { make(rng) { const x = rng.int(3, 20), y = rng.int(3, 20);
       return { x, y, eqs: [[1, 1, x + y], [2, 4, 2 * x + 4 * y]], vx: 'chickens', vy: 'goats', text: `A farm has chickens and goats: ${x + y} heads and ${2 * x + 4 * y} legs in all. A chicken has 2 legs and a goat has 4.` }; } },
+    { make(rng) { const [pa, pb] = rng.pick([[15, 9], [20, 12], [18, 10], [25, 15]]), x = rng.int(20, 90), y = rng.int(20, 90);
+      return { x, y, eqs: [[1, 1, x + y], [pa, pb, pa * x + pb * y]], vx: 'floor seats', vy: 'balcony seats', ask: v => `How many ${v} were sold?`,
+        text: `A community concert sold ${x + y} seats and took in ${M.money(pa * x + pb * y)}. Floor seats cost ${M.money(pa)} and balcony seats cost ${M.money(pb)}.` }; } },
+    { make(rng) { const [ha, hb] = rng.pick([[2, 5], [3, 4], [2, 7], [3, 5]]), x = rng.int(2, 14), y = rng.int(2, 14);
+      return { x, y, eqs: [[1, 1, x + y], [ha, hb, ha * x + hb * y]], vx: 'stools', vy: 'tables', ask: v => `How many ${v} did the carpenter build?`,
+        text: `A carpenter built ${x + y} pieces of furniture, stools and tables, in ${ha * x + hb * y} hours of work. Each stool takes ${ha} hours and each table takes ${hb} hours.` }; } },
+    { make(rng) { const x = rng.int(4, 30), y = rng.int(4, 30), name = rng.pick(NAMES);
+      return { x, y, eqs: [[1, 1, x + y], [25, 10, 25 * x + 10 * y]], vx: 'quarters', vy: 'dimes',
+        text: `${name}’s coin jar holds ${x + y} coins, all quarters and dimes, worth ${M.money((25 * x + 10 * y) / 100)} in total.` }; } },
   ];
 
   A.skill({
@@ -623,7 +659,7 @@
       if (kind === 'word') {
         const w = rng.pick(SYS_WORDS).make(rng); ({ x, y, eqs } = w);
         const what = ask === 'x' ? w.vx : w.vy;
-        prompt = `${w.text} How many ${what.replace(/^the /, '')} ${what.startsWith('the') ? 'is it' : 'are there'}?`.replace('How many larger number is it', 'What is the larger number').replace('How many smaller number is it', 'What is the smaller number');
+        prompt = w.ask ? `${w.text} ${w.ask(what)}` : `${w.text} How many ${what.replace(/^the /, '')} ${what.startsWith('the') ? 'is it' : 'are there'}?`.replace('How many larger number is it', 'What is the larger number').replace('How many smaller number is it', 'What is the smaller number');
         hints = [`Let ${X} = ${w.vx} and ${Y} = ${w.vy}. Then ${stdH(eqs[0])} and ${stdH(eqs[1])}.`, `Solve the first for ${Y}: ${Y} = ${N(eqs[0][2])} − ${X}${eqs[0][1] === -1 ? ' (or add the two equations to cancel ' + Y + ')' : ''}, and substitute into the second.`, `That gives ${X} = ${N(x)} and ${Y} = ${N(y)}, so the answer is <b>${N(ask === 'x' ? x : y)}</b>.`];
       } else {
         x = rng.nz(-6, 6); y = rng.int(-6, 6);
@@ -703,10 +739,10 @@
         const spend = rng.bool(), a = rng.pick([2, 3, 4, 5, 6]); let b = rng.pick([3, 5, 7, 8, 9]); if (b === a) b = a + 4;
         const T = rng.pick([40, 50, 60, 75, 80, 100, 120]), name = rng.pick(NAMES), op = spend ? '≤' : '≥';
         const ex = o => `${a}${X} + ${b}${Y} ${OPH[o]} ${T}`;
-        const text = spend ? `${name} has at most ${M.money(T)} to spend on ${X} pens at ${M.money(a)} each and ${Y} notebooks at ${M.money(b)} each.` : `${name} wants to earn at least ${M.money(T)} by washing ${X} cars at ${M.money(a)} each and walking ${Y} dogs at ${M.money(b)} each.`;
+        const S = rng.pick(spend ? SPEND : EARN), text = S.text(name, a, b, T);
         const answer = ex(op), wrong = [ex(FLIP[op]), `${b}${X} + ${a}${Y} ${OPH[op]} ${T}`, ex(SOFT[op])];
         return { prompt: `${text} Which inequality describes the situation?`, type: 'choice', choices: [answer].concat(wrong), answer, params: { kind, spend, a, b, T },
-          hints: [`The total is ${a}${X} + ${b}${Y}: ${M.money(a)} times the number of ${spend ? 'pens' : 'cars'} plus ${M.money(b)} times the number of ${spend ? 'notebooks' : 'dogs'}.`, spend ? `"At most" means the total can equal ${M.money(T)} or be less: ≤.` : `"At least" means the total can equal ${M.money(T)} or be more: ≥.`, `<b>${answer}</b>.`] };
+          hints: [`The total is ${a}${X} + ${b}${Y}: ${M.money(a)} times the number of ${S.u} plus ${M.money(b)} times the number of ${S.w}.`, spend ? `"At most" means the total can equal ${M.money(T)} or be less: ≤.` : `"At least" means the total can equal ${M.money(T)} or be more: ≥.`, `<b>${answer}</b>.`] };
       }
       const two = kind === 'system';
       for (let tries = 0; ; tries++) {
@@ -747,6 +783,10 @@
     { what: `${V('P')}(${V('y')}) is the number of members a chess club has ${V('y')} years after it started.`, fn: 'P', say: (a, b) => `${a} years after it started, the club has ${b} members.`, each: (a, b) => `The club gains ${b} members a year for ${a} years.` },
     { what: `${V('C')}(${V('n')}) is the cost, in dollars, of printing ${V('n')} posters.`, fn: 'C', say: (a, b) => `Printing ${a} posters costs ${b} dollars in total.`, each: (a, b) => `Each poster costs ${b} dollars when printing ${a}.` },
     { what: `${V('W')}(${V('m')}) is the number of liters of water in a tank ${V('m')} minutes after it starts filling.`, fn: 'W', say: (a, b) => `After ${a} minutes, the tank holds ${b} liters.`, each: (a, b) => `The tank gains ${b} liters a minute for ${a} minutes.` },
+    { what: `${V('T')}(${V('h')}) is the temperature, in degrees Fahrenheit, ${V('h')} hours after sunrise.`, fn: 'T', say: (a, b) => `${a} hours after sunrise, the temperature is ${b}°F.`, each: (a, b) => `The temperature rises ${b} degrees each hour for ${a} hours.` },
+    { what: `${V('S')}(${V('d')}) is the total number of loaves a bakery has sold ${V('d')} days after opening.`, fn: 'S', say: (a, b) => `After ${a} days, the bakery has sold ${b} loaves in total.`, each: (a, b) => `The bakery sells ${b} loaves each day for ${a} days.` },
+    { what: `${V('E')}(${V('h')}) is the amount, in dollars, a lifeguard earns for ${V('h')} hours of work.`, fn: 'E', say: (a, b) => `Working ${a} hours earns the lifeguard ${b} dollars.`, each: (a, b) => `The lifeguard earns ${b} dollars an hour for ${a} hours.` },
+    { what: `${V('L')}(${V('w')}) is the total number of laps a swimmer has completed after ${V('w')} weeks of training.`, fn: 'L', say: (a, b) => `After ${a} weeks of training, the swimmer has swum ${b} laps in all.`, each: (a, b) => `The swimmer swims ${b} laps each week for ${a} weeks.` },
   ];
   const fnName = () => ['f', 'g', 'h'];
 
@@ -856,6 +896,9 @@
     { what: (n, t1, v1, t2, v2) => `On a hike, ${n} was at an altitude of ${N(v1)} m after ${t1} hours and ${N(v2)} m after ${t2} hours.`, unit: 'm/h', per: 'meters per hour', rates: [-150, -120, -80, 60, 90, 150, 200, 250], start: () => 100 },
     { what: (n, t1, v1, t2, v2) => `A tank held ${N(v1)} liters of water ${t1} minutes after ${n} opened the valve, and ${N(v2)} liters ${t2} minutes after.`, unit: 'L/min', per: 'liters per minute', rates: [-40, -25, -15, 12, 20, 35], start: () => 10 },
     { what: (n, t1, v1, t2, v2) => `${n}'s savings were ${M.money(v1)} at week ${t1} and ${M.money(v2)} at week ${t2}.`, unit: '$/week', per: 'dollars per week', rates: [-15, -8, 6, 12, 18, 25], start: () => 10 },
+    { what: (n, t1, v1, t2, v2) => `In a greenhouse that ${n} looks after, the temperature was ${N(v1)}°F ${t1 ? t1 + ' hours after sunrise' : 'at sunrise'} and ${N(v2)}°F ${t2} hours after sunrise.`, unit: '°F/h', per: 'degrees Fahrenheit per hour', rates: [-6, -4, -3, 2, 3, 4, 5], start: () => 2 },
+    { what: (n, t1, v1, t2, v2) => `A food bank had ${N(v1)} cans on its shelves at week ${t1} and ${N(v2)} cans at week ${t2}.`, unit: 'cans/week', per: 'cans per week', rates: [-40, -25, 30, 45, 60], start: () => 20 },
+    { what: (n, t1, v1, t2, v2) => `A bakery had ${N(v1)} loaves on the shelf ${t1 ? t1 + ' hours after opening' : 'when it opened'} and ${N(v2)} loaves ${t2} hours after opening.`, unit: 'loaves/h', per: 'loaves per hour', rates: [-12, -9, -6, -4], start: () => 4 },
   ];
 
   A.skill({
@@ -899,6 +942,19 @@
     return `${an} = ${N(A0)} ${D < 0 ? '−' : '+'} ${Math.abs(D) === 1 ? '' : N(Math.abs(D))}${nPart}`;
   }
   const SEQ_KINDS = ['Arithmetic', 'Geometric', 'Neither'];
+  /* sequences in everyday settings: each gives its first term, step, the term asked for, and the words */
+  const SEQ_STORY = [
+    rng => { const a = rng.int(12, 24), d = rng.int(2, 4), n = rng.int(10, 30);
+      return { a, d, n, text: `A theater has ${a} seats in row 1, ${a + d} in row 2, ${a + 2 * d} in row 3, and so on, with the same increase each row. How many seats are in row ${n}?`, unit: 'seats' }; },
+    rng => { const a = rng.pick([10, 15, 20]), d = rng.pick([5, 10]), n = rng.int(6, 16), name = rng.pick(NAMES);
+      return { a, d, n, text: `${name} trains for a swim meet: ${a} minutes in week 1, ${a + d} in week 2 and ${a + 2 * d} in week 3, adding the same amount each week. How many minutes will ${name} train in week ${n}?`, unit: 'minutes' }; },
+    rng => { const a = rng.int(30, 36), d = rng.int(3, 5), n = rng.int(5, 15);
+      return { a, d, n, text: `One stacking chair is ${a} inches tall, two stacked are ${a + d} inches, and three stacked are ${a + 2 * d} inches. How tall, in inches, is a stack of ${n} chairs?`, unit: 'inches' }; },
+    rng => { const n = rng.int(4, 6), a = Math.pow(2, n - 1) * rng.pick([3, 5, 6]);
+      return { a, r: 0.5, n, text: `A ball is dropped, and each bounce reaches half the height of the bounce before. The 1st bounce reaches ${N(a)} cm, the 2nd ${N(a / 2)} cm and the 3rd ${N(a / 4)} cm. How high, in centimeters, is bounce number ${n}?`, unit: 'cm' }; },
+    rng => { const a = rng.pick([2, 3, 4]), r = rng.pick([2, 3]), n = rng.int(4, 7);
+      return { a, r, n, text: `In a school’s phone tree, ${a} people make calls in round 1, ${a * r} in round 2 and ${a * r * r} in round 3; each round has ${r} times as many callers as the one before. How many people make calls in round ${n}?`, unit: 'people' }; },
+  ];
 
   A.skill({
     id: 'alg1.sequences', title: 'Arithmetic and geometric sequences',
@@ -910,7 +966,14 @@
       example('Example 3: a geometric term', `Find the 6th term of 2, 6, 18, 54, … The ratio is 6 ÷ 2 = 3, so ${V('a')}(6) = 2 · 3<sup>5</sup> = 2 · 243 = <b>486</b>.`) +
       example('Example 4: a recursive rule', `${V('a')}(1) = 5 and ${V('a')}(${V('n')}) = 2 · ${V('a')}(${V('n')} − 1). Each term doubles the one before: 5, 10, 20, 40, so <b>${V('a')}(4) = 40</b>.`),
     make(rng) {
-      const kind = rng.pick(['arith-nth', 'arith-formula', 'geo-nth', 'classify', 'recursive']);
+      const kind = rng.pick(['arith-nth', 'arith-formula', 'geo-nth', 'classify', 'recursive', 'story']);
+      if (kind === 'story') {
+        const st = rng.pick(SEQ_STORY)(rng), geo = st.r != null, step = geo ? st.r : st.d;
+        const t = [0, 1, 2, 3].map(i => geo ? st.a * Math.pow(st.r, i) : st.a + i * st.d), ans = geo ? st.a * Math.pow(st.r, st.n - 1) : st.a + (st.n - 1) * st.d;
+        return { prompt: st.text, type: 'number', answer: ans, params: { kind, t, n: st.n, geo },
+          hints: [geo ? `Each term is the one before times ${N(step)}, so the sequence is geometric with ratio ${N(step)}.` : `Each term is the one before plus ${N(step)}, so the sequence is arithmetic with difference ${N(step)}.`,
+            geo ? `${V('a')}(${st.n}) = ${N(st.a)} · ${N(step)}<sup>${st.n - 1}</sup>.` : `${V('a')}(${st.n}) = ${N(st.a)} + ${N(step)}(${st.n} − 1) = ${N(st.a)} + ${N(step * (st.n - 1))}.`, `<b>${N(ans)}</b> ${st.unit}.`] };
+      }
       if (kind === 'classify') {
         const type = rng.pick(SEQ_KINDS); let t;
         if (type === 'Arithmetic') { const a = rng.int(-10, 10), d = rng.nz(-7, 7); t = [0, 1, 2, 3, 4].map(i => a + i * d); }
@@ -957,7 +1020,7 @@
         const [A0, D, s] = P.opts[i]; return P.t.every((v, k) => A0 + D * (k + 1 - s) === v);
       }
       let v = P.t[0];
-      for (let i = 2; i <= P.n; i++) v = P.kind === 'geo-nth' ? v * (P.t[1] / P.t[0]) : v + (P.t[1] - P.t[0]);
+      for (let i = 2; i <= P.n; i++) v = P.kind === 'geo-nth' || P.geo ? v * (P.t[1] / P.t[0]) : v + (P.t[1] - P.t[0]);
       return Math.abs(v - q.answer) < 1e-9;
     },
   });
@@ -1174,6 +1237,26 @@
     },
   });
 
+  const EXP_DOUBLE = [
+    { text: (s, per, t) => `A culture starts with ${s} bacteria and doubles every ${per} hours. How many bacteria are there after ${t} hours?`, unit: '', noun: 'bacteria' },
+    { text: (s, per, t) => `A patch of algae on a pond covers ${s} square centimeters and doubles in area every ${per} days. How many square centimeters does it cover after ${t} days?`, unit: 'cm²', noun: 'square centimeters' },
+    { text: (s, per, t, n) => `${n}’s video for a school fundraiser has ${s} views, and the number of views doubles every ${per} days. How many views does it have after ${t} days?`, unit: '', noun: 'views' },
+  ];
+  const EXP_HALF = [
+    { text: (s, per, t, n) => `${n} has a ${s} gram sample of a substance with a half-life of ${per} days: every ${per} days, half of it decays. How many grams remain after ${t} days?`, unit: 'g', noun: 'grams' },
+    { text: (s, per, t) => `A patient is given ${s} milligrams of a medicine, and the amount left in the body halves every ${per} hours. How many milligrams are left after ${t} hours?`, unit: 'mg', noun: 'milligrams' },
+  ];
+  const EXP_GROW = [
+    (P, r, n) => `${n} puts ${P} in an account that grows by ${r}% each year.`,
+    (P, r) => `A town’s scholarship fund holds ${P} and grows by ${r}% each year.`,
+    (P, r, n) => `${n} buys an old coin for ${P}, and its value rises by ${r}% each year.`,
+  ];
+  const EXP_LOSE = [
+    (P, r) => `A car bought for ${P} loses ${r}% of its value each year.`,
+    (P, r) => `A farm buys a tractor for ${P}, and it loses ${r}% of its value each year.`,
+    (P, r, n) => `${n}’s school buys a cart of laptops for ${P}, and the cart loses ${r}% of its value each year.`,
+  ];
+
   A.skill({
     id: 'alg1.exponential-growth-decay', title: 'Exponential growth and decay',
     learn: p(`A quantity changes <b>exponentially</b> when it’s multiplied by the same factor in each time period. The model is <b>${V('y')} = ${V('a')} · ${M.sup(V('b'), V('t'))}</b>, where ${V('a')} is the starting amount, ${V('b')} is the <b>growth factor</b> (what you multiply by each period), and ${V('t')} counts the periods. If ${V('b')} &gt; 1 it’s growth; if 0 &lt; ${V('b')} &lt; 1 it’s decay.`) +
@@ -1201,14 +1284,14 @@
       if (kind === 'double' || kind === 'half') {
         const dbl = kind === 'double', per = rng.pick(dbl ? [2, 3, 4, 5, 6] : [3, 5, 8, 10, 12]), k = rng.int(dbl ? 2 : 1, dbl ? 5 : 4);
         const start = dbl ? rng.pick([50, 100, 200, 250, 300, 500]) : Math.pow(2, k) * rng.pick([5, 10, 15, 25]), t = per * k, ans = dbl ? start * Math.pow(2, k) : start / Math.pow(2, k);
-        const prompt = dbl ? `A culture starts with ${N(start)} bacteria and doubles every ${per} hours. How many bacteria are there after ${t} hours?` : `${name} has a ${N(start)} gram sample of a substance with a half-life of ${per} days: every ${per} days, half of it decays. How many grams remain after ${t} days?`;
-        return { prompt, type: 'number', answer: ans, unit: dbl ? '' : 'g', params: { kind, start, per, t },
-          hints: [`${t} ÷ ${per} = ${k}, so the amount ${dbl ? 'doubles' : 'halves'} ${k} times.`, `${N(start)} · ${dbl ? '2' : F(1, 2)}<sup>${k}</sup> = ${N(start)} ${dbl ? '×' : '÷'} ${Math.pow(2, k)}.`, `<b>${N(ans)}</b>${dbl ? ' bacteria' : ' grams'}.`] };
+        const C = rng.pick(dbl ? EXP_DOUBLE : EXP_HALF), prompt = C.text(N(start), per, t, name);
+        return { prompt, type: 'number', answer: ans, unit: C.unit, params: { kind, start, per, t },
+          hints: [`${t} ÷ ${per} = ${k}, so the amount ${dbl ? 'doubles' : 'halves'} ${k} times.`, `${N(start)} · ${dbl ? '2' : F(1, 2)}<sup>${k}</sup> = ${N(start)} ${dbl ? '×' : '÷'} ${Math.pow(2, k)}.`, `<b>${N(ans)}</b> ${C.noun}.`] };
       }
       const grow = rng.bool(), r = rng.pick([2, 3, 4, 5, 6, 8, 10, 12, 15, 20]), t = rng.int(2, 6);
       const P = grow ? rng.pick([500, 800, 1000, 1200, 2500, 3000]) : rng.pick([12000, 15000, 18000, 24000, 30000]);
       const b = grow ? 1 + r / 100 : 1 - r / 100, ans = M.round(P * Math.pow(b, t), 2);
-      const prompt = grow ? `${name} puts ${M.money(P)} in an account that grows by ${r}% each year. What is it worth after ${t} years? Round to the nearest cent.` : `A car bought for ${M.money(P)} loses ${r}% of its value each year. What is it worth after ${t} years? Round to the nearest cent.`;
+      const prompt = `${rng.pick(grow ? EXP_GROW : EXP_LOSE)(M.money(P), r, name)} What is it worth after ${t} years? Round to the nearest cent.`;
       return { prompt, type: 'number', answer: ans, unit: '$', tolerance: 0.01, params: { kind, grow, r, t, P },
         hints: [`${grow ? 'Growing' : 'Losing'} ${r}% a year means multiplying by ${N(b)} each year.`, `Value = ${N(P)} · ${N(b)}<sup>${t}</sup>, and ${N(b)}<sup>${t}</sup> ≈ ${N(M.round(Math.pow(b, t), 6))}.`, `About <b>${M.money(ans)}</b>.`] };
     },
