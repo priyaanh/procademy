@@ -285,6 +285,21 @@
     { f: `${V('A')} = ${F(V('h'), '2')}(${sb('b', 1)} + ${sb('b', 2)})`, t: 'h', vars: ['A', 'b1', 'b2'], ok: s => s.A - (s.h / 2 * (s.b1 + s.b2)), opts: [
       [`${V('h')} = ${F(`2${V('A')}`, `${sb('b', 1)} + ${sb('b', 2)}`)}`, s => 2 * s.A / (s.b1 + s.b2)], [`${V('h')} = ${F(V('A'), `2(${sb('b', 1)} + ${sb('b', 2)})`)}`, s => s.A / (2 * (s.b1 + s.b2))],
       [`${V('h')} = 2${V('A')} − (${sb('b', 1)} + ${sb('b', 2)})`, s => 2 * s.A - (s.b1 + s.b2)], [`${V('h')} = ${F(`${sb('b', 1)} + ${sb('b', 2)}`, `2${V('A')}`)}`, s => (s.b1 + s.b2) / (2 * s.A)]] },
+    { f: `${V('A')} = ${V('l')}${V('w')}`, t: 'w', vars: ['A', 'l'], ok: s => s.A - s.l * s.w, opts: [
+      [`${V('w')} = ${F(V('A'), V('l'))}`, s => s.A / s.l], [`${V('w')} = ${F(V('l'), V('A'))}`, s => s.l / s.A],
+      [`${V('w')} = ${V('A')} − ${V('l')}`, s => s.A - s.l], [`${V('w')} = ${V('A')} + ${V('l')}`, s => s.A + s.l]] },
+    { f: `${V('V')} = π${M.sup(V('r'), 2)}${V('h')}`, t: 'h', vars: ['V', 'r'], ok: s => s.V - Math.PI * s.r * s.r * s.h, opts: [
+      [`${V('h')} = ${F(V('V'), `π${M.sup(V('r'), 2)}`)}`, s => s.V / (Math.PI * s.r * s.r)], [`${V('h')} = ${F(`π${M.sup(V('r'), 2)}`, V('V'))}`, s => Math.PI * s.r * s.r / s.V],
+      [`${V('h')} = ${V('V')} − π${M.sup(V('r'), 2)}`, s => s.V - Math.PI * s.r * s.r], [`${V('h')} = ${F(V('V'), `2π${V('r')}`)}`, s => s.V / (2 * Math.PI * s.r)]] },
+    { f: `${V('S')} = 180(${V('n')} − 2)`, t: 'n', vars: ['S'], ok: s => s.S - 180 * (s.n - 2), opts: [
+      [`${V('n')} = ${F(V('S'), '180')} + 2`, s => s.S / 180 + 2], [`${V('n')} = ${F(V('S'), '180')} − 2`, s => s.S / 180 - 2],
+      [`${V('n')} = ${F(`${V('S')} − 2`, '180')}`, s => (s.S - 2) / 180], [`${V('n')} = 180${V('S')} + 2`, s => 180 * s.S + 2]] },
+    { f: `${V('y')} = ${V('m')}${V('x')} + ${V('b')}`, t: 'm', vars: ['y', 'x', 'b'], ok: s => s.y - (s.m * s.x + s.b), opts: [
+      [`${V('m')} = ${F(`${V('y')} − ${V('b')}`, V('x'))}`, s => (s.y - s.b) / s.x], [`${V('m')} = ${F(`${V('y')} + ${V('b')}`, V('x'))}`, s => (s.y + s.b) / s.x],
+      [`${V('m')} = ${F(V('y'), V('x'))} − ${V('b')}`, s => s.y / s.x - s.b], [`${V('m')} = ${F(`${V('x')} − ${V('b')}`, V('y'))}`, s => (s.x - s.b) / s.y]] },
+    { f: `${V('P')} = 2(${V('l')} + ${V('w')})`, t: 'l', vars: ['P', 'w'], ok: s => s.P - 2 * (s.l + s.w), opts: [
+      [`${V('l')} = ${F(V('P'), '2')} − ${V('w')}`, s => s.P / 2 - s.w], [`${V('l')} = ${F(`${V('P')} − ${V('w')}`, '2')}`, s => (s.P - s.w) / 2],
+      [`${V('l')} = ${F(V('P'), '2')} + ${V('w')}`, s => s.P / 2 + s.w], [`${V('l')} = 2${V('P')} − ${V('w')}`, s => 2 * s.P - s.w]] },
   ];
   const LIT_STEPS = [
     ['Subtract 2<i>l</i> from both sides: <i>P</i> − 2<i>l</i> = 2<i>w</i>.', 'Divide both sides by 2.'],
@@ -298,12 +313,17 @@
     ['<i>r</i> is multiplied by 2π.', 'Divide both sides by 2π.'],
     ['Subtract <i>ax</i> from both sides: <i>by</i> = <i>c</i> − <i>ax</i>.', 'Divide both sides by <i>b</i>.'],
     ['Multiply both sides by 2: 2<i>A</i> = <i>h</i>(<i>b</i><sub>1</sub> + <i>b</i><sub>2</sub>).', 'Divide both sides by (<i>b</i><sub>1</sub> + <i>b</i><sub>2</sub>).'],
+    ['<i>w</i> is multiplied by <i>l</i>.', 'Divide both sides by <i>l</i>.'],
+    ['<i>h</i> is multiplied by π<i>r</i><sup>2</sup>.', 'Divide both sides by π<i>r</i><sup>2</sup>.'],
+    ['Divide both sides by 180: <i>S</i>/180 = <i>n</i> − 2.', 'Add 2 to both sides.'],
+    ['Subtract <i>b</i> from both sides: <i>y</i> − <i>b</i> = <i>mx</i>.', 'Divide both sides by <i>x</i>.'],
+    ['Divide both sides by 2: <i>P</i>/2 = <i>l</i> + <i>w</i>.', 'Subtract <i>w</i> from both sides.'],
   ];
-  /** y = (mn/md)x + kn/kd, all parts possibly fractions */
-  function lineFr(mn, md, kn, kd) {
-    const t = coefVar(mn, md, 'x'), [sn, sd] = M.simp(kn, kd);
+  /** y = (mn/md)x + kn/kd, all parts possibly fractions; lhs/rhs swap the letters (x in terms of y) */
+  function lineFr(mn, md, kn, kd, lhs, rhs) {
+    const t = coefVar(mn, md, rhs || 'x'), [sn, sd] = M.simp(kn, kd);
     const k = sn === 0 ? '' : (t ? (sn < 0 ? ' − ' : ' + ') : (sn < 0 ? '−' : '')) + F(Math.abs(sn), sd);
-    return `${Y} = ${t || (k ? '' : '0')}${k}`;
+    return `${V(lhs || 'y')} = ${t || (k ? '' : '0')}${k}`;
   }
 
   A.skill({
@@ -314,13 +334,16 @@
       example('Example 1: a formula', `Solve ${V('P')} = 2${V('l')} + 2${V('w')} for ${V('l')}. Subtract 2${V('w')}: ${V('P')} − 2${V('w')} = 2${V('l')}. Divide by 2: <b>${V('l')} = ${F(`${V('P')} − 2${V('w')}`, '2')}</b>.`) +
       example('Example 2: solving a line for y', `Solve 3${X} − 4${Y} = 12 for ${Y}. Subtract 3${X}: −4${Y} = 12 − 3${X}. Divide every term by −4: ${Y} = −3 + ${F(3, 4)}${X}, which is <b>${Y} = ${F(3, 4)}${X} − 3</b>.`),
     make(rng) {
-      if (rng.chance(0.3)) {
-        const a = rng.nz(-6, 6), b = rng.sign() * rng.pick([2, 3, 4, 5]), c = rng.nz(-12, 12);
-        const opts = [[-a, b, c, b], [a, b, c, b], [-a, b, c * b, b], [-a, b, -c, b], [-b, a, c, b]];
-        const html = opts.map(o => lineFr(...o));
+      if (rng.chance(0.35)) {
+        const forX = rng.chance(0.4);
+        const a = forX ? rng.sign() * rng.pick([2, 3, 4, 5]) : rng.nz(-6, 6), b = forX ? rng.nz(-6, 6) : rng.sign() * rng.pick([2, 3, 4, 5]), c = rng.nz(-12, 12);
+        // solving for the letter with coefficient d (the other letter's coefficient is o): t = (−o/d)·other + c/d
+        const [d, o, t, w] = forX ? [a, b, 'x', 'y'] : [b, a, 'y', 'x'];
+        const opts = [[-o, d, c, d], [o, d, c, d], [-o, d, c * d, d], [-o, d, -c, d], [-d, o, c, d]];
+        const html = opts.map(op => lineFr(...op, t, w));
         const answer = html[0], choices = [answer].concat(others(answer, html.slice(1), 3));
-        return { prompt: `Solve for ${Y}.${big(`${sumHtml([[a, 'x', 1], [b, 'y', 1]])} = ${N(c)}`)}`, type: 'choice', choices, answer, params: { kind: 'num', a, b, c, opts, html },
-          hints: [`${a < 0 ? 'Add' : 'Subtract'} ${M.term(Math.abs(a), 'x')} on both sides: ${M.term(b, 'y')} = ${sumHtml([[c, '', 0], [-a, 'x', 1]])}.`, `Divide every term by ${N(b)}.`, `<b>${answer}</b>.`] };
+        return { prompt: `Solve for ${V(t)}.${big(`${sumHtml([[a, 'x', 1], [b, 'y', 1]])} = ${N(c)}`)}`, type: 'choice', choices, answer, params: { kind: 'num', t, a, b, c, opts, html },
+          hints: [`${o < 0 ? 'Add' : 'Subtract'} ${M.term(Math.abs(o), w)} on both sides: ${M.term(d, t)} = ${sumHtml([[c, '', 0], [-o, w, 1]])}.`, `Divide every term by ${N(d)}.`, `<b>${answer}</b>.`] };
       }
       const idx = rng.int(0, LIT.length - 1), L = LIT[idx];
       const order = rng.shuffle([0, 1, 2, 3]);
@@ -333,8 +356,9 @@
       const P = q.params;
       if (P.kind === 'num') {
         const i = P.html.indexOf(q.answer); if (i < 0) return 'answer not among options';
-        const [mn, md, kn, kd] = P.opts[i];
-        return [0, 1, 3].every(x => Math.abs(P.a * x + P.b * (mn / md * x + kn / kd) - P.c) < 1e-9);
+        const [mn, md, kn, kd] = P.opts[i], other = u => mn / md * u + kn / kd;
+        // put each trial value in for the free letter and the claimed expression for the solved one
+        return [0, 1, 3].every(u => Math.abs(P.t === 'x' ? P.a * other(u) + P.b * u - P.c : P.a * u + P.b * other(u) - P.c) < 1e-9);
       }
       const L = LIT[P.idx], vals = [2.5, 4, 1.25, 3, 7];
       const s = {}; L.vars.forEach((v, i) => { s[v] = vals[i]; });
@@ -1220,19 +1244,36 @@
       example('Example 1: one number at a time', `Is ${M.sqrt(45)} ÷ ${M.sqrt(5)} rational? It equals ${M.sqrt(9)} = 3, so <b>yes</b>. Is 4 + ${M.sqrt(7)} rational? 7 isn’t a perfect square, so ${M.sqrt(7)} is irrational, and adding 4 keeps it irrational: <b>no</b>. Is 0.<span style="text-decoration: overline">27</span> rational? It repeats, so <b>yes</b> (it equals ${F(3, 11)}).`) +
       example('Example 2: two irrationals', `${M.sqrt(2)} · ${M.sqrt(8)} = ${M.sqrt(16)} = 4, which is <b>rational</b>. But ${M.sqrt(2)} · ${M.sqrt(3)} = ${M.sqrt(6)}, and 6 isn’t a perfect square, so that product is <b>irrational</b>.`),
     make(rng) {
-      const wantIrr = rng.bool();
+      const form = rng.pick(['which', 'which', 'classify', 'count']), wantIrr = rng.bool();
       const pickItems = (gens, k) => rng.sample(gens.map((g, i) => i), k).map(i => gens[i](rng));
-      // two different makers can land on the same number (1/9 twice): draw again until all four read differently
+      // two different makers can land on the same number (1/9 twice): draw again until all of them read differently
       const key = it => A.normText(A.stripTags(it.h));
+      if (form === 'classify') {
+        const it = rng.pick(rng.bool() ? RAT_GENS : IRR_GENS)(rng), answer = isRational(it) ? 'Rational' : 'Irrational';
+        return { prompt: `Is this number rational or irrational?${big(it.h)}`, type: 'choice', choices: ['Rational', 'Irrational'], keepOrder: true, answer, params: { form, items: [it] },
+          hints: ['Rational means it can be written as a fraction of two integers; irrational means it can’t. Simplify first if you can.', `${it.h}: ${it.why}.`, `So it’s <b>${answer.toLowerCase()}</b>.`] };
+      }
+      if (form === 'count') {
+        const k = rng.int(4, 5); let items, tries = 0;
+        do { items = Array.from({ length: k }, () => rng.pick(rng.bool() ? RAT_GENS : IRR_GENS)(rng)); tries++; } while (new Set(items.map(key)).size < k && tries < 30);
+        const hits = items.filter(it => isRational(it) !== wantIrr), n = hits.length;
+        return { prompt: `How many of these numbers are <b>${wantIrr ? 'irrational' : 'rational'}</b>?${big(items.map(it => it.h).join(', &nbsp;'))}`, type: 'number', answer: n, params: { form, wantIrr, items },
+          hints: ['Check each number: can it be written as a fraction of two integers? Simplify roots, products and quotients first.', items.map(it => `${it.h}: ${it.why}`).join('; ') + '.', `${n === 1 ? 'One number is' : `${N(n)} numbers are`} ${wantIrr ? 'irrational' : 'rational'}: <b>${N(n)}</b>.`] };
+      }
       let odd, rest, tries = 0;
       do { odd = pickItems(wantIrr ? IRR_GENS : RAT_GENS, 1)[0]; rest = pickItems(wantIrr ? RAT_GENS : IRR_GENS, 3); tries++; }
       while (new Set([odd].concat(rest).map(key)).size < 4 && tries < 30);
       const items = [odd].concat(rest), answer = odd.h;
-      return { prompt: `Which number is <b>${wantIrr ? 'irrational' : 'rational'}</b>?`, type: 'choice', choices: items.map(it => it.h), answer, params: { wantIrr, items },
+      const ask = wantIrr ? rng.pick(['Which number is <b>irrational</b>?', 'Which of these numbers <b>can’t</b> be written as a fraction of two integers?', 'Which number has a decimal that never ends and never repeats?'])
+        : rng.pick(['Which number is <b>rational</b>?', 'Which of these numbers <b>can</b> be written as a fraction of two integers?']);
+      return { prompt: ask, type: 'choice', choices: items.map(it => it.h), answer, params: { form, wantIrr, items },
         hints: [`Rational means it can be written as a fraction of integers; irrational means it cannot.`, `Check the others: ${rest.map(it => `${it.h}: ${it.why}`).join('; ')}.`, `<b>${answer}</b> is the ${wantIrr ? 'irrational' : 'rational'} one: ${odd.why}.`] };
     },
     verify(q) {
-      const hits = q.params.items.filter(it => isRational(it) !== q.params.wantIrr);
+      const P = q.params;
+      if (P.form === 'classify') return q.answer === (isRational(P.items[0]) ? 'Rational' : 'Irrational');
+      if (P.form === 'count') { let n = 0; for (const it of P.items) if (isRational(it) !== P.wantIrr) n++; return q.answer === n; }
+      const hits = P.items.filter(it => isRational(it) !== P.wantIrr);
       return hits.length === 1 && hits[0].h === q.answer;
     },
   });
