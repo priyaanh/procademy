@@ -497,6 +497,107 @@
     },
   });
 
+  /* ---------- drawings for the geometry skills (inline SVG; colors come from the theme) ---------- */
+  const r1 = v => Math.round(v * 10) / 10;
+  /** a text label inside an SVG drawing */
+  const svgText = (x, y, s, o) => { o = o || {}; return `<text x="${r1(x)}" y="${r1(y)}" text-anchor="${o.anchor || 'middle'}" font-size="${o.size || 13}"${o.bold ? ' font-weight="700"' : ''}${o.italic ? ' font-style="italic"' : ''}${o.muted ? ' style="fill:var(--muted)"' : ''}>${s}</text>`; };
+  /** wrap a drawing: its size, a real text alternative, and the shapes */
+  const figure = (w, h, label, body, shown) => `<svg class="figure" viewBox="0 0 ${w} ${h}" width="${shown || w}" role="img" aria-label="${M.esc(label)}">${body}</svg>`;
+  const notToScale = (w, h) => svgText(w - 6, h - 6, 'not to scale', { anchor: 'end', size: 11, italic: true, muted: true });
+  const seg = (a, b, cls, extra) => `<line class="${cls || 'stroke'}" x1="${r1(a[0])}" y1="${r1(a[1])}" x2="${r1(b[0])}" y2="${r1(b[1])}"${extra || ''}/>`;
+  /** the point at distance r from (cx, cy) in direction d degrees (counterclockwise from east) */
+  const toward = (cx, cy, r, d) => [cx + r * Math.cos(d * Math.PI / 180), cy - r * Math.sin(d * Math.PI / 180)];
+  /** an angle's arc from direction a1 to a2 (counterclockwise) at a vertex, with its label; outside puts the label behind the vertex */
+  function angleMark(cx, cy, a1, a2, label, o) {
+    o = o || {};
+    const r = o.r || 24, span = a2 - a1, [x1, y1] = toward(cx, cy, r, a1), [x2, y2] = toward(cx, cy, r, a2);
+    const mid = (a1 + a2) / 2, lr = o.outside ? 18 : Math.min(o.max || 92, Math.max(r + 16, 15 / Math.sin(Math.min(span, 120) * Math.PI / 360)));
+    const [lx, ly] = toward(cx, cy, lr, o.outside ? mid + 180 : mid);
+    return `<path class="stroke" style="stroke-width:1.5" d="M${r1(x1)} ${r1(y1)} A${r} ${r} 0 ${span > 180 ? 1 : 0} 0 ${r1(x2)} ${r1(y2)}"/>` + svgText(lx, ly + 5, label, { bold: true });
+  }
+
+  /** a circle with its center; the radius ('r') or the diameter ('d') drawn and labeled; an optional line of text under it */
+  function circleSvg(part, partLabel, under, label) {
+    const cx = 130, cy = 96, R = 78;
+    let g = `<circle cx="${cx}" cy="${cy}" r="${R}" class="fill" style="fill-opacity:.45"/>`;
+    g += part === 'd' ? seg([cx - R, cy], [cx + R, cy], 'line') + svgText(cx, cy - 9, partLabel, { bold: true }) : seg([cx, cy], [cx + R, cy], 'line') + svgText(cx + R / 2, cy - 9, partLabel, { bold: true });
+    g += `<circle class="dot" cx="${cx}" cy="${cy}" r="4"/>`;
+    if (under) g += svgText(cx, cy + R + 24, under);
+    return figure(260, under ? 206 : 182, label, g, 240);
+  }
+  /** the parts of a circle, for the lesson */
+  function circlePartsSvg() {
+    const cx = 130, cy = 100, R = 78, edge = toward(cx, cy, R, 50), rim = toward(cx, cy, R, 135);
+    const g = `<circle cx="${cx}" cy="${cy}" r="${R}" class="fill" style="fill-opacity:.45"/>` +
+      seg([cx - R, cy], [cx + R, cy], 'line') + svgText(cx + 34, cy + 20, 'diameter') +
+      seg([cx, cy], edge) + svgText(cx + 16, cy - 36, 'radius', { anchor: 'end' }) +
+      `<circle class="dot" cx="${cx}" cy="${cy}" r="4"/>` + svgText(cx - 8, cy - 9, 'center', { anchor: 'end' }) +
+      seg([rim[0] - 13, rim[1] - 11], [rim[0] - 2, rim[1] - 2], 'stroke', ' style="stroke-width:1.2"') + svgText(6, 22, 'circumference', { anchor: 'start' });
+    return figure(260, 188, 'A circle. Its center is marked with a dot. A radius goes from the center to the edge, a diameter goes all the way across through the center, and the circumference is the distance around the circle.', g, 240);
+  }
+
+  /** angle-pair pictures, drawn to scale: kind comp | supp | line | vert, with the known angle a and '?' for the one to find */
+  function anglePairSvg(kind, a) {
+    if (kind === 'comp') {
+      const O = [36, 168], g = seg(O, toward(...O, 158, 0)) + seg(O, toward(...O, 150, 90)) + seg(O, toward(...O, 158, a)) +
+        `<polyline class="stroke" style="stroke-width:1.3" points="${O[0] + 12},${O[1]} ${O[0] + 12},${O[1] - 12} ${O[0]},${O[1] - 12}"/>` +
+        angleMark(...O, 0, a, `${a}°`, { r: 40 }) + angleMark(...O, a, 90, '?', { r: 52 });
+      return figure(210, 184, `A right angle split into two angles by a ray: one part is ${a} degrees and the other part is marked with a question mark.`, g, 200);
+    }
+    if (kind === 'vert') {
+      const O = [150, 96], g = seg(toward(...O, 132, 180), toward(...O, 132, 0)) + seg(toward(...O, 104, a + 180), toward(...O, 104, a)) +
+        angleMark(...O, 0, a, `${a}°`) + angleMark(...O, 180, 180 + a, '?');
+      return figure(300, 192, `Two straight lines crossing. One angle between them is ${a} degrees; the angle directly opposite it is marked with a question mark.`, g, 300);
+    }
+    const O = [150, 142], g = seg([16, O[1]], [284, O[1]]) + seg(O, toward(...O, 120, a)) + `<circle class="dot" cx="${O[0]}" cy="${O[1]}" r="3.5"/>` +
+      angleMark(...O, 0, a, `${a}°`) + angleMark(...O, a, 180, '?', { r: 30 });
+    return figure(300, 160, `A ray from a point on a straight line makes two angles side by side: one is ${a} degrees and the other is marked with a question mark.`, g, 300);
+  }
+  /** two crossing lines with all four angles labeled, for the lesson */
+  function crossingSvg(a) {
+    const O = [150, 96], b = 180 - a;
+    const g = seg(toward(...O, 132, 180), toward(...O, 132, 0)) + seg(toward(...O, 104, a + 180), toward(...O, 104, a)) +
+      angleMark(...O, 0, a, `${a}°`) + angleMark(...O, a, 180, `${b}°`, { r: 30 }) + angleMark(...O, 180, 180 + a, `${a}°`) + angleMark(...O, 180 + a, 360, `${b}°`, { r: 30 });
+    return figure(300, 192, `Two straight lines crossing, making four angles: ${a}, ${b}, ${a} and ${b} degrees going around. The opposite angles match.`, g, 300);
+  }
+  /** a triangle drawn with base angles a and b (degrees), the third angle marked '?' (or its value) */
+  function triangleAnglesSvg(a, b, third) {
+    const rad = d => d * Math.PI / 180, C = 180 - a - b, side = Math.sin(rad(b)) / Math.sin(rad(C));      // the side from the left corner to the top
+    const top = [side * Math.cos(rad(a)), side * Math.sin(rad(a))], h = top[1], s = Math.min(250, 128 / h);
+    const P = [24, 150], Q = [24 + s, 150], T = [24 + s * top[0], 150 - s * h];
+    const g = `<polygon class="fill" style="fill-opacity:.45" points="${[P, Q, T].map(q => q.map(r1).join(',')).join(' ')}"/>` +
+      angleMark(...P, 0, a, `${a}°`, { r: 22, outside: a < 32 }) + angleMark(...Q, 180 - b, 180, `${b}°`, { r: 22, outside: b < 32 }) +
+      angleMark(...T, 180 + a, 360 - b, third == null ? '?' : `${third}°`, { r: 20, max: 44 });
+    return figure(r1(48 + s), 172, `A triangle with angles of ${a} degrees and ${b} degrees at the bottom corners; the angle at the top is ${third == null ? 'marked with a question mark' : third + ' degrees'}.`, g, Math.min(320, r1(48 + s)));
+  }
+
+  /** a map with two towns and the distance between them on the map */
+  function mapSvg(dist, scaleText) {
+    const A0 = [64, 108], B0 = [236, 46];
+    const g = `<rect x="6" y="6" width="288" height="150" rx="10" class="stroke" style="stroke-width:1.5"/>` +
+      seg(A0, B0, 'line', ' stroke-dasharray="7 5"') + `<circle class="dot" cx="${A0[0]}" cy="${A0[1]}" r="6"/><circle class="dot" cx="${B0[0]}" cy="${B0[1]}" r="6"/>` +
+      svgText(A0[0], A0[1] + 24, 'Town A') + svgText(B0[0], B0[1] - 14, 'Town B') + svgText(150, 66, dist, { bold: true }) +
+      svgText(286, 146, `Scale ${scaleText}`, { anchor: 'end', size: 12, muted: true });
+    return figure(300, 162, `A map with Town A and Town B joined by a dashed line marked ${dist}. The scale is ${scaleText}.`, g, 300);
+  }
+  /** a room on a floor plan: its real length, and its length on the plan */
+  function planSvg(realText, planText, scaleText) {
+    const g = `<rect x="40" y="26" width="220" height="92" class="fill" style="fill-opacity:.4"/>` + svgText(150, 66, 'room') + svgText(150, 88, `real length ${realText}`, { size: 12 }) +
+      seg([40, 140], [260, 140]) + seg([40, 132], [40, 148]) + seg([260, 132], [260, 148]) + svgText(150, 162, `on the plan: ${planText}`, { bold: true }) +
+      svgText(294, 18, `Scale ${scaleText}`, { anchor: 'end', size: 12, muted: true });
+    return figure(300, 172, `A floor plan of a room. The room is ${realText} long in real life, and its length on the plan is ${planText}. The scale is ${scaleText}.`, g, 300);
+  }
+  /** a triangle and its enlargement, with two pairs of matching sides labeled */
+  function similarSvg(base, side, bigBase, bigSide, k) {
+    const shape = [[0, 0], [1, 0], [0.32, 0.62]], sz = 76, kk = Math.min(Math.max(k, 1.4), 1.9);
+    const at = (x0, y0, f) => shape.map(([x, y]) => [x0 + x * sz * f, y0 - y * sz * f]);
+    const tri = (pts, cls) => `<polygon class="${cls}" style="fill-opacity:.45" points="${pts.map(q => q.map(r1).join(',')).join(' ')}"/>`;
+    const lab = (pts, b, s) => svgText((pts[0][0] + pts[1][0]) / 2, pts[0][1] + 18, b) + svgText((pts[0][0] + pts[2][0]) / 2 - 8, (pts[0][1] + pts[2][1]) / 2, s, { anchor: 'end' });
+    const small = at(56, 150, 1), large = at(176, 150, kk);
+    const g = tri(small, 'fill') + tri(large, 'fill2') + lab(small, base, side) + lab(large, bigBase, bigSide) + notToScale(340, 184);
+    return figure(340, 184, `A triangle with a bottom side of ${base} and a left side of ${side}, and an enlarged copy whose bottom side is ${bigBase} and whose left side is ${bigSide}. Not to scale.`, g, 340);
+  }
+
   /* ---------- Unit 6 ---------- */
   A.skill({
     id: 'math7.circles', title: 'Area and circumference of circles',
@@ -1543,6 +1644,26 @@
   /* ---------- Unit 12: Building triangles and slicing solids ---------- */
   const triOk = (a, b, c) => a + b > c && a + c > b && b + c > a;
   const sidesText = s => s.map(v => `${v} cm`).join(', ');
+  /** a triangle with sides a (left) and b (right) labeled, and the bottom side marked with a question mark */
+  function thirdSideSvg(a, b) {
+    const c = b, x = (a * a - b * b + c * c) / (2 * c), h = Math.sqrt(Math.max(a * a - x * x, 0.01)), s = Math.min(250 / c, 120 / h);
+    const P = [40, 140], Q = [40 + c * s, 140], T = [40 + x * s, 140 - h * s];
+    const g = `<polygon class="fill" style="fill-opacity:.45" points="${[P, Q, T].map(q => q.map(r1).join(',')).join(' ')}"/>` +
+      svgText((P[0] + T[0]) / 2 - 8, (P[1] + T[1]) / 2, `${a} cm`, { anchor: 'end', bold: true }) + svgText((Q[0] + T[0]) / 2 + 8, (Q[1] + T[1]) / 2, `${b} cm`, { anchor: 'start', bold: true }) +
+      svgText((P[0] + Q[0]) / 2, 160, '?', { bold: true, size: 15 }) + notToScale(340, 176);
+    return figure(340, 176, `A triangle with two sides labeled ${a} cm and ${b} cm; the third side is marked with a question mark. Not to scale.`, g, 330);
+  }
+  /** for the lesson: 4, 7 and 12 cannot meet; 5, 6 and 9 make a triangle (drawn to scale, 12.5 pixels to a centimeter) */
+  function triangleRuleSvg() {
+    const u = 12.5, L = [16, 128], R0 = [16 + 12 * u, 128], e1 = toward(...L, 4 * u, 62), e2 = toward(...R0, 7 * u, 122);
+    const P = [196, 128], Q = [196 + 9 * u, 128], T = [196 + 70 / 18 * u, 128 - Math.sqrt(25 - Math.pow(70 / 18, 2)) * u];
+    const g = seg(L, R0, 'line') + seg(L, e1) + seg(R0, e2) + `<circle class="dot" cx="${r1(e1[0])}" cy="${r1(e1[1])}" r="3.5"/><circle class="dot" cx="${r1(e2[0])}" cy="${r1(e2[1])}" r="3.5"/>` +
+      svgText(L[0] + 4, 106, '4', { anchor: 'end' }) + svgText(R0[0] - 12, 82, '7', { anchor: 'start' }) + svgText((L[0] + R0[0]) / 2, 146, '12') + svgText((L[0] + R0[0]) / 2, 168, '4 + 7 &lt; 12: the ends can’t meet', { size: 12 }) +
+      `<polygon class="fill" style="fill-opacity:.45" points="${[P, Q, T].map(q => q.map(r1).join(',')).join(' ')}"/>` +
+      svgText((P[0] + T[0]) / 2 - 6, (P[1] + T[1]) / 2, '5', { anchor: 'end' }) + svgText((Q[0] + T[0]) / 2 + 6, (Q[1] + T[1]) / 2, '6', { anchor: 'start' }) + svgText((P[0] + Q[0]) / 2, 146, '9') +
+      svgText((P[0] + Q[0]) / 2, 168, '5 + 6 &gt; 9: a triangle', { size: 12 });
+    return figure(340, 178, 'Left: a 12 cm side with a 4 cm side and a 7 cm side hinged at its ends; even laid flat they only reach 11 cm, so their ends cannot meet. Right: sides of 5, 6 and 9 cm do make a triangle, because 5 + 6 is more than 9.', g, 340);
+  }
 
   A.skill({
     id: 'math7.triangle-inequality', title: 'The triangle inequality',
@@ -1597,6 +1718,12 @@
 
   /** a line-drawing of a solid; hidden edges dashed */
   function solidSvg(kind, dims) {
+    const name = kind === 'tprism' ? 'triangular prism' : kind === 'spyr' ? 'square pyramid' : kind === 'tpyr' ? 'triangular pyramid' : kind === 'box' ? 'box' : kind;
+    const label = `Drawing of a ${name}${dims ? ` ${dims[0]} cm long, ${dims[1]} cm wide and ${dims[2]} cm tall` : ''}; hidden edges are dashed.`;
+    return figure(dims ? 250 : 200, 180, label, solidG(kind, dims));
+  }
+  /** the shapes of solidSvg's drawing, without the svg around them */
+  function solidG(kind, dims) {
     const ln = (pts, dash) => `<polyline class="stroke" points="${pts.map(q => q.join(',')).join(' ')}"${dash ? ' stroke-dasharray="5 4" style="stroke-width:1.3"' : ''}/>`;
     const box = (x, y, w, h, dx, dy) => {
       const A = [x, y + h], B = [x + w, y + h], C = [x + w, y], D = [x, y], o = q => [q[0] + dx, q[1] - dy];
@@ -1611,7 +1738,15 @@
     else if (kind === 'tpyr') { const A0 = [30, 155], B0 = [150, 155], C0 = [105, 118], E = [88, 30]; g = `<polygon class="fill" points="${[A0, B0, E].map(q => q.join(',')).join(' ')}" style="fill-opacity:.5"/>` + ln([A0, B0, E, A0]) + ln([A0, C0, B0], true) + ln([C0, E], true); }
     else if (kind === 'cylinder') g = `<rect x="50" y="45" width="100" height="105" class="fill" style="fill-opacity:.5;stroke:none"/>` + arcs(100, 45, 50, 14, true) + arcs(100, 150, 50, 14, false) + ln([[50, 45], [50, 150]]) + ln([[150, 45], [150, 150]]);
     else g = `<polygon class="fill" points="45,152 155,152 100,32" style="fill-opacity:.5;stroke:none"/>` + arcs(100, 152, 55, 15, false) + ln([[45, 152], [100, 32], [155, 152]]);
-    return `<svg class="figure" viewBox="0 0 ${dims ? 250 : 200} 180" width="${dims ? 250 : 200}" role="img" aria-label="drawing of a ${kind === 'tprism' ? 'triangular prism' : kind === 'spyr' ? 'square pyramid' : kind === 'tpyr' ? 'triangular pyramid' : kind}">${g}</svg>`;
+    return g;
+  }
+  /** for the lesson: a box sliced parallel to its base (a rectangle) and a square pyramid sliced through its top point (a triangle) */
+  function slicesSvg() {
+    const poly = (pts, extra) => `<polygon class="fill2" style="fill-opacity:.85"${extra || ''} points="${pts.map(q => q.join(',')).join(' ')}"/>`;
+    const boxSlice = poly([[25, 127.5], [145, 127.5], [181, 99.5], [61, 99.5]]), pyrSlice = poly([[51, 138.5], [151, 138.5], [100, 28]]);
+    const g = `<g>${solidG('box')}${boxSlice}</g>` + svgText(100, 196, 'parallel to the base:', { size: 12 }) + svgText(100, 212, 'a rectangle', { size: 12, bold: true }) +
+      `<g transform="translate(200 0)">${solidG('spyr')}${pyrSlice}</g>` + svgText(300, 196, 'through the top point:', { size: 12 }) + svgText(300, 212, 'a triangle', { size: 12, bold: true });
+    return figure(400, 220, 'Two sliced solids. Left: a box cut by a flat slice parallel to its base; the slice is a rectangle. Right: a square pyramid cut by a slice straight down through its top point; the slice is a triangle.', g, 360);
   }
   const SOLID_NAMES = { cube: 'cube', box: 'rectangular prism (a box)', tprism: 'triangular prism standing on one of its triangular ends', spyr: 'square pyramid', tpyr: 'triangular pyramid', cylinder: 'cylinder', cone: 'cone' };
   /** each slice: the solid, how it is cut, the shape, why; plane = [normal, offset] for the polyhedra in SOLIDS_3D */
