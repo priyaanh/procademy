@@ -1341,7 +1341,8 @@
     g += `<line x1="${X0}" y1="${Y}" x2="${right}" y2="${Y}" class="stroke"/><line x1="${X0}" y1="${Y}" x2="${X0}" y2="${Y - 158}" class="stroke"/>`;
     g += `<text x="${(X0 + right) / 2}" y="${Y + 40}" text-anchor="middle" font-size="13" font-weight="700">${t.xl}</text>`;
     g += `<text x="16" y="${Y - 75}" transform="rotate(-90 16 ${Y - 75})" text-anchor="middle" font-size="13" font-weight="700">${t.yl}</text>`;
-    return `<svg class="figure" viewBox="0 0 ${right + 16} 240" width="${right + 16}" role="img" aria-label="a histogram of ${t.title.toLowerCase()}">${g}</svg>`;
+    const label = `a histogram of ${t.title.toLowerCase()}. ${t.yl} in each interval: ${counts.map((c, i) => `${binLabel(t, i)}, ${c}`).join('; ')}.`;
+    return `<svg class="figure" viewBox="0 0 ${right + 16} 240" width="${right + 16}" role="img" aria-label="${label}"><desc>${label}</desc>${g}</svg>`;
   }
   // which display does each job? Each description fits exactly one of the four.
   const DISPLAYS = ['Stem-and-leaf plot', 'Histogram', 'Box plot', 'Bar graph'];
@@ -1747,18 +1748,64 @@
 
   /* ---------- double bar graphs ---------- */
   const PAIRS = [{ title: 'Books read', a: 'Class A', b: 'Class B', cats: ['Sept', 'Oct', 'Nov', 'Dec'], what: 'books' }, { title: 'Goals scored', a: 'Hawks', b: 'Owls', cats: ['Game 1', 'Game 2', 'Game 3', 'Game 4'], what: 'goals' },
-    { title: 'Favorite fruit', a: 'Grade 5', b: 'Grade 6', cats: ['Apple', 'Banana', 'Grape', 'Mango'], what: 'votes' }, { title: 'Hours of practice', a: 'Piano', b: 'Soccer', cats: ['Week 1', 'Week 2', 'Week 3', 'Week 4'], what: 'hours' }];
+    { title: 'Favorite fruit', a: 'Grade 5', b: 'Grade 6', cats: ['Apple', 'Banana', 'Grape', 'Mango'], what: 'votes' }, { title: 'Hours of practice', a: 'Piano', b: 'Soccer', cats: ['Week 1', 'Week 2', 'Week 3', 'Week 4'], what: 'hours' },
+    { title: 'Cans collected for the food drive', a: 'Room 12', b: 'Room 14', cats: ['Week 1', 'Week 2', 'Week 3', 'Week 4'], what: 'bags of cans' }, { title: 'Laps swum', a: 'Dolphins', b: 'Otters', cats: ['Mon', 'Tue', 'Wed', 'Thu'], what: 'laps' },
+    { title: 'Seedlings sprouted', a: 'Garden A', b: 'Garden B', cats: ['Beans', 'Peas', 'Corn', 'Squash'], what: 'seedlings' }, { title: 'Library visits', a: 'Grade 7', b: 'Grade 8', cats: ['Mon', 'Tue', 'Wed', 'Thu'], what: 'visits' },
+    { title: 'Tickets sold', a: 'Choir', b: 'Band', cats: ['Thu', 'Fri', 'Sat', 'Sun'], what: 'tickets' }, { title: 'Favorite lunch', a: 'Grade 4', b: 'Grade 6', cats: ['Tacos', 'Pasta', 'Salad', 'Soup'], what: 'votes' }];
+  const DB_UY = 13;                                                       // pixels per unit on the bar graph's scale
   function doubleBars(g, as, bs) {
-    const max = 12, uy = 13, x0 = 34, y0 = 34 + max * uy, bw = 20, gap = 24, W = x0 + g.cats.length * (2 * bw + gap) + 14;
-    let s = `<svg class="figure" viewBox="0 0 ${W} ${y0 + 54}" width="${W}" height="${y0 + 54}" role="img" aria-label="double bar graph: ${g.title}"><text x="${W / 2}" y="14" text-anchor="middle" font-size="13" font-weight="700">${g.title}</text>`;
+    const max = 12, uy = DB_UY, x0 = 34, y0 = 34 + max * uy, bw = 20, gap = 24, W = x0 + g.cats.length * (2 * bw + gap) + 14;
+    const say = (grp, vs) => `${grp}: ${g.cats.map((c, i) => `${c} ${vs[i]}`).join(', ')}`, label = `double bar graph of ${g.title.toLowerCase()}. ${say(g.a, as)}. ${say(g.b, bs)}.`;
+    let s = `<svg class="figure" viewBox="0 0 ${W} ${y0 + 54}" width="${W}" height="${y0 + 54}" role="img" aria-label="${label}"><desc>${label}</desc><text x="${W / 2}" y="14" text-anchor="middle" font-size="13" font-weight="700">${g.title}</text>`;
     for (let v = 0; v <= max; v += 2) s += `<line class="light" x1="${x0}" y1="${y0 - v * uy}" x2="${W - 6}" y2="${y0 - v * uy}" style="stroke-width:1"/><text x="${x0 - 6}" y="${y0 - v * uy + 4}" text-anchor="end" font-size="11">${v}</text>`;
     g.cats.forEach((c, i) => {
       const x = x0 + gap / 2 + i * (2 * bw + gap);
-      s += `<rect class="fill" x="${x}" y="${y0 - as[i] * uy}" width="${bw}" height="${as[i] * uy}"/><rect class="fill2" x="${x + bw}" y="${y0 - bs[i] * uy}" width="${bw}" height="${bs[i] * uy}"/><text x="${x + bw}" y="${y0 + 16}" text-anchor="middle" font-size="11">${c}</text>`;
+      s += `<rect class="fill" data-bar="a${i}" x="${x}" y="${y0 - as[i] * uy}" width="${bw}" height="${as[i] * uy}"/><rect class="fill2" data-bar="b${i}" x="${x + bw}" y="${y0 - bs[i] * uy}" width="${bw}" height="${bs[i] * uy}"/><text x="${x + bw}" y="${y0 + 16}" text-anchor="middle" font-size="11">${c}</text>`;
     });
     const ly = y0 + 38;
     s += `<rect class="fill" x="${x0}" y="${ly - 10}" width="12" height="12"/><text x="${x0 + 18}" y="${ly}" font-size="11">${g.a}</text><rect class="fill2" x="${x0 + 90}" y="${ly - 10}" width="12" height="12"/><text x="${x0 + 108}" y="${ly}" font-size="11">${g.b}</text>`;
     return s + `<line class="stroke" x1="${x0}" y1="${y0}" x2="${W - 6}" y2="${y0}"/><line class="stroke" x1="${x0}" y1="28" x2="${x0}" y2="${y0}"/></svg>`;
+  }
+  /** the bars read back off a drawn graph: { a: [...], b: [...] } */
+  function barsOf(html) {
+    const out = { a: [], b: [] };
+    for (const m of html.matchAll(/data-bar="([ab])(\d)"[^>]*height="([\d.]+)"/g)) out[m[1]][Number(m[2])] = Number(m[3]) / DB_UY;
+    return out;
+  }
+  const sum = l => l.reduce((x, y) => x + y, 0);
+  function doubleBarQ(rng, hard) {
+    const g = rng.pick(PAIRS), as = g.cats.map(() => rng.int(1, 12)), bs = g.cats.map(() => rng.int(1, 12));
+    const kind = hard ? rng.pick(['diff-total', 'mean', 'combo']) : rng.pick(['diff', 'total', 'most', 'both', 'read', 'cat-more']);
+    const look = 'Look at the double bar graph.', cat = i => g.cats[i];
+    let i = rng.int(0, 3), j = (i + rng.int(1, 3)) % 4;
+    // fix the numbers first, then draw the graph, so the picture always matches the question
+    if (kind === 'diff' && as[i] === bs[i]) bs[i] = as[i] > 6 ? as[i] - rng.int(1, 4) : as[i] + rng.int(1, 4);
+    if (kind === 'diff-total' && sum(as) === sum(bs)) bs[i] = bs[i] > 6 ? bs[i] - rng.int(1, 4) : bs[i] + rng.int(1, 4);
+    const which = rng.bool(), mine = which ? as : bs, grp = which ? g.a : g.b;
+    if (kind === 'mean') { const r = sum(mine) % 4; if (r) mine[i] += mine[i] + 4 - r <= 12 ? 4 - r : -r; }
+    if (kind === 'combo' && as[i] + bs[i] === as[j] + bs[j]) bs[i] = bs[i] > 6 ? bs[i] - rng.int(1, 4) : bs[i] + rng.int(1, 4);
+    if (kind === 'combo' && as[i] + bs[i] < as[j] + bs[j]) [i, j] = [j, i];
+    const pic = doubleBars(g, as, bs), params = { kind, i, j, which };
+    if (kind === 'read') return { prompt: `${look}${pic}How many ${g.what} did ${grp} have in ${cat(i)}?`, type: 'number', answer: mine[i], params,
+      hints: [`The key shows which shade is ${grp}. Find that bar above ${cat(i)}.`, `Follow the top of the bar across to the scale on the left.`, `It reaches <b>${mine[i]}</b>.`] };
+    if (kind === 'diff') { const ans = Math.abs(as[i] - bs[i]); return { prompt: `${look}${pic}In ${cat(i)}, how many more ${g.what} did ${as[i] > bs[i] ? g.a : g.b} have than ${as[i] > bs[i] ? g.b : g.a}?`, type: 'number', answer: ans, params,
+      hints: [`In ${cat(i)}, ${g.a} has ${as[i]} and ${g.b} has ${bs[i]}.`, `Subtract the smaller from the larger.`, `${Math.max(as[i], bs[i])} − ${Math.min(as[i], bs[i])} = <b>${ans}</b>.`] }; }
+    if (kind === 'total') { const ans = sum(mine); return { prompt: `${look}${pic}How many ${g.what} did ${grp} have in all four categories altogether?`, type: 'number', answer: ans, params,
+      hints: [`Read the ${grp} bars: ${mine.join(', ')}.`, `Add them: ${mine.join(' + ')}.`, `The total is <b>${ans}</b>.`] }; }
+    if (kind === 'cat-more') { const n = as.filter((x, k) => x > bs[k]).length; return { prompt: `${look}${pic}In how many of the four categories did ${g.a} have <b>more</b> ${g.what} than ${g.b}?`, type: 'number', answer: n, params,
+      hints: [`Compare the two bars in each category: ${g.cats.map((c, k) => `${c} ${as[k]} and ${bs[k]}`).join('; ')}.`, `${g.a}’s bar is taller in ${n === 0 ? 'none of them' : M.list(g.cats.filter((c, k) => as[k] > bs[k]))}. Equal bars don’t count.`, `The answer is <b>${n}</b>.`] }; }
+    if (kind === 'diff-total') { const ta = sum(as), tb = sum(bs), big = ta > tb, ans = Math.abs(ta - tb); return { prompt: `${look}${pic}Altogether, how many more ${g.what} did ${big ? g.a : g.b} have than ${big ? g.b : g.a} in the four categories?`, type: 'number', answer: ans, params,
+      hints: [`Add the ${g.a} bars: ${as.join(' + ')} = ${ta}.`, `Add the ${g.b} bars: ${bs.join(' + ')} = ${tb}.`, `Subtract: ${Math.max(ta, tb)} − ${Math.min(ta, tb)} = <b>${ans}</b>.`] }; }
+    if (kind === 'mean') { const t = sum(mine); return { prompt: `${look}${pic}What is the mean (average) number of ${g.what} per category for ${grp}?`, type: 'number', answer: t / 4, params,
+      hints: [`Read the ${grp} bars: ${mine.join(', ')}.`, `Add them: ${mine.join(' + ')} = ${t}.`, `Share the total equally over the 4 categories: ${t} ÷ 4 = <b>${t / 4}</b>.`] }; }
+    if (kind === 'combo') { const si = as[i] + bs[i], sj = as[j] + bs[j]; return { prompt: `${look}${pic}With both groups together, how many more ${g.what} were there in ${cat(i)} than in ${cat(j)}?`, type: 'number', answer: si - sj, params,
+      hints: [`${cat(i)}: ${as[i]} + ${bs[i]} = ${si}.`, `${cat(j)}: ${as[j]} + ${bs[j]} = ${sj}.`, `${si} − ${sj} = <b>${si - sj}</b>.`] }; }
+    const both = as.map((x, k) => x + bs[k]), gaps = as.map((x, k) => Math.abs(x - bs[k])), list = kind === 'most' ? gaps : both, top = Math.max.apply(null, list);
+    if (list.filter(x => x === top).length > 1) { const ans = as[i] + bs[i]; return { prompt: `${look}${pic}How many ${g.what} were there in ${cat(i)} for both groups together?`, type: 'number', answer: ans, params: Object.assign(params, { kind: 'sum' }),
+      hints: [`In ${cat(i)}: ${g.a} ${as[i]}, ${g.b} ${bs[i]}.`, 'Add the two bars.', `${as[i]} + ${bs[i]} = <b>${ans}</b>.`] }; }
+    const k = list.indexOf(top), answer = g.cats[k];
+    return { prompt: `${look}${pic}${kind === 'most' ? `In which category is the difference between ${g.a} and ${g.b} the greatest?` : 'In which category is the total for both groups together the greatest?'}`, type: 'choice', choices: g.cats.slice(), keepOrder: true, answer, params: Object.assign(params, { k }),
+      hints: [kind === 'most' ? `Find the gap between the two bars in each category: ${gaps.join(', ')}.` : `Add the two bars in each category: ${both.join(', ')}.`, `The greatest is ${top}.`, `<b>${answer}</b>.`] };
   }
   A.skill({
     id: 'g6.double-bar-graphs', title: 'Reading double bar graphs',
@@ -1766,24 +1813,22 @@
       p('Read each bar by following its top across to the scale. To compare the groups in one category, <b>subtract</b> the shorter bar from the taller one; to find a group’s total, <b>add</b> its bars across all the categories.') +
       example('Example: comparing one category', `${doubleBars(PAIRS[0], [5, 8, 6, 9], [7, 5, 6, 10])}In Oct, Class A read 8 books and Class B read 5, so Class A read 8 − 5 = <b>3</b> more books that month.`) +
       example('Example: a total, and the biggest gap', `In the same graph, Class A’s bars are 5, 8, 6 and 9, so Class A read 5 + 8 + 6 + 9 = <b>28 books</b> in all. The gaps between the bars are 2, 3, 0 and 1, so the groups differ most in <b>Oct</b>.`),
-    make(rng) {
-      const g = rng.pick(PAIRS), as = g.cats.map(() => rng.int(1, 12)), bs = g.cats.map(() => rng.int(1, 12));
-      const pic = doubleBars(g, as, bs), kind = rng.pick(['diff', 'total', 'most', 'both']);
-      if (kind === 'diff') { let i = rng.int(0, 3); if (as[i] === bs[i]) bs[i] = as[i] > 6 ? as[i] - rng.int(1, 4) : as[i] + rng.int(1, 4); const ans = Math.abs(as[i] - bs[i]); return { prompt: `Look at the double bar graph.${pic}In ${g.cats[i]}, how many more ${g.what} did ${as[i] > bs[i] ? g.a : g.b} have than ${as[i] > bs[i] ? g.b : g.a}?`, type: 'number', answer: ans, params: { kind, as, bs, i }, hints: [`In ${g.cats[i]}, ${g.a} has ${as[i]} and ${g.b} has ${bs[i]}.`, `Subtract the smaller from the larger.`, `${Math.max(as[i], bs[i])} − ${Math.min(as[i], bs[i])} = <b>${ans}</b>.`] }; }
-      if (kind === 'total') { const which = rng.bool(), list = which ? as : bs, ans = list.reduce((x, y) => x + y, 0); return { prompt: `Look at the double bar graph.${pic}How many ${g.what} did ${which ? g.a : g.b} have in all four categories altogether?`, type: 'number', answer: ans, params: { kind, as, bs, which }, hints: [`Read the ${which ? g.a : g.b} bars: ${list.join(', ')}.`, `Add them: ${list.join(' + ')}.`, `The total is <b>${ans}</b>.`] }; }
-      const both = as.map((x, i) => x + bs[i]), gaps = as.map((x, i) => Math.abs(x - bs[i])), list = kind === 'most' ? gaps : both, top = Math.max.apply(null, list);
-      if (list.filter(x => x === top).length > 1) { const i = rng.int(0, 3); const ans = as[i] + bs[i]; return { prompt: `Look at the double bar graph.${pic}How many ${g.what} were there in ${g.cats[i]} for both groups together?`, type: 'number', answer: ans, params: { kind: 'sum', as, bs, i }, hints: [`In ${g.cats[i]}: ${g.a} ${as[i]}, ${g.b} ${bs[i]}.`, 'Add the two bars.', `${as[i]} + ${bs[i]} = <b>${ans}</b>.`] }; }
-      const k = list.indexOf(top), answer = g.cats[k];
-      return { prompt: `Look at the double bar graph.${pic}${kind === 'most' ? `In which category is the difference between ${g.a} and ${g.b} the greatest?` : 'In which category is the total for both groups together the greatest?'}`, type: 'choice', choices: g.cats.slice(), keepOrder: true, answer, params: { kind, as, bs, k },
-        hints: [kind === 'most' ? `Find the gap between the two bars in each category: ${gaps.join(', ')}.` : `Add the two bars in each category: ${both.join(', ')}.`, `The greatest is ${top}.`, `<b>${answer}</b>.`] };
-    },
+    make: rng => doubleBarQ(rng, false),
+    challenge: rng => doubleBarQ(rng, true),
     verify(q) {
-      const P = q.params;
-      if (P.kind === 'diff') return q.answer === Math.abs(P.as[P.i] - P.bs[P.i]) && q.answer > 0;
-      if (P.kind === 'total') return q.answer === (P.which ? P.as : P.bs).reduce((x, y) => x + y, 0);
-      if (P.kind === 'sum') return q.answer === P.as[P.i] + P.bs[P.i];
-      const list = P.kind === 'most' ? P.as.map((x, i) => Math.abs(x - P.bs[i])) : P.as.map((x, i) => x + P.bs[i]), top = Math.max.apply(null, list);
-      return list.indexOf(top) === P.k && list.filter(x => x === top).length === 1;
+      const P = q.params, { a: as, b: bs } = barsOf(q.prompt), mine = P.which ? as : bs;        // read the bars off the drawing
+      if (as.length !== 4 || bs.length !== 4 || as.concat(bs).some(v => !Number.isInteger(v))) return false;
+      let t = 0;
+      if (P.kind === 'read') return q.answer === mine[P.i];
+      if (P.kind === 'diff') return q.answer === Math.abs(as[P.i] - bs[P.i]) && q.answer > 0;
+      if (P.kind === 'total') { mine.forEach(v => { t += v; }); return q.answer === t; }
+      if (P.kind === 'sum') return q.answer === as[P.i] + bs[P.i];
+      if (P.kind === 'cat-more') { as.forEach((v, k) => { if (v > bs[k]) t++; }); return q.answer === t; }
+      if (P.kind === 'diff-total') { as.forEach((v, k) => { t += v - bs[k]; }); return q.answer === Math.abs(t) && t !== 0; }
+      if (P.kind === 'mean') { mine.forEach(v => { t += v; }); return close(q.answer * 4, t); }
+      if (P.kind === 'combo') return q.answer === as[P.i] + bs[P.i] - as[P.j] - bs[P.j] && q.answer > 0;
+      const list = P.kind === 'most' ? as.map((x, k) => Math.abs(x - bs[k])) : as.map((x, k) => x + bs[k]), top = Math.max.apply(null, list);
+      return list.indexOf(top) === P.k && list.filter(x => x === top).length === 1 && q.answer === q.choices[P.k];
     },
   });
 
