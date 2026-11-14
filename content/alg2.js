@@ -1122,8 +1122,24 @@
       return { prompt: `How is the graph of ${V('g')} related to the graph of ${V('f')}?${big(`${fx('g', X)} = ${g}`)}`, type: 'choice', choices: [answer, shiftLabel(-h, k), shiftLabel(h, -k), shiftLabel(-h, -k)], answer, params: { kind, h, k },
         hints: [inside, outside, `<b>${answer}</b>.`] };
     },
+    challenge(rng) {   // a reflection and a shift together, followed through a point
+      const neg = v => (v === 0 ? 0 : -v);
+      const a = rng.int(-6, 6), b = rng.nz(-6, 6), k = rng.nz(-6, 6), overX = rng.bool();
+      const h = overX ? rng.nz(-6, 6) : 0, sx = overX ? 1 : -1, sy = overX ? -1 : 1;
+      const g = overX ? `−${fx('f', P([1, -h]))} ${M.signed(k)}` : `${fx('f', '−' + X)} ${M.signed(k)}`;
+      const u = overX ? a + h : neg(a), v = overX ? -b + k : b + k, answer = M.pt(u, v);
+      const cands = overX ? [M.pt(a + h, b + k), M.pt(a - h, -b + k), M.pt(a + h, -b - k), M.pt(a - h, -b - k)] : [M.pt(a, -b + k), M.pt(neg(a), -b + k), M.pt(neg(a), b - k), M.pt(a, b + k)];
+      const choices = options(answer, cands, () => M.pt(u + rng.nz(-2, 2), v + rng.nz(-2, 2)));
+      return { prompt: `The point ${M.pt(a, b)} is on the graph of ${V('f')}. Which point must be on the graph of ${V('g')}?${big(`${fx('g', X)} = ${g}`)}`, type: 'choice', choices, answer, params: { kind: 'refl-point', a, b, h, k, sx, sy },
+        hints: [overX ? `Inside, ${X} ${M.signed(-h)} moves the point ${N(Math.abs(h))} ${h > 0 ? 'right' : 'left'}: the ${X}-coordinate becomes ${N(a)} ${M.signed(h)} = ${N(u)}.` : `Inside, −${X} reflects the graph across the ${Y}-axis: the ${X}-coordinate changes sign, so ${N(a)} becomes ${N(u)}.`,
+          overX ? `Outside, the minus sign flips the output across the ${X}-axis, and then ${M.signed(k)} shifts it: ${N(b)} becomes ${N(-b)}, then ${N(v)}.` : `Outside, ${M.signed(k)} shifts the output: ${N(b)} ${M.signed(k)} = ${N(v)}.`, `<b>${answer}</b>.`] };
+    },
     verify(q) {
       const pr = q.params, t = A.stripTags(q.answer);
+      if (pr.kind === 'refl-point') {   // g(x) = sy·f(sx·(x − h)) + k, so the image (u, v) of (a, b) has sx·(u − h) = a and v = sy·b + k
+        const [u, v] = t.replace(/−/g, '-').replace(/[()\s]/g, '').split(',').map(Number);
+        return pr.sx * (u - pr.h) === pr.a && v === pr.sy * pr.b + pr.k;
+      }
       if (pr.kind === 'point') {   // g(a + h) = f(a) + k must equal the point's y
         const [u, v] = t.replace(/−/g, '-').replace(/[()\s]/g, '').split(',').map(Number);
         return u - pr.h === pr.a && v === pr.b + pr.k;
@@ -1163,8 +1179,23 @@
         hints: [form[0] === 'v' ? `The number multiplies the whole function (outside), so the change is vertical.` : `The number multiplies ${X} (inside), so the change is horizontal, and it works backwards.`,
           { vs: `Every ${Y}-value is multiplied by ${k}: the graph gets taller.`, vc: `Every ${Y}-value is multiplied by ${M.fracText(1, k)}: the graph gets flatter.`, hc: `Inside ×${k} divides every ${X}-value by ${k}: the graph gets narrower.`, hs: `Inside ×${M.fracText(1, k)} multiplies every ${X}-value by ${k}: the graph gets wider.` }[form], `<b>${answer}</b>.`] };
     },
+    challenge(rng) {   // a vertical change, a horizontal change and a shift together, followed through a point
+      const [an, ad] = rng.pick([[2, 1], [3, 1], [1, 2], [1, 3], [-2, 1], [4, 1]]), [bn, bd] = rng.pick([[2, 1], [3, 1], [1, 2], [1, 3], [4, 1]]);
+      const pp = bn * bd * rng.nz(-3, 3), qq = an * ad * rng.nz(-3, 3), k = rng.int(-5, 5);
+      const u = pp * bd / bn, v = qq * an / ad + k, answer = M.pt(u, v);
+      const Atxt = ad === 1 ? (an === -1 ? '−' : N(an)) : F(an, ad), Btxt = bd === 1 ? N(bn) : F(bn, bd);
+      const g = `${Atxt}${fx('f', `${Btxt}${X}`)}${k ? ' ' + M.signed(k) : ''}`;
+      const choices = options(answer, [M.pt(pp * bn / bd, v), M.pt(u, qq * ad / an + k), M.pt(u, qq * an / ad - k), M.pt(pp, v)], () => M.pt(u + rng.nz(-2, 2), v + rng.nz(-2, 2)));
+      return { prompt: `The point ${M.pt(pp, qq)} is on the graph of ${V('f')}. Which point must be on the graph of ${V('g')}?${big(`${fx('g', X)} = ${g}`)}`, type: 'choice', choices, answer, params: { kind: 'combo', an, ad, bn, bd, pp, qq, k },
+        hints: [`Inside, ${Btxt}${X} is a horizontal ${bn > bd ? 'compression' : 'stretch'}, which works backwards: ${bn > bd ? `divide the ${X}-coordinate by ${bn}` : `multiply the ${X}-coordinate by ${bd}`}, so ${N(pp)} becomes ${N(u)}.`,
+          `Outside, multiply the ${Y}-coordinate by ${M.fracText(an, ad)}${k ? `, then add ${N(k)}` : ''}: ${N(qq)} becomes ${N(qq * an / ad)}${k ? `, then ${N(v)}` : ''}.`, `<b>${answer}</b>.`] };
+    },
     verify(q) {
       const pr = q.params;
+      if (pr.kind === 'combo') {   // g(x) = A·f(Bx) + k with A = an/ad and B = bn/bd: the image (u, v) of (pp, qq) has B·u = pp and v = A·qq + k
+        const [u, v] = A.stripTags(q.answer).replace(/−/g, '-').replace(/[()\s]/g, '').split(',').map(Number);
+        return u * pr.bn === pr.pp * pr.bd && v * pr.ad === pr.qq * pr.an + pr.k * pr.ad;
+      }
       // a test function f(x) = x³ + x, which is one-to-one, and the transformed g
       const f = x => x * x * x + x;
       const g = { vs: x => pr.k * f(x), vc: x => f(x) / pr.k, hc: x => f(pr.k * x), hs: x => f(x / pr.k) }[pr.form];
@@ -1209,8 +1240,20 @@
       return { prompt: `Solve for ${X}.${big(`${sfrac(N(a), X)} ${M.signed(b)} = ${sfrac(N(c), X)}`)}`, type: 'number', answer: x, params: { kind, a, b, c },
         hints: [`Multiply every term by ${X}: ${N(a)} ${M.signed(b)}${X} = ${N(c)}.`, `${M.term(b, 'x')} = ${N(c)} − ${wrap(a)} = ${N(c - a)}.`, `${X} = ${N(c - a)} ÷ ${wrap(b)}, which is not 0, so <b>${X} = ${N(x)}</b>.`] };
     },
+    challenge(rng) {   // clearing the fraction leaves a quadratic: find both solutions and check them
+      const p = rng.nz(-5, 5);
+      let [r1, r2] = rng.sample([-8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9].filter(t => t !== p), 2);
+      if (r1 > r2) [r1, r2] = [r2, r1];
+      const b = r1 + r2 - p, a = (r1 - p) * (r2 - p), ask = rng.pick(['larger', 'smaller']), ans = ask === 'larger' ? r2 : r1, den = P([1, -p]);
+      return { prompt: `Solve for ${X}. Give the ${ask} solution.${big(`${X} ${a < 0 ? '−' : '+'} ${sfrac(N(Math.abs(a)), den)} = ${N(b)}`)}`, type: 'number', answer: ans, params: { kind: 'two', a, b, p, ask },
+        hints: [`Multiply every term by ${den}: ${X}(${den}) ${M.signed(a)} = ${b === 0 ? '0' : `${N(b)}(${den})`}.`, `Expand and collect: ${P([1, -(p + b), a + b * p])} = 0, which factors as (${P([1, -r1])})(${P([1, -r2])}) = 0. Neither ${N(r1)} nor ${N(r2)} makes ${den} zero, so both work.`, `The solutions are ${N(r1)} and ${N(r2)}, so the ${ask} one is <b>${N(ans)}</b>.`] };
+    },
     verify(q) {
       const pr = q.params;
+      if (pr.kind === 'two') {
+        const sols = []; for (let t = -60; t <= 60; t++) if (t !== pr.p && Math.abs(t + pr.a / (t - pr.p) - pr.b) < 1e-9) sols.push(t);
+        return sols.length === 2 && q.answer === (pr.ask === 'larger' ? Math.max(...sols) : Math.min(...sols));
+      }
       const ok = pr.kind === 'cross' ? t => t !== pr.pp && t !== pr.qq && Math.abs(pr.a / (t - pr.pp) - pr.b / (t - pr.qq)) < 1e-9
         : pr.kind === 'extraneous' ? t => t !== pr.pp && Math.abs(t * t / (t - pr.pp) - (pr.m * t + pr.n) / (t - pr.pp)) < 1e-9
           : t => t !== 0 && Math.abs(pr.a / t + pr.b - pr.c / t) < 1e-9;
@@ -1243,14 +1286,29 @@
       return { prompt: `Solve the system.${big(`${Y} = ${P([1, b, c])}<br>${Y} = ${P([m, k])}`)}`, type: 'choice', choices, answer, params: { kind: 'solve', b, c, m, k },
         hints: [`Set the right sides equal: ${P([1, b, c])} = ${P([m, k])}, so ${P([1, b - m, c - k])} = 0.`, `Factor: (${P([1, -r1])})(${P([1, -r2])}) = 0, so ${X} = ${N(r1)} or ${X} = ${N(r2)}.`, `Use the line for ${Y}: ${Y} = ${N(m)}(${N(r1)}) ${M.signed(k)} = ${N(y(r1))} and ${Y} = ${N(m)}(${N(r2)}) ${M.signed(k)} = ${N(y(r2))}.`, `<b>${answer}</b>.`] };
     },
+    challenge(rng) {   // the parabola's leading coefficient isn't 1
+      const a2 = rng.pick([2, 3, -1, -2]), m = rng.nz(-5, 5), k = rng.int(-8, 8);
+      if (rng.chance(0.35)) {
+        const n = rng.pick([0, 1, 2]), H = rng.int(-3, 3), E = n === 1 ? 0 : (n === 2 ? -1 : 1) * Math.sign(a2) * rng.int(1, 9);
+        const b = m - 2 * a2 * H, c = k + a2 * H * H + E, D = (b - m) ** 2 - 4 * a2 * (c - k);
+        return { prompt: `How many solutions does the system have?${big(`${Y} = ${P([a2, b, c])}<br>${Y} = ${P([m, k])}`)}`, type: 'number', answer: n, params: { kind: 'count', a: a2, b, c, m, k },
+          hints: [`Set them equal and move everything to one side: ${P([a2, b - m, c - k])} = 0.`, `Discriminant: ${wrap(b - m)}² − 4(${N(a2)})(${N(c - k)}) = ${N(D)}, which is ${n === 2 ? 'positive' : n === 1 ? 'zero' : 'negative'}.`, `So there ${n === 1 ? 'is' : 'are'} <b>${n}</b> solution${n === 1 ? '' : 's'}.`] };
+      }
+      const [r1, r2] = rng.sample([-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5], 2).sort((u, v) => u - v);
+      const b = m - a2 * (r1 + r2), c = k + a2 * r1 * r2, y = t => m * t + k;
+      const pair = (u, w) => `${M.pt(u, y(u))} and ${M.pt(w, y(w))}`, answer = pair(r1, r2);
+      const choices = options(answer, [pair(-r2, -r1), `${M.pt(r1, y(r2))} and ${M.pt(r2, y(r1))}`, pair(r1 + 1, r2 + 1)], () => pair(r1 - 1, r2 + rng.pick([1, 2])));
+      return { prompt: `Solve the system.${big(`${Y} = ${P([a2, b, c])}<br>${Y} = ${P([m, k])}`)}`, type: 'choice', choices, answer, params: { kind: 'solve', a: a2, b, c, m, k },
+        hints: [`Set the right sides equal: ${P([a2, b, c])} = ${P([m, k])}, so ${P([a2, b - m, c - k])} = 0.`, `Take out ${N(a2)} and factor: ${N(a2)}(${P([1, -r1])})(${P([1, -r2])}) = 0, so ${X} = ${N(r1)} or ${X} = ${N(r2)}.`, `Use the line for ${Y}: ${Y} = ${N(y(r1))} and ${Y} = ${N(y(r2))}.`, `<b>${answer}</b>.`] };
+    },
     verify(q) {
-      const { kind, b, c, m, k } = q.params;
-      const h = t => t * t + b * t + c - (m * t + k);
-      if (kind === 'count') { const v = h(-(b - m) / 2); return q.answer === (v < 0 ? 2 : v === 0 ? 1 : 0); }
+      const { kind, b, c, m, k } = q.params, a2 = q.params.a || 1;
+      const h = t => a2 * t * t + b * t + c - (m * t + k);
+      if (kind === 'count') { const v = h(-(b - m) / (2 * a2)); return q.answer === (v * a2 < 0 ? 2 : v === 0 ? 1 : 0); }
       const nums = A.stripTags(q.answer).replace(/−/g, '-').match(/-?\d+/g).map(Number);
       const pts = [[nums[0], nums[1]], [nums[2], nums[3]]];
       let roots = 0; for (let t = -30; t <= 30; t++) if (h(t) === 0) roots++;
-      return roots === 2 && pts[0][0] !== pts[1][0] && pts.every(([u, v]) => v === u * u + b * u + c && v === m * u + k);
+      return roots === 2 && pts[0][0] !== pts[1][0] && pts.every(([u, v]) => v === a2 * u * u + b * u + c && v === m * u + k);
     },
   });
 
@@ -1337,6 +1395,18 @@
       return { prompt: `Find the exact value. The picture shows the angle on the unit circle.${big(`${fn} ${ang}`)}${fig}`, type: 'choice', choices, answer, params: { kind, fn, nn, dd },
         hints: [`${ang} radians is ${dg}°.`, `The point on the unit circle is (cos, sin); for ${dg}° the reference angle is ${ref[trigExact('sin', dg)[0]]}°, and ${fn === 'sin' ? 'sine is the y-coordinate' : 'cosine is the x-coordinate'}.`, `${fn} ${dg}° is ${sgn > 0 || idx === 0 ? 'not negative' : 'negative'} here: <b>${answer}</b>.`] };
     },
+    challenge(rng) {   // angles past a full turn or below zero: find a coterminal angle first
+      const dd = rng.pick([2, 3, 4, 6, 6]);
+      let nn = 0; while (M.gcd(Math.abs(nn), dd) !== 1 || (nn >= 0 && nn < 2 * dd)) nn = rng.int(-4 * dd + 1, 4 * dd - 1);
+      const deg = 180 * nn / dd, ang = piTxt(nn, dd), co = ((deg % 360) + 360) % 360;
+      if (rng.chance(0.3)) return { prompt: `Convert to degrees.${big(`${ang} radians`)}`, type: 'number', answer: deg, unit: '°', params: { kind: 'to-deg', n: nn, d: dd },
+        hints: [`Replace π with 180°: ${ang} = ${N(nn)} × 180° ÷ ${dd}.`, `180 ÷ ${dd} = ${180 / dd}, and ${N(nn)} × ${180 / dd} = ${N(deg)}.`, `<b>${N(deg)}°</b>.`] };
+      const fn = rng.pick(['sin', 'cos']), [idx, sgn] = trigExact(fn, co), [oidx] = trigExact(fn === 'sin' ? 'cos' : 'sin', co);
+      const answer = trigLabel(idx, sgn), turns = (co - deg) / 360;
+      const choices = options(answer, [trigLabel(idx, -sgn), trigLabel(oidx, sgn), trigLabel(oidx, -sgn)], () => trigLabel(rng.int(0, 4), rng.sign()));
+      return { prompt: `Find the exact value.${big(nn < 0 ? `${fn}(${ang})` : `${fn} ${ang}`)}`, type: 'choice', choices, answer, params: { kind: 'value', fn, nn, dd },
+        hints: [`${ang} radians is ${N(deg)}°. ${turns > 0 ? 'Add' : 'Subtract'} 360° ${Math.abs(turns) === 1 ? 'once' : Math.abs(turns) + ' times'} to get ${co}°, which ends in the same place on the unit circle.`, `For ${co}° the reference angle is ${[0, 30, 45, 60, 90][trigExact('sin', co)[0]]}°, and ${fn === 'sin' ? 'sine is the y-coordinate' : 'cosine is the x-coordinate'} of the point.`, `<b>${answer}</b>.`] };
+    },
     verify(q) {
       const pr = q.params;
       if (pr.kind === 'to-deg') return Math.abs(pr.n * Math.PI / pr.d * 180 / Math.PI - q.answer) < 1e-9;
@@ -1391,10 +1461,24 @@
       if (kind === 'mid') return { prompt: `The midline is ${Y} = ${V('k')}. What is ${V('k')}?${big(shown)}`, type: 'number', answer: d, params, hints: [`The midline is set by the number added at the end, which shifts the whole wave up or down.`, d ? `The wave is shifted by ${N(d)}.` : `Nothing is added, so the wave is centered on the ${X}-axis.`, `Midline ${Y} = <b>${N(d)}</b>.`] };
       return { prompt: `What is the period?${big(shown)}`, type: 'number', answer: per, params, hints: [`Period = 2π ÷ ${V('b')}, where ${V('b')} multiplies ${X}. Here ${V('b')} = ${bTxt}.`, `Dividing by ${bTxt} is the same as multiplying by its reciprocal, and the π cancels: 2π ÷ ${bTxt} = ${per}.`, `Period = <b>${per}</b>.`] };
     },
+    challenge(rng) {   // a period that comes out as a fraction, or the minimum from the midline and the maximum
+      if (rng.chance(0.65)) {
+        const a = rng.nz(-6, 6), d = rng.int(-5, 5), fn = rng.pick(['sin', 'cos']), m = rng.pick([3, 4, 5]);
+        let k = rng.int(1, 6); while (M.gcd(m, k) !== 1 || (2 * k) % m === 0) k = rng.int(1, 6);
+        const bTxt = piTxt(m, k), [pn, pd] = M.simp(2 * k, m);
+        const shown = `${Y} = ${a === 1 ? '' : a === -1 ? '−' : N(a)}${fn}(${bTxt}${X})${d ? ' ' + M.signed(d) : ''}`;
+        return { prompt: `What is the period? Give a fraction.${big(shown)}`, type: 'number', answer: 2 * k / m, answerText: M.fracText(pn, pd), params: { kind: 'period', a, d, fn, k, m },
+          hints: [`Period = 2π ÷ ${V('b')}, where ${V('b')} = ${bTxt} multiplies ${X}.`, `Dividing by ${bTxt} means multiplying by ${sfrac(N(k), `${m}π`)}: 2π · ${sfrac(N(k), `${m}π`)} = ${sfrac(N(2 * k), N(m))}, and the π cancels.`, `Period = <b>${M.fracText(pn, pd)}</b>.`] };
+      }
+      const d = rng.int(-6, 9), amp = rng.int(1, 12), mx = d + amp;
+      return { prompt: `A sinusoid has a midline of ${Y} = ${N(d)} and a maximum value of ${N(mx)}. What is its minimum value?`, type: 'number', answer: d - amp, params: { kind: 'mid-to-min', mx, d },
+        hints: [`The maximum is ${N(mx)} − ${wrap(d)} = ${amp} above the midline, so the amplitude is ${amp}.`, `The minimum is the same distance below the midline: ${N(d)} − ${amp}.`, `The minimum is <b>${N(d - amp)}</b>.`] };
+    },
     verify(q) {
       const pr = q.params;
       if (pr.kind === 'maxmin') return q.answer === (pr.ask === 'amplitude' ? (pr.mx - pr.mn) / 2 : (pr.mx + pr.mn) / 2);
-      const b = (pr.two ? 2 : 1) * Math.PI / pr.k, f = x => pr.a * Math[pr.fn](b * x) + pr.d;
+      if (pr.kind === 'mid-to-min') return (pr.mx + q.answer) / 2 === pr.d && q.answer < pr.mx;
+      const b = (pr.m || (pr.two ? 2 : 1)) * Math.PI / pr.k, f = x => pr.a * Math[pr.fn](b * x) + pr.d;
       const ys = []; for (let i = 0; i <= 2400; i++) ys.push(f(i * 2 * pr.k / 2400 * 2));
       const mx = Math.max(...ys), mn = Math.min(...ys);
       if (pr.kind === 'amp') return Math.abs((mx - mn) / 2 - q.answer) < 1e-6;
@@ -1439,6 +1523,18 @@
       hints.push(`The model is <b>${t.type.toLowerCase()}</b>.`);
       return { prompt: `Which kind of function fits the table best?${tableOf(t)}`, type: 'choice', choices: ['Linear', 'Quadratic', 'Exponential'], keepOrder: true, answer: t.type, hints, params: { ys: t.ys } };
     },
+    challenge(rng) {   // x-values that don't start at 0 or go up by 1, and ratios that aren't whole numbers
+      const start = rng.pick([-2, -1, 1, 2, 3]), step = rng.pick([1, 2, 2, 3, 5]), xs = [0, 1, 2, 3, 4].map(i => start + step * i);
+      const type = rng.pick(['Linear', 'Quadratic', 'Exponential']);
+      let ys;
+      if (type === 'Linear') { const m = rng.nz(-12, 12), c = rng.int(-20, 40); ys = xs.map(x => m * x + c); }
+      else if (type === 'Quadratic') { const a = rng.nz(-3, 3), b = rng.int(-8, 8), c = rng.int(-15, 25); ys = xs.map(x => a * x * x + b * x + c); }
+      else { const [g, c0] = rng.pick([[1.5, 16], [1.5, 32], [1.5, 48], [0.5, 160], [0.5, 96], [3, 2], [3, 5], [2, 7], [2, -3], [2.5, 16], [0.25, 1024]]); ys = [0, 1, 2, 3, 4].map(i => c0 * Math.pow(g, i)); }
+      const d1 = diffs(ys), d2 = diffs(d1);
+      const hints = [`The ${X}-values go up by ${step} each time, so differences still work. First differences: ${d1.map(N).join(', ')}.`,
+        type === 'Linear' ? `They are all the same.` : type === 'Quadratic' ? `Second differences: ${d2.map(N).join(', ')}, all the same.` : `The second differences, ${d2.map(N).join(', ')}, aren't constant either, but every ratio is ${N(ys[1] / ys[0])}.`, `The model is <b>${type.toLowerCase()}</b>.`];
+      return { prompt: `Which kind of function fits the table best?${tableOf({ xs, ys })}`, type: 'choice', choices: ['Linear', 'Quadratic', 'Exponential'], keepOrder: true, answer: type, hints, params: { ys } };
+    },
     verify(q) { return classify(q.params.ys) === q.answer; },
   });
 
@@ -1458,8 +1554,29 @@
       return { prompt: `The table shows a function that is linear, quadratic or exponential. What is ${Y} when ${X} = ${target}?${tableOf(t)}`, type: 'number', answer: ans, answerText: Number.isInteger(ans) ? undefined : M.fracText(Math.round(ans * 128), 128), params: { ys: t.ys, target },
         hints: [`Find the pattern: first differences ${d1.map(N).join(', ')}.`, how, `${Y}(${target}) = <b>${Number.isInteger(ans) ? N(ans) : M.fracText(Math.round(ans * 128), 128)}</b>.`] };
     },
+    challenge(rng) {   // work the table backwards to x = −1 or −2, or far ahead to x = 8 or 9
+      const t = modelTable(rng), back = rng.chance(0.65), target = back ? rng.pick([-1, -2]) : rng.int(8, 9);
+      const d1 = diffs(t.ys), d2 = diffs(d1), g = t.desc.g;
+      // an exact value: a fraction for the exponential tables
+      const frac = x => { if (t.type !== 'Exponential') return [t.f(x), 1]; const c = t.desc.c; if (g === 0.5) return x >= 0 ? [c, 2 ** x] : [c * 2 ** -x, 1]; return x >= 0 ? [c * g ** x, 1] : [c, g ** -x]; };
+      const show = x => { const [n, d] = M.simp(...frac(x)); return d === 1 ? N(n) : M.fracText(n, d); };
+      const [an, ad] = M.simp(...frac(target)), ans = an / ad;
+      const how = t.type === 'Linear' ? `The first differences are all ${N(d1[0])}: linear, ${Y} = ${P([t.desc.m, t.desc.c])}.`
+        : t.type === 'Quadratic' ? `The first differences change by ${N(d2[0])} each time: quadratic.`
+          : `Each value is ${N(g)} times the one before: exponential, ${Y} = ${N(t.desc.c)} · ${g === 0.5 ? '(½)' : g}<sup>${X}</sup>.`;
+      const path = back ? [-1, -2].filter(x => x >= target) : [5, 6, 7, 8, 9].filter(x => x <= target);
+      return { prompt: `The table shows a function that is linear, quadratic or exponential. What is ${Y} when ${X} = ${N(target)}?${t.type === 'Exponential' && !Number.isInteger(ans) ? ' Give a fraction.' : ''}${tableOf(t)}`, type: 'number', answer: ans, answerText: ad === 1 ? undefined : M.fracText(an, ad), params: { ys: t.ys, target },
+        hints: [`Find the pattern: first differences ${d1.map(N).join(', ')}.`, how, `${back ? 'Work backwards from' : 'Keep going past'} the table, one step at a time: ${path.map(x => `${Y}(${N(x)}) = ${show(x)}`).join(', ')}.`, `${Y}(${N(target)}) = <b>${show(target)}</b>.`] };
+    },
     verify(q) {
       const ys = q.params.ys.slice(), type = classify(ys);
+      if (q.params.target < 0) {   // extend the table backwards, one step at a time
+        for (let x = 0; x > q.params.target; x--) {
+          if (type === 'Exponential') ys.unshift(ys[0] * ys[0] / ys[1]);
+          else { const D0 = ys[1] - ys[0], s = type === 'Quadratic' ? (ys[2] - ys[1]) - D0 : 0; ys.unshift(ys[0] - (D0 - s)); }
+        }
+        return Math.abs(ys[0] - q.answer) < 1e-9 * Math.max(1, Math.abs(q.answer));
+      }
       while (ys.length <= q.params.target) {
         const n = ys.length;
         if (type === 'Exponential') ys.push(ys[n - 1] * ys[n - 1] / ys[n - 2]);
