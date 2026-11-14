@@ -6,7 +6,8 @@
   const A = window.ACADEMY, M = window.M;
   const F = M.frac, N = M.n, V = M.v;
   const X = V('x'), Y = V('y');
-  const NAMES = ['Amara', 'Bilal', 'Cora', 'Dario', 'Esme', 'Felix', 'Gita', 'Hana', 'Ivo', 'Jonah', 'Keira', 'Luca', 'Maya', 'Nico', 'Orla', 'Pablo', 'Rhea', 'Soren', 'Tess', 'Wren'];
+  const NAMES = ['Amara', 'Bilal', 'Cora', 'Dario', 'Esme', 'Felix', 'Gita', 'Hana', 'Ivo', 'Jonah', 'Keira', 'Luca', 'Maya', 'Nico', 'Orla', 'Pablo', 'Rhea', 'Soren', 'Tess', 'Wren',
+    'Aiko', 'Chidi', 'Daniela', 'Farid', 'Ines', 'Kofi', 'Leilani', 'Mei', 'Nadia', 'Rosa', 'Sanjay', 'Tariq', 'Yusuf', 'Zainab', 'Mateo', 'Anya', 'Kwame', 'Lucia', 'Arjun', 'Saoirse'];
   const p = s => `<p>${s}</p>`;
   const example = (title, body) => `<div class="example"><div class="ex-title">${title}</div>${body}</div>`;
   const big = s => `<div class="big">${s}</div>`;
@@ -18,6 +19,8 @@
   const SOFT = { '<': '≤', '>': '≥', '≤': '<', '≥': '>' };
   const holds = (l, o, r) => (o === '<' ? l < r : o === '>' ? l > r : o === '≤' ? l <= r + 1e-12 : l >= r - 1e-12);
   /** HTML back to plain text with real signs and ASCII minus, for verify() parsers */
+  /** HTML as plain words for a drawing's text alternative: tags dropped, nothing else changed */
+  const flat = h => String(h).replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
   const plain = h => A.stripTags(String(h)).replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').replace(/−/g, '-').replace(/(\d),(?=\d{3})/g, '$1').replace(/\s+/g, ' ').trim();
 
   /** candidate distractors that differ from the answer and from each other once tags are stripped */
@@ -51,22 +54,40 @@
   const slopeText = (n, d) => M.fracText(n, d);
   const frHtml = (n, d) => F(n, d);
 
-  /* a coordinate grid from −6 to 6, with optional lines (through two points) and dots */
+  /* a coordinate grid from −6 to 6, with optional lines (through two points) and dots.
+     opts.lines: [x1, y1, x2, y2] or { pts: [x1, y1, x2, y2], dash, label, at: [x, y] } · opts.dots: [x, y]
+     opts.riseRun: [x1, y1, x2, y2] marks the run and the rise between two points · opts.shade: a polygon to tint
+     opts.square: [x, y, ux, uy, vx, vy] a right-angle mark at (x, y) along two directions · opts.label: the text alternative */
   function grid(opts) {
     const R = 6, S = 20, pad = 8, W = 2 * R * S + 2 * pad;
-    const px = x => pad + (x + R) * S, py = y => pad + (R - y) * S;
+    const px = x => pad + (x + R) * S, py = y => pad + (R - y) * S, f = v => M.round(v, 2);
+    const txt = (x, y, s, anchor) => `<text x="${f(x)}" y="${f(y)}" font-size="13" font-weight="700" text-anchor="${anchor || 'middle'}" stroke="var(--surface)" stroke-width="4" paint-order="stroke">${s}</text>`;
     let g = '';
     for (let k = -R; k <= R; k++) g += `<line class="light" x1="${px(k)}" y1="${py(-R)}" x2="${px(k)}" y2="${py(R)}" stroke-width="${k === 0 ? 0 : 1}"/><line class="light" x1="${px(-R)}" y1="${py(k)}" x2="${px(R)}" y2="${py(k)}" stroke-width="${k === 0 ? 0 : 1}"/>`;
+    if (opts.shade) g += `<polygon points="${opts.shade.map(([x, y]) => `${f(px(x))},${f(py(y))}`).join(' ')}" fill="var(--primary)" fill-opacity="0.22" stroke="none"/>`;
     g += `<line class="stroke" x1="${px(-R)}" y1="${py(0)}" x2="${px(R)}" y2="${py(0)}" stroke-width="1.5"/><line class="stroke" x1="${px(0)}" y1="${py(-R)}" x2="${px(0)}" y2="${py(R)}" stroke-width="1.5"/>`;
     g += `<text x="${px(R) - 10}" y="${py(0) - 6}" font-size="13" font-style="italic">x</text><text x="${px(0) + 6}" y="${py(R) + 12}" font-size="13" font-style="italic">y</text>`;
-    (opts.lines || []).forEach(([x1, y1, x2, y2]) => {
-      const dx = x2 - x1, dy = y2 - y1;
+    const labels = [];
+    (opts.lines || []).forEach(L => {
+      const [x1, y1, x2, y2] = Array.isArray(L) ? L : L.pts, dx = x2 - x1, dy = y2 - y1;
       let lo = -Infinity, hi = Infinity;
       [[x1, dx], [y1, dy]].forEach(([s, d]) => { if (d !== 0) { const a = (-R - s) / d, b = (R - s) / d; lo = Math.max(lo, Math.min(a, b)); hi = Math.min(hi, Math.max(a, b)); } });
-      g += `<line x1="${px(x1 + lo * dx)}" y1="${py(y1 + lo * dy)}" x2="${px(x1 + hi * dx)}" y2="${py(y1 + hi * dy)}" stroke="var(--primary)" stroke-width="2.5"/>`;
+      g += `<line x1="${f(px(x1 + lo * dx))}" y1="${f(py(y1 + lo * dy))}" x2="${f(px(x1 + hi * dx))}" y2="${f(py(y1 + hi * dy))}" stroke="var(--primary)" stroke-width="2.5"${L.dash ? ' stroke-dasharray="8 5"' : ''}/>`;
+      if (L.label) labels.push(txt(px(L.at[0]), py(L.at[1]), L.label));
     });
+    if (opts.riseRun) {
+      const [x1, y1, x2, y2] = opts.riseRun;
+      g += `<path class="stroke" d="M${px(x1)},${py(y1)} H${px(x2)} V${py(y2)}" stroke-dasharray="5 4" stroke-width="1.8"/>`;
+      labels.push(txt((px(x1) + px(x2)) / 2, py(y1) + (y2 > y1 ? 17 : -8), `run ${N(x2 - x1)}`), txt(px(x2) + 6, (py(y1) + py(y2)) / 2 + 4, `rise ${N(y2 - y1)}`, 'start'));
+    }
+    if (opts.square) {
+      const [x, y, ux, uy, vx, vy] = opts.square, k = 9, nu = Math.hypot(ux, uy), nv = Math.hypot(vx, vy);
+      const a = [px(x) + k * ux / nu, py(y) - k * uy / nu], c = [px(x) + k * vx / nv, py(y) - k * vy / nv], b = [a[0] + c[0] - px(x), a[1] + c[1] - py(y)];
+      g += `<path class="stroke" d="M${f(a[0])},${f(a[1])} L${f(b[0])},${f(b[1])} L${f(c[0])},${f(c[1])}" stroke-width="1.5"/>`;
+    }
     (opts.dots || []).forEach(([x, y]) => { g += `<circle cx="${px(x)}" cy="${py(y)}" r="4.5" fill="var(--primary)"/>`; });
-    return `<svg class="figure" viewBox="0 0 ${W} ${W}" width="${W}" height="${W}" role="img" aria-label="coordinate grid">${g}</svg>`;
+    const label = M.esc(opts.label || 'coordinate grid');
+    return `<svg class="figure" viewBox="0 0 ${W} ${W}" width="${W}" height="${W}" role="img" aria-label="${label}"><desc>${label}</desc>${g}${labels.join('')}</svg>`;
   }
 
   A.course({
@@ -95,10 +116,11 @@
 
   A.skill({
     id: 'alg1.combine-like-terms', title: 'Combining like terms',
-    learn: p(`Two terms are <b>like terms</b> when their variable parts match exactly, powers included. 4${M.sup(X, 2)} and −${M.sup(X, 2)} are like terms. 4${M.sup(X, 2)} and 4${X} are not, because one has ${X} squared and the other does not.`) +
-      p('To simplify, <b>add the coefficients of each group of like terms</b> and keep the variable part unchanged. A sign belongs to the term that follows it, so carry it along when you regroup.') +
-      p('Write the result with the highest power first. The number of terms left equals the number of different kinds of term you started with.') +
-      example('Example', `${big(`2${M.sup(X, 2)} − 5${X} + 3 + ${M.sup(X, 2)} + 7${X}`)}${M.sup(X, 2)} terms: 2 + 1 = 3. ${X} terms: −5 + 7 = 2. Constant: 3. Result: <b>3${M.sup(X, 2)} + 2${X} + 3</b>.`),
+    learn: p(`A <b>term</b> is a number, a variable, or a number times variables, such as 5${M.sup(X, 2)} or −3. The number in front is the term’s <b>coefficient</b>, and a term with no variable is called a <b>constant</b>.`) +
+      p(`Two terms are <b>like terms</b> when their variable parts match exactly, powers included. 4${M.sup(X, 2)} and −${M.sup(X, 2)} are like terms. 4${M.sup(X, 2)} and 4${X} aren’t, because one has ${X} squared and the other doesn’t.`) +
+      p('To simplify, <b>add the coefficients of each group of like terms</b> and keep the variable part as it is. A minus sign belongs to the term right after it, so carry it along when you move terms around. Write the result with the highest power first.') +
+      example('Example 1: one variable with powers', `${big(`2${M.sup(X, 2)} − 5${X} + 3 + ${M.sup(X, 2)} + 7${X}`)}${M.sup(X, 2)} terms: 2 + 1 = 3. ${X} terms: −5 + 7 = 2. Constant: 3. Result: <b>3${M.sup(X, 2)} + 2${X} + 3</b>.`) +
+      example('Example 2: two variables', `${big(`4${X} − 6${Y} − ${X} + 2${Y}`)}${X} terms: 4 − 1 = 3. ${Y} terms: −6 + 2 = −4. The ${X} and ${Y} terms can’t be combined with each other, so the result is <b>3${X} − 4${Y}</b>.`),
     make(rng) {
       const kind = rng.pick(['quad', 'quad', 'two-var']);
       let terms, answer, wrong;
@@ -138,10 +160,11 @@
 
   A.skill({
     id: 'alg1.distribute', title: 'Distributing and simplifying',
-    learn: p(`The <b>distributive property</b> says a factor outside parentheses multiplies <b>every</b> term inside: ${V('k')}(${V('a')} + ${V('b')}) = ${V('k')}${V('a')} + ${V('k')}${V('b')}. When the factor is negative, its sign goes into every product too.`) +
-      p(`After distributing, combine like terms. In 2(3${X} + 1) − 4(${X} − 5), the −4 multiplies both ${X} and −5, giving −4${X} + 20. Losing that second sign is the most common slip.`) +
+    learn: p(`A <b>factor</b> is something being multiplied. The <b>distributive property</b> says a factor outside parentheses multiplies <b>every</b> term inside: ${V('k')}(${V('a')} + ${V('b')}) = ${V('k')}${V('a')} + ${V('k')}${V('b')}. When the factor is negative, its minus sign goes into every product too.`) +
+      p(`After distributing, combine like terms. In 2(3${X} + 1) − 4(${X} − 5), the −4 multiplies both ${X} and −5, giving −4${X} + 20. Forgetting the sign on that second product is the most common slip.`) +
       p(`A variable outside works the same way: ${X}(2${X} − 3) = 2${M.sup(X, 2)} − 3${X}, because ${X} · ${X} = ${M.sup(X, 2)}.`) +
-      example('Example', `${big(`3(2${X} − 4) − 5(${X} + 1)`)}3 · 2${X} = 6${X}, 3 · (−4) = −12, −5 · ${X} = −5${X}, −5 · 1 = −5. Combine: (6 − 5)${X} + (−12 − 5) = <b>${X} − 17</b>.`),
+      example('Example 1: two groups, then combine', `${big(`3(2${X} − 4) − 5(${X} + 1)`)}3 · 2${X} = 6${X}, 3 · (−4) = −12, −5 · ${X} = −5${X}, −5 · 1 = −5. Combine: (6 − 5)${X} + (−12 − 5) = <b>${X} − 17</b>.`) +
+      example('Example 2: a variable outside', `${big(`−2${X}(3${X} − 5)`)}−2${X} · 3${X} = −6${M.sup(X, 2)}, and −2${X} · (−5) = 10${X}. The result is <b>−6${M.sup(X, 2)} + 10${X}</b>.`),
     make(rng) {
       if (rng.chance(0.3)) {
         const k = rng.nz(-6, 6), a = rng.nz(-7, 7), b = rng.nz(-9, 9);
@@ -161,8 +184,24 @@
       return { prompt: `Expand and simplify.${big(expr)}`, type: 'choice', choices: [answer].concat(others(answer, wrong, 3)), answer, params: { kind: 'two', a, b, c, d: dd, e, f },
         hints: [`Distribute ${N(a)}: ${N(a)}(${inner1}) = ${sumHtml([[a * b, 'x', 1], [a * c, '', 0]])}.`, `Distribute ${N(dd)}, sign included: ${N(dd)}(${inner2}) = ${sumHtml([[dd * e, 'x', 1], [dd * f, '', 0]])}.`, `Combine: ${X} terms ${N(a * b)} ${M.signed(dd * e)} = ${N(ex)}; constants ${N(a * c)} ${M.signed(dd * f)} = ${N(konst)}.`, `The simplified expression is <b>${answer}</b>.`] };
     },
+    challenge(rng) {
+      // a variable times a binomial, plus or minus a number times a trinomial
+      const k = rng.nz(-4, 4), a = rng.nz(-5, 5), b = rng.nz(-7, 7), d = rng.sign() * rng.int(2, 5), f = rng.nz(-6, 6), g = rng.nz(-6, 6);
+      let e = rng.nz(-3, 3); if (k * a + d * e === 0) e = e === 3 ? -3 : e + 1 || 1;
+      const A2 = k * a + d * e, B1 = k * b + d * f, C0 = d * g;
+      const outside = k === 1 ? X : k === -1 ? '−' + X : N(k) + X;
+      const in1 = sumHtml([[a, 'x', 1], [b, '', 0]]), in2 = sumHtml([[e, 'x', 2], [f, 'x', 1], [g, '', 0]]);
+      const answer = sumHtml([[A2, 'x', 2], [B1, 'x', 1], [C0, '', 0]]);
+      const wrong = [sumHtml([[A2, 'x', 2], [k * b - d * f, 'x', 1], [C0, '', 0]]), sumHtml([[A2, 'x', 2], [B1, 'x', 1], [g, '', 0]]), sumHtml([[d * e, 'x', 2], [k * a + k * b + d * f, 'x', 1], [C0, '', 0]]), sumHtml([[A2, 'x', 2], [B1, 'x', 1], [-C0, '', 0]]), sumHtml([[k * a - d * e, 'x', 2], [B1, 'x', 1], [C0, '', 0]])];
+      return { prompt: `Expand and simplify.${big(`${outside}(${in1}) ${d < 0 ? '−' : '+'} ${N(Math.abs(d))}(${in2})`)}`, type: 'choice', choices: [answer].concat(others(answer, wrong, 3)), answer, params: { kind: 'hard', k, a, b, d, e, f, g },
+        hints: [`Distribute ${outside}: ${outside}(${in1}) = ${sumHtml([[k * a, 'x', 2], [k * b, 'x', 1]])}, because ${X} · ${X} = ${M.sup(X, 2)}.`, `Distribute ${N(d)} to all three terms, sign included: ${sumHtml([[d * e, 'x', 2], [d * f, 'x', 1], [d * g, '', 0]])}.`, `Combine like terms: ${M.sup(X, 2)} terms ${N(k * a)} ${M.signed(d * e)} = ${N(A2)}, and ${X} terms ${N(k * b)} ${M.signed(d * f)} = ${N(B1)}.`, `The simplified expression is <b>${answer}</b>.`] };
+    },
     verify(q) {
       const P = q.params;
+      if (P.kind === 'hard') {
+        const at = x => P.k * x * (P.a * x + P.b) + P.d * (P.e * x * x + P.f * x + P.g), c = at(0);
+        return q.answer === sumHtml([[(at(1) + at(-1)) / 2 - c, 'x', 2], [(at(1) - at(-1)) / 2, 'x', 1], [c, '', 0]]);
+      }
       if (P.kind === 'mono') {
         const at = x => P.k * x * (P.a * x + P.b);
         // read the coefficients back from two evaluations: f(1) = A + B, f(−1) = A − B
@@ -179,10 +218,12 @@
 
   A.skill({
     id: 'alg1.multi-step-equations', title: 'Equations with variables on both sides',
-    learn: p(`When ${X} appears on both sides, first <b>simplify each side</b> (distribute, combine like terms), then <b>move all the ${X} terms to one side</b> and the numbers to the other, and finally divide by the coefficient of ${X}.`) +
-      p(`Moving a term means doing the same thing to both sides: to move 2${X} off the right, subtract 2${X} from both sides. It helps to collect ${X} on the side where its coefficient stays positive.`) +
-      p(`Sometimes the ${X} terms cancel. If what is left is false (like 4 = 9) there is <b>no solution</b>; if it is always true (like 4 = 4) there are <b>infinitely many solutions</b>.`) +
-      example('Example', `${big(`7${X} − 4 = 3${X} + 12`)}Subtract 3${X}: 4${X} − 4 = 12. Add 4: 4${X} = 16. Divide by 4: <b>${X} = 4</b>. Check: 7(4) − 4 = 24 and 3(4) + 12 = 24 ✓`),
+    learn: p(`When ${X} appears on both sides, first <b>simplify each side</b>: distribute and combine like terms. Then <b>move all the ${X} terms to one side</b> and the plain numbers to the other. Finally, divide by the coefficient of ${X}, the number multiplying it.`) +
+      p(`Moving a term means doing the same thing to both sides: to move 2${X} off the right side, subtract 2${X} from both sides. It’s easiest to collect ${X} on the side where its coefficient stays positive.`) +
+      p(`Sometimes the ${X} terms cancel. If what’s left is false (like 4 = 9), there’s <b>no solution</b>. If it’s always true (like 4 = 4), there are <b>infinitely many solutions</b>: every number works.`) +
+      example('Example 1: variables on both sides', `${big(`7${X} − 4 = 3${X} + 12`)}Subtract 3${X}: 4${X} − 4 = 12. Add 4: 4${X} = 16. Divide by 4: <b>${X} = 4</b>. Check: 7(4) − 4 = 24 and 3(4) + 12 = 24 ✓`) +
+      example('Example 2: parentheses first', `${big(`3(${X} − 2) + 5 = 5${X} − 9`)}Distribute and tidy the left side: 3${X} − 1 = 5${X} − 9. Subtract 3${X}: −1 = 2${X} − 9. Add 9: 8 = 2${X}, so <b>${X} = 4</b>.`) +
+      example('Example 3: when the x terms cancel', `${big(`2(${X} + 3) = 2${X} + 1`)}Distribute: 2${X} + 6 = 2${X} + 1. Subtract 2${X}: 6 = 1, which is never true, so there’s <b>no solution</b>. If the right side were 2${X} + 6, you’d get 6 = 6, and there would be <b>infinitely many solutions</b>.`),
     make(rng) {
       const kind = rng.pick(['both', 'both', 'paren', 'count']);
       if (kind === 'count') {
@@ -212,6 +253,25 @@
       return { prompt: `Solve for ${X}.${big(`${left} = ${right}`)}`, type: 'number', answer: x, params: { kind, a, b, c, d },
         hints: [`${c < 0 ? 'Add' : 'Subtract'} ${M.term(Math.abs(c), 'x')} on both sides to gather the ${X} terms on the left: ${sumHtml([[a - c, 'x', 1], [b, '', 0]])} = ${N(d)}.`, `${b < 0 ? 'Add' : 'Subtract'} ${N(Math.abs(b))} on both sides: ${M.term(a - c, 'x')} = ${N(d - b)}.`, `Divide both sides by ${N(a - c)}: <b>${X} = ${N(x)}</b>. Check: both sides equal ${N(a * x + b)}.`] };
     },
+    challenge(rng) {
+      const x = rng.nz(-12, 12), times = (k, e) => (k === 1 ? `(${e})` : k === -1 ? `−(${e})` : `${N(k)}(${e})`);
+      if (rng.bool()) {
+        // fractions on both sides: (ax + b)/m = (cx + d)/n
+        const [m, n] = rng.pick([[2, 3], [3, 4], [2, 5], [4, 3], [3, 5], [5, 2], [6, 4], [4, 6]]), a = rng.nz(-4, 4);
+        let c = rng.nz(-4, 4); while (a * n === c * m) c = rng.nz(-4, 4);
+        const j = rng.nz(-6, 6), b = m * j - a * x, d = n * j - c * x, L = m * n / M.gcd(m, n), u = L / m, w = L / n;
+        const in1 = sumHtml([[a, 'x', 1], [b, '', 0]]), in2 = sumHtml([[c, 'x', 1], [d, '', 0]]);
+        return { prompt: `Solve for ${X}.${big(`${F(in1, m)} = ${F(in2, n)}`)}`, type: 'number', answer: x, params: { kind: 'frac', a, b, c, d, m, n },
+          hints: [`Clear the fractions: multiply both sides by ${L}, the least common denominator. ${times(u, in1)} = ${times(w, in2)}.`, `Distribute: ${sumHtml([[a * u, 'x', 1], [b * u, '', 0]])} = ${sumHtml([[c * w, 'x', 1], [d * w, '', 0]])}.`, `Gather the ${X} terms: ${M.term(a * u - c * w, 'x')} = ${N(d * w - b * u)}, so <b>${X} = ${N(x)}</b>.`] };
+      }
+      // parentheses on both sides: a(x + b) − c(x − d) = e(x + f) + g
+      const a = rng.int(2, 7), c = rng.int(2, 6), b = rng.nz(-8, 8), d = rng.nz(-8, 8), f = rng.nz(-8, 8);
+      let e = rng.nz(-5, 5); while (a - c - e === 0) e = rng.nz(-5, 5);
+      const g = a * (x + b) - c * (x - d) - e * (x + f);
+      const lhs = `${N(a)}(${X} ${M.signed(b)}) − ${N(c)}(${X} ${M.signed(-d)})`, rhs = `${times(e, `${X} ${M.signed(f)}`)}${g ? ' ' + M.signed(g) : ''}`;
+      return { prompt: `Solve for ${X}.${big(`${lhs} = ${rhs}`)}`, type: 'number', answer: x, params: { kind: 'paren2', a, b, c, d, e, f, g },
+        hints: [`Distribute on both sides, watching the minus sign in front of ${N(c)}: ${sumHtml([[a - c, 'x', 1], [a * b + c * d, '', 0]])} = ${sumHtml([[e, 'x', 1], [e * f + g, '', 0]])}.`, `Move the ${X} terms to one side and the numbers to the other: ${M.term(a - c - e, 'x')} = ${N(e * f + g - a * b - c * d)}.`, `Divide by ${N(a - c - e)}: <b>${X} = ${N(x)}</b>.`] };
+    },
     verify(q) {
       const P = q.params, x = q.answer;
       if (P.kind === 'count') {
@@ -220,6 +280,8 @@
         return q.answer === expect;
       }
       if (P.kind === 'paren') return P.a * (x + P.b) + P.c === P.dc * x + P.e;
+      if (P.kind === 'frac') return P.a * P.n !== P.c * P.m && P.n * (P.a * x + P.b) === P.m * (P.c * x + P.d);      // cross-multiplied, and only one solution
+      if (P.kind === 'paren2') return P.a - P.c !== P.e && P.a * (x + P.b) - P.c * (x - P.d) === P.e * (x + P.f) + P.g;
       return P.a * x + P.b === P.c * x + P.d;
     },
   });
@@ -260,6 +322,21 @@
     { f: `${V('A')} = ${F(V('h'), '2')}(${sb('b', 1)} + ${sb('b', 2)})`, t: 'h', vars: ['A', 'b1', 'b2'], ok: s => s.A - (s.h / 2 * (s.b1 + s.b2)), opts: [
       [`${V('h')} = ${F(`2${V('A')}`, `${sb('b', 1)} + ${sb('b', 2)}`)}`, s => 2 * s.A / (s.b1 + s.b2)], [`${V('h')} = ${F(V('A'), `2(${sb('b', 1)} + ${sb('b', 2)})`)}`, s => s.A / (2 * (s.b1 + s.b2))],
       [`${V('h')} = 2${V('A')} − (${sb('b', 1)} + ${sb('b', 2)})`, s => 2 * s.A - (s.b1 + s.b2)], [`${V('h')} = ${F(`${sb('b', 1)} + ${sb('b', 2)}`, `2${V('A')}`)}`, s => (s.b1 + s.b2) / (2 * s.A)]] },
+    { f: `${V('A')} = ${V('l')}${V('w')}`, t: 'w', vars: ['A', 'l'], ok: s => s.A - s.l * s.w, opts: [
+      [`${V('w')} = ${F(V('A'), V('l'))}`, s => s.A / s.l], [`${V('w')} = ${F(V('l'), V('A'))}`, s => s.l / s.A],
+      [`${V('w')} = ${V('A')} − ${V('l')}`, s => s.A - s.l], [`${V('w')} = ${V('A')} + ${V('l')}`, s => s.A + s.l]] },
+    { f: `${V('V')} = π${M.sup(V('r'), 2)}${V('h')}`, t: 'h', vars: ['V', 'r'], ok: s => s.V - Math.PI * s.r * s.r * s.h, opts: [
+      [`${V('h')} = ${F(V('V'), `π${M.sup(V('r'), 2)}`)}`, s => s.V / (Math.PI * s.r * s.r)], [`${V('h')} = ${F(`π${M.sup(V('r'), 2)}`, V('V'))}`, s => Math.PI * s.r * s.r / s.V],
+      [`${V('h')} = ${V('V')} − π${M.sup(V('r'), 2)}`, s => s.V - Math.PI * s.r * s.r], [`${V('h')} = ${F(V('V'), `2π${V('r')}`)}`, s => s.V / (2 * Math.PI * s.r)]] },
+    { f: `${V('S')} = 180(${V('n')} − 2)`, t: 'n', vars: ['S'], ok: s => s.S - 180 * (s.n - 2), opts: [
+      [`${V('n')} = ${F(V('S'), '180')} + 2`, s => s.S / 180 + 2], [`${V('n')} = ${F(V('S'), '180')} − 2`, s => s.S / 180 - 2],
+      [`${V('n')} = ${F(`${V('S')} − 2`, '180')}`, s => (s.S - 2) / 180], [`${V('n')} = 180${V('S')} + 2`, s => 180 * s.S + 2]] },
+    { f: `${V('y')} = ${V('m')}${V('x')} + ${V('b')}`, t: 'm', vars: ['y', 'x', 'b'], ok: s => s.y - (s.m * s.x + s.b), opts: [
+      [`${V('m')} = ${F(`${V('y')} − ${V('b')}`, V('x'))}`, s => (s.y - s.b) / s.x], [`${V('m')} = ${F(`${V('y')} + ${V('b')}`, V('x'))}`, s => (s.y + s.b) / s.x],
+      [`${V('m')} = ${F(V('y'), V('x'))} − ${V('b')}`, s => s.y / s.x - s.b], [`${V('m')} = ${F(`${V('x')} − ${V('b')}`, V('y'))}`, s => (s.x - s.b) / s.y]] },
+    { f: `${V('P')} = 2(${V('l')} + ${V('w')})`, t: 'l', vars: ['P', 'w'], ok: s => s.P - 2 * (s.l + s.w), opts: [
+      [`${V('l')} = ${F(V('P'), '2')} − ${V('w')}`, s => s.P / 2 - s.w], [`${V('l')} = ${F(`${V('P')} − ${V('w')}`, '2')}`, s => (s.P - s.w) / 2],
+      [`${V('l')} = ${F(V('P'), '2')} + ${V('w')}`, s => s.P / 2 + s.w], [`${V('l')} = 2${V('P')} − ${V('w')}`, s => 2 * s.P - s.w]] },
   ];
   const LIT_STEPS = [
     ['Subtract 2<i>l</i> from both sides: <i>P</i> − 2<i>l</i> = 2<i>w</i>.', 'Divide both sides by 2.'],
@@ -273,28 +350,37 @@
     ['<i>r</i> is multiplied by 2π.', 'Divide both sides by 2π.'],
     ['Subtract <i>ax</i> from both sides: <i>by</i> = <i>c</i> − <i>ax</i>.', 'Divide both sides by <i>b</i>.'],
     ['Multiply both sides by 2: 2<i>A</i> = <i>h</i>(<i>b</i><sub>1</sub> + <i>b</i><sub>2</sub>).', 'Divide both sides by (<i>b</i><sub>1</sub> + <i>b</i><sub>2</sub>).'],
+    ['<i>w</i> is multiplied by <i>l</i>.', 'Divide both sides by <i>l</i>.'],
+    ['<i>h</i> is multiplied by π<i>r</i><sup>2</sup>.', 'Divide both sides by π<i>r</i><sup>2</sup>.'],
+    ['Divide both sides by 180: <i>S</i>/180 = <i>n</i> − 2.', 'Add 2 to both sides.'],
+    ['Subtract <i>b</i> from both sides: <i>y</i> − <i>b</i> = <i>mx</i>.', 'Divide both sides by <i>x</i>.'],
+    ['Divide both sides by 2: <i>P</i>/2 = <i>l</i> + <i>w</i>.', 'Subtract <i>w</i> from both sides.'],
   ];
-  /** y = (mn/md)x + kn/kd, all parts possibly fractions */
-  function lineFr(mn, md, kn, kd) {
-    const t = coefVar(mn, md, 'x'), [sn, sd] = M.simp(kn, kd);
+  /** y = (mn/md)x + kn/kd, all parts possibly fractions; lhs/rhs swap the letters (x in terms of y) */
+  function lineFr(mn, md, kn, kd, lhs, rhs) {
+    const t = coefVar(mn, md, rhs || 'x'), [sn, sd] = M.simp(kn, kd);
     const k = sn === 0 ? '' : (t ? (sn < 0 ? ' − ' : ' + ') : (sn < 0 ? '−' : '')) + F(Math.abs(sn), sd);
-    return `${Y} = ${t || (k ? '' : '0')}${k}`;
+    return `${V(lhs || 'y')} = ${t || (k ? '' : '0')}${k}`;
   }
 
   A.skill({
     id: 'alg1.literal-equations', title: 'Rearranging formulas',
-    learn: p(`A <b>literal equation</b> has several letters, like ${V('d')} = ${V('r')}${V('t')}. To solve it for one letter, treat every other letter as if it were a number and <b>undo the operations around the target letter</b>, in reverse order, doing the same to both sides.`) +
-      p(`Undo addition and subtraction first, then multiplication and division. If the target is multiplied by a group, divide by the whole group: in ${V('V')} = ${V('l')}${V('w')}${V('h')}, divide by ${V('l')}${V('w')} to get ${V('h')} alone.`) +
-      p('A quick check: put simple numbers in for the other letters, work out the target both ways, and make sure the original formula still balances.') +
-      example('Example', `Solve ${V('P')} = 2${V('l')} + 2${V('w')} for ${V('l')}. Subtract 2${V('w')}: ${V('P')} − 2${V('w')} = 2${V('l')}. Divide by 2: <b>${V('l')} = ${F(`${V('P')} − 2${V('w')}`, '2')}</b>.`),
+    learn: p(`A <b>literal equation</b> is an equation with several letters, like ${V('d')} = ${V('r')}${V('t')} (distance equals rate times time). Every formula is one. To solve it for one letter, treat all the other letters as if they were numbers and <b>undo the operations around the target letter</b> in reverse order, doing the same thing to both sides.`) +
+      p(`Undo addition and subtraction first, then multiplication and division. If the target is multiplied by a group, divide by the whole group: in ${V('V')} = ${V('l')}${V('w')}${V('h')}, divide both sides by ${V('l')}${V('w')} to get ${V('h')} by itself.`) +
+      p('To check, pick simple numbers for the other letters, work out the target, and make sure the original formula still balances.') +
+      example('Example 1: a formula', `Solve ${V('P')} = 2${V('l')} + 2${V('w')} for ${V('l')}. Subtract 2${V('w')}: ${V('P')} − 2${V('w')} = 2${V('l')}. Divide by 2: <b>${V('l')} = ${F(`${V('P')} − 2${V('w')}`, '2')}</b>.`) +
+      example('Example 2: solving a line for y', `Solve 3${X} − 4${Y} = 12 for ${Y}. Subtract 3${X}: −4${Y} = 12 − 3${X}. Divide every term by −4: ${Y} = −3 + ${F(3, 4)}${X}, which is <b>${Y} = ${F(3, 4)}${X} − 3</b>.`),
     make(rng) {
-      if (rng.chance(0.3)) {
-        const a = rng.nz(-6, 6), b = rng.sign() * rng.pick([2, 3, 4, 5]), c = rng.nz(-12, 12);
-        const opts = [[-a, b, c, b], [a, b, c, b], [-a, b, c * b, b], [-a, b, -c, b], [-b, a, c, b]];
-        const html = opts.map(o => lineFr(...o));
+      if (rng.chance(0.35)) {
+        const forX = rng.chance(0.4);
+        const a = forX ? rng.sign() * rng.pick([2, 3, 4, 5]) : rng.nz(-6, 6), b = forX ? rng.nz(-6, 6) : rng.sign() * rng.pick([2, 3, 4, 5]), c = rng.nz(-12, 12);
+        // solving for the letter with coefficient d (the other letter's coefficient is o): t = (−o/d)·other + c/d
+        const [d, o, t, w] = forX ? [a, b, 'x', 'y'] : [b, a, 'y', 'x'];
+        const opts = [[-o, d, c, d], [o, d, c, d], [-o, d, c * d, d], [-o, d, -c, d], [-d, o, c, d]];
+        const html = opts.map(op => lineFr(...op, t, w));
         const answer = html[0], choices = [answer].concat(others(answer, html.slice(1), 3));
-        return { prompt: `Solve for ${Y}.${big(`${sumHtml([[a, 'x', 1], [b, 'y', 1]])} = ${N(c)}`)}`, type: 'choice', choices, answer, params: { kind: 'num', a, b, c, opts, html },
-          hints: [`${a < 0 ? 'Add' : 'Subtract'} ${M.term(Math.abs(a), 'x')} on both sides: ${M.term(b, 'y')} = ${sumHtml([[c, '', 0], [-a, 'x', 1]])}.`, `Divide every term by ${N(b)}.`, `<b>${answer}</b>.`] };
+        return { prompt: `Solve for ${V(t)}.${big(`${sumHtml([[a, 'x', 1], [b, 'y', 1]])} = ${N(c)}`)}`, type: 'choice', choices, answer, params: { kind: 'num', t, a, b, c, opts, html },
+          hints: [`${o < 0 ? 'Add' : 'Subtract'} ${M.term(Math.abs(o), w)} on both sides: ${M.term(d, t)} = ${sumHtml([[c, '', 0], [-o, w, 1]])}.`, `Divide every term by ${N(d)}.`, `<b>${answer}</b>.`] };
       }
       const idx = rng.int(0, LIT.length - 1), L = LIT[idx];
       const order = rng.shuffle([0, 1, 2, 3]);
@@ -307,8 +393,9 @@
       const P = q.params;
       if (P.kind === 'num') {
         const i = P.html.indexOf(q.answer); if (i < 0) return 'answer not among options';
-        const [mn, md, kn, kd] = P.opts[i];
-        return [0, 1, 3].every(x => Math.abs(P.a * x + P.b * (mn / md * x + kn / kd) - P.c) < 1e-9);
+        const [mn, md, kn, kd] = P.opts[i], other = u => mn / md * u + kn / kd;
+        // put each trial value in for the free letter and the claimed expression for the solved one
+        return [0, 1, 3].every(u => Math.abs(P.t === 'x' ? P.a * other(u) + P.b * u - P.c : P.a * u + P.b * other(u) - P.c) < 1e-9);
       }
       const L = LIT[P.idx], vals = [2.5, 4, 1.25, 3, 7];
       const s = {}; L.vars.forEach((v, i) => { s[v] = vals[i]; });
@@ -333,10 +420,11 @@
 
   A.skill({
     id: 'alg1.compound-inequalities', title: 'Compound inequalities',
-    learn: p(`A <b>compound inequality</b> joins two conditions. With <b>and</b>, a number must satisfy both, so the solution is the overlap, often written as one three-part statement like −2 &lt; ${X} ≤ 5. With <b>or</b>, a number needs to satisfy only one, as in ${X} &lt; −1 or ${X} &gt; 4.`) +
-      p(`Solve a three-part inequality by doing the same step to <b>all three parts</b>. As always, multiplying or dividing by a negative number <b>flips every sign</b>; afterward, rewrite the statement with the smaller number on the left.`) +
-      p('For an "or" inequality, solve each half on its own and keep the word "or" between the answers.') +
-      example('Example', `${big(`−7 &lt; −2${X} + 1 ≤ 9`)}Subtract 1 from all three parts: −8 &lt; −2${X} ≤ 8. Divide by −2 and flip both signs: 4 &gt; ${X} ≥ −4. Smaller number first: <b>−4 ≤ ${X} &lt; 4</b>.`),
+    learn: p(`A <b>compound inequality</b> joins two conditions on the same variable. With <b>and</b>, a number must satisfy both, so the solutions are the overlap. It’s often written as one three-part statement, such as −2 &lt; ${X} ≤ 5, which says ${X} is between −2 and 5 and may equal 5. With <b>or</b>, a number only needs to satisfy one of the two, as in ${X} &lt; −1 or ${X} &gt; 4.`) +
+      p(`Solve a three-part inequality by doing the same step to <b>all three parts</b>. Multiplying or dividing by a negative number <b>flips every inequality sign</b>; afterward, rewrite the statement with the smaller number on the left.`) +
+      p('For an “or” inequality, solve each half on its own, then keep the word “or” between the two answers.') +
+      example('Example 1: a three-part inequality', `${big(`−7 &lt; −2${X} + 1 ≤ 9`)}Subtract 1 from all three parts: −8 &lt; −2${X} ≤ 8. Divide by −2 and flip both signs: 4 &gt; ${X} ≥ −4. Smaller number first: <b>−4 ≤ ${X} &lt; 4</b>.`) +
+      example('Example 2: an “or” inequality', `${big(`2${X} + 1 &lt; −5 &nbsp;or&nbsp; 3${X} − 4 ≥ 8`)}First half: subtract 1, then divide by 2: ${X} &lt; −3. Second half: add 4, then divide by 3: ${X} ≥ 4. Together: <b>${X} &lt; −3 or ${X} ≥ 4</b>.`),
     make(rng) {
       if (rng.chance(0.6)) {
         const L = rng.int(-8, 3), R = L + rng.int(2, 9), b = rng.nz(-5, 5), c = rng.nz(-9, 9);
@@ -390,23 +478,50 @@
     ['cup', 'min', 'gal', 'h', 15, 4, [2, 4, 8, 1, 6], '16 cups = 1 gallon, so divide by 16.', '1 hour = 60 minutes, so per hour is 60 times bigger: multiply by 60.'],
   ];
   const un = (u, k) => UNAME[u][k === 1 ? 0 : 1];
+  /* everyday settings: for one unit, (amount, name) → a sentence that names the amount; for a rate, (rate, name) → the same */
+  const SINGLE_CTX = {
+    'ft>in': [(U, n) => `${n} cuts a plank ${U} long for a garden fence.`, U => `A hallway rug is ${U} long.`],
+    'yd>ft': [U => `A community garden bed is ${U} long.`, (U, n) => `${n} buys ${U} of fabric for a costume.`],
+    'mi>ft': [(U, n) => `${n} walks ${U} to school.`, U => `A charity fun run is ${U} long.`],
+    'h>s': [U => `A bus trip across town takes ${U}.`, (U, n) => `${n}’s shift at the library lasts ${U}.`],
+    'km>cm': [U => `A bike trail through a park is ${U} long.`, U => `A relay race covers ${U}.`],
+    'gal>cup': [U => `A pot of soup for a shelter dinner holds ${U}.`, (U, n) => `${n} fills a cooler with ${U} of water.`],
+    'lb>oz': [U => `A baker measures out ${U} of flour.`, (U, n) => `${n} mails a package that weighs ${U}.`],
+    'in>ft': [U => `A sunflower grew ${U} tall.`, U => `A carpenter cuts a piece of trim ${U} long.`],
+    'min>h': [(U, n) => `${n} spends ${U} on a science project.`, U => `A field trip bus ride takes ${U}.`],
+    'cm>m': [U => `A ribbon for a school banner is ${U} long.`, U => `A measuring tape is pulled out to ${U}.`],
+    'day>min': [U => `A camping trip lasts ${U}.`, (U, n) => `${n}’s family visits relatives for ${U}.`],
+  };
+  const RATE_CTX = [
+    [R => `A car travels at ${R}.`, R => `A delivery van drives at ${R}.`],
+    [R => `A gust of wind is measured at ${R}.`, R => `A drone flies at ${R}.`],
+    [R => `A drone flies at ${R}.`, R => `A car on a test track drives at ${R}.`],
+    [R => `A conveyor belt in a bakery moves at ${R}.`, R => `An escalator at a train station moves at ${R}.`],
+    [R => `A garden sprinkler uses water at ${R}.`, R => `A pump drains a flooded basement at ${R}.`],
+    [R => `A bakery uses yeast at ${R}.`, R => `A community garden uses fertilizer at ${R}.`],
+    [R => `A faucet left running pours out ${R}.`, R => `A park’s drinking fountain pours out ${R}.`],
+  ];
 
   A.skill({
     id: 'alg1.unit-conversion', title: 'Converting units and rates',
-    learn: p(`To change units, multiply by a <b>conversion factor</b>: a fraction equal to 1, such as ${F('12 in', '1 ft', { raw: true })}. Arrange it so the unit you want to get rid of appears on the top once and on the bottom once; then it cancels.`) +
-      p(`A <b>rate</b> has a unit on top and a unit on the bottom, like miles per hour. Convert each one with its own factor. Ask yourself whether the number should get bigger or smaller: there are more feet than miles, so the top number grows; a second is shorter than an hour, so less distance is covered per second.`) +
-      example('Example', `Convert 45 miles per hour to feet per second. ${F('45 mi', '1 h', { raw: true })} × ${F('5,280 ft', '1 mi', { raw: true })} × ${F('1 h', '3,600 s', { raw: true })} = ${F('237,600 ft', '3,600 s', { raw: true })} = <b>66 feet per second</b>.`),
+    learn: p(`To change units, multiply by a <b>conversion factor</b>: a fraction whose top and bottom are the same amount written in different units, such as ${F('12 in', '1 ft', { raw: true })}. It equals 1, so it changes the units but not the amount. Arrange it so the unit you want to get rid of appears once on top and once on the bottom; then it cancels.`) +
+      p(`A <b>rate</b> compares two units, like miles per hour, with one unit on top and one on the bottom. Convert each unit with its own factor. Ask yourself whether the number should get bigger or smaller: a mile is many feet, so the top number grows; a second is much shorter than an hour, so you cover less distance per second.`) +
+      example('Example 1: one unit', `Convert 2.5 pounds to ounces. There are 16 ounces in a pound: 2.5 lb × ${F('16 oz', '1 lb', { raw: true })} = <b>40 ounces</b>. Pounds cancel, and the number gets bigger because an ounce is smaller than a pound.`) +
+      example('Example 2: a rate', `Convert 45 miles per hour to feet per second. ${F('45 mi', '1 h', { raw: true })} × ${F('5,280 ft', '1 mi', { raw: true })} × ${F('1 h', '3,600 s', { raw: true })} = ${F('237,600 ft', '3,600 s', { raw: true })} = <b>66 feet per second</b>.`),
     make(rng) {
       if (rng.chance(0.45)) {
         const i = rng.int(0, SINGLE.length - 1), [from, to, num, den, vals] = SINGLE[i], v = rng.pick(vals);
         const ans = M.round(v * num / den, 6);
-        return { prompt: `Convert ${N(v)} ${un(from, v)} to ${un(to, 2)}.`, type: 'number', answer: ans, unit: to, params: { kind: 'single', from, to, v },
+        const U = `${N(v)} ${un(from, v)}`, how = rng.int(0, 2);
+        const prompt = how === 2 ? `Convert ${U} to ${un(to, 2)}.` : `${SINGLE_CTX[from + '>' + to][how](U, rng.pick(NAMES))} How many ${un(to, 2)} is that?`;
+        return { prompt, type: 'number', answer: ans, unit: to, params: { kind: 'single', from, to, v },
           hints: [num > 1 ? `There are ${N(num)} ${un(to, 2)} in 1 ${un(from, 1)}, so you will get a bigger number: multiply by ${N(num)}.` : `There are ${N(den)} ${un(from, 2)} in 1 ${un(to, 1)}, so you will get a smaller number: divide by ${N(den)}.`,
             `${N(v)} ${num > 1 ? '×' : '÷'} ${N(num > 1 ? num : den)} = <b>${N(ans)} ${un(to, ans)}</b>.`] };
       }
       const i = rng.int(0, RATES.length - 1), [f1, f2, t1, t2, num, den, vals, h1, h2] = RATES[i], v = rng.pick(vals);
       const ans = M.round(v * num / den, 6), name = rng.pick(NAMES);
-      const ctx = rng.pick([`Convert ${N(v)} ${un(f1, 2)} per ${un(f2, 1)} to ${un(t1, 2)} per ${un(t2, 1)}.`, `${name} measures a rate of ${N(v)} ${un(f1, 2)} per ${un(f2, 1)}. What is that rate in ${un(t1, 2)} per ${un(t2, 1)}?`]);
+      const R = `${N(v)} ${un(f1, 2)} per ${un(f2, 1)}`, how = rng.int(0, 3);
+      const ctx = how === 3 ? `Convert ${R} to ${un(t1, 2)} per ${un(t2, 1)}.` : how === 2 ? `${name} measures a rate of ${R}. What is that rate in ${un(t1, 2)} per ${un(t2, 1)}?` : `${RATE_CTX[i][how](R)} What is that rate in ${un(t1, 2)} per ${un(t2, 1)}?`;
       return { prompt: ctx, type: 'number', answer: ans, unit: `${t1}/${t2}`, params: { kind: 'rate', f1, f2, t1, t2, v },
         hints: [`Convert the top unit: ${h1}`, `Convert the bottom unit: ${h2}`, `Altogether: ${N(v)} × ${F(num, den)} = <b>${N(ans)} ${un(t1, 2)} per ${un(t2, 1)}</b>.`] };
     },
@@ -428,16 +543,18 @@
 
   A.skill({
     id: 'alg1.slope', title: 'Slope',
-    learn: p(`The <b>slope</b> of a line measures its steepness: how much ${Y} changes for each step of 1 in ${X}. Between any two points on the line, <b>slope = rise ÷ run = (${M.sub(Y, 2)} − ${M.sub(Y, 1)}) ÷ (${M.sub(X, 2)} − ${M.sub(X, 1)})</b>.`) +
-      p('A line that rises from left to right has a positive slope; one that falls has a negative slope; a flat line has slope 0. Subtract the coordinates in the same order on the top and the bottom, or the sign comes out wrong.') +
-      p('In a table, slope is the change in the output divided by the change in the input between any two rows. It is the same for every pair of rows, which is what makes the relationship linear.') +
-      example('Example', `Through ${M.pt(-2, 5)} and ${M.pt(4, 2)}: slope = ${F('2 − 5', '4 − (−2)', { raw: true })} = ${F('−3', '6', { raw: true })} = <b>−${F(1, 2)}</b>.`),
+    learn: p(`The <b>slope</b> of a line measures how steep it is: how much ${Y} changes for each step of 1 in ${X}. The <b>rise</b> is the vertical change between two points on the line, and the <b>run</b> is the horizontal change. For points (${M.sub(X, 1)}, ${M.sub(Y, 1)}) and (${M.sub(X, 2)}, ${M.sub(Y, 2)}), <b>slope = rise ÷ run = (${M.sub(Y, 2)} − ${M.sub(Y, 1)}) ÷ (${M.sub(X, 2)} − ${M.sub(X, 1)})</b>.`) +
+      p('A line that goes up from left to right has a positive slope; one that goes down has a negative slope; a flat line has slope 0. Subtract the coordinates in the same order on the top and the bottom, or the sign comes out wrong.') +
+      p('In a table, the slope is the change in the output divided by the change in the input between any two rows. It’s the same for every pair of rows, and that’s what makes the relationship linear.') +
+      example('Example 1: two points', `Through ${M.pt(-2, 5)} and ${M.pt(4, 2)}: slope = ${F('2 − 5', '4 − (−2)', { raw: true })} = ${F('−3', '6', { raw: true })} = <b>−${F(1, 2)}</b>. The line goes down as you move right.`) +
+      example('Example 2: a table', `${M.table([X, Y], [['1', '4'], ['3', '10'], ['5', '16']])}From the first row to the second, ${Y} goes up 6 while ${X} goes up 2, so the slope is ${F('6', '2', { raw: true })} = <b>3</b>. Any other pair of rows gives 3 too.`) +
+      example('Example 3: a graph', `${grid({ lines: [[-4, -1, 2, 3]], dots: [[-4, -1], [2, 3]], riseRun: [-4, -1, 2, 3], label: 'A line through the points (−4, −1) and (2, 3), with a run of 6 to the right and a rise of 4 marked between them' })}Pick two points where the line crosses grid corners, (−4, −1) and (2, 3). Going from one to the other, the run is 6 and the rise is 4, so the slope is ${F('4', '6', { raw: true })} = <b>${F(2, 3)}</b>.`),
     make(rng) {
       const kind = rng.pick(['points', 'points', 'table', 'graph']);
       let x1, y1, x2, y2, prompt;
       if (kind === 'graph') {
         x1 = rng.int(-5, 2); x2 = x1 + rng.int(1, 4); y1 = rng.int(-5, 5); y2 = rng.int(-5, 5);
-        prompt = `What is the slope of this line? Both dots sit exactly on grid points.${grid({ lines: [[x1, y1, x2, y2]], dots: [[x1, y1], [x2, y2]] })}`;
+        prompt = `What is the slope of this line? Both dots sit exactly on grid points.${grid({ lines: [[x1, y1, x2, y2]], dots: [[x1, y1], [x2, y2]], label: `A line on a coordinate grid through two marked points, (${N(x1)}, ${N(y1)}) and (${N(x2)}, ${N(y2)})` })}`;
       } else if (kind === 'table') {
         const x0 = rng.int(-3, 3), dx = rng.pick([1, 2, 3]), dy = rng.nz(-6, 6), y0 = rng.int(-10, 10);
         const rows = [0, 1, 2, 3].map(i => [x0 + i * dx, y0 + i * dy]);
@@ -461,9 +578,11 @@
 
   A.skill({
     id: 'alg1.linear-forms', title: 'Forms of linear equations',
-    learn: p(`A line can be written three common ways. <b>Slope-intercept form</b> ${Y} = ${V('m')}${X} + ${V('b')} shows the slope ${V('m')} and the ${Y}-intercept ${V('b')}. <b>Point-slope form</b> ${Y} − ${M.sub(Y, 1)} = ${V('m')}(${X} − ${M.sub(X, 1)}) shows the slope and one point ${M.pt(V('x') + '<sub>1</sub>', V('y') + '<sub>1</sub>')}. <b>Standard form</b> ${V('A')}${X} + ${V('B')}${Y} = ${V('C')} makes the intercepts easy to find.`) +
-      p(`To write ${Y} = ${V('m')}${X} + ${V('b')} from a slope and a point, put the point into the equation and solve for ${V('b')}. From two points, find the slope first. For the intercepts of a standard-form line, set ${Y} = 0 to find the ${X}-intercept and ${X} = 0 to find the ${Y}-intercept.`) +
-      example('Example', `Slope 3 through ${M.pt(2, 1)}: 1 = 3(2) + ${V('b')}, so ${V('b')} = −5 and the line is <b>${Y} = 3${X} − 5</b>. In point-slope form the same line is ${psH(3, 2, 1)}.`),
+    learn: p(`A line can be written in three common ways. <b>Slope-intercept form</b>, ${Y} = ${V('m')}${X} + ${V('b')}, shows the slope ${V('m')} and the <b>${Y}-intercept</b> ${V('b')}, the ${Y}-value where the line crosses the ${Y}-axis. <b>Point-slope form</b>, ${Y} − ${M.sub(Y, 1)} = ${V('m')}(${X} − ${M.sub(X, 1)}), shows the slope and one point ${M.pt(V('x') + '<sub>1</sub>', V('y') + '<sub>1</sub>')} on the line. <b>Standard form</b>, ${V('A')}${X} + ${V('B')}${Y} = ${V('C')}, makes the intercepts easy to find.`) +
+      p(`To write ${Y} = ${V('m')}${X} + ${V('b')} from a slope and a point, put the point’s coordinates into the equation and solve for ${V('b')}. From two points, find the slope first. For a line in standard form, set ${Y} = 0 to find the <b>${X}-intercept</b> (where it crosses the ${X}-axis) and ${X} = 0 to find the ${Y}-intercept.`) +
+      example('Example 1: a slope and a point', `Slope 3 through ${M.pt(2, 1)}: 1 = 3(2) + ${V('b')}, so ${V('b')} = −5 and the line is <b>${Y} = 3${X} − 5</b>. In point-slope form the same line is ${psH(3, 2, 1)}; distributing gives ${Y} − 1 = 3${X} − 6, and adding 1 brings back ${Y} = 3${X} − 5.`) +
+      example('Example 2: two points', `Through ${M.pt(1, 2)} and ${M.pt(3, 8)}: the slope is ${F('8 − 2', '3 − 1', { raw: true })} = 3. Then 2 = 3(1) + ${V('b')}, so ${V('b')} = −1: <b>${Y} = 3${X} − 1</b>.`) +
+      example('Example 3: standard form', `${big(`2${X} + 5${Y} = 10`)}${Y} = 0 gives 2${X} = 10, so the ${X}-intercept is <b>5</b>. ${X} = 0 gives 5${Y} = 10, so the ${Y}-intercept is <b>2</b>. Solving for ${Y}, ${Y} = −${F(2, 5)}${X} + 2, so the slope is <b>−${F(2, 5)}</b>.`),
     make(rng) {
       const kind = rng.pick(['slope-point', 'two-points', 'standard', 'point-slope', 'write-ps']);
       if (kind === 'standard') {
@@ -510,9 +629,12 @@
   const REL = ['Parallel', 'Perpendicular', 'Neither'];
   A.skill({
     id: 'alg1.parallel-perpendicular', title: 'Parallel and perpendicular lines',
-    learn: p(`<b>Parallel lines</b> never meet, so they have the <b>same slope</b> (and different ${Y}-intercepts). <b>Perpendicular lines</b> cross at a right angle; their slopes are <b>negative reciprocals</b>: flip the fraction and change its sign. The product of perpendicular slopes is −1.`) +
-      p(`A line with slope ${F(2, 3)} is perpendicular to any line with slope −${F(3, 2)}. A slope of −4 pairs with ${F(1, 4)}. To compare lines in standard form, solve each for ${Y} first so you can read the slope.`) +
-      example('Example', `Find the line through ${M.pt(4, 1)} perpendicular to ${Y} = 2${X} + 7. The new slope is −${F(1, 2)}. Then 1 = −${F(1, 2)}(4) + ${V('b')}, so ${V('b')} = 3: <b>${Y} = −${F(1, 2)}${X} + 3</b>.`),
+    learn: p(`<b>Parallel lines</b> never meet, so they have the <b>same slope</b> (and different ${Y}-intercepts). <b>Perpendicular lines</b> cross at a right angle, and their slopes are <b>negative reciprocals</b>: flip the fraction and change its sign. The product of two perpendicular slopes is −1.`) +
+      p(`A line with slope ${F(2, 3)} is perpendicular to any line with slope −${F(3, 2)}, and a slope of −4 pairs with ${F(1, 4)}. To compare lines written in standard form, solve each one for ${Y} first so you can read its slope.`) +
+      grid({ lines: [{ pts: [0, 3, 1, 5], label: 'slope 2', at: [-4.6, -1] }, { pts: [2, 2, 3, 4], label: 'slope 2', at: [4.6, 2.6] }, { pts: [0, 3, 2, 2], dash: true, label: 'slope −½', at: [-3.4, 5.4] }], square: [2, 2, 1, 2, 2, -1], label: 'Two parallel lines, y = 2x + 3 and y = 2x − 2, both with slope 2, and a dashed line y = −½x + 3 with slope −½ that crosses both of them at right angles' }) +
+      example('Example 1: slopes from standard form', `${big(`3${X} + 4${Y} = 8`)}Solve for ${Y}: ${Y} = −${F(3, 4)}${X} + 2, so the slope is −${F(3, 4)}. A parallel line has slope <b>−${F(3, 4)}</b>; a perpendicular line has slope <b>${F(4, 3)}</b>.`) +
+      example('Example 2: parallel, perpendicular, or neither', `${big(`${Y} = 2${X} + 1 <br> ${X} + 2${Y} = 6`)}The second line is ${Y} = −${F(1, 2)}${X} + 3. The slopes are 2 and −${F(1, 2)}, and 2 · (−${F(1, 2)}) = −1, so the lines are <b>perpendicular</b>.`) +
+      example('Example 3: a line through a point', `Find the line through ${M.pt(4, 1)} perpendicular to ${Y} = 2${X} + 7. The new slope is −${F(1, 2)}. Then 1 = −${F(1, 2)}(4) + ${V('b')}, so ${V('b')} = 3: <b>${Y} = −${F(1, 2)}${X} + 3</b>.`),
     make(rng) {
       const kind = rng.pick(['slope', 'slope', 'classify', 'through']);
       const [mn, md] = pickSlope(rng, [1, 1, 2, 3, 4], 6);
@@ -542,6 +664,16 @@
       return { prompt: `Which line passes through ${M.pt(px, py)} and is ${want} to ${lineEq(mn, md, b1)}?`, type: 'choice', choices: [answer].concat(others(answer, wrong, 3)), answer, params: { kind, want, mn, md, tn, td, px, py, b2 },
         hints: [want === 'parallel' ? `A parallel line has the same slope, ${slopeText(mn, md)}.` : `A perpendicular line has the negative reciprocal slope: ${slopeText(tn, td)}.`, `Put the point in ${Y} = ${V('m')}${X} + ${V('b')}: ${N(py)} = ${frHtml(tn, td)} · ${wrap(px)} + ${V('b')}, so ${V('b')} = ${N(b2)}.`, `<b>${answer}</b>.`] };
     },
+    challenge(rng) {
+      // the given line in standard form, with a fraction slope
+      const [mn, md] = pickSlope(rng, [2, 3, 4, 5], 6), want = rng.pick(['parallel', 'perpendicular']);
+      const [tn, td] = want === 'parallel' ? [mn, md] : M.simp(-md, mn), [on, od] = want === 'parallel' ? M.simp(-md, mn) : [mn, md];
+      const k = rng.sign() * rng.pick([1, 2]), b1 = rng.int(-6, 6), shown = `${sumHtml([[-mn * k, 'x', 1], [md * k, 'y', 1]])} = ${N(b1 * md * k)}`;
+      const px = td * rng.nz(-3, 3), b2 = rng.int(-7, 7), py = tn * px / td + b2;
+      const answer = lineEq(tn, td, b2), wrong = [lineEq(tn, td, b1 === b2 ? b2 + 2 : b1), lineEq(tn, td, py + tn * px / td), lineEq(on, od, b2), lineEq(-tn, td, b2), lineEq(tn, td, -b2 || 3)];
+      return { prompt: `Which line passes through ${M.pt(px, py)} and is ${want} to this line?${big(shown)}`, type: 'choice', choices: [answer].concat(others(answer, wrong, 3)), answer, params: { kind: 'through', want, mn, md, tn, td, px, py, b2 },
+        hints: [`Solve the given line for ${Y}: ${lineFr(mn, md, b1, 1)}, so its slope is ${slopeText(mn, md)}.`, want === 'parallel' ? `A parallel line keeps that slope: ${slopeText(tn, td)}.` : `A perpendicular line has the negative reciprocal slope: ${slopeText(tn, td)}.`, `Put in the point: ${N(py)} = ${frHtml(tn, td)} · ${wrap(px)} + ${V('b')}, so ${V('b')} = ${N(b2)}.`, `<b>${answer}</b>.`] };
+    },
     verify(q) {
       const P = q.params;
       const rel = (n1, d1, n2, d2) => (n1 * d2 === n2 * d1 ? 'parallel' : n1 * n2 === -d1 * d2 ? 'perpendicular' : 'neither');
@@ -564,14 +696,26 @@
         text: `${name} buys ${x + y} snacks for a club meeting: muffins at ${M.money(pa)} each and juices at ${M.money(pb)} each. The bill is ${M.money(pa * x + pb * y)}.` }; } },
     { make(rng) { const x = rng.int(3, 20), y = rng.int(3, 20);
       return { x, y, eqs: [[1, 1, x + y], [2, 4, 2 * x + 4 * y]], vx: 'chickens', vy: 'goats', text: `A farm has chickens and goats: ${x + y} heads and ${2 * x + 4 * y} legs in all. A chicken has 2 legs and a goat has 4.` }; } },
+    { make(rng) { const [pa, pb] = rng.pick([[15, 9], [20, 12], [18, 10], [25, 15]]), x = rng.int(20, 90), y = rng.int(20, 90);
+      return { x, y, eqs: [[1, 1, x + y], [pa, pb, pa * x + pb * y]], vx: 'floor seats', vy: 'balcony seats', ask: v => `How many ${v} were sold?`,
+        text: `A community concert sold ${x + y} seats and took in ${M.money(pa * x + pb * y)}. Floor seats cost ${M.money(pa)} and balcony seats cost ${M.money(pb)}.` }; } },
+    { make(rng) { const [ha, hb] = rng.pick([[2, 5], [3, 4], [2, 7], [3, 5]]), x = rng.int(2, 14), y = rng.int(2, 14);
+      return { x, y, eqs: [[1, 1, x + y], [ha, hb, ha * x + hb * y]], vx: 'stools', vy: 'tables', ask: v => `How many ${v} did the carpenter build?`,
+        text: `A carpenter built ${x + y} pieces of furniture, stools and tables, in ${ha * x + hb * y} hours of work. Each stool takes ${ha} hours and each table takes ${hb} hours.` }; } },
+    { make(rng) { const x = rng.int(4, 30), y = rng.int(4, 30), name = rng.pick(NAMES);
+      return { x, y, eqs: [[1, 1, x + y], [25, 10, 25 * x + 10 * y]], vx: 'quarters', vy: 'dimes',
+        text: `${name}’s coin jar holds ${x + y} coins, all quarters and dimes, worth ${M.money((25 * x + 10 * y) / 100)} in total.` }; } },
   ];
 
   A.skill({
     id: 'alg1.solve-systems', title: 'Solving systems of equations',
-    learn: p(`A <b>system</b> is two equations that must both be true. Its solution is the point ${M.pt(X, Y)} that works in both, which is where the two lines cross.`) +
-      p(`<b>Substitution:</b> when one equation already says ${Y} = … (or ${X} = …), put that expression into the other equation, solve, then substitute back. <b>Elimination:</b> multiply one or both equations so that one variable has opposite coefficients, then add the equations to cancel it.`) +
-      p('Lines with equal slopes and different intercepts are parallel, so there is <b>no solution</b>. If the two equations describe the same line, every point on it works: <b>infinitely many solutions</b>.') +
-      example('Example', `${big(`${stdH([2, 1, 7])} <br> ${stdH([3, -1, 8])}`)}Add the equations: 5${X} = 15, so ${X} = 3. Then 2(3) + ${Y} = 7, so <b>${Y} = 1</b>. The solution is ${M.pt(3, 1)}.`),
+    learn: p(`A <b>system of equations</b> is a pair of equations that must both be true at the same time. Its solution is the point ${M.pt(X, Y)} that works in both, which is where the two lines cross on a graph.`) +
+      p(`<b>Substitution:</b> when one equation already says ${Y} = … (or ${X} = …), put that expression in place of ${Y} in the other equation, solve, then substitute back to find ${Y}. <b>Elimination:</b> multiply one or both equations so that one variable has opposite coefficients, then add the equations so that variable cancels.`) +
+      p('Lines with equal slopes and different intercepts are parallel, so they never cross: <b>no solution</b>. If the two equations describe the same line, every point on it works: <b>infinitely many solutions</b>.') +
+      example('Example 1: elimination', `${big(`${stdH([2, 1, 7])} <br> ${stdH([3, -1, 8])}`)}The ${Y} coefficients are opposites, so add the equations: 5${X} = 15, so ${X} = 3. Then 2(3) + ${Y} = 7, so <b>${Y} = 1</b>. The solution is ${M.pt(3, 1)}.`) +
+      example('Example 2: substitution', `${big(`${Y} = 2${X} − 1 <br> ${stdH([3, 1, 9])}`)}Replace ${Y} in the second equation: 3${X} + (2${X} − 1) = 9, so 5${X} = 10 and ${X} = 2. Then ${Y} = 2(2) − 1 = 3. The solution is <b>${M.pt(2, 3)}</b>.`) +
+      example('Example 3: a word problem', `A school play sells 40 tickets for $251. Adult tickets cost $8 and child tickets cost $5. Let ${X} = adult tickets and ${Y} = child tickets: ${X} + ${Y} = 40 and 8${X} + 5${Y} = 251. Substitute ${Y} = 40 − ${X}: 8${X} + 200 − 5${X} = 251, so 3${X} = 51 and ${X} = 17. That’s <b>17 adult and 23 child tickets</b>.`) +
+      example('Example 4: how many solutions', `${big(`${Y} = 3${X} + 2 <br> ${stdH([6, -2, 5])}`)}Solve the second for ${Y}: ${Y} = 3${X} − 2.5. Same slope, different intercepts, so the lines are parallel: <b>no solution</b>.`),
     make(rng) {
       const kind = rng.pick(['sub', 'elim', 'elim', 'word', 'word', 'count']);
       if (kind === 'count') {
@@ -586,7 +730,7 @@
       if (kind === 'word') {
         const w = rng.pick(SYS_WORDS).make(rng); ({ x, y, eqs } = w);
         const what = ask === 'x' ? w.vx : w.vy;
-        prompt = `${w.text} How many ${what.replace(/^the /, '')} ${what.startsWith('the') ? 'is it' : 'are there'}?`.replace('How many larger number is it', 'What is the larger number').replace('How many smaller number is it', 'What is the smaller number');
+        prompt = w.ask ? `${w.text} ${w.ask(what)}` : `${w.text} How many ${what.replace(/^the /, '')} ${what.startsWith('the') ? 'is it' : 'are there'}?`.replace('How many larger number is it', 'What is the larger number').replace('How many smaller number is it', 'What is the smaller number');
         hints = [`Let ${X} = ${w.vx} and ${Y} = ${w.vy}. Then ${stdH(eqs[0])} and ${stdH(eqs[1])}.`, `Solve the first for ${Y}: ${Y} = ${N(eqs[0][2])} − ${X}${eqs[0][1] === -1 ? ' (or add the two equations to cancel ' + Y + ')' : ''}, and substitute into the second.`, `That gives ${X} = ${N(x)} and ${Y} = ${N(y)}, so the answer is <b>${N(ask === 'x' ? x : y)}</b>.`];
       } else {
         x = rng.nz(-6, 6); y = rng.int(-6, 6);
@@ -606,6 +750,17 @@
       }
       return { prompt, type: 'number', answer: ask === 'x' ? x : y, params: { kind, eqs, ask }, hints };
     },
+    challenge(rng) {
+      // elimination where both equations need multiplying, and the second may need tidying first
+      const x = rng.nz(-9, 9), y = rng.nz(-9, 9), ask = rng.pick(['x', 'y']), c27 = () => rng.sign() * rng.int(2, 7);
+      const divides = (u, w) => M.gcd(u, w) === Math.min(Math.abs(u), Math.abs(w));
+      let a1, b1, a2, b2;
+      do { a1 = c27(); b1 = c27(); a2 = c27(); b2 = c27(); } while (a1 * b2 === a2 * b1 || divides(a1, a2) || divides(b1, b2));
+      const eqs = [[a1, b1, a1 * x + b1 * y], [a2, b2, a2 * x + b2 * y]], messy = rng.bool();
+      const second = messy ? `${M.term(a2, 'x')} = ${sumHtml([[eqs[1][2], '', 0], [-b2, 'y', 1]])}` : stdH(eqs[1]);
+      return { prompt: `Solve the system. What is the value of ${V(ask)}?${big(`${stdH(eqs[0])} <br> ${second}`)}`, type: 'number', answer: ask === 'x' ? x : y, params: { kind: 'elim', eqs, ask },
+        hints: [`${messy ? `First rewrite the second equation as ${stdH(eqs[1])}. ` : ''}Neither variable cancels by multiplying just one equation, so multiply the first by ${N(b2)} and the second by ${N(b1)} to match the ${Y} terms.`, `Subtract the new equations: ${M.term(a1 * b2 - a2 * b1, 'x')} = ${N(eqs[0][2] * b2 - eqs[1][2] * b1)}, so ${X} = ${N(x)}.`, `Put ${X} = ${N(x)} back into the first equation to get ${Y} = ${N(y)}. So <b>${V(ask)} = ${N(ask === 'x' ? x : y)}</b>.`] };
+    },
     verify(q) {
       const [[a1, b1, c1], [a2, b2, c2]] = q.params.eqs, det = a1 * b2 - a2 * b1;
       if (q.params.kind === 'count') {
@@ -620,30 +775,56 @@
 
   const ineqH = (m, b, op) => `${Y} ${OPH[op]} ${sumHtml([[m, 'x', 1], [b, '', 0]])}`;
   const sat = (ins, [x, y]) => ins.every(([m, b, op]) => holds(y, op, m * x + b));
+  /** the part of the −6…6 window above (or below) y = mx + b, as a polygon, walking the window's edges in order */
+  function halfPlane(m, b, above) {
+    const g = ([x, y]) => (y - (m * x + b)) * (above ? 1 : -1), box = [[-6, -6], [6, -6], [6, 6], [-6, 6]], out = [];
+    box.forEach((P, i) => {
+      const Q = box[(i + 1) % 4], gp = g(P), gq = g(Q);
+      if (gp >= 0) out.push(P);
+      if (gp * gq < 0) { const t = gp / (gp - gq); out.push([P[0] + t * (Q[0] - P[0]), P[1] + t * (Q[1] - P[1])]); }
+    });
+    return out;
+  }
+  const SPEND = [
+    { text: (n, a, b, T) => `${n} has at most ${M.money(T)} to spend on ${X} pens at ${M.money(a)} each and ${Y} notebooks at ${M.money(b)} each.`, u: 'pens', w: 'notebooks' },
+    { text: (n, a, b, T) => `At a garden center, ${n} can spend at most ${M.money(T)} on ${X} bags of soil at ${M.money(a)} each and ${Y} trays of seedlings at ${M.money(b)} each.`, u: 'bags of soil', w: 'trays of seedlings' },
+    { text: (n, a, b, T) => `${n} is planning a class trip with a budget of at most ${M.money(T)}: ${X} bus tickets at ${M.money(a)} each and ${Y} museum passes at ${M.money(b)} each.`, u: 'bus tickets', w: 'museum passes' },
+    { text: (n, a, b, T) => `A food bank volunteer, ${n}, can spend at most ${M.money(T)} on ${X} boxes of cereal at ${M.money(a)} each and ${Y} bags of rice at ${M.money(b)} each.`, u: 'boxes of cereal', w: 'bags of rice' },
+  ];
+  const EARN = [
+    { text: (n, a, b, T) => `${n} wants to earn at least ${M.money(T)} by washing ${X} cars at ${M.money(a)} each and walking ${Y} dogs at ${M.money(b)} each.`, u: 'cars', w: 'dogs' },
+    { text: (n, a, b, T) => `At a craft fair, ${n} hopes to take in at least ${M.money(T)} by selling ${X} bracelets at ${M.money(a)} each and ${Y} painted mugs at ${M.money(b)} each.`, u: 'bracelets', w: 'mugs' },
+    { text: (n, a, b, T) => `${n} needs at least ${M.money(T)} for a music camp and earns it by mowing ${X} lawns at ${M.money(a)} each and tutoring ${Y} hours at ${M.money(b)} an hour.`, u: 'lawns', w: 'hours of tutoring' },
+    { text: (n, a, b, T) => `A bakery stand run by ${n} needs to bring in at least ${M.money(T)} a day from ${X} muffins at ${M.money(a)} each and ${Y} loaves of bread at ${M.money(b)} each.`, u: 'muffins', w: 'loaves' },
+  ];
 
   A.skill({
     id: 'alg1.linear-inequalities', title: 'Two-variable inequalities and systems',
-    learn: p(`The solutions of an inequality like ${Y} &gt; 2${X} − 1 are all the points on one side of the <b>boundary line</b> ${Y} = 2${X} − 1. To test a point, substitute it: if the statement is true, the point is a solution.`) +
-      p(`On a graph, <b>&gt;</b> or <b>≥</b> (when solved for ${Y}) shades <b>above</b> the line, and <b>&lt;</b> or <b>≤</b> shades below. A <b>dashed</b> line means the boundary is not included (&lt; or &gt;); a <b>solid</b> line means it is (≤ or ≥).`) +
-      p('A <b>system of inequalities</b> is solved by the points that satisfy every inequality at once: the region where the shadings overlap.') +
-      example('Example', `Is ${M.pt(3, 2)} a solution of ${Y} &lt; −${X} + 6? Substitute: 2 &lt; −3 + 6 = 3. True, so <b>yes</b>.`),
+    learn: p(`A <b>solution</b> of an inequality like ${Y} &gt; 2${X} − 1 is any point ${M.pt(X, Y)} that makes it true. All the solutions lie on one side of the <b>boundary line</b> ${Y} = 2${X} − 1. To test a point, substitute its coordinates: if the statement is true, the point is a solution.`) +
+      p(`On a graph, with the inequality solved for ${Y}, <b>&gt;</b> or <b>≥</b> shades <b>above</b> the line, and <b>&lt;</b> or <b>≤</b> shades <b>below</b> it. A <b>dashed</b> line means points on the line aren’t included (&lt; or &gt;); a <b>solid</b> line means they are (≤ or ≥).`) +
+      p('A <b>system of inequalities</b> is solved by the points that make every inequality true at once: the region where the shadings overlap.') +
+      example('Example 1: testing a point', `Is ${M.pt(3, 2)} a solution of ${Y} &lt; −${X} + 6? Substitute: 2 &lt; −3 + 6 = 3. True, so <b>yes</b>.`) +
+      example('Example 2: a system', `${big(`${Y} &gt; ${X} + 2 <br> ${Y} ≤ −2${X} + 7`)}Test ${M.pt(1, 4)}: 4 &gt; 1 + 2 = 3 is true, and 4 ≤ −2 + 7 = 5 is true. Both hold, so <b>${M.pt(1, 4)} is a solution</b>. ${M.pt(3, 6)} isn’t: 6 ≤ 1 is false.`) +
+      example('Example 3: reading a graph', `${grid({ lines: [{ pts: [0, -1, 2, 0], dash: true }], shade: halfPlane(0.5, -1, true), label: 'The dashed line y = ½x − 1 on a coordinate grid, with the region above the line shaded' })}The line is ${Y} = ${F(1, 2)}${X} − 1. It’s dashed, so the sign is strict, and the shading is above, so it’s greater than: <b>${Y} &gt; ${F(1, 2)}${X} − 1</b>.`) +
+      example('Example 4: from words', `${X} pens at $3 each and ${Y} notebooks at $5 each, spending at most $60. The cost is 3${X} + 5${Y}, and “at most” means ≤: <b>3${X} + 5${Y} ≤ 60</b>.`),
     make(rng) {
       const kind = rng.pick(['point', 'system', 'graph', 'words']);
       if (kind === 'graph') {
         const m = rng.nz(-4, 4), b = rng.int(-6, 6), solid = rng.bool(), above = rng.bool();
         const op = above ? (solid ? '≥' : '>') : (solid ? '≤' : '<');
         const choices = ['<', '≤', '>', '≥'].map(o => ineqH(m, b, o)), answer = ineqH(m, b, op);
-        return { prompt: `A graph shows the line ${lineEq(m, 1, b)} drawn <b>${solid ? 'solid' : 'dashed'}</b>, with the region <b>${above ? 'above' : 'below'}</b> the line shaded. Which inequality does it show?`, type: 'choice', choices, keepOrder: true, answer, params: { kind, m, b, solid, above },
+        const fig = grid({ lines: [{ pts: [0, b, 1, b + m], dash: !solid }], shade: halfPlane(m, b, above), label: `The ${solid ? 'solid' : 'dashed'} line ${flat(lineEq(m, 1, b))} on a coordinate grid, with the region ${above ? 'above' : 'below'} the line shaded` });
+        return { prompt: `The graph shows the line ${lineEq(m, 1, b)} drawn <b>${solid ? 'solid' : 'dashed'}</b>, with the region <b>${above ? 'above' : 'below'}</b> the line shaded. Which inequality does it show?${fig}`, type: 'choice', choices, keepOrder: true, answer, params: { kind, m, b, solid, above },
           hints: [`${above ? 'Shading above the line means ' + Y + ' is greater than the line: &gt; or ≥.' : 'Shading below the line means ' + Y + ' is less than the line: &lt; or ≤.'}`, `${solid ? 'A solid line is included, so the sign has the "or equal to" bar.' : 'A dashed line is not included, so the sign is strict.'}`, `<b>${answer}</b>.`] };
       }
       if (kind === 'words') {
         const spend = rng.bool(), a = rng.pick([2, 3, 4, 5, 6]); let b = rng.pick([3, 5, 7, 8, 9]); if (b === a) b = a + 4;
         const T = rng.pick([40, 50, 60, 75, 80, 100, 120]), name = rng.pick(NAMES), op = spend ? '≤' : '≥';
         const ex = o => `${a}${X} + ${b}${Y} ${OPH[o]} ${T}`;
-        const text = spend ? `${name} has at most ${M.money(T)} to spend on ${X} pens at ${M.money(a)} each and ${Y} notebooks at ${M.money(b)} each.` : `${name} wants to earn at least ${M.money(T)} by washing ${X} cars at ${M.money(a)} each and walking ${Y} dogs at ${M.money(b)} each.`;
+        const S = rng.pick(spend ? SPEND : EARN), text = S.text(name, a, b, T);
         const answer = ex(op), wrong = [ex(FLIP[op]), `${b}${X} + ${a}${Y} ${OPH[op]} ${T}`, ex(SOFT[op])];
         return { prompt: `${text} Which inequality describes the situation?`, type: 'choice', choices: [answer].concat(wrong), answer, params: { kind, spend, a, b, T },
-          hints: [`The total is ${a}${X} + ${b}${Y}: ${M.money(a)} times the number of ${spend ? 'pens' : 'cars'} plus ${M.money(b)} times the number of ${spend ? 'notebooks' : 'dogs'}.`, spend ? `"At most" means the total can equal ${M.money(T)} or be less: ≤.` : `"At least" means the total can equal ${M.money(T)} or be more: ≥.`, `<b>${answer}</b>.`] };
+          hints: [`The total is ${a}${X} + ${b}${Y}: ${M.money(a)} times the number of ${S.u} plus ${M.money(b)} times the number of ${S.w}.`, spend ? `"At most" means the total can equal ${M.money(T)} or be less: ≤.` : `"At least" means the total can equal ${M.money(T)} or be more: ≥.`, `<b>${answer}</b>.`] };
       }
       const two = kind === 'system';
       for (let tries = 0; ; tries++) {
@@ -684,15 +865,21 @@
     { what: `${V('P')}(${V('y')}) is the number of members a chess club has ${V('y')} years after it started.`, fn: 'P', say: (a, b) => `${a} years after it started, the club has ${b} members.`, each: (a, b) => `The club gains ${b} members a year for ${a} years.` },
     { what: `${V('C')}(${V('n')}) is the cost, in dollars, of printing ${V('n')} posters.`, fn: 'C', say: (a, b) => `Printing ${a} posters costs ${b} dollars in total.`, each: (a, b) => `Each poster costs ${b} dollars when printing ${a}.` },
     { what: `${V('W')}(${V('m')}) is the number of liters of water in a tank ${V('m')} minutes after it starts filling.`, fn: 'W', say: (a, b) => `After ${a} minutes, the tank holds ${b} liters.`, each: (a, b) => `The tank gains ${b} liters a minute for ${a} minutes.` },
+    { what: `${V('T')}(${V('h')}) is the temperature, in degrees Fahrenheit, ${V('h')} hours after sunrise.`, fn: 'T', say: (a, b) => `${a} hours after sunrise, the temperature is ${b}°F.`, each: (a, b) => `The temperature rises ${b} degrees each hour for ${a} hours.` },
+    { what: `${V('S')}(${V('d')}) is the total number of loaves a bakery has sold ${V('d')} days after opening.`, fn: 'S', say: (a, b) => `After ${a} days, the bakery has sold ${b} loaves in total.`, each: (a, b) => `The bakery sells ${b} loaves each day for ${a} days.` },
+    { what: `${V('E')}(${V('h')}) is the amount, in dollars, a lifeguard earns for ${V('h')} hours of work.`, fn: 'E', say: (a, b) => `Working ${a} hours earns the lifeguard ${b} dollars.`, each: (a, b) => `The lifeguard earns ${b} dollars an hour for ${a} hours.` },
+    { what: `${V('L')}(${V('w')}) is the total number of laps a swimmer has completed after ${V('w')} weeks of training.`, fn: 'L', say: (a, b) => `After ${a} weeks of training, the swimmer has swum ${b} laps in all.`, each: (a, b) => `The swimmer swims ${b} laps each week for ${a} weeks.` },
   ];
   const fnName = () => ['f', 'g', 'h'];
 
   A.skill({
     id: 'alg1.function-notation', title: 'Evaluating and interpreting functions',
-    learn: p(`A <b>function</b> gives exactly one output for each input. In <b>function notation</b>, ${V('f')}(${X}) names the output when the input is ${X}. So ${V('f')}(3) means "replace every ${X} with 3 and evaluate"; it does not mean ${V('f')} times 3.`) +
-      p(`Read ${V('f')}(${V('a')}) = ${V('b')} as "the input ${V('a')} gives the output ${V('b')}". Going the other way, to solve ${V('f')}(${X}) = 10, set the rule equal to 10 and solve for ${X}.`) +
-      p('In a real situation, the input and output have units. If h(t) is a height in meters after t seconds, h(2) = 15 says that after 2 seconds the height is 15 meters.') +
-      example('Example', `${V('f')}(${X}) = ${M.poly([2, -3, 1])}. ${V('f')}(−2) = 2(−2)² − 3(−2) + 1 = 8 + 6 + 1 = <b>15</b>.`),
+    learn: p(`A <b>function</b> is a rule that gives exactly one output for each input. In <b>function notation</b>, ${V('f')}(${X}) names the output when the input is ${X}. So ${V('f')}(3) means “replace every ${X} with 3 and work it out”; it doesn’t mean ${V('f')} times 3.`) +
+      p(`Read ${V('f')}(${V('a')}) = ${V('b')} as “the input ${V('a')} gives the output ${V('b')}.” Going the other way, to solve ${V('f')}(${X}) = 10, set the rule equal to 10 and solve for ${X}. In a table, ${V('f')}(3) is the output in the row where ${X} = 3.`) +
+      p(`In a real situation, the input and output have units. If ${V('h')}(${V('t')}) is a height in meters after ${V('t')} seconds, ${V('h')}(2) = 15 says that after 2 seconds the height is 15 meters.`) +
+      example('Example 1: evaluating', `${V('f')}(${X}) = ${M.poly([2, -3, 1])}. ${V('f')}(−2) = 2(−2)² − 3(−2) + 1 = 8 + 6 + 1 = <b>15</b>.`) +
+      example('Example 2: finding the input', `${V('f')}(${X}) = 4${X} − 7. For what ${X} is ${V('f')}(${X}) = 13? Set 4${X} − 7 = 13, add 7 to get 4${X} = 20, and divide: <b>${X} = 5</b>.`) +
+      example('Example 3: what it means', `${V('C')}(${V('n')}) is the cost, in dollars, of ${V('n')} concert tickets. ${V('C')}(4) = 38 means <b>4 tickets cost $38 in total</b>, not $38 each.`),
     make(rng) {
       const kind = rng.pick(['eval', 'eval', 'solve', 'table', 'interpret']), f = rng.pick(fnName());
       if (kind === 'interpret') {
@@ -735,9 +922,11 @@
   A.skill({
     id: 'alg1.domain-range', title: 'Domain and range',
     learn: p(`The <b>domain</b> of a function is the set of inputs it accepts (the ${X}-values). The <b>range</b> is the set of outputs it actually produces (the ${Y}-values).`) +
-      p(`For a list of ordered pairs, the domain is the set of first coordinates and the range is the set of second coordinates, each listed once. A linear function on a limited domain has a range running between the outputs at the two ends. A square root needs a non-negative number inside, so √(${X} − 3) has domain ${X} ≥ 3.`) +
-      p(`A parabola ${Y} = ${V('a')}(${X} − ${V('h')})² + ${V('k')} accepts every ${X}, but its outputs stop at the vertex: ${Y} ≥ ${V('k')} when it opens up, ${Y} ≤ ${V('k')} when it opens down.`) +
-      example('Example', `${V('f')}(${X}) = 3${X} − 2 for 1 ≤ ${X} ≤ 4. ${V('f')}(1) = 1 and ${V('f')}(4) = 10, so the range is <b>1 ≤ ${Y} ≤ 10</b>.`),
+      p(`For a list of ordered pairs, the domain is the set of first coordinates and the range is the set of second coordinates, each listed once. A linear function on a limited domain has a range running between its outputs at the two ends. A square root needs a number inside that isn’t negative, so √(${X} − 3) has domain ${X} ≥ 3.`) +
+      p(`A parabola ${Y} = ${V('a')}(${X} − ${V('h')})² + ${V('k')} accepts every ${X}, but its outputs stop at the <b>vertex</b>, the turning point ${M.pt(V('h'), V('k'))}: the range is ${Y} ≥ ${V('k')} when it opens up and ${Y} ≤ ${V('k')} when it opens down.`) +
+      example('Example 1: ordered pairs', `${big(`{${M.pt(2, 5)}, ${M.pt(-1, 3)}, ${M.pt(4, 5)}}`)}Domain: the first coordinates, <b>{−1, 2, 4}</b>. Range: the second coordinates, listed once each, <b>{3, 5}</b>.`) +
+      example('Example 2: a line on a limited domain', `${V('f')}(${X}) = −2${X} + 5 for −1 ≤ ${X} ≤ 3. ${V('f')}(−1) = 7 and ${V('f')}(3) = −1, so with the smaller number first the range is <b>−1 ≤ ${Y} ≤ 7</b>.`) +
+      example('Example 3: a parabola and a square root', `${Y} = −2(${X} − 1)² + 6 opens down (−2 is negative) with vertex ${M.pt(1, 6)}, so its range is <b>${Y} ≤ 6</b>. For ${V('g')}(${X}) = ${M.sqrt(`${X} + 4`)} − 1, the inside can’t be negative: ${X} + 4 ≥ 0, so the domain is <b>${X} ≥ −4</b>.`),
     make(rng) {
       const kind = rng.pick(['pairs', 'linear', 'quad', 'sqrt']);
       if (kind === 'pairs') {
@@ -789,13 +978,18 @@
     { what: (n, t1, v1, t2, v2) => `On a hike, ${n} was at an altitude of ${N(v1)} m after ${t1} hours and ${N(v2)} m after ${t2} hours.`, unit: 'm/h', per: 'meters per hour', rates: [-150, -120, -80, 60, 90, 150, 200, 250], start: () => 100 },
     { what: (n, t1, v1, t2, v2) => `A tank held ${N(v1)} liters of water ${t1} minutes after ${n} opened the valve, and ${N(v2)} liters ${t2} minutes after.`, unit: 'L/min', per: 'liters per minute', rates: [-40, -25, -15, 12, 20, 35], start: () => 10 },
     { what: (n, t1, v1, t2, v2) => `${n}'s savings were ${M.money(v1)} at week ${t1} and ${M.money(v2)} at week ${t2}.`, unit: '$/week', per: 'dollars per week', rates: [-15, -8, 6, 12, 18, 25], start: () => 10 },
+    { what: (n, t1, v1, t2, v2) => `In a greenhouse that ${n} looks after, the temperature was ${N(v1)}°F ${t1 ? t1 + ' hours after sunrise' : 'at sunrise'} and ${N(v2)}°F ${t2} hours after sunrise.`, unit: '°F/h', per: 'degrees Fahrenheit per hour', rates: [-6, -4, -3, 2, 3, 4, 5], start: () => 2 },
+    { what: (n, t1, v1, t2, v2) => `A food bank had ${N(v1)} cans on its shelves at week ${t1} and ${N(v2)} cans at week ${t2}.`, unit: 'cans/week', per: 'cans per week', rates: [-40, -25, 30, 45, 60], start: () => 20 },
+    { what: (n, t1, v1, t2, v2) => `A bakery had ${N(v1)} loaves on the shelf ${t1 ? t1 + ' hours after opening' : 'when it opened'} and ${N(v2)} loaves ${t2} hours after opening.`, unit: 'loaves/h', per: 'loaves per hour', rates: [-12, -9, -6, -4], start: () => 4 },
   ];
 
   A.skill({
     id: 'alg1.rate-of-change', title: 'Average rate of change',
-    learn: p(`The <b>average rate of change</b> of a function from ${X} = ${V('a')} to ${X} = ${V('b')} is <b>(${V('f')}(${V('b')}) − ${V('f')}(${V('a')})) ÷ (${V('b')} − ${V('a')})</b>: the change in output divided by the change in input. It is the slope of the straight line joining the two points on the graph.`) +
-      p('For a line it is the same over every interval. For a curve such as a parabola, it depends on which interval you pick. In a real situation the answer carries units, like meters per second.') +
-      example('Example', `${V('f')}(${X}) = ${M.sup(X, 2)} from ${X} = 1 to ${X} = 4: ${V('f')}(4) = 16 and ${V('f')}(1) = 1, so the rate is ${F('16 − 1', '4 − 1', { raw: true })} = <b>5</b>.`),
+    learn: p(`The <b>average rate of change</b> of a function from ${X} = ${V('a')} to ${X} = ${V('b')} is <b>(${V('f')}(${V('b')}) − ${V('f')}(${V('a')})) ÷ (${V('b')} − ${V('a')})</b>: the change in output divided by the change in input. It’s the slope of the straight line joining those two points on the graph.`) +
+      p('For a line, it’s the same over every <b>interval</b> (stretch of inputs). For a curve such as a parabola, it depends on which interval you pick. In a real situation the answer has units, like meters per second, and a negative rate means the amount is going down.') +
+      example('Example 1: from a rule', `${V('f')}(${X}) = ${M.sup(X, 2)} from ${X} = 1 to ${X} = 4: ${V('f')}(4) = 16 and ${V('f')}(1) = 1, so the rate is ${F('16 − 1', '4 − 1', { raw: true })} = <b>5</b>.`) +
+      example('Example 2: from a table', `A table shows ${V('f')}(1) = 7 and ${V('f')}(4) = −2. The average rate of change from ${X} = 1 to ${X} = 4 is ${F('−2 − 7', '4 − 1', { raw: true })} = ${F('−9', '3', { raw: true })} = <b>−3</b>.`) +
+      example('Example 3: in a situation', `A rain barrel held 80 liters 2 minutes after a tap was opened and 20 liters at 6 minutes. The rate is ${F('20 − 80', '6 − 2', { raw: true })} = <b>−15 liters per minute</b>: it lost 15 liters each minute on average.`),
     make(rng) {
       const kind = rng.pick(['formula', 'formula', 'table', 'context']);
       if (kind === 'context') {
@@ -815,9 +1009,17 @@
       return { prompt: `What is the average rate of change of ${V('f')}(${X}) = ${M.poly([a, b, c])} from ${X} = ${N(p1)} to ${X} = ${N(p2)}?`, type: 'number', answer: ans, params: { kind, a, b, c, x1: p1, y1: f(p1), x2: p2, y2: f(p2) },
         hints: [`Evaluate at both ends: ${V('f')}(${N(p1)}) = ${N(f(p1))} and ${V('f')}(${N(p2)}) = ${N(f(p2))}.`, `Divide the change in output by the change in input: ${F(`${N(f(p2))} − ${wrap(f(p1))}`, `${N(p2)} − ${wrap(p1)}`)} = ${F(`${N(f(p2) - f(p1))}`, `${p2 - p1}`)}.`, `<b>${N(ans)}</b>.`] };
     },
+    challenge(rng) {
+      // a cubic: the rate still comes out whole, but the arithmetic needs care
+      const a = rng.nz(-2, 2), b = rng.int(-4, 4), c = rng.int(-9, 9), p1 = rng.int(-4, 1), p2 = p1 + rng.int(2, 4);
+      const f = x => a * x * x * x + b * x * x + c, ans = (f(p2) - f(p1)) / (p2 - p1);
+      return { prompt: `What is the average rate of change of ${V('f')}(${X}) = ${M.poly([a, b, 0, c])} from ${X} = ${N(p1)} to ${X} = ${N(p2)}?`, type: 'number', answer: ans, params: { kind: 'cubic', a, b, c, x1: p1, y1: f(p1), x2: p2, y2: f(p2) },
+        hints: [`Evaluate at both ends, cubing negative inputs carefully: (−2)³ = −8. ${V('f')}(${N(p1)}) = ${N(f(p1))} and ${V('f')}(${N(p2)}) = ${N(f(p2))}.`, `Divide the change in output by the change in input: ${F(`${N(f(p2))} − ${wrap(f(p1))}`, `${N(p2)} − ${wrap(p1)}`)} = ${F(`${N(f(p2) - f(p1))}`, `${p2 - p1}`)}.`, `<b>${N(ans)}</b>.`] };
+    },
     verify(q) {
       const P = q.params;
       if (P.kind === 'formula') { const f = x => P.a * x * x + P.b * x + P.c; if (f(P.x1) !== P.y1 || f(P.x2) !== P.y2) return 'table mismatch'; }
+      if (P.kind === 'cubic') { const f = x => P.a * Math.pow(x, 3) + P.b * x * x + P.c; if (f(P.x1) !== P.y1 || f(P.x2) !== P.y2) return 'table mismatch'; }
       return Math.abs(q.answer * (P.x2 - P.x1) - (P.y2 - P.y1)) < 1e-9;
     },
   });
@@ -830,15 +1032,38 @@
     return `${an} = ${N(A0)} ${D < 0 ? '−' : '+'} ${Math.abs(D) === 1 ? '' : N(Math.abs(D))}${nPart}`;
   }
   const SEQ_KINDS = ['Arithmetic', 'Geometric', 'Neither'];
+  /* sequences in everyday settings: each gives its first term, step, the term asked for, and the words */
+  const SEQ_STORY = [
+    rng => { const a = rng.int(12, 24), d = rng.int(2, 4), n = rng.int(10, 30);
+      return { a, d, n, text: `A theater has ${a} seats in row 1, ${a + d} in row 2, ${a + 2 * d} in row 3, and so on, with the same increase each row. How many seats are in row ${n}?`, unit: 'seats' }; },
+    rng => { const a = rng.pick([10, 15, 20]), d = rng.pick([5, 10]), n = rng.int(6, 16), name = rng.pick(NAMES);
+      return { a, d, n, text: `${name} trains for a swim meet: ${a} minutes in week 1, ${a + d} in week 2 and ${a + 2 * d} in week 3, adding the same amount each week. How many minutes will ${name} train in week ${n}?`, unit: 'minutes' }; },
+    rng => { const a = rng.int(30, 36), d = rng.int(3, 5), n = rng.int(5, 15);
+      return { a, d, n, text: `One stacking chair is ${a} inches tall, two stacked are ${a + d} inches, and three stacked are ${a + 2 * d} inches. How tall, in inches, is a stack of ${n} chairs?`, unit: 'inches' }; },
+    rng => { const n = rng.int(4, 6), a = Math.pow(2, n - 1) * rng.pick([3, 5, 6]);
+      return { a, r: 0.5, n, text: `A ball is dropped, and each bounce reaches half the height of the bounce before. The 1st bounce reaches ${N(a)} cm, the 2nd ${N(a / 2)} cm and the 3rd ${N(a / 4)} cm. How high, in centimeters, is bounce number ${n}?`, unit: 'cm' }; },
+    rng => { const a = rng.pick([2, 3, 4]), r = rng.pick([2, 3]), n = rng.int(4, 7);
+      return { a, r, n, text: `In a school’s phone tree, ${a} people make calls in round 1, ${a * r} in round 2 and ${a * r * r} in round 3; each round has ${r} times as many callers as the one before. How many people make calls in round ${n}?`, unit: 'people' }; },
+  ];
 
   A.skill({
     id: 'alg1.sequences', title: 'Arithmetic and geometric sequences',
-    learn: p(`In an <b>arithmetic sequence</b> you add the same number, the <b>common difference</b> ${V('d')}, to get from one term to the next: 4, 7, 10, 13, … has ${V('d')} = 3. Its explicit formula is <b>${an} = ${M.sub(V('a'), 1)} + ${V('d')}(${V('n')} − 1)</b>.`) +
-      p(`In a <b>geometric sequence</b> you multiply by the same number, the <b>common ratio</b> ${V('r')}: 3, 6, 12, 24, … has ${V('r')} = 2, and <b>${an} = ${M.sub(V('a'), 1)} · ${V('r')}<sup>${V('n')} − 1</sup></b>.`) +
-      p(`The (${V('n')} − 1) is there because the first term has had no steps added yet. A <b>recursive</b> rule instead says how to get each term from the one before, like ${V('a')}(${V('n')}) = ${V('a')}(${V('n')} − 1) + 3.`) +
-      example('Example', `Find the 20th term of 5, 9, 13, 17, … The difference is 4, so ${V('a')}(20) = 5 + 4(19) = <b>81</b>.`),
+    learn: p(`A <b>sequence</b> is a list of numbers in order; each number is a <b>term</b>, and ${an} names the ${V('n')}th term. In an <b>arithmetic sequence</b> you add the same number, the <b>common difference</b> ${V('d')}, to get from one term to the next: 4, 7, 10, 13, … has ${V('d')} = 3. Its <b>explicit formula</b>, which gives any term directly, is <b>${an} = ${M.sub(V('a'), 1)} + ${V('d')}(${V('n')} − 1)</b>.`) +
+      p(`In a <b>geometric sequence</b> you multiply by the same number, the <b>common ratio</b> ${V('r')}: 3, 6, 12, 24, … has ${V('r')} = 2, and <b>${an} = ${M.sub(V('a'), 1)} · ${V('r')}<sup>${V('n')} − 1</sup></b>. The (${V('n')} − 1) is there because the first term hasn’t had any steps yet.`) +
+      p(`A <b>recursive</b> rule says how to get each term from the one before, like ${V('a')}(${V('n')}) = ${V('a')}(${V('n')} − 1) + 3. To tell which kind a list is, check the differences between neighbors: all equal means arithmetic. If not, divide each term by the one before: equal ratios mean geometric. Otherwise it’s neither.`) +
+      example('Example 1: a term far down the list', `Find the 20th term of 5, 9, 13, 17, … The difference is 4, so ${V('a')}(20) = 5 + 4(19) = <b>81</b>.`) +
+      example('Example 2: writing the formula', `For 7, 4, 1, −2, … the first term is 7 and the difference is 4 − 7 = −3, so <b>${an} = 7 − 3(${V('n')} − 1)</b>. Check: ${V('n')} = 1 gives 7.`) +
+      example('Example 3: a geometric term', `Find the 6th term of 2, 6, 18, 54, … The ratio is 6 ÷ 2 = 3, so ${V('a')}(6) = 2 · 3<sup>5</sup> = 2 · 243 = <b>486</b>.`) +
+      example('Example 4: a recursive rule', `${V('a')}(1) = 5 and ${V('a')}(${V('n')}) = 2 · ${V('a')}(${V('n')} − 1). Each term doubles the one before: 5, 10, 20, 40, so <b>${V('a')}(4) = 40</b>.`),
     make(rng) {
-      const kind = rng.pick(['arith-nth', 'arith-formula', 'geo-nth', 'classify', 'recursive']);
+      const kind = rng.pick(['arith-nth', 'arith-formula', 'geo-nth', 'classify', 'recursive', 'story']);
+      if (kind === 'story') {
+        const st = rng.pick(SEQ_STORY)(rng), geo = st.r != null, step = geo ? st.r : st.d;
+        const t = [0, 1, 2, 3].map(i => geo ? st.a * Math.pow(st.r, i) : st.a + i * st.d), ans = geo ? st.a * Math.pow(st.r, st.n - 1) : st.a + (st.n - 1) * st.d;
+        return { prompt: st.text, type: 'number', answer: ans, params: { kind, t, n: st.n, geo },
+          hints: [geo ? `Each term is the one before times ${N(step)}, so the sequence is geometric with ratio ${N(step)}.` : `Each term is the one before plus ${N(step)}, so the sequence is arithmetic with difference ${N(step)}.`,
+            geo ? `${V('a')}(${st.n}) = ${N(st.a)} · ${N(step)}<sup>${st.n - 1}</sup>.` : `${V('a')}(${st.n}) = ${N(st.a)} + ${N(step)}(${st.n} − 1) = ${N(st.a)} + ${N(step * (st.n - 1))}.`, `<b>${N(ans)}</b> ${st.unit}.`] };
+      }
       if (kind === 'classify') {
         const type = rng.pick(SEQ_KINDS); let t;
         if (type === 'Arithmetic') { const a = rng.int(-10, 10), d = rng.nz(-7, 7); t = [0, 1, 2, 3, 4].map(i => a + i * d); }
@@ -872,6 +1097,18 @@
       return { prompt: `What is the ${M.ordinal(n)} term of this arithmetic sequence?${big(t.map(N).join(', ') + ', …')}`, type: 'number', answer: ans, params: { kind, t, n },
         hints: [`The common difference is ${N(t[1])} − ${wrap(t[0])} = ${N(d)}.`, `${V('a')}(${n}) = ${N(a1)} + ${wrap(d)}(${n} − 1) = ${N(a1)} + ${wrap(d)}(${n - 1}).`, `= ${N(a1)} ${M.signed((n - 1) * d)} = <b>${N(ans)}</b>.`] };
     },
+    challenge(rng) {
+      // which term is it? Work the formula backwards
+      if (rng.chance(0.4)) {
+        const a1 = rng.pick([1, 2, 3, 5, 7]) * rng.sign(), r = rng.pick([2, 3, -2]), n = rng.int(6, r === 3 ? 8 : 10);
+        const t = [0, 1, 2, 3].map(i => a1 * Math.pow(r, i)), target = a1 * Math.pow(r, n - 1);
+        return { prompt: `Which term of this geometric sequence is ${N(target)}? Give its position ${V('n')}.${big(t.map(N).join(', ') + ', …')}`, type: 'number', answer: n, params: { kind: 'which-term', t, target },
+          hints: [`The common ratio is ${N(r)}, so ${an} = ${N(a1)} · ${wrap(r)}<sup>${V('n')} − 1</sup>.`, `${N(target)} ÷ ${wrap(a1)} = ${N(target / a1)}, which is ${wrap(r)}<sup>${n - 1}</sup>.`, `So ${V('n')} − 1 = ${n - 1} and ${V('n')} = <b>${n}</b>.`] };
+      }
+      const a1 = rng.int(-30, 30), d = rng.nz(-9, 9), n = rng.int(25, 90), t = [0, 1, 2, 3].map(i => a1 + i * d), target = a1 + (n - 1) * d;
+      return { prompt: `Which term of this arithmetic sequence is ${N(target)}? Give its position ${V('n')}.${big(t.map(N).join(', ') + ', …')}`, type: 'number', answer: n, params: { kind: 'which-term', t, target },
+        hints: [`The first term is ${N(a1)} and the common difference is ${N(d)}, so ${an} = ${N(a1)} + ${wrap(d)}(${V('n')} − 1).`, `Set it equal to ${N(target)}: ${wrap(d)}(${V('n')} − 1) = ${N(target - a1)}, so ${V('n')} − 1 = ${N(n - 1)}.`, `${V('n')} = <b>${n}</b>.`] };
+    },
     verify(q) {
       const P = q.params;
       if (P.kind === 'classify') {
@@ -879,13 +1116,20 @@
         const expect = diffs.every(x => x === diffs[0]) ? 'Arithmetic' : ratios.every(x => Math.abs(x - ratios[0]) < 1e-12) ? 'Geometric' : 'Neither';
         return q.answer === expect;
       }
+      if (P.kind === 'which-term') {
+        // step along the sequence until the target turns up, counting the terms
+        const geo = P.t[1] - P.t[0] !== P.t[2] - P.t[1];
+        let v = P.t[0], i = 1;
+        while (i < 500 && v !== P.target) { v = geo ? v * (P.t[1] / P.t[0]) : v + (P.t[1] - P.t[0]); i++; }
+        return v === P.target && i === q.answer;
+      }
       if (P.kind === 'recursive') { let v = P.k; for (let i = 2; i <= 5; i++) v = P.geo ? v * P.step : v + P.step; return v === q.answer; }
       if (P.kind === 'arith-formula') {
         const i = P.html.indexOf(q.answer); if (i < 0) return 'not an option';
         const [A0, D, s] = P.opts[i]; return P.t.every((v, k) => A0 + D * (k + 1 - s) === v);
       }
       let v = P.t[0];
-      for (let i = 2; i <= P.n; i++) v = P.kind === 'geo-nth' ? v * (P.t[1] / P.t[0]) : v + (P.t[1] - P.t[0]);
+      for (let i = 2; i <= P.n; i++) v = P.kind === 'geo-nth' || P.geo ? v * (P.t[1] / P.t[0]) : v + (P.t[1] - P.t[0]);
       return Math.abs(v - q.answer) < 1e-9;
     },
   });
@@ -893,9 +1137,10 @@
   const solH = (u, w) => `${X} = ${N(Math.min(u, w))} or ${X} = ${N(Math.max(u, w))}`;
   A.skill({
     id: 'alg1.absolute-value-equations', title: 'Absolute value equations',
-    learn: p(`|${V('A')}| = ${V('c')} means ${V('A')} is ${V('c')} units from zero, so <b>${V('A')} = ${V('c')} or ${V('A')} = −${V('c')}</b>. That is why an absolute value equation usually has two solutions.`) +
-      p(`First <b>isolate the absolute value</b>: undo anything added to it or multiplying it. Then split into the two cases and solve each one. If the isolated absolute value equals a <b>negative</b> number, there is <b>no solution</b>, because a distance cannot be negative. If it equals 0, there is just one.`) +
-      example('Example', `${big(`2|${X} − 3| + 1 = 9`)}Subtract 1 and divide by 2: |${X} − 3| = 4. So ${X} − 3 = 4 or ${X} − 3 = −4, giving <b>${X} = 7 or ${X} = −1</b>.`),
+    learn: p(`The <b>absolute value</b> |${V('A')}| is the distance of ${V('A')} from zero, so it’s never negative. |${V('A')}| = ${V('c')} means ${V('A')} is ${V('c')} units from zero, so <b>${V('A')} = ${V('c')} or ${V('A')} = −${V('c')}</b>. That’s why an absolute value equation usually has two solutions.`) +
+      p(`First <b>isolate the absolute value</b>: get it by itself on one side by undoing anything added to it or multiplying it. Then split into the two cases and solve each one. If the isolated absolute value equals a <b>negative</b> number, there’s <b>no solution</b>, because a distance can’t be negative. If it equals 0, there’s just one solution.`) +
+      example('Example 1: two solutions', `${big(`2|${X} − 3| + 1 = 9`)}Subtract 1 and divide by 2: |${X} − 3| = 4. So ${X} − 3 = 4 or ${X} − 3 = −4, giving <b>${X} = −1 or ${X} = 7</b>.`) +
+      example('Example 2: no solution', `${big(`3|${X} + 2| + 10 = 4`)}Subtract 10: 3|${X} + 2| = −6. Divide by 3: |${X} + 2| = −2. An absolute value can’t be negative, so there’s <b>no solution</b>.`),
     make(rng) {
       const a = rng.pick([1, 1, 2, 3]); let d = rng.int(1, 8); if ((a * d) % 2) d += 1;
       const c = a * d / 2, s1 = rng.int(-6, 8), s2 = s1 - d, b = c - a * s1, m = rng.pick([1, 1, 2, 3]), k = rng.int(-9, 9), none = rng.chance(0.25);
@@ -909,11 +1154,27 @@
       else hints.push(`Split: ${sumHtml([[a, 'x', 1], [b, '', 0]])} = ${N(c)} or ${sumHtml([[a, 'x', 1], [b, '', 0]])} = ${N(-c)}.`, `Solve each: <b>${answer}</b>.`);
       return { prompt: `Solve.${big(`${lhs} = ${N(r)}`)}`, type: 'choice', choices: [answer].concat(others(answer, wrong, 3)), answer, params: { a, b, m, k, r }, hints };
     },
+    challenge(rng) {
+      // a negative number outside the bars, an absolute value that is zero, or one that is negative
+      const a = rng.pick([2, 3, 4]), m = rng.pick([-3, -2, 2, 3, 4]), k = rng.nz(-12, 12), type = rng.pick(['two', 'two', 'none', 'one']);
+      let d = rng.int(1, 6); if ((a * d) % 2) d += 1;
+      const s1 = rng.int(-6, 8), c = type === 'one' ? 0 : a * d / 2, b = c - a * s1, s2 = s1 - d, iso = type === 'none' ? -c : c, r = m * iso + k;
+      const inner = sumHtml([[a, 'x', 1], [b, '', 0]]);
+      const answer = type === 'none' ? 'No solution' : type === 'one' ? `${X} = ${N(s1)}` : solH(s1, s2);
+      const wrong = type === 'none' ? [solH(s1, s2), `${X} = ${N(s1)}`, solH(-s1, -s2), `${X} = ${N(s2)}`]
+        : type === 'one' ? ['No solution', solH(s1, s1 ? -s1 : 2), `${X} = ${N(s1 ? -s1 : 3)}`, `${X} = ${N(s1 + 1)}`]
+        : [solH(-s1, -s2), 'No solution', `${X} = ${N(s1)}`, `${X} = ${N(s2)}`];
+      const hints = [`Isolate the absolute value: ${k < 0 ? 'add' : 'subtract'} ${N(Math.abs(k))}, then divide by ${N(m)}${m < 0 ? ', a negative number, so the sign of the other side changes' : ''}. You get |${inner}| = ${N(iso)}.`];
+      if (type === 'none') hints.push(`An absolute value is never negative, so it can’t equal ${N(iso)}.`, '<b>No solution</b>.');
+      else if (type === 'one') hints.push(`Only 0 has an absolute value of 0, so ${inner} = 0: just one solution.`, `<b>${answer}</b>.`);
+      else hints.push(`Split: ${inner} = ${N(c)} or ${inner} = ${N(-c)}.`, `Solve each: <b>${answer}</b>.`);
+      return { prompt: `Solve.${big(`${N(m)}|${inner}| ${M.signed(k)} = ${N(r)}`)}`, type: 'choice', choices: [answer].concat(others(answer, wrong, 3)), answer, params: { a, b, m, k, r }, hints };
+    },
     verify(q) {
       const { a, b, m, k, r } = q.params, f = x => m * Math.abs(a * x + b) + k;
       const sols = []; for (let x = -100; x <= 100; x += 0.5) if (f(x) === r) sols.push(x);
       const s = plain(q.answer);
-      if (s === 'No solution') return sols.length === 0 && f(-b / a) > r;
+      if (s === 'No solution') return sols.length === 0 && (m > 0 ? f(-b / a) > r : f(-b / a) < r);     // the vertex of the V is on the wrong side of r
       const got = (s.match(/-?\d+(\.\d+)?/g) || []).map(Number);
       return got.length === sols.length && got.every((v, i) => v === sols[i]);
     },
@@ -921,9 +1182,10 @@
 
   A.skill({
     id: 'alg1.piecewise-functions', title: 'Piecewise and absolute value functions',
-    learn: p(`A <b>piecewise function</b> uses different rules on different parts of its domain. To evaluate it, first <b>find which condition the input satisfies</b>, then use only that piece's rule. Watch the endpoints: "${X} &lt; 2" leaves 2 out, while "${X} ≥ 2" includes it.`) +
-      p(`The absolute value function ${V('g')}(${X}) = ${V('a')}|${X} − ${V('h')}| + ${V('k')} is a V-shaped piecewise function. Its <b>vertex</b> is ${M.pt(V('h'), V('k'))}; it opens up when ${V('a')} &gt; 0 and down when ${V('a')} &lt; 0. As with parabolas, the sign inside is the opposite of ${V('h')}.`) +
-      example('Example', `${V('f')}(${X}) = ${X} + 4 if ${X} &lt; 1, and 3${X} if ${X} ≥ 1. For ${V('f')}(1), the input 1 fits ${X} ≥ 1, so ${V('f')}(1) = 3(1) = <b>3</b>.`),
+    learn: p(`A <b>piecewise function</b> uses different rules on different parts of its domain. To evaluate it, first <b>find which condition the input satisfies</b>, then use only that piece’s rule. Watch the endpoints: “${X} &lt; 2” leaves 2 out, while “${X} ≥ 2” includes it.`) +
+      p(`The absolute value function ${V('g')}(${X}) = ${V('a')}|${X} − ${V('h')}| + ${V('k')} is a V-shaped piecewise function. Its <b>vertex</b>, the point of the V, is ${M.pt(V('h'), V('k'))}. It opens up when ${V('a')} &gt; 0 and down when ${V('a')} &lt; 0. As with parabolas, the number inside the bars has the opposite sign of ${V('h')}: |${X} + 3| has ${V('h')} = −3.`) +
+      example('Example 1: evaluating a piecewise function', `${V('f')}(${X}) = ${X} + 4 if ${X} &lt; 1, and 3${X} if ${X} ≥ 1. For ${V('f')}(1), the input 1 fits ${X} ≥ 1 (not ${X} &lt; 1), so ${V('f')}(1) = 3(1) = <b>3</b>.`) +
+      example('Example 2: an absolute value function', `${V('g')}(${X}) = −2|${X} + 3| + 5. The bars are zero at ${X} = −3, so the vertex is <b>${M.pt(-3, 5)}</b>, and the V opens down because −2 &lt; 0. To evaluate: ${V('g')}(1) = −2|4| + 5 = <b>−3</b>.`),
     make(rng) {
       const kind = rng.pick(['eval', 'eval', 'abs-vertex', 'abs-eval']);
       if (kind === 'eval') {
@@ -965,10 +1227,13 @@
 
   A.skill({
     id: 'alg1.exponent-properties', title: 'Exponent properties and rational exponents',
-    learn: p(`<b>Product:</b> ${M.sup(V('a'), V('m'))} · ${M.sup(V('a'), V('n'))} = ${V('a')}<sup>${V('m')}+${V('n')}</sup>. <b>Quotient:</b> ${M.sup(V('a'), V('m'))} ÷ ${M.sup(V('a'), V('n'))} = ${V('a')}<sup>${V('m')}−${V('n')}</sup>. <b>Power of a power:</b> (${M.sup(V('a'), V('m'))})<sup>${V('n')}</sup> = ${V('a')}<sup>${V('m')}${V('n')}</sup>. A power of a product raises every factor: (3${M.sup(X, 2)})³ = 27${M.sup(X, 6)}.`) +
-      p(`<b>Zero and negative exponents:</b> ${M.sup(V('a'), 0)} = 1 and ${M.sup(V('a'), '−' + V('n'))} = 1 ÷ ${M.sup(V('a'), V('n'))}, so 2<sup>−3</sup> = ${F(1, 8)}.`) +
-      p(`<b>Rational exponents</b> mean roots: ${V('a')}<sup>1/${V('n')}</sup> is the ${V('n')}th root of ${V('a')}, and ${V('a')}<sup>${V('m')}/${V('n')}</sup> is that root raised to the ${V('m')}th power. Taking the root first keeps the numbers small.`) +
-      example('Example', `${big('27<sup>2/3</sup>')}The cube root of 27 is 3, and 3² = <b>9</b>.`),
+    learn: p(`In a power such as ${M.sup(V('a'), V('n'))}, ${V('a')} is the <b>base</b> and ${V('n')} is the <b>exponent</b>, which counts how many times the base is multiplied. When the bases match: <b>multiply powers by adding exponents</b>, ${M.sup(V('a'), V('m'))} · ${M.sup(V('a'), V('n'))} = ${V('a')}<sup>${V('m')}+${V('n')}</sup>; <b>divide by subtracting</b>, ${M.sup(V('a'), V('m'))} ÷ ${M.sup(V('a'), V('n'))} = ${V('a')}<sup>${V('m')}−${V('n')}</sup>; and for a <b>power of a power, multiply</b>, (${M.sup(V('a'), V('m'))})<sup>${V('n')}</sup> = ${V('a')}<sup>${V('m')}${V('n')}</sup>.`) +
+      p(`A power of a product raises every factor, the number included. <b>Zero and negative exponents:</b> ${M.sup(V('a'), 0)} = 1, and a negative exponent means a reciprocal (1 divided by the number): ${M.sup(V('a'), '−' + V('n'))} = 1 ÷ ${M.sup(V('a'), V('n'))}, so 2<sup>−3</sup> = ${F(1, 8)}.`) +
+      p(`<b>Rational exponents</b>, exponents that are fractions, mean roots: ${V('a')}<sup>1/${V('n')}</sup> is the ${V('n')}th root of ${V('a')}, and ${V('a')}<sup>${V('m')}/${V('n')}</sup> is that root raised to the ${V('m')}th power. Taking the root first keeps the numbers small.`) +
+      example('Example 1: same base', `${M.sup(X, 5)} · ${M.sup(X, '−2')} = ${M.sup(X, 3)} (add: 5 + (−2) = 3). ${M.sup(X, 4)} ÷ ${M.sup(X, 7)} = ${M.sup(X, '−3')} (subtract: 4 − 7). (${M.sup(X, 3)})<sup>4</sup> = <b>${M.sup(X, 12)}</b> (multiply: 3 × 4).`) +
+      example('Example 2: a power of a product', `${big(`(−2${M.sup(X, 3)})<sup>4</sup>`)}The 4th power applies to −2 and to ${M.sup(X, 3)}: (−2)<sup>4</sup> = 16 and (${M.sup(X, 3)})<sup>4</sup> = ${M.sup(X, 12)}, so the result is <b>16${M.sup(X, 12)}</b>.`) +
+      example('Example 3: negative exponents', `5<sup>−2</sup> = ${F(1, 25)}. For a fraction, a negative exponent flips it: (${F(2, 3)})<sup>−2</sup> = (${F(3, 2)})² = <b>${F(9, 4)}</b>.`) +
+      example('Example 4: a rational exponent', `${big('27<sup>2/3</sup>')}The denominator 3 means a cube root: the cube root of 27 is 3. Then square it: 3² = <b>9</b>.`),
     make(rng) {
       const kind = rng.pick(['product', 'quotient', 'power', 'neg', 'rational', 'rational', 'mono']);
       if (kind === 'rational') {
@@ -998,9 +1263,24 @@
       return { prompt: `Simplify, writing the result as ${M.sup(X, V('n'))}. What is ${V('n')}?${big(expr)}`, type: 'number', answer: n, params: { kind, a, b },
         hints: [rule, `So the result is ${xp(n)}${n < 0 ? `, which can also be written ${F(1, xp(-n))}` : ''}.`, `<b>${V('n')} = ${N(n)}</b>.`] };
     },
+    challenge(rng) {
+      if (rng.bool()) {
+        // a fraction to a fractional, possibly negative, power
+        const [pp, qq] = rng.pick([[2, 3], [3, 2], [1, 2], [2, 5], [3, 4], [4, 3], [1, 3], [5, 2]]), d = rng.pick([2, 3]), n = rng.pick([-3, -2, -1, 2, 3]);
+        const u = Math.pow(pp, d), w = Math.pow(qq, d), [sn, sd] = n > 0 ? M.simp(Math.pow(pp, n), Math.pow(qq, n)) : M.simp(Math.pow(qq, -n), Math.pow(pp, -n)), root = d === 2 ? 'square' : 'cube';
+        return { prompt: `Evaluate. Give your answer as a fraction.${big(`(${F(u, w)})<sup>${N(n)}/${d}</sup>`)}`, type: 'number', answer: sn / sd, answerText: M.fracText(sn, sd), params: { kind: 'ratfrac', u, w, n, d },
+          hints: [`The denominator ${d} means a ${root} root of the top and of the bottom: the ${root} root of ${F(u, w)} is ${F(pp, qq)}.`, n < 0 ? `The negative exponent flips the fraction: (${F(qq, pp)})<sup>${-n}</sup>.` : `Now raise it to the power ${n}: (${F(pp, qq)})<sup>${n}</sup>.`, `<b>${M.fracText(sn, sd)}</b>.`] };
+      }
+      // three rules in one expression
+      const a = rng.nz(-5, 6), b = rng.nz(-4, 4), c = rng.nz(-7, 7), d = rng.nz(-7, 7), n = a * b + c - d;
+      return { prompt: `Simplify, writing the result as ${M.sup(X, V('n'))}. What is ${V('n')}?${big(F(`(${xp(a)})<sup>${N(b)}</sup> · ${xp(c)}`, xp(d)))}`, type: 'number', answer: n, params: { kind: 'combo', a, b, c, d },
+        hints: [`Power of a power first: (${xp(a)})<sup>${N(b)}</sup> = ${xp(a * b)}.`, `Multiplying by ${xp(c)} adds exponents: ${N(a * b)} + ${wrap(c)} = ${N(a * b + c)}. Dividing by ${xp(d)} subtracts: ${N(a * b + c)} − ${wrap(d)} = ${N(n)}.`, `<b>${V('n')} = ${N(n)}</b>.`] };
+    },
     verify(q) {
       const P = q.params, t = 1.7, close = (u, w) => Math.abs(u - w) <= 1e-9 * Math.max(1, Math.abs(w));
       if (P.kind === 'rational') return close(Math.pow(P.b, P.n / P.d), q.answer);
+      if (P.kind === 'ratfrac') return close(Math.pow(P.u / P.w, P.n / P.d), q.answer);
+      if (P.kind === 'combo') return close(Math.pow(t, q.answer), Math.pow(Math.pow(t, P.a), P.b) * Math.pow(t, P.c) / Math.pow(t, P.d));
       if (P.kind === 'neg') return close(Math.pow(P.u / P.w, -P.e), q.answer);
       if (P.kind === 'mono') return q.answer === M.term(P.coef, 'x', P.pw) && close(P.coef * Math.pow(t, P.pw), Math.pow(P.c * Math.pow(t, P.a), P.b));
       const lhs = P.kind === 'product' ? Math.pow(t, P.a) * Math.pow(t, P.b) : P.kind === 'quotient' ? Math.pow(t, P.a) / Math.pow(t, P.b) : Math.pow(Math.pow(t, P.a), P.b);
@@ -1015,10 +1295,12 @@
 
   A.skill({
     id: 'alg1.simplify-roots', title: 'Simplifying square roots',
-    learn: p(`A square root is simplified when no perfect square (4, 9, 16, 25, …) divides the number under the root. Use <b>√(${V('a')}${V('b')}) = √${V('a')} · √${V('b')}</b>: split the number into the <b>largest perfect square factor</b> times what is left, then take the root of the square.`) +
-      p(`√72 = √(36 · 2) = 6√2. Using a smaller square works too, but then you must keep going: √72 = √(4 · 18) = 2√18 = 2 · 3√2 = 6√2.`) +
-      p(`To multiply roots, multiply under one root and simplify. To add roots, simplify each first; only <b>like radicals</b> (the same number under the root) can be combined, just like like terms.`) +
-      example('Example', `${big(`${M.sqrt(12)} + 5${M.sqrt(3)}`)}${M.sqrt(12)} = ${M.sqrt('4 · 3')} = 2${M.sqrt(3)}. Then 2${M.sqrt(3)} + 5${M.sqrt(3)} = <b>7${M.sqrt(3)}</b>.`),
+    learn: p(`A <b>perfect square</b> is a whole number times itself: 4, 9, 16, 25, 36, … A square root is <b>simplified</b> when no perfect square bigger than 1 divides the number under the root sign. To simplify, use <b>√(${V('a')}${V('b')}) = √${V('a')} · √${V('b')}</b>: split the number into its <b>largest perfect square factor</b> times what’s left, then take the root of the square.`) +
+      p(`Using a smaller square works too, but then you have to keep going: √72 = √(4 · 18) = 2√18 = 2 · 3√2 = 6√2.`) +
+      p(`To multiply roots, multiply the numbers under one root and simplify. To add or subtract roots, simplify each one first. Only <b>like radicals</b>, roots with the same number under the sign, can be combined, just as with like terms.`) +
+      example('Example 1: simplifying', `${big(M.sqrt(72))}The largest perfect square that divides 72 is 36: ${M.sqrt(72)} = ${M.sqrt('36 · 2')} = <b>6${M.sqrt(2)}</b>.`) +
+      example('Example 2: multiplying', `${big(`${M.sqrt(6)} · ${M.sqrt(10)}`)}Multiply under one root: ${M.sqrt(60)}. The largest perfect square factor of 60 is 4: ${M.sqrt('4 · 15')} = <b>2${M.sqrt(15)}</b>.`) +
+      example('Example 3: adding', `${big(`${M.sqrt(12)} + 5${M.sqrt(3)}`)}${M.sqrt(12)} = ${M.sqrt('4 · 3')} = 2${M.sqrt(3)}. Then 2${M.sqrt(3)} + 5${M.sqrt(3)} = <b>7${M.sqrt(3)}</b>.`),
     make(rng) {
       const kind = rng.pick(['simplify', 'simplify', 'multiply', 'add']);
       if (kind === 'multiply') {
@@ -1041,12 +1323,24 @@
       return { prompt: `Simplify.${big(M.sqrt(n))}`, type: 'choice', choices: [answer].concat(others(answer, wrong, 3)), answer, params: { kind, n },
         hints: [`Look for the largest perfect square that divides ${n}: it is ${k * k} = ${k}².`, `${M.sqrt(n)} = ${M.sqrt(`${k * k} · ${m}`)} = ${M.sqrt(k * k)} · ${M.sqrt(m)}.`, `<b>${answer}</b>.`] };
     },
+    challenge(rng) {
+      // three roots that all simplify to multiples of the same root, some subtracted
+      const m = rng.pick([2, 3, 5, 6, 7]), us = rng.sample([1, 2, 3, 4, 5], 3);
+      const cs = us.map((u, i) => (i === 0 ? rng.int(1, 3) : rng.sign() * rng.int(1, 4)));
+      let total = cs.reduce((acc, c, i) => acc + c * us[i], 0);
+      if (total === 0 || total === -1) { cs[0] += 1; total += us[0]; }
+      const terms = cs.map((c, i) => [c, us[i] * us[i] * m]), answer = rad(total, m);
+      const show = terms.map(([c, r], i) => `${i ? (c < 0 ? ' − ' : ' + ') : ''}${Math.abs(c) === 1 ? '' : N(Math.abs(c))}${M.sqrt(r)}`).join('');
+      const wrong = [rad(cs.reduce((acc, c) => acc + c, 0) || 2, m), rad(cs.reduce((acc, c, i) => acc + Math.abs(c) * us[i], 0), m), rad(total, 2 * m), rad(-total, m), rad(cs.reduce((acc, c, i) => acc + c * us[i] * us[i], 0) || 3, m)];
+      return { prompt: `Simplify.${big(show)}`, type: 'choice', choices: [answer].concat(others(answer, wrong, 3)), answer, params: { kind: 'add', terms },
+        hints: [`Simplify each root first: ${terms.map(([, r], i) => `${M.sqrt(r)} = ${rad(us[i], m)}`).join(', ')}.`, `Now every term is a multiple of ${M.sqrt(m)}. Combine the coefficients, signs included: ${cs.map((c, i) => (i ? ` ${c < 0 ? '−' : '+'} ` : '') + N(i ? Math.abs(c * us[i]) : c * us[i])).join('')} = ${N(total)}.`, `<b>${answer}</b>.`] };
+    },
     verify(q) {
       const P = q.params;
       if (P.kind === 'simplify') return q.answer === rad(...splitRoot(P.n));
       if (P.kind === 'multiply') return q.answer === rad(...splitRoot(P.a * P.b));
       const parts = P.terms.map(([c, r]) => { const [k, m] = splitRoot(r); return [c * k, m]; });
-      return parts[0][1] === parts[1][1] && q.answer === rad(parts[0][0] + parts[1][0], parts[0][1]);
+      return parts.every(pt => pt[1] === parts[0][1]) && q.answer === rad(parts.reduce((acc, pt) => acc + pt[0], 0), parts[0][1]);
     },
   });
 
@@ -1073,33 +1367,83 @@
 
   A.skill({
     id: 'alg1.rational-irrational', title: 'Rational and irrational numbers',
-    learn: p(`A <b>rational number</b> can be written as a fraction ${F(V('p'), V('q'))} of two integers (with ${V('q')} ≠ 0). Integers, fractions, terminating decimals and repeating decimals are all rational. An <b>irrational number</b> cannot be written that way; its decimal goes on forever without repeating. Examples: π, and the square root of any whole number that is not a perfect square.`) +
-      p(`Sums and products follow rules. Rational + rational and rational × rational are rational. <b>Rational + irrational is irrational</b>, and so is a non-zero rational times an irrational. Two irrationals can give either: √2 · √8 = √16 = 4 is rational, while √2 · √3 = √6 is not.`) +
-      example('Example', `Is ${M.sqrt(45)} ÷ ${M.sqrt(5)} rational? It equals ${M.sqrt(9)} = 3, so <b>yes</b>. Is 4 + ${M.sqrt(7)} rational? 7 is not a perfect square, so ${M.sqrt(7)} is irrational, and adding 4 keeps it irrational: <b>no</b>.`),
+    learn: p(`A <b>rational number</b> can be written as a fraction ${F(V('p'), V('q'))} of two <b>integers</b> (whole numbers and their negatives), with ${V('q')} ≠ 0. Integers, fractions, decimals that end, and decimals that repeat are all rational. An <b>irrational number</b> can’t be written that way; its decimal goes on forever without repeating. Examples: π, and the square root of any whole number that isn’t a perfect square.`) +
+      p(`Sums and products follow rules. Rational + rational and rational × rational are rational. <b>Rational + irrational is irrational</b>, and so is a rational number other than 0 times an irrational one. Two irrationals can give either kind, so simplify before you decide.`) +
+      example('Example 1: one number at a time', `Is ${M.sqrt(45)} ÷ ${M.sqrt(5)} rational? It equals ${M.sqrt(9)} = 3, so <b>yes</b>. Is 4 + ${M.sqrt(7)} rational? 7 isn’t a perfect square, so ${M.sqrt(7)} is irrational, and adding 4 keeps it irrational: <b>no</b>. Is 0.<span style="text-decoration: overline">27</span> rational? It repeats, so <b>yes</b> (it equals ${F(3, 11)}).`) +
+      example('Example 2: two irrationals', `${M.sqrt(2)} · ${M.sqrt(8)} = ${M.sqrt(16)} = 4, which is <b>rational</b>. But ${M.sqrt(2)} · ${M.sqrt(3)} = ${M.sqrt(6)}, and 6 isn’t a perfect square, so that product is <b>irrational</b>.`),
     make(rng) {
-      const wantIrr = rng.bool();
+      const form = rng.pick(['which', 'which', 'classify', 'count']), wantIrr = rng.bool();
       const pickItems = (gens, k) => rng.sample(gens.map((g, i) => i), k).map(i => gens[i](rng));
-      // two different makers can land on the same number (1/9 twice): draw again until all four read differently
+      // two different makers can land on the same number (1/9 twice): draw again until all of them read differently
       const key = it => A.normText(A.stripTags(it.h));
+      if (form === 'classify') {
+        const it = rng.pick(rng.bool() ? RAT_GENS : IRR_GENS)(rng), answer = isRational(it) ? 'Rational' : 'Irrational';
+        return { prompt: `Is this number rational or irrational?${big(it.h)}`, type: 'choice', choices: ['Rational', 'Irrational'], keepOrder: true, answer, params: { form, items: [it] },
+          hints: ['Rational means it can be written as a fraction of two integers; irrational means it can’t. Simplify first if you can.', `${it.h}: ${it.why}.`, `So it’s <b>${answer.toLowerCase()}</b>.`] };
+      }
+      if (form === 'count') {
+        const k = rng.int(4, 5); let items, tries = 0;
+        do { items = Array.from({ length: k }, () => rng.pick(rng.bool() ? RAT_GENS : IRR_GENS)(rng)); tries++; } while (new Set(items.map(key)).size < k && tries < 30);
+        const hits = items.filter(it => isRational(it) !== wantIrr), n = hits.length;
+        return { prompt: `How many of these numbers are <b>${wantIrr ? 'irrational' : 'rational'}</b>?${big(items.map(it => it.h).join(', &nbsp;'))}`, type: 'number', answer: n, params: { form, wantIrr, items },
+          hints: ['Check each number: can it be written as a fraction of two integers? Simplify roots, products and quotients first.', items.map(it => `${it.h}: ${it.why}`).join('; ') + '.', `${n === 1 ? 'One number is' : `${N(n)} numbers are`} ${wantIrr ? 'irrational' : 'rational'}: <b>${N(n)}</b>.`] };
+      }
       let odd, rest, tries = 0;
       do { odd = pickItems(wantIrr ? IRR_GENS : RAT_GENS, 1)[0]; rest = pickItems(wantIrr ? RAT_GENS : IRR_GENS, 3); tries++; }
       while (new Set([odd].concat(rest).map(key)).size < 4 && tries < 30);
       const items = [odd].concat(rest), answer = odd.h;
-      return { prompt: `Which number is <b>${wantIrr ? 'irrational' : 'rational'}</b>?`, type: 'choice', choices: items.map(it => it.h), answer, params: { wantIrr, items },
+      const ask = wantIrr ? rng.pick(['Which number is <b>irrational</b>?', 'Which of these numbers <b>can’t</b> be written as a fraction of two integers?', 'Which number has a decimal that never ends and never repeats?'])
+        : rng.pick(['Which number is <b>rational</b>?', 'Which of these numbers <b>can</b> be written as a fraction of two integers?']);
+      return { prompt: ask, type: 'choice', choices: items.map(it => it.h), answer, params: { form, wantIrr, items },
         hints: [`Rational means it can be written as a fraction of integers; irrational means it cannot.`, `Check the others: ${rest.map(it => `${it.h}: ${it.why}`).join('; ')}.`, `<b>${answer}</b> is the ${wantIrr ? 'irrational' : 'rational'} one: ${odd.why}.`] };
     },
+    challenge(rng) {
+      // six numbers, mostly ones that need simplifying before you can tell
+      const RT = [0, 2, 4, 5, 6].map(i => RAT_GENS[i]), IT = [0, 2, 3, 4, 5].map(i => IRR_GENS[i]), key = it => A.normText(A.stripTags(it.h)), wantIrr = rng.bool();
+      let items, tries = 0;
+      do { items = Array.from({ length: 6 }, () => rng.pick(rng.bool() ? RT : IT)(rng)); tries++; } while (new Set(items.map(key)).size < 6 && tries < 40);
+      const n = items.filter(it => isRational(it) !== wantIrr).length;
+      return { prompt: `How many of these numbers are <b>${wantIrr ? 'irrational' : 'rational'}</b>? Simplify each one before you decide.${big(items.map(it => it.h).join(', &nbsp;'))}`, type: 'number', answer: n, params: { form: 'count', wantIrr, items },
+        hints: ['Simplify roots, products and quotients first; a root of a perfect square, or of a fraction of perfect squares, is rational.', items.map(it => `${it.h}: ${it.why}`).join('; ') + '.', `${n === 1 ? 'One number is' : `${N(n)} numbers are`} ${wantIrr ? 'irrational' : 'rational'}: <b>${N(n)}</b>.`] };
+    },
     verify(q) {
-      const hits = q.params.items.filter(it => isRational(it) !== q.params.wantIrr);
+      const P = q.params;
+      if (P.form === 'classify') return q.answer === (isRational(P.items[0]) ? 'Rational' : 'Irrational');
+      if (P.form === 'count') { let n = 0; for (const it of P.items) if (isRational(it) !== P.wantIrr) n++; return q.answer === n; }
+      const hits = P.items.filter(it => isRational(it) !== P.wantIrr);
       return hits.length === 1 && hits[0].h === q.answer;
     },
   });
 
+  const EXP_DOUBLE = [
+    { text: (s, per, t) => `A culture starts with ${s} bacteria and doubles every ${per} hours. How many bacteria are there after ${t} hours?`, unit: '', noun: 'bacteria' },
+    { text: (s, per, t) => `A patch of algae on a pond covers ${s} square centimeters and doubles in area every ${per} days. How many square centimeters does it cover after ${t} days?`, unit: 'cm²', noun: 'square centimeters' },
+    { text: (s, per, t, n) => `${n}’s video for a school fundraiser has ${s} views, and the number of views doubles every ${per} days. How many views does it have after ${t} days?`, unit: '', noun: 'views' },
+  ];
+  const EXP_HALF = [
+    { text: (s, per, t, n) => `${n} has a ${s} gram sample of a substance with a half-life of ${per} days: every ${per} days, half of it decays. How many grams remain after ${t} days?`, unit: 'g', noun: 'grams' },
+    { text: (s, per, t) => `A patient is given ${s} milligrams of a medicine, and the amount left in the body halves every ${per} hours. How many milligrams are left after ${t} hours?`, unit: 'mg', noun: 'milligrams' },
+  ];
+  const EXP_GROW = [
+    (P, r, n) => `${n} puts ${P} in an account that grows by ${r}% each year.`,
+    (P, r) => `A town’s scholarship fund holds ${P} and grows by ${r}% each year.`,
+    (P, r, n) => `${n} buys an old coin for ${P}, and its value rises by ${r}% each year.`,
+  ];
+  const EXP_LOSE = [
+    (P, r) => `A car bought for ${P} loses ${r}% of its value each year.`,
+    (P, r) => `A farm buys a tractor for ${P}, and it loses ${r}% of its value each year.`,
+    (P, r, n) => `${n}’s school buys a cart of laptops for ${P}, and the cart loses ${r}% of its value each year.`,
+  ];
+
   A.skill({
     id: 'alg1.exponential-growth-decay', title: 'Exponential growth and decay',
-    learn: p(`A quantity grows <b>exponentially</b> when it is multiplied by the same factor in each time period. The model is <b>${V('y')} = ${V('a')} · ${M.sup(V('b'), V('t'))}</b>, where ${V('a')} is the starting amount and ${V('b')} is the growth factor. If ${V('b')} &gt; 1 it is growth; if 0 &lt; ${V('b')} &lt; 1 it is decay.`) +
-      p(`For a percent change of ${V('r')}% per period, the factor is <b>1 + ${V('r')}/100</b> for growth and <b>1 − ${V('r')}/100</b> for decay: 5% growth uses 1.05, and losing 20% uses 0.80. "Doubles" means ${V('b')} = 2 and "halves" means ${V('b')} = ${F(1, 2)}, counted once per doubling or halving period.`) +
-      p('Compare with linear change: a linear quantity adds the same amount each period, while an exponential one multiplies by the same amount, so it eventually outgrows any line.') +
-      example('Example', `$600 earns 4% interest each year. After 3 years: 600 · 1.04³ = 600 · 1.124864 = <b>$674.92</b>.`),
+    learn: p(`A quantity changes <b>exponentially</b> when it’s multiplied by the same factor in each time period. The model is <b>${V('y')} = ${V('a')} · ${M.sup(V('b'), V('t'))}</b>, where ${V('a')} is the starting amount, ${V('b')} is the <b>growth factor</b> (what you multiply by each period), and ${V('t')} counts the periods. If ${V('b')} &gt; 1 it’s growth; if 0 &lt; ${V('b')} &lt; 1 it’s decay.`) +
+      p(`For a change of ${V('r')}% per period, the factor is <b>1 + ${V('r')}/100</b> for growth and <b>1 − ${V('r')}/100</b> for decay: 5% growth uses 1.05, and losing 20% uses 0.80. “Doubles” means ${V('b')} = 2 and “halves” means ${V('b')} = ${F(1, 2)}, applied once per doubling time or <b>half-life</b> (the time it takes to halve).`) +
+      p('Compare this with linear change: a linear quantity adds the same amount each period, while an exponential one multiplies by the same amount, so exponential growth eventually outgrows any line.') +
+      example('Example 1: percent growth', `$600 earns 4% interest each year. After 3 years: 600 · 1.04³ = 600 · 1.124864 ≈ <b>$674.92</b>.`) +
+      example('Example 2: percent decay', `A $15,000 tractor loses 12% of its value each year, so the factor is 1 − 0.12 = 0.88. After 2 years: 15,000 · 0.88² = 15,000 · 0.7744 = <b>$11,616</b>.`) +
+      example('Example 3: halving', `An 80 gram sample has a half-life of 6 days. In 18 days it halves 18 ÷ 6 = 3 times: 80 · (${F(1, 2)})³ = 80 ÷ 8 = <b>10 grams</b>.`) +
+      example('Example 4: reading the factor', `In ${V('f')}(${V('t')}) = 250(0.93)<sup>${V('t')}</sup>, the factor 0.93 = 1 − 0.07, so the amount <b>decays by 7% per period</b>. In a table with outputs 4, 12, 36, …, each output is 3 times the one before, so ${V('b')} = <b>3</b>.`),
     make(rng) {
       const kind = rng.pick(['double', 'half', 'percent', 'percent', 'identify', 'table']), name = rng.pick(NAMES);
       if (kind === 'identify') {
@@ -1118,14 +1462,14 @@
       if (kind === 'double' || kind === 'half') {
         const dbl = kind === 'double', per = rng.pick(dbl ? [2, 3, 4, 5, 6] : [3, 5, 8, 10, 12]), k = rng.int(dbl ? 2 : 1, dbl ? 5 : 4);
         const start = dbl ? rng.pick([50, 100, 200, 250, 300, 500]) : Math.pow(2, k) * rng.pick([5, 10, 15, 25]), t = per * k, ans = dbl ? start * Math.pow(2, k) : start / Math.pow(2, k);
-        const prompt = dbl ? `A culture starts with ${N(start)} bacteria and doubles every ${per} hours. How many bacteria are there after ${t} hours?` : `${name} has a ${N(start)} gram sample of a substance with a half-life of ${per} days: every ${per} days, half of it decays. How many grams remain after ${t} days?`;
-        return { prompt, type: 'number', answer: ans, unit: dbl ? '' : 'g', params: { kind, start, per, t },
-          hints: [`${t} ÷ ${per} = ${k}, so the amount ${dbl ? 'doubles' : 'halves'} ${k} times.`, `${N(start)} · ${dbl ? '2' : F(1, 2)}<sup>${k}</sup> = ${N(start)} ${dbl ? '×' : '÷'} ${Math.pow(2, k)}.`, `<b>${N(ans)}</b>${dbl ? ' bacteria' : ' grams'}.`] };
+        const C = rng.pick(dbl ? EXP_DOUBLE : EXP_HALF), prompt = C.text(N(start), per, t, name);
+        return { prompt, type: 'number', answer: ans, unit: C.unit, params: { kind, start, per, t },
+          hints: [`${t} ÷ ${per} = ${k}, so the amount ${dbl ? 'doubles' : 'halves'} ${k} times.`, `${N(start)} · ${dbl ? '2' : F(1, 2)}<sup>${k}</sup> = ${N(start)} ${dbl ? '×' : '÷'} ${Math.pow(2, k)}.`, `<b>${N(ans)}</b> ${C.noun}.`] };
       }
       const grow = rng.bool(), r = rng.pick([2, 3, 4, 5, 6, 8, 10, 12, 15, 20]), t = rng.int(2, 6);
       const P = grow ? rng.pick([500, 800, 1000, 1200, 2500, 3000]) : rng.pick([12000, 15000, 18000, 24000, 30000]);
       const b = grow ? 1 + r / 100 : 1 - r / 100, ans = M.round(P * Math.pow(b, t), 2);
-      const prompt = grow ? `${name} puts ${M.money(P)} in an account that grows by ${r}% each year. What is it worth after ${t} years? Round to the nearest cent.` : `A car bought for ${M.money(P)} loses ${r}% of its value each year. What is it worth after ${t} years? Round to the nearest cent.`;
+      const prompt = `${rng.pick(grow ? EXP_GROW : EXP_LOSE)(M.money(P), r, name)} What is it worth after ${t} years? Round to the nearest cent.`;
       return { prompt, type: 'number', answer: ans, unit: '$', tolerance: 0.01, params: { kind, grow, r, t, P },
         hints: [`${grow ? 'Growing' : 'Losing'} ${r}% a year means multiplying by ${N(b)} each year.`, `Value = ${N(P)} · ${N(b)}<sup>${t}</sup>, and ${N(b)}<sup>${t}</sup> ≈ ${N(M.round(Math.pow(b, t), 6))}.`, `About <b>${M.money(ans)}</b>.`] };
     },
@@ -1154,9 +1498,11 @@
 
   A.skill({
     id: 'alg1.multiply-binomials', title: 'Multiplying binomials',
-    learn: p(`To multiply two binomials, <b>multiply each term of the first by each term of the second</b> and add the four products. One way to keep track is FOIL: First, Outer, Inner, Last. Then combine the two middle terms, which are like terms.`) +
+    learn: p(`A <b>binomial</b> is an expression with two terms, like ${X} + 3. To multiply two binomials, <b>multiply each term of the first by each term of the second</b> and add the four products. One way to keep track is FOIL: First, Outer, Inner, Last. Then combine the two middle terms, which are like terms.`) +
       p(`Two patterns are worth knowing. A square: (${V('a')} + ${V('b')})² = ${M.sup(V('a'), 2)} + 2${V('a')}${V('b')} + ${M.sup(V('b'), 2)}; the middle term is easy to forget. A sum times a difference: (${V('a')} + ${V('b')})(${V('a')} − ${V('b')}) = ${M.sup(V('a'), 2)} − ${M.sup(V('b'), 2)}; here the middle terms cancel.`) +
-      example('Example', `${big(`(2${X} + 3)(${X} − 5)`)}First 2${M.sup(X, 2)}, Outer −10${X}, Inner 3${X}, Last −15. Combine: <b>${M.poly([2, -7, -15])}</b>.`),
+      example('Example 1: any two binomials', `${big(`(2${X} + 3)(${X} − 5)`)}First 2${M.sup(X, 2)}, Outer −10${X}, Inner 3${X}, Last −15. Combine: <b>${M.poly([2, -7, -15])}</b>.`) +
+      example('Example 2: a square', `${big(`(${X} − 4)<sup>2</sup>`)}This is (${X} − 4)(${X} − 4): ${M.sup(X, 2)} − 4${X} − 4${X} + 16 = <b>${M.poly([1, -8, 16])}</b>, not ${M.sup(X, 2)} + 16.`) +
+      example('Example 3: a sum times a difference', `${big(`(3${X} + 2)(3${X} − 2)`)}The middle terms, −6${X} and +6${X}, cancel: 9${M.sup(X, 2)} − 4. So the product is <b>${M.poly([9, 0, -4])}</b>.`),
     make(rng) {
       const kind = rng.pick(['general', 'general', 'square', 'conj']);
       let fs, expr, wrong;
@@ -1180,9 +1526,11 @@
 
   A.skill({
     id: 'alg1.factor-quadratics', title: 'Factoring quadratics',
-    learn: p(`Factoring undoes multiplying. For ${M.sup(X, 2)} + ${V('b')}${X} + ${V('c')}, look for <b>two numbers that multiply to ${V('c')} and add to ${V('b')}</b>; then ${M.sup(X, 2)} + ${V('b')}${X} + ${V('c')} = (${X} + ${V('m')})(${X} + ${V('n')}). If ${V('c')} is negative the two numbers have opposite signs; if ${V('c')} is positive they share the sign of ${V('b')}.`) +
-      p(`When the leading coefficient is not 1, try factor pairs of it in the first places and factor pairs of ${V('c')} in the last places, and check the middle term by multiplying back. A <b>difference of squares</b> ${M.sup(V('a'), 2)} − ${M.sup(V('b'), 2)} factors as (${V('a')} − ${V('b')})(${V('a')} + ${V('b')}).`) +
-      example('Example', `${big(M.poly([1, -2, -15]))}Numbers that multiply to −15 and add to −2: −5 and 3. So it factors as <b>(${X} − 5)(${X} + 3)</b>.`),
+    learn: p(`<b>Factoring</b> undoes multiplying: it writes an expression as a product. For ${M.sup(X, 2)} + ${V('b')}${X} + ${V('c')}, look for <b>two numbers that multiply to ${V('c')} and add to ${V('b')}</b>. If they are ${V('m')} and ${V('n')}, then ${M.sup(X, 2)} + ${V('b')}${X} + ${V('c')} = (${X} + ${V('m')})(${X} + ${V('n')}). If ${V('c')} is negative, the two numbers have opposite signs; if ${V('c')} is positive, they share the sign of ${V('b')}.`) +
+      p(`When the <b>leading coefficient</b> (the number in front of ${M.sup(X, 2)}) isn’t 1, try its factor pairs in the first places and factor pairs of ${V('c')} in the last places, and check the middle term by multiplying back. A <b>difference of squares</b> ${M.sup(V('a'), 2)} − ${M.sup(V('b'), 2)} factors as (${V('a')} − ${V('b')})(${V('a')} + ${V('b')}).`) +
+      example('Example 1: leading coefficient 1', `${big(M.poly([1, -2, -15]))}Numbers that multiply to −15 and add to −2: −5 and 3. So it factors as <b>(${X} − 5)(${X} + 3)</b>.`) +
+      example('Example 2: leading coefficient 2', `${big(M.poly([2, 7, 3]))}Try (2${X} + ?)(${X} + ?) with last numbers multiplying to 3. (2${X} + 1)(${X} + 3) gives a middle term of 2${X} · 3 + 1 · ${X} = 7${X}, which matches: <b>(2${X} + 1)(${X} + 3)</b>.`) +
+      example('Example 3: a difference of squares', `${big(M.poly([9, 0, -25]))}9${M.sup(X, 2)} = (3${X})² and 25 = 5², so it factors as <b>(3${X} − 5)(3${X} + 5)</b>.`),
     make(rng) {
       const kind = rng.pick(['monic', 'monic', 'leading', 'dos']);
       let fs, opts;
@@ -1205,10 +1553,21 @@
           kind === 'monic' ? `${N(b0)} and ${N(d0)} work: ${N(b0)} × ${wrap(d0)} = ${N(b0 * d0)} and ${N(b0)} + ${wrap(d0)} = ${N(b0 + d0)}.` : `Check the middle term by multiplying back: ${M.term(a0, 'x')} · ${wrap(d0)} + ${wrap(b0)} · ${M.term(c0, 'x')} = ${M.term(a0 * d0 + b0 * c0, 'x')}.`,
           `<b>${answer}</b>.`] };
     },
+    challenge(rng) {
+      // a common factor to take out first, then a trinomial
+      const g = rng.pick([2, 3, 4, 5, -2, -3]), lead = rng.pick([1, 1, 2, 3]);
+      let pp = rng.nz(-7, 7); if (lead > 1 && pp % lead === 0) pp += pp > 0 ? 1 : -1;
+      const qq = rng.nz(-7, 7), fs = [[lead, pp], [1, qq]], full = [[0, g]].concat(fs), coefs = coefsOf(prodOf(full));
+      const opts = [full, [[0, g], [lead, -pp], [1, -qq]], [[g * lead, g * pp], [1, qq]], [[0, -g], [lead, -pp], [1, qq]], [[0, g], [lead, qq], [1, pp]]];
+      const html = opts.map(o => (o[0][0] === 0 ? (o[0][1] === -1 ? '−' : N(o[0][1])) + facH(o.slice(1)) : facH(o))), answer = html[0];
+      return { prompt: `Factor completely.${big(M.poly(coefs))}`, type: 'choice', choices: [answer].concat(others(answer, html.slice(1), 3)), answer, params: { coefs, opts, html },
+        hints: [`Every coefficient shares the factor ${N(g)}. Take it out first: ${N(g)}(${M.poly(coefs.map(c => c / g))}).`, `Now factor the trinomial inside: ${M.poly(coefs.map(c => c / g))} = ${facH(fs)}. Multiply back to check the middle term.`, `Keep the ${N(g)} in front: <b>${answer}</b>. A form like ${facH([[g * lead, g * pp], [1, qq]])} isn’t factored completely.`] };
+    },
     verify(q) {
       const P = q.params, i = P.html.indexOf(q.answer); if (i < 0) return 'answer not among options';
       const got = coefsOf(prodOf(P.opts[i]));
-      return got.every((v, j) => v === P.coefs[j]);
+      // the same polynomial, and factored completely: no binomial still has a common factor
+      return got.every((v, j) => v === P.coefs[j]) && P.opts[i].every(([a, b]) => a === 0 || M.gcd(a, b) === 1);
     },
   });
   const k2 = a => a * a;
@@ -1227,10 +1586,13 @@
 
   A.skill({
     id: 'alg1.solve-quadratics', title: 'Solving quadratic equations',
-    learn: p(`<b>Factoring:</b> write the equation as (…)(…) = 0. A product is 0 only when a factor is 0, so set each factor to 0. <b>Square roots:</b> if the equation is (${X} − ${V('h')})² = ${V('k')}, take the square root of both sides, remembering <b>±</b>: ${X} = ${V('h')} ± √${V('k')}.`) +
-      p(`<b>Completing the square</b> turns ${M.sup(X, 2)} + ${V('b')}${X} into a perfect square by adding (${V('b')}/2)² to both sides. Doing that to ${V('a')}${M.sup(X, 2)} + ${V('b')}${X} + ${V('c')} = 0 in general gives the <b>quadratic formula</b>: ${X} = (−${V('b')} ± √(${M.sup(V('b'), 2)} − 4${V('a')}${V('c')})) ÷ 2${V('a')}.`) +
-      p(`The <b>discriminant</b> ${M.sup(V('b'), 2)} − 4${V('a')}${V('c')} tells you how many real solutions there are: positive gives two, zero gives one, negative gives none.`) +
-      example('Example', `${big(`${M.poly([1, 6])} = 7`)}Add (6/2)² = 9 to both sides: (${X} + 3)² = 16. So ${X} + 3 = ±4, giving <b>${X} = 1 or ${X} = −7</b>.`),
+    learn: p(`A <b>quadratic equation</b> has an ${M.sup(X, 2)} term and can be written ${V('a')}${M.sup(X, 2)} + ${V('b')}${X} + ${V('c')} = 0. <b>Factoring:</b> write it as (…)(…) = 0. A product is 0 only when one of its factors is 0, so set each factor equal to 0. <b>Square roots:</b> if the equation is (${X} − ${V('h')})² = ${V('k')}, take the square root of both sides, remembering <b>±</b>: ${X} = ${V('h')} ± √${V('k')}.`) +
+      p(`<b>Completing the square</b> turns ${M.sup(X, 2)} + ${V('b')}${X} into a perfect square by adding (${V('b')}/2)² to both sides. Doing that to ${V('a')}${M.sup(X, 2)} + ${V('b')}${X} + ${V('c')} = 0 in general gives the <b>quadratic formula</b>: ${X} = (−${V('b')} ± √(${M.sup(V('b'), 2)} − 4${V('a')}${V('c')})) ÷ 2${V('a')}, which works for every quadratic.`) +
+      p(`The <b>discriminant</b>, ${M.sup(V('b'), 2)} − 4${V('a')}${V('c')}, tells you how many real solutions there are: positive gives two, zero gives one, negative gives none.`) +
+      example('Example 1: factoring', `${big(`${M.poly([1, -1, -12])} = 0`)}−4 and 3 multiply to −12 and add to −1: (${X} − 4)(${X} + 3) = 0. So <b>${X} = 4 or ${X} = −3</b>.`) +
+      example('Example 2: square roots', `${big(`2(${X} − 1)² − 3 = 47`)}Add 3 and divide by 2: (${X} − 1)² = 25. Take square roots: ${X} − 1 = ±5, so <b>${X} = 6 or ${X} = −4</b>.`) +
+      example('Example 3: completing the square', `${big(`${M.poly([1, 6, 0])} = 7`)}Add (6/2)² = 9 to both sides: (${X} + 3)² = 16. So ${X} + 3 = ±4, giving <b>${X} = 1 or ${X} = −7</b>.`) +
+      example('Example 4: the quadratic formula', `${big(`${M.poly([1, -4, 1])} = 0`)}${V('a')} = 1, ${V('b')} = −4, ${V('c')} = 1. The discriminant is 16 − 4 = 12, which is positive, so there are two solutions: ${X} = ${F(`4 ± ${M.sqrt(12)}`, '2')} ≈ <b>3.73 or 0.27</b>.`),
     make(rng) {
       const kind = rng.pick(['factored', 'factor', 'factor', 'sqrt', 'formula', 'count', 'complete']), ask = rng.pick(['greater', 'smaller']);
       const askTxt = `If there are two solutions, give the <b>${ask}</b> one.`;
@@ -1290,9 +1652,11 @@
 
   A.skill({
     id: 'alg1.vertex-form', title: 'Vertex form and features of parabolas',
-    learn: p(`The graph of a quadratic is a <b>parabola</b>. In <b>vertex form</b> ${Y} = ${V('a')}(${X} − ${V('h')})² + ${V('k')}, the vertex is <b>${M.pt(V('h'), V('k'))}</b>. Notice the sign: ${Y} = (${X} + 4)² − 1 has its vertex at ${M.pt(-4, -1)}. If ${V('a')} &gt; 0 the parabola opens up and ${V('k')} is the minimum value; if ${V('a')} &lt; 0 it opens down and ${V('k')} is the maximum.`) +
-      p(`From standard form ${Y} = ${V('a')}${M.sup(X, 2)} + ${V('b')}${X} + ${V('c')}, the vertex has ${X} = −${V('b')} ÷ 2${V('a')}; substitute that ${X} to find ${V('k')}. Or <b>complete the square</b>: ${M.sup(X, 2)} + 8${X} + 3 = (${M.sup(X, 2)} + 8${X} + 16) − 16 + 3 = (${X} + 4)² − 13.`) +
-      example('Example', `${big(`${Y} = ${M.poly([2, -12, 5])}`)}${X} = −(−12) ÷ (2 · 2) = 3, and ${Y} = 2(9) − 36 + 5 = −13. Vertex <b>${M.pt(3, -13)}</b>, a minimum because 2 &gt; 0.`),
+    learn: p(`The graph of a quadratic is a U-shaped curve called a <b>parabola</b>, and its turning point is the <b>vertex</b>. In <b>vertex form</b>, ${Y} = ${V('a')}(${X} − ${V('h')})² + ${V('k')}, the vertex is <b>${M.pt(V('h'), V('k'))}</b>. Watch the sign: ${Y} = (${X} + 4)² − 1 has its vertex at ${M.pt(-4, -1)}. If ${V('a')} &gt; 0 the parabola opens up and ${V('k')} is the <b>minimum</b> (smallest) value; if ${V('a')} &lt; 0 it opens down and ${V('k')} is the <b>maximum</b>.`) +
+      p(`From standard form, ${Y} = ${V('a')}${M.sup(X, 2)} + ${V('b')}${X} + ${V('c')}, the vertex has ${X} = −${V('b')} ÷ 2${V('a')}; substitute that ${X} to find ${V('k')}. Or <b>complete the square</b> to rewrite the equation in vertex form.`) +
+      example('Example 1: reading vertex form', `${big(vfH(-3, -2, 7))}Inside is ${X} + 2, so ${V('h')} = −2, and ${V('k')} = 7. The vertex is <b>${M.pt(-2, 7)}</b>, and because −3 &lt; 0 it opens down, so 7 is the maximum.`) +
+      example('Example 2: the vertex from standard form', `${big(`${Y} = ${M.poly([2, -12, 5])}`)}${X} = −(−12) ÷ (2 · 2) = 3, and ${Y} = 2(9) − 36 + 5 = −13. Vertex <b>${M.pt(3, -13)}</b>, a minimum because 2 &gt; 0.`) +
+      example('Example 3: completing the square', `${big(`${Y} = ${M.poly([1, 8, 3])}`)}Half of 8 is 4, and 4² = 16. Add and subtract 16: ${Y} = (${M.poly([1, 8, 16])}) − 16 + 3 = <b>(${X} + 4)² − 13</b>.`),
     make(rng) {
       const kind = rng.pick(['read', 'convert', 'feature', 'feature']);
       if (kind === 'convert') {
@@ -1312,11 +1676,18 @@
       return { prompt: `For the parabola ${Y} = ${M.poly(coefs)}, what is ${askX ? `the ${X}-coordinate of the vertex` : `the ${a > 0 ? 'minimum' : 'maximum'} value of ${Y}`}?`, type: 'number', answer: askX ? h : k, params: { kind, coefs, askX },
         hints: [`The vertex is at ${X} = −${V('b')} ÷ 2${V('a')} = −${wrap(coefs[1])} ÷ ${wrap(2 * a)} = ${N(h)}.`, askX ? `So the ${X}-coordinate is <b>${N(h)}</b>.` : `Substitute: ${Y} = ${N(a)}${wrap(h)}² ${M.signed(coefs[1])} · ${wrap(h)} ${M.signed(coefs[2])} = ${N(k)}.`].concat(askX ? [] : [`${a > 0 ? 'It opens up, so this is the minimum' : 'It opens down, so this is the maximum'}: <b>${N(k)}</b>.`]) };
     },
+    challenge(rng) {
+      // completing the square when the leading coefficient isn't 1
+      const a = rng.pick([2, 3, -1, -2, -3]), h = rng.nz(-5, 5), k = rng.int(-12, 12), b = -2 * a * h, c = a * h * h + k;
+      const opts = [[h, k], [-h, k], [h, c - h * h], [h, c + a * h * h]], html = opts.map(([hh, kk]) => vfH(a, hh, kk)), answer = html[0];
+      return { prompt: `Rewrite in vertex form.${big(`${Y} = ${M.poly([a, b, c])}`)}`, type: 'choice', choices: [answer].concat(others(answer, html.slice(1), 3)), answer, params: { kind: 'convert', a, b, c, opts, html },
+        hints: [`Factor ${N(a)} out of the first two terms: ${Y} = ${a === -1 ? '−' : N(a)}(${M.poly([1, b / a, 0])}) ${M.signed(c)}.`, `Half of ${N(b / a)} is ${N(-h)}, and its square is ${h * h}. Adding ${h * h} inside the parentheses really adds ${N(a * h * h)}, so take that back off: ${Y} = ${a === -1 ? '−' : N(a)}(${X} ${M.signed(-h)})² ${M.signed(-a * h * h)} ${M.signed(c)}.`, `${N(c)} ${M.signed(-a * h * h)} = ${N(k)}, so <b>${answer}</b>.`] };
+    },
     verify(q) {
       const P = q.params;
       if (P.kind === 'convert') {
         const i = P.html.indexOf(q.answer); if (i < 0) return 'not an option';
-        const [h, k] = P.opts[i]; return [-2, 0, 3].every(x => (x - h) * (x - h) + k === x * x + P.b * x + P.c);
+        const [h, k] = P.opts[i], a = P.a || 1; return [-2, 0, 3].every(x => a * (x - h) * (x - h) + k === a * x * x + P.b * x + P.c);
       }
       const [a, b, c] = P.coefs, f = x => (a * x + b) * x + c;
       // the vertex is the grid point where f is most extreme
