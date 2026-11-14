@@ -119,6 +119,18 @@
         .concat([`Combine like terms. ${lines}.`, `The result is <b>${ans}</b>.`]);
       return { prompt: `${sub ? 'Subtract' : 'Add'} the polynomials.${big(`(${P(a)}) ${sub ? '−' : '+'} (${P(b)})`)}`, type: 'choice', choices, answer: ans, hints, params: { a, b, sub } };
     },
+    challenge(rng) {   // "subtract B from A" flips the order; four or five terms, with gaps
+      const L = rng.pick([4, 5]);
+      const a = [rng.nz(-9, 9)], b = [rng.nz(-9, 9)];
+      for (let i = 1; i < L; i++) { a.push(rng.chance(0.25) ? 0 : rng.int(-12, 12)); b.push(rng.chance(0.25) ? 0 : rng.nz(-12, 12)); }
+      if (a[0] === b[0]) a[0] += a[0] > 0 ? 1 : -1;
+      const r = a.map((c, i) => c - b[i]), ans = P(r);
+      const cands = [P(b.map((c, i) => c - a[i])), P(a.map((c, i) => c + b[i])), P(a.map((c, i) => i === 0 ? c - b[0] : c + b[i]))];
+      const choices = options(ans, cands, () => { const k = rng.int(1, L - 1); return P(r.map((c, i) => i === k ? c + rng.pick([-2, -1, 1, 2]) : c)); });
+      const lines = r.map((c, i) => { const pw = L - 1 - i; if (!a[i] && !b[i]) return ''; const lab = pw === 0 ? 'constants' : (pw === 1 ? X : M.sup(X, pw)) + ' terms'; return `${lab}: ${N(a[i])} − ${wrap(b[i])} = ${N(c)}`; }).filter(Boolean).join('; ');
+      return { prompt: `Subtract, and write the result as one polynomial.${big(`Subtract ${P(b)} from ${P(a)}`)}`, type: 'choice', choices, answer: ans, params: { a, b, sub: true },
+        hints: [`“Subtract ${V('B')} from ${V('A')}” means ${V('A')} − ${V('B')}, so the polynomial named second comes first: (${P(a)}) − (${P(b)}).`, `Change the sign of every term of ${P(b)}, then combine like terms. ${lines}.`, `The result is <b>${ans}</b>.`] };
+    },
     verify(q) { const { a, b, sub } = q.params; const f = readPoly(q.answer); return sameAt(f, t => horner(a, t) + (sub ? -1 : 1) * horner(b, t)); },
   });
 
@@ -154,6 +166,21 @@
         : [drop(0, 1), drop(1, 0), drop(1, b.length - 2), P(r.map((c, i) => i === 1 ? -c : c))];
       const choices = options(ans, rng.shuffle(cands), () => { const k = rng.int(1, deg); return P(r.map((c, i) => i === k ? c + rng.pick([-2, -1, 1, 2]) : c)); });
       return { prompt: `Multiply and simplify.${big(shown)}`, type: 'choice', choices, answer: ans, hints, params: { kind, a, b } };
+    },
+    challenge(rng) {   // a trinomial times a trinomial: the whole product, or one coefficient of it
+      const a = [rng.pick([1, 2, 3, -1, -2]), rng.nz(-5, 5), rng.nz(-6, 6)], b = [rng.pick([1, 2, -1, 3]), rng.int(-5, 5), rng.nz(-6, 6)];
+      const r = pmul(a, b), ans = P(r), shown = `(${P(a)})(${P(b)})`;
+      const tm = (c, pw) => (pw ? M.term(c, 'x', pw) : N(c));
+      const byPow = k => { const out = []; a.forEach((x, i) => b.forEach((y, j) => { if (4 - i - j === k && x * y) out.push(`(${tm(x, 2 - i)})(${tm(y, 2 - j)})`); })); return out; };
+      if (rng.bool()) {
+        const k = rng.int(1, 3), ks = k === 1 ? X : M.sup(X, k);
+        return { prompt: `Find the coefficient of ${ks} in the product, without multiplying everything out.${big(shown)}`, type: 'number', answer: r[4 - k], params: { kind: 'coef', a, b, k },
+          hints: [`Only pairs of terms whose powers of ${X} add to ${k} make an ${ks} term.`, `Those pairs: ${byPow(k).join(' + ')}.`, `Add their coefficients: the coefficient of ${ks} is <b>${N(r[4 - k])}</b>.`] };
+      }
+      const drop = (i, j) => { const out = r.slice(); out[i + j] -= a[i] * b[j]; return P(out); };
+      const choices = options(ans, rng.shuffle([drop(0, 1), drop(1, 1), drop(2, 1), drop(1, 2), P(r.map((c, i) => i === 2 ? -c : c))]), () => { const k = rng.int(1, 4); return P(r.map((c, i) => i === k ? c + rng.pick([-2, -1, 1, 2]) : c)); });
+      return { prompt: `Multiply and simplify.${big(shown)}`, type: 'choice', choices, answer: ans, params: { kind: 'tri-tri', a, b },
+        hints: [`Multiply each term of ${P(a)} by every term of ${P(b)}: up to nine small products.`, `Collect them by power: ${[4, 3, 2, 1, 0].map(k => `${k === 0 ? 'constants' : (k === 1 ? X : M.sup(X, k))} ${N(r[4 - k])}`).join(', ')}.`, `The product is <b>${ans}</b>.`] };
     },
     verify(q) {
       const { kind, a, b, k } = q.params;
@@ -222,6 +249,22 @@
       return { prompt: `Which complex number is plotted? The horizontal axis is real and the vertical axis is imaginary; each grid line is 1 unit.${planeSvg(a, b)}`, type: 'choice', choices: [answer, cx(b, a), cx(a, -b), cx(-a, b)], answer, params: { kind, a, b },
         hints: [`A point (${V('a')}, ${V('b')}) in the complex plane stands for ${V('a')} + ${V('b')}${I}: across is the real part, up is the imaginary part.`, `The point is ${N(Math.abs(a))} ${a < 0 ? 'left' : 'right'} and ${N(Math.abs(b))} ${b < 0 ? 'down' : 'up'}: it is (${N(a)}, ${N(b)}).`, `So it is <b>${answer}</b>.`] };
     },
+    challenge(rng) {   // large and combined powers of i, and absolute values from bigger right triangles
+      if (rng.chance(0.3)) {
+        const [x, y] = rng.pick([[7, 24], [24, 7], [20, 21], [21, 20], [9, 40], [40, 9], [12, 35], [35, 12], [8, 15], [15, 8], [28, 45], [33, 56]]);
+        const a = x * rng.sign(), b = y * rng.sign(), r = Math.round(Math.sqrt(x * x + y * y));
+        return { prompt: `Find the absolute value (the distance from 0 in the complex plane).${big(`|${cx(a, b)}|`)}`, type: 'number', answer: r, params: { kind: 'abs', a, b },
+          hints: [`|${V('a')} + ${V('b')}${I}| = √(${V('a')}² + ${V('b')}²).`, `${wrap(a)}² + ${wrap(b)}² = ${N(x * x)} + ${N(y * y)} = ${N(x * x + y * y)}.`, `√${N(x * x + y * y)} = <b>${r}</b>.`] };
+      }
+      const form = rng.pick(['big', 'product', 'power']);
+      let n, shown, first;
+      if (form === 'big') { n = rng.int(100, 2999); shown = `${I}<sup>${n}</sup>`; first = `Only the remainder when ${N(n)} is divided by 4 matters.`; }
+      else if (form === 'product') { const u = rng.int(11, 99), w = rng.int(11, 99); n = u + w; shown = `${I}<sup>${u}</sup> · ${I}<sup>${w}</sup>`; first = `Multiplying powers of the same base adds the exponents: ${I}<sup>${u} + ${w}</sup> = ${I}<sup>${n}</sup>.`; }
+      else { const u = rng.int(3, 19), w = rng.int(3, 12); n = u * w; shown = `(${I}<sup>${u}</sup>)<sup>${w}</sup>`; first = `A power of a power multiplies the exponents: ${I}<sup>${u} × ${w}</sup> = ${I}<sup>${n}</sup>.`; }
+      const r = n % 4, labels = ['1', I, '−1', '−' + I], answer = labels[r];
+      return { prompt: `Simplify.${big(shown)}`, type: 'choice', choices: labels.slice(), keepOrder: true, answer, params: { kind: 'power', n },
+        hints: [first, `${N(n)} = 4 × ${N(Math.floor(n / 4))} + ${r}, and ${I}⁴ = 1, so only ${I}<sup>${r}</sup> is left${r === 0 ? ', which is 1' : ''}.`, `<b>${answer}</b>.`] };
+    },
     verify(q) {
       const pr = q.params;
       if (pr.kind === 'power') { let re = 1, im = 0; for (let k = 0; k < pr.n; k++) [re, im] = [-im, re]; return JSON.stringify(readCx(q.answer)) === JSON.stringify([re + 0, im + 0]); }
@@ -266,6 +309,16 @@
       const sym = op === 'add' ? '+' : op === 'sub' ? '−' : '';
       return { prompt: `${op === 'add' ? 'Add' : op === 'sub' ? 'Subtract' : 'Multiply'}. Write the answer as ${V('a')} + ${V('b')}${I}.${big(`(${cx(a, b)}) ${sym} (${cx(c, d)})`.replace(')  (', ')('))}`, type: 'choice', choices, answer, hints, params: { op, a, b, c, d } };
     },
+    challenge(rng) {   // squares of complex numbers, and products with larger parts
+      const sq = rng.bool();
+      const a = rng.nz(-9, 9), b = rng.nz(-9, 9), c = sq ? a : rng.nz(-9, 9), d = sq ? b : rng.nz(-9, 9);
+      const re = a * c - b * d, im = a * d + b * c, answer = cx(re, im);
+      const cands = sq ? [cx(a * a + b * b, 2 * a * b), cx(a * a, b * b), cx(a * a - b * b, a * b)] : [cx(a * c + b * d, a * d + b * c), cx(a * c, b * d), cx(a * c - b * d, a * d - b * c)];
+      const choices = options(answer, cands, () => cx(re + rng.pick([-2, -1, 1, 2]), im + rng.pick([-1, 0, 1])));
+      const shown = sq ? `(${cx(a, b)})²` : `(${cx(a, b)})(${cx(c, d)})`;
+      return { prompt: `Multiply. Write the answer as ${V('a')} + ${V('b')}${I}.${big(shown)}`, type: 'choice', choices, answer, params: { op: 'mul', a, b, c, d },
+        hints: [sq ? `Write the square as a product, (${cx(a, b)})(${cx(a, b)}), then use FOIL.` : `Use FOIL: first, outer, inner, last.`, `The ${I}² term is ${N(b * d)}${I}², which is ${N(-b * d)} because ${I}² = −1. Real part: ${N(a * c)} ${M.signed(-b * d)} = ${N(re)}.`, `Imaginary part: ${N(a * d)} ${M.signed(b * c)} = ${N(im)}. The result is <b>${answer}</b>.`] };
+    },
     verify(q) {
       const { op, a, b, c, d } = q.params;
       const [re, im] = readCx(q.answer);
@@ -301,7 +354,28 @@
           `${V('a')}² = ${M.term(m * m, 'x', 2)}, ${V('a')}${V('b')} = ${M.term(m * k, 'x', 1)}, ${V('b')}² = ${k * k}.`,
           `<b>${answer}</b>.`] };
     },
-    verify(q) { const { m, k, s } = q.params; return sameAt(readFactors(q.answer), t => Math.pow(m * t, 3) + s * Math.pow(k, 3)); },
+    challenge(rng) {   // a common factor to take out first, or larger cubes
+      const s = rng.sign(), withG = rng.bool();
+      const g = withG ? rng.pick([2, 3, 4, 5, 6]) : 1;
+      const m = withG ? rng.pick([1, 1, 2, 3]) : rng.pick([3, 4, 5, 6]);
+      let k = withG ? rng.int(1, 6) : rng.int(4, 10);
+      while (M.gcd(m, k) !== 1 || (!withG && k === m)) k = withG ? rng.int(1, 6) : rng.int(4, 10);
+      const shown = P([g * m ** 3, 0, 0, g * s * k ** 3]);
+      const f = (bs, mid) => `${g > 1 ? g : ''}(${P([m, bs * k])})(${P([m * m, mid, k * k])})`;
+      const answer = f(s, -s * m * k);
+      const choices = options(answer, rng.shuffle([f(s, s * m * k), f(-s, s * m * k), f(s, -2 * s * m * k), f(s, 0)]), null);
+      const aTxt = m === 1 ? X : `${m}${X}`;
+      return { prompt: `Factor completely.${big(shown)}`, type: 'choice', choices, answer, params: { m, k, s, g },
+        hints: [(g > 1 ? `First take out the common factor ${g}: ${shown} = ${g}(${P([m ** 3, 0, 0, s * k ** 3])}). ` : '') + `${M.term(m ** 3, 'x', 3)} = (${aTxt})³ and ${N(k ** 3)} = ${k}³, so this is a ${s > 0 ? 'sum' : 'difference'} of cubes.`,
+          `Use ${V('a')}³ ${s > 0 ? '+' : '−'} ${V('b')}³ = (${V('a')} ${s > 0 ? '+' : '−'} ${V('b')})(${V('a')}² ${s > 0 ? '−' : '+'} ${V('a')}${V('b')} + ${V('b')}²) with ${V('a')} = ${aTxt} and ${V('b')} = ${k}.`,
+          `<b>${answer}</b>.`] };
+    },
+    verify(q) {
+      const { m, k, s } = q.params, g = q.params.g || 1;
+      const lead = A.stripTags(q.answer).trim().match(/^(\d+)\s*\(/);   // a common factor written in front, as in 2(x − 3)(…)
+      const f = readFactors(lead ? q.answer.trim().replace(/^\d+/, '') : q.answer), c = lead ? Number(lead[1]) : 1;
+      return sameAt(t => c * f(t), t => g * (Math.pow(m * t, 3) + s * Math.pow(k, 3)));
+    },
   });
 
   A.skill({
@@ -333,6 +407,22 @@
       const first = M.term(r, 'x', 2), common = P([pp, q]);
       return { prompt: `Factor by grouping.${big(P(coefs))}`, type: 'choice', choices, answer, params: { kind: 'group', coefs },
         hints: [`Group the first two terms and the last two terms: (${P([coefs[0], coefs[1], 0, 0])}) + (${P([coefs[2], coefs[3]])}).`, `Take out each pair's common factor: ${first}(${common}) ${s < 0 ? '−' : '+'} ${N(Math.abs(s))}(${common}).`, `Both groups share (${common}), so factor it out: (${common})(${P([r, 0, s])}).`, `<b>${answer}</b>.`] };
+    },
+    challenge(rng) {   // a quadratic form that keeps factoring: differences of squares inside
+      const four = rng.bool();
+      let [p, q] = rng.sample([1, 2, 3, 4, 5, 6], 2);
+      if (four && p > q) [p, q] = [q, p];
+      const u = p * p, v = four ? q * q : -q * q;
+      const lin = r => `(${P([1, -r])})(${P([1, r])})`, sq = c => `(${P([1, 0, c])})`;
+      const answer = four ? lin(p) + lin(q) : lin(p) + sq(q * q);
+      const cands = four ? [sq(-u) + sq(-v), `${M.sup(`(${P([1, -p])})`, 2)}${M.sup(`(${P([1, q])})`, 2)}`, lin(p) + sq(q * q), lin(u) + lin(q * q)]
+        : [sq(-u) + sq(q * q), lin(p) + lin(q), lin(q) + sq(p * p), lin(p) + sq(-q * q)];
+      const choices = options(answer, cands, null);
+      const shown = P([1, 0, -(u + v), 0, u * v]);
+      return { prompt: `Factor completely over the integers.${big(shown)}`, type: 'choice', choices, answer, params: { kind: 'qform', u, v },
+        hints: [`Let ${V('u')} = ${X}²: ${M.poly([1, -(u + v), u * v], 'u')} = (${M.poly([1, -u], 'u')})(${M.poly([1, -v], 'u')}), so the expression is ${sq(-u)}${sq(-v)}.`,
+          `“Completely” means keep going. ${X}² − ${u} is a difference of squares, (${P([1, -p])})(${P([1, p])})${four ? `, and so is ${X}² − ${q * q}` : `, but ${X}² + ${q * q} is a sum of squares, which doesn't factor over the integers`}.`,
+          `<b>${answer}</b>.`] };
     },
     verify(q) {
       const pr = q.params, f = readFactors(q.answer);
@@ -378,6 +468,18 @@
       }
       return { prompt: `Divide using ${kind === 'long' ? 'long' : 'synthetic'} division.${big(`(${P(D)}) ÷ (${div})`)}`, type: 'choice', choices, answer, hints, params: { kind, D, r } };
     },
+    challenge(rng) {   // a fourth-degree dividend with a missing power
+      const r = rng.nz(-3, 3), gap = rng.int(1, 3);
+      const D = [rng.pick([1, 2, -1, 3]), rng.int(-6, 6), rng.int(-6, 6), rng.int(-6, 6), rng.int(-9, 9)];
+      D[gap] = 0;
+      const fmt = (qq, rr) => `${P(qq)}, remainder ${N(rr)}`;
+      const [Q, R] = synth(D, r), answer = fmt(Q, R);
+      const [wq, wr] = synth(D.filter((c, i) => i !== gap), r), [sq_, sr] = synth(D, -r);
+      const choices = options(answer, [fmt(wq, wr), fmt(sq_, sr), fmt(Q, R ? -R : 1), fmt(Q.map((c, i) => i === 1 ? -c : c), R)], () => fmt(Q.map((c, i) => i === 3 ? c + rng.pick([-2, -1, 1, 2]) : c), R));
+      const div = P([1, -r]), row = Q.concat(R);
+      return { prompt: `Divide. Watch for the missing power of ${X}.${big(`(${P(D)}) ÷ (${div})`)}`, type: 'choice', choices, answer, params: { kind: 'synthetic', D, r },
+        hints: [`Use ${V('a')} = ${N(r)}, and write a 0 for the missing ${gap === 3 ? X : M.sup(X, 4 - gap)} term: ${D.map(N).join(', ')}.`, `Bring down ${N(D[0])}, then multiply by ${N(r)} and add, column by column: the bottom row is ${row.map(N).join(', ')}.`, `The last number is the remainder, and the others are the coefficients of a cubic: <b>${answer}</b>.`] };
+    },
     verify(q) {
       const { D, r } = q.params;
       const [qs, rs] = q.answer.split(', remainder ');
@@ -411,6 +513,23 @@
       const cond = kind === 'factor' ? `${P([1, -a])} is a factor of ${fx('p', X)}` : `the remainder is ${N(R)} when ${fx('p', X)} is divided by ${P([1, -a])}`;
       return { prompt: `Find ${V('k')} if ${cond}.${big(`${fx('p', X)} = ${shown}`)}`, type: 'number', answer: k, params: { kind, a, b, d, R },
         hints: [`The remainder theorem says ${fx('p', N(a))} = ${N(R)}${kind === 'factor' ? ' (a factor leaves remainder 0)' : ''}.`, `Substitute ${N(a)}: ${wrap(a)}³ ${b ? `${M.signed(b)}·${wrap(a)}² ` : ''}+ ${V('k')}·${wrap(a)} ${M.signed(d)} = ${N(R)}, which is ${N(a ** 3 + b * a * a + d)} ${a < 0 ? '−' : '+'} ${Math.abs(a) === 1 ? '' : N(Math.abs(a))}${V('k')} = ${N(R)}.`, `${M.term(a, 'k')} = ${N(R - (a ** 3 + b * a * a + d))}, so <b>${V('k')} = ${N(k)}</b>.`] };
+    },
+    challenge(rng) {   // a fourth- or fifth-degree polynomial, or an unknown coefficient with a larger divisor
+      const a = rng.pick([-3, -2, 2, 3]);
+      const sum = ts => ts.map((t, i) => (i === 0 ? N(t) : `${t < 0 ? '−' : '+'} ${N(Math.abs(t))}`)).join(' ');
+      if (rng.chance(0.6)) {
+        const deg = rng.pick([4, 5]), c = [rng.pick([1, 2, -1])];
+        for (let i = 1; i <= deg; i++) c.push(rng.chance(0.3) ? 0 : rng.int(-6, 6));
+        const terms = c.map((k, i) => k * Math.pow(a, deg - i)), ans = terms.reduce((s, t) => s + t, 0);
+        return { prompt: `What is the remainder when ${fx('p', X)} is divided by ${P([1, -a])}?${big(`${fx('p', X)} = ${P(c)}`)}`, type: 'number', answer: ans, params: { kind: 'eval', c, a },
+          hints: [`By the remainder theorem the remainder is ${fx('p', N(a))}, since ${P([1, -a])} = ${X} − ${wrap(a)}.`, `Substitute ${N(a)} term by term: ${sum(terms.filter((t, i) => c[i]))}.`, `The remainder is <b>${N(ans)}</b>.`] };
+      }
+      const b = rng.int(-4, 4), k = rng.int(-9, 9), R = rng.int(-20, 20);
+      const d = R - (a ** 3 + b * a * a + k * a);
+      const shown = `${P([1, b, 0, 0])} + ${V('k')}${X}${d ? ' ' + M.signed(d) : ''}`;
+      const cond = R === 0 ? `${P([1, -a])} is a factor of ${fx('p', X)}` : `the remainder is ${N(R)} when ${fx('p', X)} is divided by ${P([1, -a])}`;
+      return { prompt: `Find ${V('k')} if ${cond}.${big(`${fx('p', X)} = ${shown}`)}`, type: 'number', answer: k, params: { kind: 'rem-k', a, b, d, R },
+        hints: [`The remainder theorem says ${fx('p', N(a))} = ${N(R)}.`, `Substitute ${N(a)}: ${sum([a ** 3, b * a * a, d].filter(t => t))} ${a < 0 ? '−' : '+'} ${Math.abs(a)}${V('k')} = ${N(R)}, so ${N(a ** 3 + b * a * a + d)} ${a < 0 ? '−' : '+'} ${Math.abs(a)}${V('k')} = ${N(R)}.`, `${M.term(a, 'k')} = ${N(R - (a ** 3 + b * a * a + d))}, so <b>${V('k')} = ${N(k)}</b>.`] };
     },
     verify(q) {
       const pr = q.params;
