@@ -1108,7 +1108,9 @@
     learn: p(`A fraction is a division. <b>${F(V('a'), V('b'))} means ${V('a')} ÷ ${V('b')}</b>: the top number divided by the bottom number. So when ${V('a')} things are shared equally among ${V('b')} people, each person gets ${F(V('a'), V('b'))} of a thing.`) +
       p(`Picture 3 pizzas shared by 4 friends. Cut every pizza into 4 equal slices. Each friend takes one slice from each pizza: 3 slices of ${F(1, 4)}, which is ${F(3, 4)} of a pizza. So 3 ÷ 4 = ${F(3, 4)}.`) +
       p(`When there are more things than people, each person gets more than one whole. Divide to see how many wholes each person gets, then share what is left over: 7 ÷ 3 is 2 with 1 left over, so each person gets ${MX(7, 3)}.`) +
-      example('Example', `${big('3 campers share 8 liters of juice equally.')}8 ÷ 3 = ${F(8, 3)}. Each camper gets 2 liters, and the 2 liters left over are split into 3 parts, so each camper gets <b>${MX(8, 3)} liters</b>.`),
+      example('Example: sharing', `${big('3 campers share 8 liters of juice equally.')}8 ÷ 3 = ${F(8, 3)}. Each camper gets 2 liters, and the 2 liters left over are split into 3 parts, so each camper gets <b>${MX(8, 3)} liters</b>.`) +
+      example('Example: a division as a fraction', `${big('17 ÷ 5')}As a fraction, 17 ÷ 5 = ${F(17, 5, { raw: true })}. 5 goes into 17 three times (15), with 2 left over, so ${F(17, 5, { raw: true })} = <b>${MX(17, 5)}</b>.`) +
+      example('Example: working backward', `${big(`6 friends shared some pizzas equally. Each got ${F(2, 3)} of a pizza.`)}How many pizzas were there? Each share is the total ÷ 6, so the total is ${F(2, 3)} × 6 = ${F(12, 3, { raw: true })} = <b>4 pizzas</b>.`),
     make(rng) {
       const kind = rng.pick(['share', 'share', 'share', 'divide', 'which', 'reverse']);
       const c = rng.pick(SHARE_CTX), [who, whoOne] = rng.pick(SHARERS);
@@ -1166,7 +1168,9 @@
     learn: p(`To multiply mixed numbers, <b>first rewrite each one as a fraction greater than one</b>. Multiply the whole number by the denominator and add the numerator: ${MX(7, 3)} = ${F('2 × 3 + 1', 3)} = ${F(7, 3, { raw: true })}. Then multiply the numerators, multiply the denominators, simplify, and change the answer back into a mixed number.`) +
       p(`<b>Do not just multiply the whole numbers and the fractions on their own.</b> ${MX(5, 2)} × ${MX(5, 2)} is not ${MX(17, 4)}. An area model shows why: (2 + ${F(1, 2)}) × (2 + ${F(1, 2)}) has four parts, 4 + 1 + 1 + ${F(1, 4)} = ${MX(25, 4)}. The two middle parts are the ones people forget.`) +
       p(`Estimate to check your answer: ${MX(7, 3)} × ${MX(3, 2)} must be between 2 × 1 = 2 and 3 × 2 = 6.`) +
-      example('Example', `${big(`${MX(7, 3)} × ${MX(3, 2)}`)}${F(7, 3, { raw: true })} × ${F(3, 2, { raw: true })} = ${F(21, 6, { raw: true })} = ${F(7, 2, { raw: true })} = <b>${MX(7, 2)}</b>.`),
+      example('Example: two mixed numbers', `${big(`${MX(7, 3)} × ${MX(3, 2)}`)}${F(7, 3, { raw: true })} × ${F(3, 2, { raw: true })} = ${F(21, 6, { raw: true })} = ${F(7, 2, { raw: true })} = <b>${MX(7, 2)}</b>.`) +
+      example('Example: times a whole number', `${big(`${MX(11, 4)} × 3`)}${MX(11, 4)} = ${F(11, 4, { raw: true })}, and 3 = ${F('3', '1')}. ${F(11, 4, { raw: true })} × ${F('3', '1')} = ${F(33, 4, { raw: true })} = <b>${MX(33, 4)}</b>.`) +
+      example('Example: an area model', `${areaModelSvg({ w: 2, r: 1, d: 2 }, { w: 1, r: 1, d: 3 })}${MX(5, 2)} × ${MX(4, 3)} has four parts: 2 × 1 = 2, 2 × ${F(1, 3)} = ${F(2, 3)}, ${F(1, 2)} × 1 = ${F(1, 2)} and ${F(1, 2)} × ${F(1, 3)} = ${F(1, 6)}. With sixths: 2 + ${F(4, 6, { raw: true })} + ${F(3, 6, { raw: true })} + ${F(1, 6)} = 2 + ${F(8, 6, { raw: true })} = <b>${MX(10, 3)}</b>. Check: ${F(5, 2, { raw: true })} × ${F(4, 3, { raw: true })} = ${F(20, 6, { raw: true })} = ${MX(10, 3)} ✓`),
     make(rng) {
       const kind = rng.pick(['mm', 'mm', 'mw', 'mf', 'area', 'recipe', 'model', 'mistake']);
       const dens = [2, 3, 4, 5, 6], name = rng.pick(NAMES);
@@ -1260,7 +1264,8 @@
     learn: p('A <b>statistical question</b> is one you answer by collecting data, and it <b>expects answers that vary</b>. “How many hours do sixth graders sleep on a school night?” is statistical: different students sleep for different amounts of time, so you would ask many of them and look at all the answers.') +
       p('A question with <b>one fixed answer</b> is not statistical. “How many legs does a spider have?” has one answer. So does “How tall is Ana?”: it is about one person at one moment.') +
       p('To test a question, ask yourself: <b>would I expect to get different answers?</b> Questions about a whole group, such as the students in a class or the dogs at a shelter, usually are statistical.') +
-      example('Example', `${big('“How old is Ben?” → “How old are the students in Ben’s class?”')}The first question has one answer. The second asks about a whole group whose ages vary, so <b>the second is a statistical question</b>.`),
+      example('Example: making a question statistical', `${big('“How old is Ben?” → “How old are the students in Ben’s class?”')}The first question has one answer. The second asks about a whole group whose ages vary, so <b>the second is a statistical question</b>.`) +
+      example('Example: one answer or many?', `${big('“How many days are in a week?” and “How many hours a week do our classmates practice music?”')}Every week has 7 days, so the first has <b>one fixed answer</b>. Different classmates practice for different amounts of time, so the second <b>is statistical</b>.`),
     make(rng) {
       const kind = rng.pick(['pick', 'pick', 'not', 'rewrite']), name = rng.pick(NAMES);
       const why = 'A statistical question expects answers that <b>vary</b>, so you would collect many pieces of data to answer it.';
@@ -1323,7 +1328,9 @@
     learn: p('A <b>histogram</b> is a bar graph for numbers. The data is grouped into <b>intervals of equal width</b>, such as 0–9, 10–19 and 20–29, and the height of each bar shows <b>how many values</b> fall in that interval. The bars touch, because each interval starts right where the last one ended.') +
       p('To read a bar, look across from its top to the scale. To answer “how many are at least 20?”, <b>add up every bar from 20 upward</b>. Adding all the bars gives the number of values in the data set.') +
       p('A histogram does <b>not</b> show the exact values. You can see that 7 students spent 20–29 minutes on homework, but not whether any of them spent exactly 25.') +
-      example('Example', `${histSvg(HIST[0], [2, 5, 7, 3])}How many students spent at least 20 minutes? Add the bars for 20–29 and 30–39: 7 + 3 = <b>10 students</b>.`),
+      p('Other displays do other jobs. A <b>stem-and-leaf plot</b> keeps every value, a <b>box plot</b> is drawn from five summary numbers, and a <b>bar graph</b> counts categories, like favorite fruits, that aren’t numbers on a scale.') +
+      example('Example: at least', `${histSvg(HIST[0], [2, 5, 7, 3])}How many students spent at least 20 minutes? Add the bars for 20–29 and 30–39: 7 + 3 = <b>10 students</b>.`) +
+      example('Example: all, and how many more', `In the same histogram, the bars are 2, 5, 7 and 3, so it shows 2 + 5 + 7 + 3 = <b>17 students</b> in all. The 20–29 bar is 7 and the 0–9 bar is 2, so <b>5 more</b> students spent 20–29 minutes than 0–9 minutes.`),
     make(rng) {
       const kind = rng.pick(['count', 'count', 'most', 'total', 'atleast', 'less', 'more', 'display']);
       if (kind === 'display') {
@@ -1411,8 +1418,9 @@
     id: 'g6.stem-and-leaf', title: 'Stem-and-leaf plots',
     learn: p('A <b>stem-and-leaf plot</b> shows every value in a data set. Each value is split into a <b>stem</b>, the tens digit, and a <b>leaf</b>, the ones digit. The stems run down the left side, and <b>each leaf on the right is one value</b>. The key tells you how to read it: 3 | 7 means 37.') +
       p('The leaves in each row are written <b>in order</b>, so the plot lists the data from smallest to largest. That makes it quick to find the least and greatest values, the range, and the <b>median</b>: count the leaves until you reach the middle one.') +
-      p('Count every leaf, including repeats: a row 4 | 2 2 5 holds three values, 42, 42 and 45. A stem with no leaves means there are no values in that ten.') +
-      example('Example', `${stemPlot([12, 15, 21, 24, 24, 28, 33])}There are 7 leaves, so the median is the 4th value: 12, 15, 21, <b>24</b>. The range is 33 − 12 = <b>21</b>.`),
+      p('Count every leaf, including repeats: a row 4 | 2 2 5 holds three values, 42, 42 and 45. A stem with no leaves means there are no values in that ten. The <b>mode</b> is the value that appears most often, so look for a leaf repeated in the same row.') +
+      example('Example: median and range', `${stemPlot([12, 15, 21, 24, 24, 28, 33])}There are 7 leaves, so the median is the 4th value: 12, 15, 21, <b>24</b>. The range is 33 − 12 = <b>21</b>.`) +
+      example('Example: mode and “at least”', `${stemPlot([31, 34, 34, 34, 40, 42, 45, 47, 52])}The leaf 4 appears three times in the 3 row, so the mode is <b>34</b>. The values that are at least 42 are 42, 45, 47 and 52: <b>4 values</b>.`),
     make(rng) {
       const kind = rng.pick(['count', 'extreme', 'stem', 'median', 'median', 'range', 'atleast', 'mode']);
       const t = rng.pick(STEM_DATA), n = rng.int(9, 15);
@@ -1510,7 +1518,8 @@
     learn: p('In a logic puzzle, every person gets a different item, and the clues tell you what is <b>not</b> true as well as what is. A <b>grid</b> keeps track of it all: names down the side, items across the top.') +
       p('Put an <b>✗</b> in a box for each “not” clue. Every row and every column ends up with exactly <b>one ✓</b>, so <b>when a row or a column has only one empty box left, that box must be the ✓</b>. Then cross out the rest of that row and column, and look again.') +
       p('Keep going until every row has its ✓. Check your answer against every clue before you finish.') +
-      example('Example', `<p><b>Ana, Ben and Chloe each have a different pet: a cat, a dog and a fish.</b></p>Clues: Ana does not have the dog. Ben has neither the dog nor the cat. Ben’s row now has only the fish box left, so Ben has the fish. The dog column has only Chloe’s box left, so Chloe has the dog, and <b>Ana has the cat</b>.`),
+      example('Example: “not” clues', `<p><b>Ana, Ben and Chloe each have a different pet: a cat, a dog and a fish.</b></p>Clues: Ana does not have the dog. Ben has neither the dog nor the cat. Ben’s row now has only the fish box left, so Ben has the fish. The dog column has only Chloe’s box left, so Chloe has the dog, and <b>Ana has the cat</b>.${M.table(['', 'Cat', 'Dog', 'Fish'], [['<b>Ana</b>', '✓', '✗', '✗'], ['<b>Ben</b>', '✗', '✗', '✓'], ['<b>Chloe</b>', '✗', '✓', '✗']])}`) +
+      example('Example: a clue that says yes', `<p><b>Dev, Iris and Omar each joined a different club: art, chess or drama.</b></p>Clues: Iris is in the chess club. Dev is not in the art club. Put a ✓ for Iris and chess, then cross out the rest of Iris’s row and the chess column. Dev’s row now has only drama left, so Dev is in drama, and <b>Omar is in the art club</b>.`),
     make(rng) {
       const t = rng.pick(LOGIC);
       for (let tries = 0; ; tries++) {
@@ -1592,7 +1601,8 @@
     learn: p('A <b>Venn diagram</b> sorts things into overlapping circles. Each circle is one group. The <b>overlap</b>, where the circles cross, holds everything that belongs to <b>both</b> groups, and anything in <b>neither</b> group goes outside the circles, inside the rectangle.') +
       p('“<b>Only</b> A” means the part of circle A outside the overlap. “<b>All</b> of A” means the whole circle, so add its two parts: only A plus the overlap. To find the total, add all four numbers.') +
       p('To place a number, test it against each circle in turn. If it fits both, it goes in the overlap.') +
-      example('Example', `${vennSvg('Soccer', 'Piano', [7, 3, 5, 4])}3 students play both. 7 + 3 = <b>10</b> play soccer. 7 + 3 + 5 + 4 = <b>19</b> students were asked.`),
+      example('Example: reading a Venn diagram', `${vennSvg('Soccer', 'Piano', [7, 3, 5, 4])}3 students play both. 7 + 3 = <b>10</b> play soccer. 7 + 3 + 5 + 4 = <b>19</b> students were asked.`) +
+      example('Example: placing numbers', `${big('Circle A: multiples of 4. Circle B: multiples of 6.')}12 = 4 × 3 and 12 = 6 × 2, so 12 goes <b>in the overlap</b>. 8 is a multiple of 4 but not of 6, so it goes <b>only in circle A</b>. 9 is neither, so it goes <b>outside both circles</b>.`),
     make(rng) {
       const kind = rng.pick(['read', 'read', 'read', 'place', 'place']);
       if (kind === 'place') {
@@ -1640,7 +1650,9 @@
     id: 'g6.percent-in-head', title: 'Percents in your head: tips and discounts',
     learn: p('Start from <b>10%</b>: move the decimal point one place left (10% of $48 is $4.80). From there: <b>20%</b> is double 10%, <b>5%</b> is half of 10%, and <b>15%</b> is 10% plus 5%. <b>25%</b> is a quarter, and <b>1%</b> moves the point two places.') +
       p('This is how people work out a tip or a discount at a glance. For a sale price, take the discount away from the price.') +
-      example('Example', `${big('A $48 meal: what is a 15% tip?')}10% is $4.80, and 5% is half of that, $2.40. So 15% is $4.80 + $2.40 = <b>$7.20</b>.`),
+      example('Example: a tip', `${big('A $48 meal: what is a 15% tip?')}10% is $4.80, and 5% is half of that, $2.40. So 15% is $4.80 + $2.40 = <b>$7.20</b>.`) +
+      example('Example: a sale price', `${big('A $35 backpack is 20% off.')}10% of $35 is $3.50, so 20% is $7.00. Take it off the price: $35.00 − $7.00 = <b>$28.00</b>.`) +
+      example('Example: 25% and 30%', `${big('25% and 30% of $36')}25% is a quarter: $36 ÷ 4 = <b>$9.00</b>. 30% is three times 10%: 3 × $3.60 = <b>$10.80</b>.`),
     make(rng) {
       const kind = rng.pick(['tip15', 'tip20', 'off25', 'pct5', 'pct30', 'sale']);
       let price, ans, prompt, hints;
@@ -1663,7 +1675,9 @@
     id: 'g6.recipe-scaling', title: 'Scaling a recipe',
     learn: p('A recipe is a <b>ratio</b>: the amounts stay in proportion when you make more or less. Find the <b>scale factor</b>, the new number of servings divided by the old, and multiply every amount by it.') +
       p('Another way: find the amount for <b>one serving</b> (divide), then multiply by the servings you want. Both give the same answer. Quarter and half amounts are common, like 1.5 cups.') +
-      example('Example', `${big('A recipe for 4 servings uses 3 cups of flour. How much for 6 servings?')}The scale factor is 6 ÷ 4 = 1.5, and 3 × 1.5 = <b>4.5 cups</b>.`),
+      example('Example: the scale factor', `${big('A recipe for 4 servings uses 3 cups of flour. How much for 6 servings?')}The scale factor is 6 ÷ 4 = 1.5, and 3 × 1.5 = <b>4.5 cups</b>.`) +
+      example('Example: one serving first', `${big('A recipe for 8 muffins uses 2 cups of milk. How much for 12 muffins?')}For one muffin: 2 ÷ 8 = 0.25 cup. For 12 muffins: 0.25 × 12 = <b>3 cups</b>.`) +
+      example('Example: making less', `${big('A soup for 6 bowls uses 1.5 teaspoons of salt. How much for 4 bowls?')}The scale factor is 4 ÷ 6 = ${F(2, 3)}, so 1.5 × ${F(2, 3)} = 3 ÷ 3 = <b>1 teaspoon</b>.`),
     make(rng) {
       const [dish, what, unit] = rng.pick(RECIPES);
       let from, to, amt;
@@ -1681,7 +1695,9 @@
     id: 'g6.money-plans', title: 'Planning with money',
     learn: p('Money problems often take <b>two or three steps</b>. Write down what you know, then decide the order: find a total cost first, or how much is still needed, before dividing or subtracting.') +
       p('When saving up, find how much is <b>still needed</b>, then divide by the amount saved each week. If it doesn’t divide evenly, you need <b>one more week</b>, because you can’t buy it until you have enough.') +
-      example('Example', `${big('A $126 bike. You have $30 and save $12 a week. How many weeks?')}Still needed: $126 − $30 = $96. Then 96 ÷ 12 = <b>8 weeks</b>.`),
+      example('Example: saving up', `${big('A $126 bike. You have $30 and save $12 a week. How many weeks?')}Still needed: $126 − $30 = $96. Then 96 ÷ 12 = <b>8 weeks</b>.`) +
+      example('Example: when it doesn’t divide evenly', `${big('A $100 tent. You have $25 and save $10 a week.')}Still needed: $100 − $25 = $75. 75 ÷ 10 = 7.5, but after 7 weeks you’d still be $5 short, so it takes <b>8 weeks</b>.`) +
+      example('Example: spending', `${big('You have $20. You buy 3 notebooks at $2.25 each and a pen for $1.40.')}Notebooks: 3 × $2.25 = $6.75. With the pen: $6.75 + $1.40 = $8.15. Left over: $20.00 − $8.15 = <b>$11.85</b>.`),
     make(rng) {
       const name = rng.pick(NAMES);
       if (rng.bool()) {
@@ -1720,7 +1736,8 @@
     id: 'g6.double-bar-graphs', title: 'Reading double bar graphs',
     learn: p('A <b>double bar graph</b> compares two groups side by side. The key shows which shade is which group. For each category on the bottom, there is one bar for each group.') +
       p('Read each bar by following its top across to the scale. To compare the groups in one category, <b>subtract</b> the shorter bar from the taller one; to find a group’s total, <b>add</b> its bars across all the categories.') +
-      example('Example', 'If Class A read 8 books in October and Class B read 5, Class A read 8 − 5 = <b>3</b> more books that month.'),
+      example('Example: comparing one category', `${doubleBars(PAIRS[0], [5, 8, 6, 9], [7, 5, 6, 10])}In Oct, Class A read 8 books and Class B read 5, so Class A read 8 − 5 = <b>3</b> more books that month.`) +
+      example('Example: a total, and the biggest gap', `In the same graph, Class A’s bars are 5, 8, 6 and 9, so Class A read 5 + 8 + 6 + 9 = <b>28 books</b> in all. The gaps between the bars are 2, 3, 0 and 1, so the groups differ most in <b>Oct</b>.`),
     make(rng) {
       const g = rng.pick(PAIRS), as = g.cats.map(() => rng.int(1, 12)), bs = g.cats.map(() => rng.int(1, 12));
       const pic = doubleBars(g, as, bs), kind = rng.pick(['diff', 'total', 'most', 'both']);
