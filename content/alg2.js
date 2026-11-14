@@ -582,6 +582,25 @@
       return { prompt: `What is the degree of ${V('f')}?${big(shown)}`, type: 'number', answer: deg, params,
         hints: [`The degree of a product is the sum of the degrees of the factors.`, `Add the exponents: ${mults.join(' + ')}${extra ? ' + 2 (for the quadratic factor)' : ''} = ${deg}.`, `The degree is <b>${deg}</b>.`] };
     },
+    challenge(rng) {   // a difference of squares hides a repeated factor
+      const r = rng.int(1, 6), sg = rng.sign(), j = rng.pick([1, 2]);
+      let s = rng.pick([0, 0, rng.int(-6, 6)]); if (s === r || s === -r) s = 0;
+      const m0 = rng.pick([1, 2, 3]), lead = rng.pick([1, 1, 2, -1, -3]);
+      const roots = [s, sg * r, -sg * r], mults = [m0, 1 + j, 1];
+      const shown = `${fx('f', X)} = ${leadTxt(lead)}${facTxt(s, m0)}(${P([1, 0, -r * r])})${facTxt(sg * r, j)}`;
+      const kind = rng.pick(['mult', 'mult', 'behave', 'degree', 'count']);
+      const ask = kind === 'mult' || kind === 'behave' ? rng.pick([1, 1, 2, 0]) : 1, z = roots[ask], m = mults[ask];
+      const split = `${X}² − ${r * r} is a difference of squares: (${P([1, -r])})(${P([1, r])}). So ${facTxt(sg * r, 1)} appears ${1 + j} times in all, ${facTxt(-sg * r, 1)} appears once, and ${facTxt(s, 1)} appears ${m0 === 1 ? 'once' : m0 + ' times'}.`;
+      const params = { kind, roots, mults, lead, extra: 0, r: z };
+      if (kind === 'mult') return { prompt: `What is the multiplicity of the zero ${X} = ${N(z)}?${big(shown)}`, type: 'number', answer: m, params, hints: [`Break every factor into linear factors first.`, split, `The multiplicity of ${N(z)} is <b>${m}</b>.`] };
+      if (kind === 'behave') {
+        const answer = BEHAVE[behaveOf(m)];
+        return { prompt: `What does the graph of ${V('f')} do at ${X} = ${N(z)}?${big(shown)}`, type: 'choice', choices: BEHAVE.slice(), keepOrder: true, answer, params, hints: [split, `The zero ${N(z)} has multiplicity ${m}, which is ${m % 2 ? 'odd' : 'even'}${m > 1 && m % 2 ? ' and more than 1' : ''}.`, `<b>${answer}</b>`] };
+      }
+      if (kind === 'count') return { prompt: `How many distinct real zeros does ${V('f')} have?${big(shown)}`, type: 'number', answer: 3, params, hints: [split, `The different zeros are ${roots.map(N).join(', ')}.`, `There are <b>3</b> distinct real zeros.`] };
+      const deg = m0 + 2 + j;
+      return { prompt: `What is the degree of ${V('f')}?${big(shown)}`, type: 'number', answer: deg, params, hints: [`The degree of a product is the sum of the degrees of its factors.`, `${m0} + 2 + ${j}, counting 2 for the quadratic factor.`, `The degree is <b>${deg}</b>.`] };
+    },
     verify(q) {
       const pr = q.params, c = expand(pr.lead, pr.roots, pr.mults, pr.extra);
       if (pr.kind === 'mult') return q.answer === multOf(c, pr.r);
@@ -627,9 +646,22 @@
       return { prompt: `Describe the end behavior of ${V('f')}.${big(`${fx('f', X)} = ${joinTerms(shownList)}`)}`, type: 'choice', choices: END_CHOICES.slice(), keepOrder: true, answer, params: { kind: 'std', list },
         hints: [`Find the term with the highest power of ${X}: ${M.term(lead, 'x', deg)}.`, `Degree ${deg} is ${deg % 2 ? 'odd, so the two ends go opposite ways' : 'even, so both ends go the same way'}; the leading coefficient ${N(lead)} is ${lead > 0 ? 'positive' : 'negative'}, so the right end goes ${lead > 0 ? 'up' : 'down'}.`, `<b>${answer}</b>`] };
     },
+    challenge(rng) {   // several factors, some written backwards and some raised to powers
+      const facs = [];
+      for (let i = rng.int(2, 3); i > 0; i--) facs.push([rng.pick([1, 2, 3, -1, -2]), rng.nz(-6, 6), rng.pick([1, 1, 2, 3])]);
+      if (rng.bool()) facs.unshift([1, 0, rng.int(1, 3)]);
+      const lead = rng.pick([1, -1, 2, -2, 3, -4]);
+      const show = ([c, d, p]) => { const base = d === 0 ? X : c < 0 ? `(${N(d)} − ${M.term(-c, 'x')})` : `(${P([c, d])})`; return p > 1 ? M.sup(base, p) : base; };
+      const lc = facs.reduce((acc, [c, , p]) => acc * Math.pow(c, p), lead), deg = facs.reduce((acc, f) => acc + f[2], 0);
+      const rEnd = lc > 0 ? 1 : 0, lEnd = (deg % 2 === 0) === (lc > 0) ? 1 : 0, answer = endLabel(lEnd, rEnd);
+      const parts = facs.map(([c, , p]) => (c === 1 ? X : `(${M.term(c, 'x')})`) + (p > 1 ? `<sup>${p}</sup>` : ''));
+      return { prompt: `Describe the end behavior of ${V('f')}.${big(`${fx('f', X)} = ${leadTxt(lead)}${facs.map(show).join('')}`)}`, type: 'choice', choices: END_CHOICES.slice(), keepOrder: true, answer, params: { kind: 'gen', lead, facs },
+        hints: [`Multiply the leading part of each factor, minding the signs of factors written backwards: ${N(lead)} · ${parts.join(' · ')}.`, `The leading term is ${M.term(lc, 'x', deg)}: degree ${deg} (${deg % 2 ? 'odd' : 'even'}), coefficient ${lc > 0 ? 'positive' : 'negative'}.`, `<b>${answer}</b>`] };
+    },
     verify(q) {
       const pr = q.params;
       const f = pr.kind === 'std' ? t => pr.list.reduce((s, [c, pw]) => s + c * Math.pow(t, pw), 0)
+        : pr.kind === 'gen' ? t => pr.lead * pr.facs.reduce((s, [c, d, p]) => s * Math.pow(c * t + d, p), 1)
         : t => pr.lead * pr.roots.reduce((s, r, i) => s * Math.pow(i === 2 && pr.back ? r - t : t - r, pr.mults[i]), 1);
       return q.answer === endLabel(f(-1e4) > 0 ? 1 : 0, f(1e4) > 0 ? 1 : 0);
     },
@@ -681,6 +713,24 @@
       return { prompt: `Simplify completely.${big(M.sqrt(n))}`, type: 'choice', choices, answer, params: { kind, n },
         hints: [`Look for the largest perfect square that divides ${n}: try 4, 9, 16, 25, 36, 49, 64.`, `${n} = ${s * s} · ${b}, and ${b} has no square factor left.`, `${M.sqrt(n)} = ${M.sqrt(s * s)} · ${M.sqrt(b)} = <b>${answer}</b>.`] };
     },
+    challenge(rng) {   // larger bases and roots, negative exponents, and a product of roots to simplify
+      if (rng.chance(0.35)) {
+        const s = rng.int(2, 9), b = rng.pick([2, 3, 5, 6, 7, 10]), n = s * s * b, isSq = v => Number.isInteger(Math.sqrt(v));
+        const ds = []; for (let d = 2; d * d < n; d++) if (n % d === 0 && !isSq(d) && !isSq(n / d)) ds.push(d);
+        if (ds.length) {
+          const d1 = rng.pick(ds), d2 = n / d1, rt = (c, inner) => `${c}${M.sqrt(inner)}`, answer = rt(s, b);
+          const choices = options(answer, [M.sqrt(n), rt(s * s, b), rt(b, s), rt(s + 1, b)], null);
+          return { prompt: `Multiply and simplify completely.${big(`${M.sqrt(d1)} · ${M.sqrt(d2)}`)}`, type: 'choice', choices, answer, params: { kind: 'simplify', n },
+            hints: [`Multiply under one root: ${M.sqrt(d1)} · ${M.sqrt(d2)} = ${M.sqrt(n)}.`, `The largest perfect square that divides ${n} is ${s * s}: ${n} = ${s * s} · ${b}.`, `${M.sqrt(n)} = ${M.sqrt(s * s)} · ${M.sqrt(b)} = <b>${answer}</b>.`] };
+        }
+      }
+      const [base, q, k] = rng.pick([[32, 5, 2], [243, 5, 3], [625, 4, 5], [1296, 4, 6], [343, 3, 7], [512, 3, 8], [729, 3, 9], [1000, 3, 10], [128, 7, 2], [64, 6, 2], [729, 6, 3], [256, 8, 2], [81, 4, 3], [216, 3, 6]]);
+      const pws = []; for (let w = 2; w < q + 3; w++) if (M.gcd(w, q) === 1 && k ** w <= 1000) pws.push(w);
+      const pw = rng.pick(pws), val = k ** pw, neg = rng.chance(0.45), ans = neg ? 1 / val : val;
+      const name = ['', '', 'square', 'cube', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth'][q];
+      return { prompt: `Evaluate.${neg ? ' Give a fraction.' : ''}${big(`${N(base)}<sup>${neg ? '−' : ''}${pw}/${q}</sup>`)}`, type: 'number', answer: ans, answerText: neg ? M.fracText(1, val) : undefined, params: { kind: 'eval', base, pw, q, neg },
+        hints: [`The denominator ${q} means the ${name} root: ${root(q, N(base))} = ${k}, because ${k}<sup>${q}</sup> = ${N(base)}.`, `The numerator ${pw} is a power: ${k}<sup>${pw}</sup> = ${N(val)}.`, (neg ? `The negative exponent means the reciprocal: ` : '') + `<b>${neg ? M.fracText(1, val) : N(val)}</b>.`] };
+    },
     verify(q) {
       const pr = q.params;
       if (pr.kind === 'eval') return Math.abs(Math.pow(pr.base, (pr.neg ? -1 : 1) * pr.pw / pr.q) - q.answer) < 1e-9;
@@ -718,6 +768,23 @@
       const c = rng.nz(-4, 4), a = rng.pick([1, 1, 2, -1]), x = rng.int(-10, 10), b = c ** 3 - a * x;
       return { prompt: `Solve.${big(`${root(3, P([a, b]))} = ${N(c)}`)}`, type: 'number', answer: x, params: { kind, a, b, c },
         hints: [`Cube both sides: ${P([a, b])} = ${wrap(c)}³ = ${N(c ** 3)}.`, a === 1 ? `Subtract: ${X} = ${N(c ** 3)} ${M.signed(-b)} = ${N(x)}.` : `${M.term(a, 'x')} = ${N(c ** 3 - b)}, so ${X} = ${N(x)}.`, `Cube roots can be negative, so nothing is extraneous. <b>${X} = ${N(x)}</b>.`] };
+    },
+    challenge(rng) {   // the root isn't alone yet: isolate it first
+      const kind = rng.pick(['quad', 'quad', 'simple', 'cube']);
+      if (kind === 'quad') {
+        const q = rng.nz(-3, 6), r1 = rng.int(q + 2, q + 7), r2 = 2 * q + 1 - r1, pp = q * q - r1 * r2, left = M.sqrt(P([1, pp]));
+        return { prompt: `Solve. Check for an extraneous solution and give the one that works.${big(`${left} ${M.signed(q)} = ${X}`)}`, type: 'number', answer: r1, params: { kind, pp, q },
+          hints: [`Isolate the root: ${left} = ${P([1, -q])}. Then square both sides: ${P([1, pp])} = ${P([1, -2 * q, q * q])}.`, `So ${P([1, -(2 * q + 1), q * q - pp])} = 0, which factors as (${P([1, -r1])})(${P([1, -r2])}) = 0: ${X} = ${N(r1)} or ${X} = ${N(r2)}.`, `Check ${X} = ${N(r2)}: the left side is ${M.sqrt(N(r2 + pp))} ${M.signed(q)} = ${N(Math.abs(r2 - q) + q)}, not ${N(r2)}, so it is extraneous. <b>${X} = ${N(r1)}</b>.`] };
+      }
+      const k = rng.pick([2, 3, 4]), e = rng.nz(-9, 9);
+      if (kind === 'simple') {
+        const c = rng.int(1, 9), a = rng.nz(-5, 5), x = rng.int(-12, 15), b = c * c - a * x, rad = M.sqrt(P([a, b]));
+        return { prompt: `Solve.${big(`${k}${rad} ${M.signed(e)} = ${N(k * c + e)}`)}`, type: 'number', answer: x, params: { kind, a, b, c },
+          hints: [`Isolate the root: subtract ${wrap(e)} to get ${k}${rad} = ${N(k * c)}, then divide by ${k}: ${rad} = ${c}.`, `Square both sides: ${P([a, b])} = ${c * c}, so ${M.term(a, 'x')} = ${N(c * c - b)}.`, `${X} = ${N(c * c - b)} ÷ ${wrap(a)}. Check: ${M.sqrt(N(a * x + b))} = ${c} ✓. <b>${X} = ${N(x)}</b>.`] };
+      }
+      const c = rng.nz(-4, 4), a = rng.pick([1, 2, -1, 3]), x = rng.int(-12, 12), b = c ** 3 - a * x, rad = root(3, P([a, b]));
+      return { prompt: `Solve.${big(`${k}${rad} ${M.signed(e)} = ${N(k * c + e)}`)}`, type: 'number', answer: x, params: { kind, a, b, c },
+        hints: [`Isolate the root: subtract ${wrap(e)}, then divide by ${k}: ${rad} = ${N(c)}.`, `Cube both sides: ${P([a, b])} = ${N(c ** 3)}, so ${M.term(a, 'x')} = ${N(c ** 3 - b)}.`, `Cube roots can be negative, so nothing is extraneous. <b>${X} = ${N(x)}</b>.`] };
     },
     verify(q) {
       const pr = q.params;
@@ -792,10 +859,30 @@
       return { prompt: `${name} buys ${rng.pick(ITEMS[grow])} for ${M.money(a)}. Its value ${grow ? 'rises' : 'falls'} by ${r}% per year. What is it worth after ${t} years, to the nearest dollar?`, type: 'number', answer: ans, unit: '$', tolerance: 1, params: { kind, a, r, grow, t },
         hints: [`The yearly factor is ${grow ? `1 + ${N(r / 100)}` : `1 − ${N(r / 100)}`} = ${N(b)}.`, `Value = ${N(a)} · ${N(b)}<sup>${t}</sup>, and ${N(b)}<sup>${t}</sup> ≈ ${N(M.round(Math.pow(b, t), 4))}.`, `${N(a)} · ${N(M.round(Math.pow(b, t), 4))} ≈ <b>${M.money(ans)}</b>.`] };
     },
+    challenge(rng) {   // times in different units, and working backwards to a time
+      const kind = rng.pick(['double', 'half', 'time']);
+      if (kind === 'double') {
+        const g = rng.pick([2, 2, 3]), hrs = rng.pick([1, 2]), hs = [10, 12, 15, 20, 30].filter(h => 60 * hrs / h <= (g === 3 ? 6 : 12));
+        const h = rng.pick(hs), n = 60 * hrs / h, a = rng.pick([5, 10, 20, 25, 50]), ans = a * g ** n, dbl = g === 2 ? 'doubles' : 'triples';
+        const what = rng.pick([['bacteria culture in a lab starts with', 'cells'], ['batch of yeast in warm bread dough starts with', 'cells'], ['test tube in a biology class starts with', 'bacteria']]);
+        return { prompt: `A ${what[0]} ${a} ${what[1]}, and the number ${dbl} every ${h} minutes. How many ${what[1]} are there after ${hrs === 1 ? '1 hour' : hrs + ' hours'}?`, type: 'number', answer: ans, params: { kind, a, g, h, t: 60 * hrs },
+          hints: [`Put both times in minutes: ${hrs === 1 ? '1 hour' : hrs + ' hours'} = ${60 * hrs} minutes.`, `${60 * hrs} ÷ ${h} = ${n}, so it ${dbl} ${n} times: multiply by ${g}<sup>${n}</sup> = ${N(g ** n)}.`, `${a} · ${N(g ** n)} = <b>${N(ans)}</b>.`] };
+      }
+      if (kind === 'half') {
+        const h = rng.pick([6, 8, 12]), days = rng.pick([1, 2]), n = 24 * days / h, m = rng.pick([1, 2, 3, 5]), a = m * 2 ** n, name = rng.pick(NAMES);
+        const [say, u] = rng.pick([[`A medicine has a half-life of ${h} hours. ${name} takes a ${N(a)} mg dose.`, 'mg'], [`${name} adds ${N(a)} g of chlorine to a pool, and sunlight breaks it down with a half-life of ${h} hours.`, 'g'], [`A tracer used in a hospital scan has a half-life of ${h} hours, and a patient receives ${N(a)} mg.`, 'mg']]);
+        return { prompt: `${say} How much is left after ${days === 1 ? '1 day' : '2 days'}?`, type: 'number', answer: m, unit: u, params: { kind, a, h, t: 24 * days },
+          hints: [`Put both times in hours: ${days === 1 ? '1 day' : '2 days'} = ${24 * days} hours.`, `${24 * days} ÷ ${h} = ${n} half-lives, so divide by 2<sup>${n}</sup> = ${2 ** n}.`, `${N(a)} ÷ ${2 ** n} = <b>${N(m)} ${u}</b>.`] };
+      }
+      const g = rng.pick([2, 2, 3]), h = rng.int(2, 8), a = rng.pick([50, 100, 200, 300]), n = rng.int(2, g === 2 ? 6 : 4), target = a * g ** n, dbl = g === 2 ? 'doubles' : 'triples';
+      return { prompt: `A culture starts with ${a} cells and ${dbl} every ${h} hours. After how many hours will there be ${N(target)} cells?`, type: 'number', answer: h * n, unit: 'hours', params: { kind: 'time', a, g, h, target },
+        hints: [`Divide: ${N(target)} ÷ ${a} = ${N(g ** n)}, which is ${g}<sup>${n}</sup>.`, `So it has to ${g === 2 ? 'double' : 'triple'} ${n} times, and each time takes ${h} hours.`, `${n} × ${h} = <b>${h * n} hours</b>.`] };
+    },
     verify(q) {
       const pr = q.params;
       if (pr.kind === 'double') return q.answer === pr.a * Math.pow(pr.g, pr.t / pr.h);
       if (pr.kind === 'half') return Math.abs(q.answer - pr.a * Math.pow(0.5, pr.t / pr.h)) < 1e-9;
+      if (pr.kind === 'time') return Math.abs(pr.a * Math.pow(pr.g, q.answer / pr.h) - pr.target) < 1e-9 * pr.target;
       const b = 1 + (pr.grow ? 1 : -1) * pr.r / 100;
       if (pr.kind === 'write') return A.stripTags(q.answer).includes(`(${N(b)})`);
       return Math.abs(q.answer - pr.a * Math.pow(b, pr.t)) <= 0.5 + 1e-6;
@@ -836,9 +923,24 @@
       return { prompt: `${ctx} What does the model show?${big(shown)}`, type: 'choice', choices: [answer, d(grow ? 'decay' : 'growth', r), d(grow ? 'growth' : 'decay', Math.round(b * 100)), d(grow ? 'decay' : 'growth', Math.round(b * 100))], answer, params: { kind, b },
         hints: [hint1, hint2, `<b>${answer}</b>.`] };
     },
+    challenge(rng) {   // an exponent that hides the yearly factor, or a base of 4 in place of 2
+      const T = V('t');
+      if (rng.chance(0.4)) {
+        const k = 2 * rng.int(2, 8), a = rng.pick([40, 60, 80, 120, 500]), [half, what, u] = rng.pick(PERIODS);
+        return { prompt: `The amount of ${what} after ${T} ${u} is modeled below. How many ${u} does it take to ${half ? 'halve' : 'double'}?${big(`${fx('A', T)} = ${N(a)} · ${half ? '(¼)' : '4'}<sup>${T}/${k}</sup>`)}`, type: 'number', answer: k / 2, unit: u, params: { kind: 'period', a, k, half, base: half ? 0.25 : 4 },
+          hints: [`${half ? '¼ = (½)²' : '4 = 2²'}, so the model is ${N(a)} · ${half ? '(½)' : '2'}<sup>2${T}/${k}</sup>: it ${half ? 'halves' : 'doubles'} each time 2${T}/${k} goes up by 1.`, `2${T}/${k} = 1 when ${T} = ${k / 2}.`, `It ${half ? 'halves' : 'doubles'} every <b>${k / 2} ${u}</b>.`] };
+      }
+      const dd = rng.pick([-5, -4, -3, -2, -1, 1, 2, 3, 4, 5]), b1 = (10 + dd) / 10, grow = dd > 0, pct = Math.abs((10 + dd) ** 2 - 100), yearly = (10 + dd) ** 2 / 100;
+      const a = rng.pick([350, 800, 1500, 6000, 12000, 30000]), what = rng.pick(RATE_SETTINGS);
+      const shown = `${fx('f', T)} = ${N(a)}(${N(b1)})<sup>2${T}</sup>`, ctx = `The ${what} ${T} years from now is modeled below.`;
+      const hints = [`(${N(b1)})<sup>2${T}</sup> = ((${N(b1)})²)<sup>${T}</sup>, so the yearly factor is ${N(b1)}² = ${N(yearly)}.`, grow ? `${N(yearly)} − 1 = ${N(pct / 100)}, which is ${pct}%.` : `1 − ${N(yearly)} = ${N(pct / 100)}, which is ${pct}%.`];
+      if (rng.bool()) return { prompt: `${ctx} By what percent does the ${what} ${grow ? 'increase' : 'decrease'} each year?${big(shown)}`, type: 'number', answer: pct, unit: '%', params: { kind: 'rate', b: b1 * b1 }, hints: hints.concat([`It ${grow ? 'increases' : 'decreases'} by <b>${pct}%</b> per year.`]) };
+      const d = (w, x) => `${w} of ${x}% per year`, answer = d(grow ? 'growth' : 'decay', pct);
+      return { prompt: `${ctx} What does the model show?${big(shown)}`, type: 'choice', choices: [answer, d(grow ? 'growth' : 'decay', Math.abs(dd) * 10), d(grow ? 'growth' : 'decay', Math.abs(dd) * 20), d(grow ? 'decay' : 'growth', pct)], answer, params: { kind: 'describe', b: b1 * b1 }, hints: hints.concat([`<b>${answer}</b>.`]) };
+    },
     verify(q) {
       const pr = q.params;
-      if (pr.kind === 'period') { const f = t => pr.a * Math.pow(pr.half ? 0.5 : 2, t / pr.k); return Math.abs(f(q.answer) / f(0) - (pr.half ? 0.5 : 2)) < 1e-9; }
+      if (pr.kind === 'period') { const f = t => pr.a * Math.pow(pr.base || (pr.half ? 0.5 : 2), t / pr.k); return Math.abs(f(q.answer) / f(0) - (pr.half ? 0.5 : 2)) < 1e-9; }
       if (pr.kind === 'initial') return q.answer === pr.a * Math.pow(pr.b, 0);
       const pct = Math.round(Math.abs(pr.b * 100 - 100));
       if (pr.kind === 'rate') return q.answer === pct;
@@ -893,11 +995,25 @@
       return { prompt: `Expand using the properties of logarithms.${big(lg(b === 'b' ? V('b') : b, ` (${arg})`))}`, type: 'choice', choices, answer, params: { kind, k },
         hints: [`A quotient becomes a difference: the log of the numerator minus ${L('z')}.`, `A product becomes a sum: ${lg(b === 'b' ? V('b') : b, ` (${M.sup(X, k)}${Y})`)} = ${lg(b === 'b' ? V('b') : b, ' ' + M.sup(X, k))} + ${L('y')}.`, `A power comes down in front: ${lg(b === 'b' ? V('b') : b, ' ' + M.sup(X, k))} = ${k}${L('x')}. So the answer is <b>${answer}</b>.`] };
     },
+    challenge(rng) {   // fractional answers from related bases, and condensing a multiple of a log
+      if (rng.chance(0.6)) {
+        const pb = rng.pick([2, 2, 3, 5]), maxI = { 2: 5, 3: 3, 5: 2 }[pb], maxJ = { 2: 7, 3: 5, 5: 4 }[pb];
+        const i = rng.int(2, maxI); let j = rng.int(1, maxJ); while (j % i === 0) j = rng.int(1, maxJ);
+        const neg = rng.chance(0.35), b = pb ** i, val = pb ** j, [n, d] = M.simp(neg ? -j : j, i), arg = neg ? F(1, val) : N(val);
+        return { prompt: `Evaluate. Give a fraction.${big(lg(b, ' ' + arg))}`, type: 'number', answer: n / d, answerText: M.fracText(n, d), params: { kind: 'exact', b, num: neg ? 1 : val, den: neg ? val : 1 },
+          hints: [`Write both numbers as powers of ${pb}: ${b} = ${pb}<sup>${i}</sup> and ${arg} = ${pb}<sup>${neg ? '−' : ''}${j}</sup>.`, `You need (${pb}<sup>${i}</sup>)<sup>${V('y')}</sup> = ${pb}<sup>${neg ? '−' : ''}${j}</sup>, so ${i}${V('y')} = ${neg ? '−' : ''}${j}.`, `${V('y')} = <b>${M.fracText(n, d)}</b>.`] };
+      }
+      const b = rng.pick([2, 3, 5]), k = rng.pick([2, 2, 3]), u = k === 2 ? rng.pick([1, 2]) : 1;
+      const c = rng.pick([2, 3, 4, 5, 6, 7].filter(x => x % b)), m = c * b ** u, n = c ** k, e = u * k;
+      return { prompt: `Evaluate.${big(`${k}${lg(b, ' ' + N(m))} − ${lg(b, ' ' + N(n))}`)}`, type: 'number', answer: e, params: { kind: 'condense', b, k, m, n },
+        hints: [`Move the ${k} inside as a power: ${k}${lg(b, ' ' + N(m))} = ${lg(b, ` ${N(m)}<sup>${k}</sup>`)} = ${lg(b, ' ' + N(m ** k))}.`, `A difference of logs is the log of a quotient: ${lg(b, ` (${N(m ** k)} ÷ ${N(n)})`)} = ${lg(b, ' ' + N(m ** k / n))}.`, `${b}<sup>${e}</sup> = ${N(m ** k / n)}, so the value is <b>${e}</b>.`] };
+    },
     verify(q) {
       const pr = q.params;
       if (pr.kind === 'exact') return Math.abs(Math.pow(pr.b, q.answer) - pr.num / pr.den) < 1e-9;
       if (pr.kind === 'sum') return Math.abs(Math.log(pr.m) / Math.log(pr.b) + Math.log(pr.n) / Math.log(pr.b) - q.answer) < 1e-9;
       if (pr.kind === 'diff') return Math.abs(Math.log(pr.m) / Math.log(pr.b) - Math.log(pr.n) / Math.log(pr.b) - q.answer) < 1e-9;
+      if (pr.kind === 'condense') return Math.abs(pr.k * Math.log(pr.m) - Math.log(pr.n) - q.answer * Math.log(pr.b)) < 1e-9;
       if (pr.kind === 'cob') return Math.abs(Math.log2(pr.n) / Math.log2(pr.b) - q.answer) < 0.006;
       // numeric check of the expansion with x = 2, y = 3, z = 5: read the coefficient on each log and the signs
       const t = A.stripTags(q.answer).replace(/\s+/g, '');
@@ -944,10 +1060,30 @@
       return { prompt: `Solve for ${X}. Round to two decimal places.${big(`${N(a)} · ${b}<sup>${X}</sup> = ${N(c)}`)}`, type: 'number', answer: ans, tolerance: 0.01, params: { kind, a, b, c },
         hints: [`Isolate the power: divide both sides by ${a} to get ${b}<sup>${X}</sup> = ${N(ratio)}.`, `Take the log of both sides: ${X} · log ${b} = log ${N(ratio)}, so ${X} = log ${N(ratio)} ÷ log ${b}.`, `≈ ${N(M.round(Math.log10(ratio), 4))} ÷ ${N(M.round(Math.log10(b), 4))} ≈ <b>${N(ans)}</b>.`] };
     },
+    challenge(rng) {   // two bases that are powers of one number, or a power with something added
+      if (rng.bool()) {
+        const pb = rng.pick([2, 2, 3]), [i, j] = rng.sample(pb === 2 ? [1, 2, 3, 4, 5] : [1, 2, 3], 2);
+        const x = rng.int(-3, 5), c1 = rng.pick([1, 2]); let c2 = rng.pick([1, 2]); if (i * c1 === j * c2) c2 = c1;
+        const d1 = rng.pick([-4, -3, -2, -1, 0, 1, 2, 3, 4].filter(v => (i * (c1 * x + v) - j * c2 * x) % j === 0)), d2 = (i * (c1 * x + d1) - j * c2 * x) / j;
+        const b1 = pb ** i, b2 = pb ** j;
+        return { prompt: `Solve for ${X}.${big(`${N(b1)}<sup>${P([c1, d1])}</sup> = ${N(b2)}<sup>${P([c2, d2])}</sup>`)}`, type: 'number', answer: x, params: { kind: 'two-base', b1, c1, d1, b2, c2, d2 },
+          hints: [`Both bases are powers of ${pb}: ${N(b1)} = ${pb}<sup>${i}</sup> and ${N(b2)} = ${pb}<sup>${j}</sup>.`, `So ${pb}<sup>${i}(${P([c1, d1])})</sup> = ${pb}<sup>${j}(${P([c2, d2])})</sup>, and the exponents must be equal: ${P([i * c1, i * d1])} = ${P([j * c2, j * d2])}.`, `${M.term(i * c1 - j * c2, 'x')} = ${N(j * d2 - i * d1)}, so <b>${X} = ${N(x)}</b>.`] };
+      }
+      const a = rng.pick([2, 3, 4, 5]), b = rng.pick([2, 3, 5, 6, 7]), c = rng.nz(-20, 20);
+      let ratio = rng.int(3, 60); while (Math.abs(Math.log(ratio) / Math.log(b) - Math.round(Math.log(ratio) / Math.log(b))) < 1e-9) ratio++;
+      const d = a * ratio + c, ans = M.round(Math.log10(ratio) / Math.log10(b), 2);
+      return { prompt: `Solve for ${X}. Round to two decimal places.${big(`${a} · ${b}<sup>${X}</sup> ${M.signed(c)} = ${N(d)}`)}`, type: 'number', answer: ans, tolerance: 0.01, params: { kind: 'logs2', a, b, c, d },
+        hints: [`Isolate the power: ${c > 0 ? 'subtract' : 'add'} ${N(Math.abs(c))} to get ${a} · ${b}<sup>${X}</sup> = ${N(a * ratio)}, then divide by ${a}: ${b}<sup>${X}</sup> = ${N(ratio)}.`, `Take the log of both sides: ${X} = log ${N(ratio)} ÷ log ${b}.`, `≈ ${N(M.round(Math.log10(ratio), 4))} ÷ ${N(M.round(Math.log10(b), 4))} ≈ <b>${N(ans)}</b>.`] };
+    },
     verify(q) {
       const pr = q.params;
       if (pr.kind === 'same-base') return Math.pow(pr.a, pr.pp * q.answer + pr.c) === Math.pow(pr.a, pr.k);
       if (pr.kind === 'double') return Math.abs(Math.pow(1 + pr.r / 100, q.answer) - pr.mult) < 0.01 * pr.mult;
+      if (pr.kind === 'two-base') {   // the logs of the two sides agree at the answer, and the equation is not the same on both sides
+        const L = t => (pr.c1 * t + pr.d1) * Math.log(pr.b1) - (pr.c2 * t + pr.d2) * Math.log(pr.b2);
+        return Math.abs(L(q.answer)) < 1e-9 && Math.abs(L(q.answer + 1) - L(q.answer)) > 1e-9;
+      }
+      if (pr.kind === 'logs2') { const g = t => pr.a * Math.pow(pr.b, t) + pr.c; return g(q.answer - 0.005) <= pr.d + 1e-9 && pr.d <= g(q.answer + 0.005) + 1e-9; }   // rounded to the nearest hundredth: the true x is within 0.005
       return Math.abs(Math.log2(pr.c / pr.a) / Math.log2(pr.b) - q.answer) < 0.006;
     },
   });
