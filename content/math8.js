@@ -38,6 +38,8 @@
     for (const c of candidates) { const key = A.normText(A.stripTags(c)); if (!seen.has(key)) { seen.add(key); out.push(c); } if (out.length === k) break; }
     return out;
   };
+  const r2 = v => Math.round(v * 100) / 100;
+  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 
   A.course({
     id: 'math-8', title: '8th grade math', subject: 'Middle school', grade: 8, icon: '8', hue: 265,
@@ -815,7 +817,6 @@
   });
 
   /* ---------- Unit 7: Reading and graphing lines ---------- */
-  const r2 = v => Math.round(v * 100) / 100;
   const LETTERS = ['A', 'B', 'C', 'D', 'E'];
   /** the x-term of y = mx + b for a slope mn/md: "2x", "−x", or a stacked fraction times x */
   const slopeX = (mn, md) => { [mn, md] = M.simp(mn, md); return md === 1 ? M.term(mn, 'x') : `${mn < 0 ? '−' : ''}${F(Math.abs(mn), md)}${X}`; };
@@ -1271,7 +1272,6 @@
   });
 
   /* ---------- Unit 9: More with the Pythagorean theorem ---------- */
-  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
   const QUADS = [];                                                   // whole-number boxes whose long diagonal is whole too
   for (let a = 1; a <= 12; a++) for (let b = a; b <= 12; b++) for (let c = b; c <= 12; c++) { const d = Math.sqrt(a * a + b * b + c * c); if (Number.isInteger(d)) QUADS.push([a, b, c, d]); }
 
