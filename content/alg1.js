@@ -184,8 +184,24 @@
       return { prompt: `Expand and simplify.${big(expr)}`, type: 'choice', choices: [answer].concat(others(answer, wrong, 3)), answer, params: { kind: 'two', a, b, c, d: dd, e, f },
         hints: [`Distribute ${N(a)}: ${N(a)}(${inner1}) = ${sumHtml([[a * b, 'x', 1], [a * c, '', 0]])}.`, `Distribute ${N(dd)}, sign included: ${N(dd)}(${inner2}) = ${sumHtml([[dd * e, 'x', 1], [dd * f, '', 0]])}.`, `Combine: ${X} terms ${N(a * b)} ${M.signed(dd * e)} = ${N(ex)}; constants ${N(a * c)} ${M.signed(dd * f)} = ${N(konst)}.`, `The simplified expression is <b>${answer}</b>.`] };
     },
+    challenge(rng) {
+      // a variable times a binomial, plus or minus a number times a trinomial
+      const k = rng.nz(-4, 4), a = rng.nz(-5, 5), b = rng.nz(-7, 7), d = rng.sign() * rng.int(2, 5), f = rng.nz(-6, 6), g = rng.nz(-6, 6);
+      let e = rng.nz(-3, 3); if (k * a + d * e === 0) e = e === 3 ? -3 : e + 1 || 1;
+      const A2 = k * a + d * e, B1 = k * b + d * f, C0 = d * g;
+      const outside = k === 1 ? X : k === -1 ? '−' + X : N(k) + X;
+      const in1 = sumHtml([[a, 'x', 1], [b, '', 0]]), in2 = sumHtml([[e, 'x', 2], [f, 'x', 1], [g, '', 0]]);
+      const answer = sumHtml([[A2, 'x', 2], [B1, 'x', 1], [C0, '', 0]]);
+      const wrong = [sumHtml([[A2, 'x', 2], [k * b - d * f, 'x', 1], [C0, '', 0]]), sumHtml([[A2, 'x', 2], [B1, 'x', 1], [g, '', 0]]), sumHtml([[d * e, 'x', 2], [k * a + k * b + d * f, 'x', 1], [C0, '', 0]]), sumHtml([[A2, 'x', 2], [B1, 'x', 1], [-C0, '', 0]]), sumHtml([[k * a - d * e, 'x', 2], [B1, 'x', 1], [C0, '', 0]])];
+      return { prompt: `Expand and simplify.${big(`${outside}(${in1}) ${d < 0 ? '−' : '+'} ${N(Math.abs(d))}(${in2})`)}`, type: 'choice', choices: [answer].concat(others(answer, wrong, 3)), answer, params: { kind: 'hard', k, a, b, d, e, f, g },
+        hints: [`Distribute ${outside}: ${outside}(${in1}) = ${sumHtml([[k * a, 'x', 2], [k * b, 'x', 1]])}, because ${X} · ${X} = ${M.sup(X, 2)}.`, `Distribute ${N(d)} to all three terms, sign included: ${sumHtml([[d * e, 'x', 2], [d * f, 'x', 1], [d * g, '', 0]])}.`, `Combine like terms: ${M.sup(X, 2)} terms ${N(k * a)} ${M.signed(d * e)} = ${N(A2)}, and ${X} terms ${N(k * b)} ${M.signed(d * f)} = ${N(B1)}.`, `The simplified expression is <b>${answer}</b>.`] };
+    },
     verify(q) {
       const P = q.params;
+      if (P.kind === 'hard') {
+        const at = x => P.k * x * (P.a * x + P.b) + P.d * (P.e * x * x + P.f * x + P.g), c = at(0);
+        return q.answer === sumHtml([[(at(1) + at(-1)) / 2 - c, 'x', 2], [(at(1) - at(-1)) / 2, 'x', 1], [c, '', 0]]);
+      }
       if (P.kind === 'mono') {
         const at = x => P.k * x * (P.a * x + P.b);
         // read the coefficients back from two evaluations: f(1) = A + B, f(−1) = A − B
@@ -237,6 +253,25 @@
       return { prompt: `Solve for ${X}.${big(`${left} = ${right}`)}`, type: 'number', answer: x, params: { kind, a, b, c, d },
         hints: [`${c < 0 ? 'Add' : 'Subtract'} ${M.term(Math.abs(c), 'x')} on both sides to gather the ${X} terms on the left: ${sumHtml([[a - c, 'x', 1], [b, '', 0]])} = ${N(d)}.`, `${b < 0 ? 'Add' : 'Subtract'} ${N(Math.abs(b))} on both sides: ${M.term(a - c, 'x')} = ${N(d - b)}.`, `Divide both sides by ${N(a - c)}: <b>${X} = ${N(x)}</b>. Check: both sides equal ${N(a * x + b)}.`] };
     },
+    challenge(rng) {
+      const x = rng.nz(-12, 12), times = (k, e) => (k === 1 ? `(${e})` : k === -1 ? `−(${e})` : `${N(k)}(${e})`);
+      if (rng.bool()) {
+        // fractions on both sides: (ax + b)/m = (cx + d)/n
+        const [m, n] = rng.pick([[2, 3], [3, 4], [2, 5], [4, 3], [3, 5], [5, 2], [6, 4], [4, 6]]), a = rng.nz(-4, 4);
+        let c = rng.nz(-4, 4); while (a * n === c * m) c = rng.nz(-4, 4);
+        const j = rng.nz(-6, 6), b = m * j - a * x, d = n * j - c * x, L = m * n / M.gcd(m, n), u = L / m, w = L / n;
+        const in1 = sumHtml([[a, 'x', 1], [b, '', 0]]), in2 = sumHtml([[c, 'x', 1], [d, '', 0]]);
+        return { prompt: `Solve for ${X}.${big(`${F(in1, m)} = ${F(in2, n)}`)}`, type: 'number', answer: x, params: { kind: 'frac', a, b, c, d, m, n },
+          hints: [`Clear the fractions: multiply both sides by ${L}, the least common denominator. ${times(u, in1)} = ${times(w, in2)}.`, `Distribute: ${sumHtml([[a * u, 'x', 1], [b * u, '', 0]])} = ${sumHtml([[c * w, 'x', 1], [d * w, '', 0]])}.`, `Gather the ${X} terms: ${M.term(a * u - c * w, 'x')} = ${N(d * w - b * u)}, so <b>${X} = ${N(x)}</b>.`] };
+      }
+      // parentheses on both sides: a(x + b) − c(x − d) = e(x + f) + g
+      const a = rng.int(2, 7), c = rng.int(2, 6), b = rng.nz(-8, 8), d = rng.nz(-8, 8), f = rng.nz(-8, 8);
+      let e = rng.nz(-5, 5); while (a - c - e === 0) e = rng.nz(-5, 5);
+      const g = a * (x + b) - c * (x - d) - e * (x + f);
+      const lhs = `${N(a)}(${X} ${M.signed(b)}) − ${N(c)}(${X} ${M.signed(-d)})`, rhs = `${times(e, `${X} ${M.signed(f)}`)}${g ? ' ' + M.signed(g) : ''}`;
+      return { prompt: `Solve for ${X}.${big(`${lhs} = ${rhs}`)}`, type: 'number', answer: x, params: { kind: 'paren2', a, b, c, d, e, f, g },
+        hints: [`Distribute on both sides, watching the minus sign in front of ${N(c)}: ${sumHtml([[a - c, 'x', 1], [a * b + c * d, '', 0]])} = ${sumHtml([[e, 'x', 1], [e * f + g, '', 0]])}.`, `Move the ${X} terms to one side and the numbers to the other: ${M.term(a - c - e, 'x')} = ${N(e * f + g - a * b - c * d)}.`, `Divide by ${N(a - c - e)}: <b>${X} = ${N(x)}</b>.`] };
+    },
     verify(q) {
       const P = q.params, x = q.answer;
       if (P.kind === 'count') {
@@ -245,6 +280,8 @@
         return q.answer === expect;
       }
       if (P.kind === 'paren') return P.a * (x + P.b) + P.c === P.dc * x + P.e;
+      if (P.kind === 'frac') return P.a * P.n !== P.c * P.m && P.n * (P.a * x + P.b) === P.m * (P.c * x + P.d);      // cross-multiplied, and only one solution
+      if (P.kind === 'paren2') return P.a - P.c !== P.e && P.a * (x + P.b) - P.c * (x - P.d) === P.e * (x + P.f) + P.g;
       return P.a * x + P.b === P.c * x + P.d;
     },
   });
@@ -627,6 +664,16 @@
       return { prompt: `Which line passes through ${M.pt(px, py)} and is ${want} to ${lineEq(mn, md, b1)}?`, type: 'choice', choices: [answer].concat(others(answer, wrong, 3)), answer, params: { kind, want, mn, md, tn, td, px, py, b2 },
         hints: [want === 'parallel' ? `A parallel line has the same slope, ${slopeText(mn, md)}.` : `A perpendicular line has the negative reciprocal slope: ${slopeText(tn, td)}.`, `Put the point in ${Y} = ${V('m')}${X} + ${V('b')}: ${N(py)} = ${frHtml(tn, td)} · ${wrap(px)} + ${V('b')}, so ${V('b')} = ${N(b2)}.`, `<b>${answer}</b>.`] };
     },
+    challenge(rng) {
+      // the given line in standard form, with a fraction slope
+      const [mn, md] = pickSlope(rng, [2, 3, 4, 5], 6), want = rng.pick(['parallel', 'perpendicular']);
+      const [tn, td] = want === 'parallel' ? [mn, md] : M.simp(-md, mn), [on, od] = want === 'parallel' ? M.simp(-md, mn) : [mn, md];
+      const k = rng.sign() * rng.pick([1, 2]), b1 = rng.int(-6, 6), shown = `${sumHtml([[-mn * k, 'x', 1], [md * k, 'y', 1]])} = ${N(b1 * md * k)}`;
+      const px = td * rng.nz(-3, 3), b2 = rng.int(-7, 7), py = tn * px / td + b2;
+      const answer = lineEq(tn, td, b2), wrong = [lineEq(tn, td, b1 === b2 ? b2 + 2 : b1), lineEq(tn, td, py + tn * px / td), lineEq(on, od, b2), lineEq(-tn, td, b2), lineEq(tn, td, -b2 || 3)];
+      return { prompt: `Which line passes through ${M.pt(px, py)} and is ${want} to this line?${big(shown)}`, type: 'choice', choices: [answer].concat(others(answer, wrong, 3)), answer, params: { kind: 'through', want, mn, md, tn, td, px, py, b2 },
+        hints: [`Solve the given line for ${Y}: ${lineFr(mn, md, b1, 1)}, so its slope is ${slopeText(mn, md)}.`, want === 'parallel' ? `A parallel line keeps that slope: ${slopeText(tn, td)}.` : `A perpendicular line has the negative reciprocal slope: ${slopeText(tn, td)}.`, `Put in the point: ${N(py)} = ${frHtml(tn, td)} · ${wrap(px)} + ${V('b')}, so ${V('b')} = ${N(b2)}.`, `<b>${answer}</b>.`] };
+    },
     verify(q) {
       const P = q.params;
       const rel = (n1, d1, n2, d2) => (n1 * d2 === n2 * d1 ? 'parallel' : n1 * n2 === -d1 * d2 ? 'perpendicular' : 'neither');
@@ -702,6 +749,17 @@
         }
       }
       return { prompt, type: 'number', answer: ask === 'x' ? x : y, params: { kind, eqs, ask }, hints };
+    },
+    challenge(rng) {
+      // elimination where both equations need multiplying, and the second may need tidying first
+      const x = rng.nz(-9, 9), y = rng.nz(-9, 9), ask = rng.pick(['x', 'y']), c27 = () => rng.sign() * rng.int(2, 7);
+      const divides = (u, w) => M.gcd(u, w) === Math.min(Math.abs(u), Math.abs(w));
+      let a1, b1, a2, b2;
+      do { a1 = c27(); b1 = c27(); a2 = c27(); b2 = c27(); } while (a1 * b2 === a2 * b1 || divides(a1, a2) || divides(b1, b2));
+      const eqs = [[a1, b1, a1 * x + b1 * y], [a2, b2, a2 * x + b2 * y]], messy = rng.bool();
+      const second = messy ? `${M.term(a2, 'x')} = ${sumHtml([[eqs[1][2], '', 0], [-b2, 'y', 1]])}` : stdH(eqs[1]);
+      return { prompt: `Solve the system. What is the value of ${V(ask)}?${big(`${stdH(eqs[0])} <br> ${second}`)}`, type: 'number', answer: ask === 'x' ? x : y, params: { kind: 'elim', eqs, ask },
+        hints: [`${messy ? `First rewrite the second equation as ${stdH(eqs[1])}. ` : ''}Neither variable cancels by multiplying just one equation, so multiply the first by ${N(b2)} and the second by ${N(b1)} to match the ${Y} terms.`, `Subtract the new equations: ${M.term(a1 * b2 - a2 * b1, 'x')} = ${N(eqs[0][2] * b2 - eqs[1][2] * b1)}, so ${X} = ${N(x)}.`, `Put ${X} = ${N(x)} back into the first equation to get ${Y} = ${N(y)}. So <b>${V(ask)} = ${N(ask === 'x' ? x : y)}</b>.`] };
     },
     verify(q) {
       const [[a1, b1, c1], [a2, b2, c2]] = q.params.eqs, det = a1 * b2 - a2 * b1;
@@ -951,9 +1009,17 @@
       return { prompt: `What is the average rate of change of ${V('f')}(${X}) = ${M.poly([a, b, c])} from ${X} = ${N(p1)} to ${X} = ${N(p2)}?`, type: 'number', answer: ans, params: { kind, a, b, c, x1: p1, y1: f(p1), x2: p2, y2: f(p2) },
         hints: [`Evaluate at both ends: ${V('f')}(${N(p1)}) = ${N(f(p1))} and ${V('f')}(${N(p2)}) = ${N(f(p2))}.`, `Divide the change in output by the change in input: ${F(`${N(f(p2))} − ${wrap(f(p1))}`, `${N(p2)} − ${wrap(p1)}`)} = ${F(`${N(f(p2) - f(p1))}`, `${p2 - p1}`)}.`, `<b>${N(ans)}</b>.`] };
     },
+    challenge(rng) {
+      // a cubic: the rate still comes out whole, but the arithmetic needs care
+      const a = rng.nz(-2, 2), b = rng.int(-4, 4), c = rng.int(-9, 9), p1 = rng.int(-4, 1), p2 = p1 + rng.int(2, 4);
+      const f = x => a * x * x * x + b * x * x + c, ans = (f(p2) - f(p1)) / (p2 - p1);
+      return { prompt: `What is the average rate of change of ${V('f')}(${X}) = ${M.poly([a, b, 0, c])} from ${X} = ${N(p1)} to ${X} = ${N(p2)}?`, type: 'number', answer: ans, params: { kind: 'cubic', a, b, c, x1: p1, y1: f(p1), x2: p2, y2: f(p2) },
+        hints: [`Evaluate at both ends, cubing negative inputs carefully: (−2)³ = −8. ${V('f')}(${N(p1)}) = ${N(f(p1))} and ${V('f')}(${N(p2)}) = ${N(f(p2))}.`, `Divide the change in output by the change in input: ${F(`${N(f(p2))} − ${wrap(f(p1))}`, `${N(p2)} − ${wrap(p1)}`)} = ${F(`${N(f(p2) - f(p1))}`, `${p2 - p1}`)}.`, `<b>${N(ans)}</b>.`] };
+    },
     verify(q) {
       const P = q.params;
       if (P.kind === 'formula') { const f = x => P.a * x * x + P.b * x + P.c; if (f(P.x1) !== P.y1 || f(P.x2) !== P.y2) return 'table mismatch'; }
+      if (P.kind === 'cubic') { const f = x => P.a * Math.pow(x, 3) + P.b * x * x + P.c; if (f(P.x1) !== P.y1 || f(P.x2) !== P.y2) return 'table mismatch'; }
       return Math.abs(q.answer * (P.x2 - P.x1) - (P.y2 - P.y1)) < 1e-9;
     },
   });
@@ -1031,12 +1097,31 @@
       return { prompt: `What is the ${M.ordinal(n)} term of this arithmetic sequence?${big(t.map(N).join(', ') + ', …')}`, type: 'number', answer: ans, params: { kind, t, n },
         hints: [`The common difference is ${N(t[1])} − ${wrap(t[0])} = ${N(d)}.`, `${V('a')}(${n}) = ${N(a1)} + ${wrap(d)}(${n} − 1) = ${N(a1)} + ${wrap(d)}(${n - 1}).`, `= ${N(a1)} ${M.signed((n - 1) * d)} = <b>${N(ans)}</b>.`] };
     },
+    challenge(rng) {
+      // which term is it? Work the formula backwards
+      if (rng.chance(0.4)) {
+        const a1 = rng.pick([1, 2, 3, 5, 7]) * rng.sign(), r = rng.pick([2, 3, -2]), n = rng.int(6, r === 3 ? 8 : 10);
+        const t = [0, 1, 2, 3].map(i => a1 * Math.pow(r, i)), target = a1 * Math.pow(r, n - 1);
+        return { prompt: `Which term of this geometric sequence is ${N(target)}? Give its position ${V('n')}.${big(t.map(N).join(', ') + ', …')}`, type: 'number', answer: n, params: { kind: 'which-term', t, target },
+          hints: [`The common ratio is ${N(r)}, so ${an} = ${N(a1)} · ${wrap(r)}<sup>${V('n')} − 1</sup>.`, `${N(target)} ÷ ${wrap(a1)} = ${N(target / a1)}, which is ${wrap(r)}<sup>${n - 1}</sup>.`, `So ${V('n')} − 1 = ${n - 1} and ${V('n')} = <b>${n}</b>.`] };
+      }
+      const a1 = rng.int(-30, 30), d = rng.nz(-9, 9), n = rng.int(25, 90), t = [0, 1, 2, 3].map(i => a1 + i * d), target = a1 + (n - 1) * d;
+      return { prompt: `Which term of this arithmetic sequence is ${N(target)}? Give its position ${V('n')}.${big(t.map(N).join(', ') + ', …')}`, type: 'number', answer: n, params: { kind: 'which-term', t, target },
+        hints: [`The first term is ${N(a1)} and the common difference is ${N(d)}, so ${an} = ${N(a1)} + ${wrap(d)}(${V('n')} − 1).`, `Set it equal to ${N(target)}: ${wrap(d)}(${V('n')} − 1) = ${N(target - a1)}, so ${V('n')} − 1 = ${N(n - 1)}.`, `${V('n')} = <b>${n}</b>.`] };
+    },
     verify(q) {
       const P = q.params;
       if (P.kind === 'classify') {
         const diffs = P.t.slice(1).map((v, i) => v - P.t[i]), ratios = P.t.slice(1).map((v, i) => v / P.t[i]);
         const expect = diffs.every(x => x === diffs[0]) ? 'Arithmetic' : ratios.every(x => Math.abs(x - ratios[0]) < 1e-12) ? 'Geometric' : 'Neither';
         return q.answer === expect;
+      }
+      if (P.kind === 'which-term') {
+        // step along the sequence until the target turns up, counting the terms
+        const geo = P.t[1] - P.t[0] !== P.t[2] - P.t[1];
+        let v = P.t[0], i = 1;
+        while (i < 500 && v !== P.target) { v = geo ? v * (P.t[1] / P.t[0]) : v + (P.t[1] - P.t[0]); i++; }
+        return v === P.target && i === q.answer;
       }
       if (P.kind === 'recursive') { let v = P.k; for (let i = 2; i <= 5; i++) v = P.geo ? v * P.step : v + P.step; return v === q.answer; }
       if (P.kind === 'arith-formula') {
@@ -1069,11 +1154,27 @@
       else hints.push(`Split: ${sumHtml([[a, 'x', 1], [b, '', 0]])} = ${N(c)} or ${sumHtml([[a, 'x', 1], [b, '', 0]])} = ${N(-c)}.`, `Solve each: <b>${answer}</b>.`);
       return { prompt: `Solve.${big(`${lhs} = ${N(r)}`)}`, type: 'choice', choices: [answer].concat(others(answer, wrong, 3)), answer, params: { a, b, m, k, r }, hints };
     },
+    challenge(rng) {
+      // a negative number outside the bars, an absolute value that is zero, or one that is negative
+      const a = rng.pick([2, 3, 4]), m = rng.pick([-3, -2, 2, 3, 4]), k = rng.nz(-12, 12), type = rng.pick(['two', 'two', 'none', 'one']);
+      let d = rng.int(1, 6); if ((a * d) % 2) d += 1;
+      const s1 = rng.int(-6, 8), c = type === 'one' ? 0 : a * d / 2, b = c - a * s1, s2 = s1 - d, iso = type === 'none' ? -c : c, r = m * iso + k;
+      const inner = sumHtml([[a, 'x', 1], [b, '', 0]]);
+      const answer = type === 'none' ? 'No solution' : type === 'one' ? `${X} = ${N(s1)}` : solH(s1, s2);
+      const wrong = type === 'none' ? [solH(s1, s2), `${X} = ${N(s1)}`, solH(-s1, -s2), `${X} = ${N(s2)}`]
+        : type === 'one' ? ['No solution', solH(s1, s1 ? -s1 : 2), `${X} = ${N(s1 ? -s1 : 3)}`, `${X} = ${N(s1 + 1)}`]
+        : [solH(-s1, -s2), 'No solution', `${X} = ${N(s1)}`, `${X} = ${N(s2)}`];
+      const hints = [`Isolate the absolute value: ${k < 0 ? 'add' : 'subtract'} ${N(Math.abs(k))}, then divide by ${N(m)}${m < 0 ? ', a negative number, so the sign of the other side changes' : ''}. You get |${inner}| = ${N(iso)}.`];
+      if (type === 'none') hints.push(`An absolute value is never negative, so it can’t equal ${N(iso)}.`, '<b>No solution</b>.');
+      else if (type === 'one') hints.push(`Only 0 has an absolute value of 0, so ${inner} = 0: just one solution.`, `<b>${answer}</b>.`);
+      else hints.push(`Split: ${inner} = ${N(c)} or ${inner} = ${N(-c)}.`, `Solve each: <b>${answer}</b>.`);
+      return { prompt: `Solve.${big(`${N(m)}|${inner}| ${M.signed(k)} = ${N(r)}`)}`, type: 'choice', choices: [answer].concat(others(answer, wrong, 3)), answer, params: { a, b, m, k, r }, hints };
+    },
     verify(q) {
       const { a, b, m, k, r } = q.params, f = x => m * Math.abs(a * x + b) + k;
       const sols = []; for (let x = -100; x <= 100; x += 0.5) if (f(x) === r) sols.push(x);
       const s = plain(q.answer);
-      if (s === 'No solution') return sols.length === 0 && f(-b / a) > r;
+      if (s === 'No solution') return sols.length === 0 && (m > 0 ? f(-b / a) > r : f(-b / a) < r);     // the vertex of the V is on the wrong side of r
       const got = (s.match(/-?\d+(\.\d+)?/g) || []).map(Number);
       return got.length === sols.length && got.every((v, i) => v === sols[i]);
     },
@@ -1162,9 +1263,24 @@
       return { prompt: `Simplify, writing the result as ${M.sup(X, V('n'))}. What is ${V('n')}?${big(expr)}`, type: 'number', answer: n, params: { kind, a, b },
         hints: [rule, `So the result is ${xp(n)}${n < 0 ? `, which can also be written ${F(1, xp(-n))}` : ''}.`, `<b>${V('n')} = ${N(n)}</b>.`] };
     },
+    challenge(rng) {
+      if (rng.bool()) {
+        // a fraction to a fractional, possibly negative, power
+        const [pp, qq] = rng.pick([[2, 3], [3, 2], [1, 2], [2, 5], [3, 4], [4, 3], [1, 3], [5, 2]]), d = rng.pick([2, 3]), n = rng.pick([-3, -2, -1, 2, 3]);
+        const u = Math.pow(pp, d), w = Math.pow(qq, d), [sn, sd] = n > 0 ? M.simp(Math.pow(pp, n), Math.pow(qq, n)) : M.simp(Math.pow(qq, -n), Math.pow(pp, -n)), root = d === 2 ? 'square' : 'cube';
+        return { prompt: `Evaluate. Give your answer as a fraction.${big(`(${F(u, w)})<sup>${N(n)}/${d}</sup>`)}`, type: 'number', answer: sn / sd, answerText: M.fracText(sn, sd), params: { kind: 'ratfrac', u, w, n, d },
+          hints: [`The denominator ${d} means a ${root} root of the top and of the bottom: the ${root} root of ${F(u, w)} is ${F(pp, qq)}.`, n < 0 ? `The negative exponent flips the fraction: (${F(qq, pp)})<sup>${-n}</sup>.` : `Now raise it to the power ${n}: (${F(pp, qq)})<sup>${n}</sup>.`, `<b>${M.fracText(sn, sd)}</b>.`] };
+      }
+      // three rules in one expression
+      const a = rng.nz(-5, 6), b = rng.nz(-4, 4), c = rng.nz(-7, 7), d = rng.nz(-7, 7), n = a * b + c - d;
+      return { prompt: `Simplify, writing the result as ${M.sup(X, V('n'))}. What is ${V('n')}?${big(F(`(${xp(a)})<sup>${N(b)}</sup> · ${xp(c)}`, xp(d)))}`, type: 'number', answer: n, params: { kind: 'combo', a, b, c, d },
+        hints: [`Power of a power first: (${xp(a)})<sup>${N(b)}</sup> = ${xp(a * b)}.`, `Multiplying by ${xp(c)} adds exponents: ${N(a * b)} + ${wrap(c)} = ${N(a * b + c)}. Dividing by ${xp(d)} subtracts: ${N(a * b + c)} − ${wrap(d)} = ${N(n)}.`, `<b>${V('n')} = ${N(n)}</b>.`] };
+    },
     verify(q) {
       const P = q.params, t = 1.7, close = (u, w) => Math.abs(u - w) <= 1e-9 * Math.max(1, Math.abs(w));
       if (P.kind === 'rational') return close(Math.pow(P.b, P.n / P.d), q.answer);
+      if (P.kind === 'ratfrac') return close(Math.pow(P.u / P.w, P.n / P.d), q.answer);
+      if (P.kind === 'combo') return close(Math.pow(t, q.answer), Math.pow(Math.pow(t, P.a), P.b) * Math.pow(t, P.c) / Math.pow(t, P.d));
       if (P.kind === 'neg') return close(Math.pow(P.u / P.w, -P.e), q.answer);
       if (P.kind === 'mono') return q.answer === M.term(P.coef, 'x', P.pw) && close(P.coef * Math.pow(t, P.pw), Math.pow(P.c * Math.pow(t, P.a), P.b));
       const lhs = P.kind === 'product' ? Math.pow(t, P.a) * Math.pow(t, P.b) : P.kind === 'quotient' ? Math.pow(t, P.a) / Math.pow(t, P.b) : Math.pow(Math.pow(t, P.a), P.b);
@@ -1207,12 +1323,24 @@
       return { prompt: `Simplify.${big(M.sqrt(n))}`, type: 'choice', choices: [answer].concat(others(answer, wrong, 3)), answer, params: { kind, n },
         hints: [`Look for the largest perfect square that divides ${n}: it is ${k * k} = ${k}².`, `${M.sqrt(n)} = ${M.sqrt(`${k * k} · ${m}`)} = ${M.sqrt(k * k)} · ${M.sqrt(m)}.`, `<b>${answer}</b>.`] };
     },
+    challenge(rng) {
+      // three roots that all simplify to multiples of the same root, some subtracted
+      const m = rng.pick([2, 3, 5, 6, 7]), us = rng.sample([1, 2, 3, 4, 5], 3);
+      const cs = us.map((u, i) => (i === 0 ? rng.int(1, 3) : rng.sign() * rng.int(1, 4)));
+      let total = cs.reduce((acc, c, i) => acc + c * us[i], 0);
+      if (total === 0 || total === -1) { cs[0] += 1; total += us[0]; }
+      const terms = cs.map((c, i) => [c, us[i] * us[i] * m]), answer = rad(total, m);
+      const show = terms.map(([c, r], i) => `${i ? (c < 0 ? ' − ' : ' + ') : ''}${Math.abs(c) === 1 ? '' : N(Math.abs(c))}${M.sqrt(r)}`).join('');
+      const wrong = [rad(cs.reduce((acc, c) => acc + c, 0) || 2, m), rad(cs.reduce((acc, c, i) => acc + Math.abs(c) * us[i], 0), m), rad(total, 2 * m), rad(-total, m), rad(cs.reduce((acc, c, i) => acc + c * us[i] * us[i], 0) || 3, m)];
+      return { prompt: `Simplify.${big(show)}`, type: 'choice', choices: [answer].concat(others(answer, wrong, 3)), answer, params: { kind: 'add', terms },
+        hints: [`Simplify each root first: ${terms.map(([, r], i) => `${M.sqrt(r)} = ${rad(us[i], m)}`).join(', ')}.`, `Now every term is a multiple of ${M.sqrt(m)}. Combine the coefficients, signs included: ${cs.map((c, i) => (i ? ` ${c < 0 ? '−' : '+'} ` : '') + N(i ? Math.abs(c * us[i]) : c * us[i])).join('')} = ${N(total)}.`, `<b>${answer}</b>.`] };
+    },
     verify(q) {
       const P = q.params;
       if (P.kind === 'simplify') return q.answer === rad(...splitRoot(P.n));
       if (P.kind === 'multiply') return q.answer === rad(...splitRoot(P.a * P.b));
       const parts = P.terms.map(([c, r]) => { const [k, m] = splitRoot(r); return [c * k, m]; });
-      return parts[0][1] === parts[1][1] && q.answer === rad(parts[0][0] + parts[1][0], parts[0][1]);
+      return parts.every(pt => pt[1] === parts[0][1]) && q.answer === rad(parts.reduce((acc, pt) => acc + pt[0], 0), parts[0][1]);
     },
   });
 
@@ -1268,6 +1396,15 @@
         : rng.pick(['Which number is <b>rational</b>?', 'Which of these numbers <b>can</b> be written as a fraction of two integers?']);
       return { prompt: ask, type: 'choice', choices: items.map(it => it.h), answer, params: { form, wantIrr, items },
         hints: [`Rational means it can be written as a fraction of integers; irrational means it cannot.`, `Check the others: ${rest.map(it => `${it.h}: ${it.why}`).join('; ')}.`, `<b>${answer}</b> is the ${wantIrr ? 'irrational' : 'rational'} one: ${odd.why}.`] };
+    },
+    challenge(rng) {
+      // six numbers, mostly ones that need simplifying before you can tell
+      const RT = [0, 2, 4, 5, 6].map(i => RAT_GENS[i]), IT = [0, 2, 3, 4, 5].map(i => IRR_GENS[i]), key = it => A.normText(A.stripTags(it.h)), wantIrr = rng.bool();
+      let items, tries = 0;
+      do { items = Array.from({ length: 6 }, () => rng.pick(rng.bool() ? RT : IT)(rng)); tries++; } while (new Set(items.map(key)).size < 6 && tries < 40);
+      const n = items.filter(it => isRational(it) !== wantIrr).length;
+      return { prompt: `How many of these numbers are <b>${wantIrr ? 'irrational' : 'rational'}</b>? Simplify each one before you decide.${big(items.map(it => it.h).join(', &nbsp;'))}`, type: 'number', answer: n, params: { form: 'count', wantIrr, items },
+        hints: ['Simplify roots, products and quotients first; a root of a perfect square, or of a fraction of perfect squares, is rational.', items.map(it => `${it.h}: ${it.why}`).join('; ') + '.', `${n === 1 ? 'One number is' : `${N(n)} numbers are`} ${wantIrr ? 'irrational' : 'rational'}: <b>${N(n)}</b>.`] };
     },
     verify(q) {
       const P = q.params;
@@ -1416,10 +1553,21 @@
           kind === 'monic' ? `${N(b0)} and ${N(d0)} work: ${N(b0)} × ${wrap(d0)} = ${N(b0 * d0)} and ${N(b0)} + ${wrap(d0)} = ${N(b0 + d0)}.` : `Check the middle term by multiplying back: ${M.term(a0, 'x')} · ${wrap(d0)} + ${wrap(b0)} · ${M.term(c0, 'x')} = ${M.term(a0 * d0 + b0 * c0, 'x')}.`,
           `<b>${answer}</b>.`] };
     },
+    challenge(rng) {
+      // a common factor to take out first, then a trinomial
+      const g = rng.pick([2, 3, 4, 5, -2, -3]), lead = rng.pick([1, 1, 2, 3]);
+      let pp = rng.nz(-7, 7); if (lead > 1 && pp % lead === 0) pp += pp > 0 ? 1 : -1;
+      const qq = rng.nz(-7, 7), fs = [[lead, pp], [1, qq]], full = [[0, g]].concat(fs), coefs = coefsOf(prodOf(full));
+      const opts = [full, [[0, g], [lead, -pp], [1, -qq]], [[g * lead, g * pp], [1, qq]], [[0, -g], [lead, -pp], [1, qq]], [[0, g], [lead, qq], [1, pp]]];
+      const html = opts.map(o => (o[0][0] === 0 ? (o[0][1] === -1 ? '−' : N(o[0][1])) + facH(o.slice(1)) : facH(o))), answer = html[0];
+      return { prompt: `Factor completely.${big(M.poly(coefs))}`, type: 'choice', choices: [answer].concat(others(answer, html.slice(1), 3)), answer, params: { coefs, opts, html },
+        hints: [`Every coefficient shares the factor ${N(g)}. Take it out first: ${N(g)}(${M.poly(coefs.map(c => c / g))}).`, `Now factor the trinomial inside: ${M.poly(coefs.map(c => c / g))} = ${facH(fs)}. Multiply back to check the middle term.`, `Keep the ${N(g)} in front: <b>${answer}</b>. A form like ${facH([[g * lead, g * pp], [1, qq]])} isn’t factored completely.`] };
+    },
     verify(q) {
       const P = q.params, i = P.html.indexOf(q.answer); if (i < 0) return 'answer not among options';
       const got = coefsOf(prodOf(P.opts[i]));
-      return got.every((v, j) => v === P.coefs[j]);
+      // the same polynomial, and factored completely: no binomial still has a common factor
+      return got.every((v, j) => v === P.coefs[j]) && P.opts[i].every(([a, b]) => a === 0 || M.gcd(a, b) === 1);
     },
   });
   const k2 = a => a * a;
@@ -1528,11 +1676,18 @@
       return { prompt: `For the parabola ${Y} = ${M.poly(coefs)}, what is ${askX ? `the ${X}-coordinate of the vertex` : `the ${a > 0 ? 'minimum' : 'maximum'} value of ${Y}`}?`, type: 'number', answer: askX ? h : k, params: { kind, coefs, askX },
         hints: [`The vertex is at ${X} = −${V('b')} ÷ 2${V('a')} = −${wrap(coefs[1])} ÷ ${wrap(2 * a)} = ${N(h)}.`, askX ? `So the ${X}-coordinate is <b>${N(h)}</b>.` : `Substitute: ${Y} = ${N(a)}${wrap(h)}² ${M.signed(coefs[1])} · ${wrap(h)} ${M.signed(coefs[2])} = ${N(k)}.`].concat(askX ? [] : [`${a > 0 ? 'It opens up, so this is the minimum' : 'It opens down, so this is the maximum'}: <b>${N(k)}</b>.`]) };
     },
+    challenge(rng) {
+      // completing the square when the leading coefficient isn't 1
+      const a = rng.pick([2, 3, -1, -2, -3]), h = rng.nz(-5, 5), k = rng.int(-12, 12), b = -2 * a * h, c = a * h * h + k;
+      const opts = [[h, k], [-h, k], [h, c - h * h], [h, c + a * h * h]], html = opts.map(([hh, kk]) => vfH(a, hh, kk)), answer = html[0];
+      return { prompt: `Rewrite in vertex form.${big(`${Y} = ${M.poly([a, b, c])}`)}`, type: 'choice', choices: [answer].concat(others(answer, html.slice(1), 3)), answer, params: { kind: 'convert', a, b, c, opts, html },
+        hints: [`Factor ${N(a)} out of the first two terms: ${Y} = ${a === -1 ? '−' : N(a)}(${M.poly([1, b / a, 0])}) ${M.signed(c)}.`, `Half of ${N(b / a)} is ${N(-h)}, and its square is ${h * h}. Adding ${h * h} inside the parentheses really adds ${N(a * h * h)}, so take that back off: ${Y} = ${a === -1 ? '−' : N(a)}(${X} ${M.signed(-h)})² ${M.signed(-a * h * h)} ${M.signed(c)}.`, `${N(c)} ${M.signed(-a * h * h)} = ${N(k)}, so <b>${answer}</b>.`] };
+    },
     verify(q) {
       const P = q.params;
       if (P.kind === 'convert') {
         const i = P.html.indexOf(q.answer); if (i < 0) return 'not an option';
-        const [h, k] = P.opts[i]; return [-2, 0, 3].every(x => (x - h) * (x - h) + k === x * x + P.b * x + P.c);
+        const [h, k] = P.opts[i], a = P.a || 1; return [-2, 0, 3].every(x => a * (x - h) * (x - h) + k === a * x * x + P.b * x + P.c);
       }
       const [a, b, c] = P.coefs, f = x => (a * x + b) * x + c;
       // the vertex is the grid point where f is most extreme
