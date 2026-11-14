@@ -5,7 +5,8 @@
 (function () {
   const A = window.ACADEMY, M = window.M;
   const F = M.frac, N = M.n, V = M.v, X = M.v('x');
-  const NAMES = ['Ana', 'Ben', 'Chloe', 'Dev', 'Ella', 'Finn', 'Grace', 'Hugo', 'Iris', 'Jai', 'Kai', 'Lena', 'Milo', 'Nora', 'Omar', 'Ravi', 'Sara', 'Theo', 'Uma', 'Zoe'];
+  const NAMES = ['Ana', 'Ben', 'Chloe', 'Dev', 'Ella', 'Finn', 'Grace', 'Hugo', 'Iris', 'Jai', 'Kai', 'Lena', 'Milo', 'Nora', 'Omar', 'Ravi', 'Sara', 'Theo', 'Uma', 'Zoe',
+    'Aiko', 'Amara', 'Anika', 'Diego', 'Fatima', 'Hana', 'Kwame', 'Leila', 'Mateo', 'Mei', 'Nikhil', 'Rosa', 'Tariq', 'Wei', 'Yusuf', 'Zara'];
   const p = (s) => `<p>${s}</p>`;
   const example = (title, body) => `<div class="example"><div class="ex-title">${title}</div>${body}</div>`;
   const big = s => `<div class="big">${s}</div>`;
@@ -189,9 +190,14 @@
       const ofHints = [`Write ${pct}% as a decimal: ${N(pct / 100)}.`, `Multiply: ${N(pct / 100)} × ${whole} = <b>${N(part)}</b>.`];
       const wholeHints = [`${pct}% of the whole is ${N(part)}. To undo “× ${N(pct / 100)}”, multiply by 100 and divide by ${pct}.`, `${N(part)} × 100 = ${N(part * 100)}, and ${N(part * 100)} ÷ ${pct} = <b>${whole}</b>.`, `Check: ${pct}% of ${whole} is ${N(part)} ✓`];
       if (kind === 'of') return { prompt: `What is ${pct}% of ${whole}?${big(`${pct}% of ${whole} = ?`)}`, type: 'number', answer: part, params, hints: ofHints };
-      if (kind === 'of-word') return { prompt: `A test has ${whole} questions. ${name} got ${pct}% of them right. How many questions did ${name} get right?`, type: 'number', answer: part, params, hints: ofHints };
+      if (kind === 'of-word') return { prompt: rng.pick([
+        `A test has ${whole} questions. ${name} got ${pct}% of them right. How many questions did ${name} get right?`,
+        `A community garden has ${whole} plots. ${pct}% of them are growing tomatoes. How many plots are growing tomatoes?`,
+        `The school library has ${whole} new books. ${pct}% of them are mysteries. How many new books are mysteries?`,
+        `${name} planted ${whole} seeds, and ${pct}% of them sprouted. How many seeds sprouted?`,
+        `A farmers market has ${whole} stalls. ${pct}% of them sell fruit. How many stalls sell fruit?`]), type: 'number', answer: part, params, hints: ofHints };
       if (kind === 'whole') return { prompt: `${N(part)} is ${pct}% of what number?`, type: 'number', answer: whole, params, hints: wholeHints };
-      if (kind === 'whole-word') return { prompt: `${name} has saved ${M.money(part)}. That is ${pct}% of the price of a bike. How much does the bike cost?`, type: 'number', answer: whole, unit: '$', params, hints: wholeHints };
+      if (kind === 'whole-word') return { prompt: `${name} has saved ${M.money(part)}. That is ${pct}% of the price of ${rng.pick(['a bike', 'a keyboard', 'a tent', 'a telescope', 'a pair of skates', 'a sewing kit'])}. How much does it cost?`, type: 'number', answer: whole, unit: '$', params, hints: wholeHints };
       return { prompt: `${N(part)} is what percent of ${whole}?`, type: 'number', answer: pct, unit: '%', params,
         hints: [`Divide the part by the whole: ${N(part)} ÷ ${whole} = ${N(part / whole)}.`, `Multiply by 100 to make a percent: ${N(part / whole)} × 100 = <b>${pct}%</b>.`] };
     },
@@ -253,14 +259,16 @@
         prompt = `${name} has ${MX(tn, td)} ${u}${tn > td ? 's' : ''} of ${thing}. ${each} ${fr(gn, gd)} ${u}. How many ${ask.replace('NAME', name)}?`;
       } else if (kind === 'speed') {
         [tn, td] = M.simp(rng.int(1, 5), rng.pick([2, 3, 4, 5])); gd = rng.pick([2, 3, 4, 6]); gn = 1;
-        prompt = `${name} walks ${MX(tn, td)} mile${tn > td ? 's' : ''} in ${fr(gn, gd)} of an hour. At that speed, how many miles does ${name} walk in one hour?`; unit = 'miles';
+        const [go, goes] = rng.pick([['walk', 'walks'], ['bike', 'bikes'], ['jog', 'jogs'], ['paddle', 'paddles'], ['skate', 'skates']]);
+        prompt = `${name} ${goes} ${MX(tn, td)} mile${tn > td ? 's' : ''} in ${fr(gn, gd)} of an hour. At that speed, how many miles does ${name} ${go} in one hour?`; unit = 'miles';
       } else if (kind === 'side') {
         const d1 = rng.pick([2, 3, 4, 5, 6, 8]), d2 = rng.pick([2, 3, 4, 5]);
         [tn, td] = M.simp(rng.int(1, d1 - 1), d1); [gn, gd] = M.simp(rng.int(1, d2 - 1), d2);
         prompt = `A rectangle has an area of ${fr(tn, td)} square meter. Its width is ${fr(gn, gd)} meter. How long is it?`; unit = 'm';
       } else {
         const d = rng.pick([2, 3, 4, 5, 8]); [tn, td] = M.simp(rng.int(1, d - 1), d); gn = rng.int(2, 6); gd = 1;
-        prompt = `${name} shares ${fr(tn, td)} pound of trail mix equally among ${gn} friends. How many pounds does each friend get?`; unit = 'lb';
+        const [stuff, among] = rng.pick([['trail mix', 'friends'], ['clay', 'classmates'], ['birdseed', 'feeders'], ['dried apples', 'campers'], ['modeling sand', 'tables']]);
+        prompt = `${name} shares ${fr(tn, td)} pound of ${stuff} equally among ${gn} ${among}. How many pounds does each get?`; unit = 'lb';
       }
       const [sn, sd] = M.simp(tn * gd, td * gn);
       const div = `${MX(tn, td)} ÷ ${gd === 1 ? gn : fr(gn, gd)}`;
@@ -308,8 +316,14 @@
         hints: [`Estimate: ${N(D)} ÷ ${d} is about ${N(Math.round(D / d / 10) * 10)}.`, `Work from the left: ${steps.join('; ')}.`, `${N(D)} ÷ ${d} = <b>${qt}</b>.`] };
       if (kind === 'rem') return { prompt: `What is the <b>remainder</b> when you divide?${big(`${N(D)} ÷ ${d}`)}`, type: 'number', answer: r, params: { kind, D, d, qt },
         hints: [`Work from the left: ${steps.join('; ')}.`, `${d} × ${qt} = ${N(d * qt)}, and ${N(D)} − ${N(d * qt)} = ${r}.`, `The remainder is <b>${r}</b>.`] };
-      return { prompt: `${N(D)} people are going to a fair. Each bus holds ${d} people. How many buses are needed to take everyone?`, type: 'number', answer: qt + 1, unit: 'buses', params: { kind, D, d },
-        hints: [`Divide: ${steps.join('; ')}.`, `So ${N(D)} ÷ ${d} = ${qt} remainder ${r}: ${qt} buses are full and ${r} ${r === 1 ? 'person is' : 'people are'} left over.`, `The leftover people need a bus too: <b>${qt + 1} buses</b>.`] };
+      const [story, box, boxes, who, whoOne] = rng.pick([
+        [`${N(D)} people are going to a fair. Each bus holds ${d} people. How many buses are needed to take everyone?`, 'bus', 'buses', 'people', 'person'],
+        [`${N(D)} students are going to the science museum. Each van holds ${d} students. How many vans are needed?`, 'van', 'vans', 'students', 'student'],
+        [`${N(D)} guests are coming to a dinner at the community center. Each table seats ${d}. How many tables are needed so everyone has a seat?`, 'table', 'tables', 'guests', 'guest'],
+        [`The library is packing ${N(D)} books into boxes that hold ${d} books each. How many boxes are needed for all the books?`, 'box', 'boxes', 'books', 'book'],
+        [`A bakery has ${N(D)} muffins to pack into trays of ${d}. How many trays are needed for all the muffins?`, 'tray', 'trays', 'muffins', 'muffin']]);
+      return { prompt: story, type: 'number', answer: qt + 1, unit: boxes, params: { kind, D, d },
+        hints: [`Divide: ${steps.join('; ')}.`, `So ${N(D)} ÷ ${d} = ${qt} remainder ${r}: ${qt} ${boxes} are full and ${r} ${r === 1 ? whoOne + ' is' : who + ' are'} left over.`, `The leftover ${r === 1 ? whoOne : who} need${r === 1 ? 's' : ''} a ${box} too: <b>${qt + 1} ${boxes}</b>.`] };
     },
     verify(q) {
       const { kind, D, d } = q.params;
@@ -529,14 +543,19 @@
         const g = rng.int(2, 12); let m = rng.int(2, 9), n = rng.int(2, 9);
         while (n === m || M.gcd(m, n) !== 1) n = n === 9 ? 2 : n + 1;
         const a = g * Math.min(m, n), b = g * Math.max(m, n);
-        const prompt = kind === 'gcf' ? `Find the greatest common factor of ${a} and ${b}.` : `${name} has ${a} pencils and ${b} erasers to put into identical gift bags, with nothing left over. What is the greatest number of bags ${name} can make?`;
-        return { prompt, type: 'number', answer: g, unit: kind === 'gcf' ? undefined : 'bags', params: { kind, a, b },
+        const [x1, x2, grp] = rng.pick([['pencils', 'erasers', 'gift bags'], ['apples', 'granola bars', 'snack bags'], ['roses', 'daisies', 'bouquets'], ['red beads', 'blue beads', 'bracelet kits'], ['crayons', 'markers', 'art boxes']]);
+        const prompt = kind === 'gcf' ? `Find the greatest common factor of ${a} and ${b}.` : `${name} has ${a} ${x1} and ${b} ${x2} to put into identical ${grp}, with nothing left over. What is the greatest number of ${grp} ${name} can make?`;
+        return { prompt, type: 'number', answer: g, unit: kind === 'gcf' ? undefined : grp.split(' ').pop(), params: { kind, a, b },
           hints: [`List the factors of ${a}: ${factorsOf(a).join(', ')}.`, `Find the biggest one that also divides ${b}. ${b} ÷ ${g} = ${b / g}.`, `The GCF is <b>${g}</b>.`] };
       }
       let a = rng.int(2, 15), b = rng.int(3, 15); if (a === b) b = a + 1;
       if (a > b) [a, b] = [b, a];
       const l = a * b / M.gcd(a, b), mults = []; for (let k = b; k <= l; k += b) mults.push(k);
-      const prompt = kind === 'lcm' ? `Find the least common multiple of ${a} and ${b}.` : `Veggie dogs come in packs of ${b} and buns come in packs of ${a}. ${name} wants exactly the same number of each. What is the smallest number of veggie dogs ${name} can buy?`;
+      const prompt = kind === 'lcm' ? `Find the least common multiple of ${a} and ${b}.` : rng.pick([
+        `Veggie dogs come in packs of ${b} and buns come in packs of ${a}. ${name} wants exactly the same number of each. What is the smallest number of veggie dogs ${name} can buy?`,
+        `Paper cups come in packs of ${b} and plates come in packs of ${a}. ${name} wants exactly the same number of cups and plates for a party. What is the smallest number of cups ${name} can buy?`,
+        `At the park, one fountain sprays every ${a} minutes and another every ${b} minutes. They both spray right now. In how many minutes will they next spray at the same time?`,
+        `${name} waters the ferns every ${a} days and the cactus every ${b} days. Both were watered today. In how many days will both be watered on the same day again?`]);
       return { prompt, type: 'number', answer: l, params: { kind, a, b },
         hints: [`List multiples of ${b}: ${mults.slice(0, 8).join(', ')}${mults.length > 8 ? ', …' : ''}.`, `The first one that ${a} also divides is ${l} (${l} ÷ ${a} = ${l / a}).`, `The LCM is <b>${l}</b>.`] };
     },
@@ -734,8 +753,15 @@
           hints: [`${X} is multiplied by ${F(sn, sd)}. Undo it by multiplying both sides by the reciprocal, ${F(sd, sn, { raw: true })}.`, `${X} = ${b} × ${F(sd, sn, { raw: true })} = ${F(b * sd, sn, { raw: true })}.`, `<b>${X} = ${xx}</b>. Check: ${F(sn, sd)} × ${xx} = ${b} ✓`] };
       }
       const total = x + a;
-      return { prompt: `${name} had some trading cards. After a friend gave ${name} ${a} more, ${name} had ${total}. How many cards did ${name} have at first?`, type: 'number', answer: x, unit: 'cards', params: { kind: 'add', a, b: total },
-        hints: [`Let ${X} be the number at first. Then ${X} + ${a} = ${total}.`, `Subtract ${a} from both sides: ${X} = ${total} − ${a}.`, `<b>${X} = ${x}</b>: ${name} had ${x} cards.`] };
+      if (rng.bool()) {
+        const [thing, unit, ask] = rng.pick([['tickets to the school play', 'tickets', 'ticket'], ['art kits at the craft fair', 'kits', 'kit'], ['museum passes', 'passes', 'pass'], ['T-shirts for the science club', 'shirts', 'T-shirt']]), cost = a * x;
+        return { prompt: `${name} bought ${a} ${thing} for $${cost} in all. Each one cost the same. How much did one ${ask} cost?`, type: 'number', answer: x, unit: '$', params: { kind: 'mul', a, b: cost },
+          hints: [`Let ${X} be the cost of one ${ask}. Then ${a}${X} = ${cost}.`, `Divide both sides by ${a}: ${X} = ${cost} ÷ ${a}.`, `<b>${X} = ${x}</b>: one ${ask} cost $${x}.`] };
+      }
+      const [had, got, unit] = rng.pick([['some trading cards', `a friend gave ${name} ${a} more`, 'cards'], ['some stickers', `${name} won ${a} more at the community center`, 'stickers'],
+        ['some library books', `${name} checked out ${a} more`, 'books'], ['some seashells', `${name} found ${a} more at the beach`, 'shells'], ['some coins saved', `${name} added ${a} more`, 'coins']]);
+      return { prompt: `${name} had ${had}. After ${got}, ${name} had ${total}. How many ${unit} did ${name} have at first?`, type: 'number', answer: x, unit, params: { kind: 'add', a, b: total },
+        hints: [`Let ${X} be the number at first. Then ${X} + ${a} = ${total}.`, `Subtract ${a} from both sides: ${X} = ${total} − ${a}.`, `<b>${X} = ${x}</b>: ${name} had ${x} ${unit}.`] };
     },
     verify(q) {
       const { kind, a, b, n, d } = q.params, x = q.answer;
@@ -1014,7 +1040,9 @@
           hints: [`Put the values in order: ${sorted.join(', ')}.`, n % 2 ? `There are ${n} values, so the middle one is the ${M.ordinal((n + 1) / 2)}.` : `There are ${n} values, so there are two middle ones: ${sorted[n / 2 - 1]} and ${sorted[n / 2]}. Find the number halfway between them.`, `The median is <b>${N(ans)}</b>.`] };
       }
       const ans = sum / n;
-      const prompt = kind === 'mean' ? `Find the <b>mean</b>.${big(data.join(', '))}` : `${rng.pick(NAMES)} scored these points in ${n} basketball games. What is the mean number of points per game?${big(data.join(', '))}`;
+      const nm = rng.pick(NAMES), [did, per] = rng.pick([[`${nm} scored these points in ${n} basketball games.`, 'points per game'], [`${nm} read for these numbers of minutes on ${n} days.`, 'minutes per day'],
+        [`${nm} swam these numbers of laps at ${n} swim practices.`, 'laps per practice'], [`The bakery sold these numbers of loaves on ${n} days.`, 'loaves per day'], [`${nm} picked these numbers of strawberries on ${n} visits to the farm.`, 'strawberries per visit']]);
+      const prompt = kind === 'mean' ? `Find the <b>mean</b>.${big(data.join(', '))}` : `${did} What is the mean number of ${per}?${big(data.join(', '))}`;
       return { prompt, type: 'number', answer: ans, params: { kind, data },
         hints: [`Add the values: ${data.join(' + ')} = ${sum}.`, `Divide by how many there are: ${sum} ÷ ${n}.`, `The mean is <b>${N(ans)}</b>.`] };
     },
@@ -1656,12 +1684,12 @@
     make(rng) {
       const kind = rng.pick(['tip15', 'tip20', 'off25', 'pct5', 'pct30', 'sale']);
       let price, ans, prompt, hints;
-      if (kind === 'tip15') { price = rng.int(6, 40) * 4; const t = price / 10, f = t / 2; ans = t + f; prompt = `A meal costs ${money(price)}. Work out a 15% tip in your head.`; hints = [`10% of ${money(price)} is ${money(t)}.`, `5% is half of 10%: ${money(f)}.`, `15% = ${money(t)} + ${money(f)} = <b>${money(ans)}</b>.`]; }
-      else if (kind === 'tip20') { price = rng.int(12, 90) * 2; const t = price / 10; ans = 2 * t; prompt = `A haircut costs ${money(price)}. What is a 20% tip?`; hints = [`10% of ${money(price)} is ${money(t)}.`, '20% is double 10%.', `2 × ${money(t)} = <b>${money(ans)}</b>.`]; }
-      else if (kind === 'off25') { price = rng.int(5, 40) * 4; ans = price / 4; prompt = `A jacket costs ${money(price)} and is 25% off. How much is taken off the price?`; hints = ['25% is one quarter.', `Divide by 4: ${money(price)} ÷ 4.`, `<b>${money(ans)}</b> is taken off.`]; }
-      else if (kind === 'pct5') { price = rng.int(10, 99) * 2; ans = price / 20; prompt = `Sales tax is 5%. How much tax is added to a ${money(price)} bike helmet?`; hints = [`10% of ${money(price)} is ${money(price / 10)}.`, '5% is half of 10%.', `Half of ${money(price / 10)} is <b>${money(ans)}</b>.`]; }
-      else if (kind === 'pct30') { price = rng.int(5, 60) * 10; ans = price * 3 / 10; prompt = `A game costs ${money(price)}. How much is 30% of the price?`; hints = [`10% of ${money(price)} is ${money(price / 10)}.`, '30% is three times 10%.', `3 × ${money(price / 10)} = <b>${money(ans)}</b>.`]; }
-      else { price = rng.int(4, 30) * 10; const off = price / 10 * 2; ans = price - off; prompt = `Sneakers cost ${money(price)}. They are 20% off. What is the sale price?`; hints = [`10% of ${money(price)} is ${money(price / 10)}, so 20% is ${money(off)}.`, `Take the discount off the price: ${money(price)} − ${money(off)}.`, `The sale price is <b>${money(ans)}</b>.`]; }
+      if (kind === 'tip15') { price = rng.int(6, 40) * 4; const t = price / 10, f = t / 2; ans = t + f; prompt = `${rng.pick(['A meal', 'A pizza delivery', 'A family dinner', 'A taxi ride'])} costs ${money(price)}. Work out a 15% tip in your head.`; hints = [`10% of ${money(price)} is ${money(t)}.`, `5% is half of 10%: ${money(f)}.`, `15% = ${money(t)} + ${money(f)} = <b>${money(ans)}</b>.`]; }
+      else if (kind === 'tip20') { price = rng.int(12, 90) * 2; const t = price / 10; ans = 2 * t; prompt = `${rng.pick(['A haircut', 'A restaurant bill', 'A food delivery', 'A car wash'])} costs ${money(price)}. What is a 20% tip?`; hints = [`10% of ${money(price)} is ${money(t)}.`, '20% is double 10%.', `2 × ${money(t)} = <b>${money(ans)}</b>.`]; }
+      else if (kind === 'off25') { price = rng.int(5, 40) * 4; ans = price / 4; prompt = `${rng.pick(['A jacket', 'A backpack', 'A lamp', 'A soccer ball'])} costs ${money(price)} and is 25% off. How much is taken off the price?`; hints = ['25% is one quarter.', `Divide by 4: ${money(price)} ÷ 4.`, `<b>${money(ans)}</b> is taken off.`]; }
+      else if (kind === 'pct5') { price = rng.int(10, 99) * 2; ans = price / 20; prompt = `Sales tax is 5%. How much tax is added to a ${money(price)} ${rng.pick(['bike helmet', 'desk chair', 'rain jacket', 'board game'])}?`; hints = [`10% of ${money(price)} is ${money(price / 10)}.`, '5% is half of 10%.', `Half of ${money(price / 10)} is <b>${money(ans)}</b>.`]; }
+      else if (kind === 'pct30') { price = rng.int(5, 60) * 10; ans = price * 3 / 10; prompt = `${rng.pick(['A game', 'A bookshelf', 'A guitar', 'A camping stove'])} costs ${money(price)}. How much is 30% of the price?`; hints = [`10% of ${money(price)} is ${money(price / 10)}.`, '30% is three times 10%.', `3 × ${money(price / 10)} = <b>${money(ans)}</b>.`]; }
+      else { price = rng.int(4, 30) * 10; const off = price / 10 * 2; ans = price - off; const [what, are] = rng.pick([['Sneakers cost', 'They are'], ['A coat costs', 'It’s'], ['Headphones cost', 'They are'], ['A scooter costs', 'It’s']]); prompt = `${what} ${money(price)}. ${are} 20% off. What is the sale price?`; hints = [`10% of ${money(price)} is ${money(price / 10)}, so 20% is ${money(off)}.`, `Take the discount off the price: ${money(price)} − ${money(off)}.`, `The sale price is <b>${money(ans)}</b>.`]; }
       return { prompt, type: 'number', unit: '$', answer: Math.round(ans * 100) / 100, params: { kind, price }, hints };
     },
     verify(q) {
