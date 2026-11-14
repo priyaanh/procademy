@@ -979,12 +979,24 @@
 
   /* ---------- Unit 10: Data and statistics ---------- */
   const median = s => { const n = s.length; return n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2; };
+  /** a box plot over a number line from lo to hi, its five numbers named above it */
+  function boxPlotSvg(five, lo, hi, step, label) {
+    const X0 = 22, X1 = 318, px = v => M.round(X0 + (v - lo) * (X1 - X0) / (hi - lo), 1), [mn, q1, md, q3, mx] = five, y = 48;
+    let g = `<line class="stroke" x1="${X0}" y1="86" x2="${X1}" y2="86" style="stroke-width:1.5"/>`;
+    for (let v = lo; v <= hi; v += step) g += `<line class="stroke" x1="${px(v)}" y1="81" x2="${px(v)}" y2="91" style="stroke-width:1"/><text x="${px(v)}" y="106" text-anchor="middle" font-size="12">${v}</text>`;
+    g += `<line class="stroke" x1="${px(mn)}" y1="${y}" x2="${px(q1)}" y2="${y}"/><line class="stroke" x1="${px(q3)}" y1="${y}" x2="${px(mx)}" y2="${y}"/>`;
+    g += [mn, mx].map(v => `<line class="stroke" x1="${px(v)}" y1="${y - 9}" x2="${px(v)}" y2="${y + 9}"/>`).join('');
+    g += `<rect class="fill" x="${px(q1)}" y="${y - 16}" width="${M.round(px(q3) - px(q1), 1)}" height="32"/><line class="stroke" x1="${px(md)}" y1="${y - 16}" x2="${px(md)}" y2="${y + 16}" style="stroke-width:3"/>`;
+    g += [[mn, 'Min'], [q1, 'Q1'], [md, 'Median'], [q3, 'Q3'], [mx, 'Max']].map(([v, t]) => `<text x="${px(v)}" y="20" text-anchor="middle" font-size="11" fill="var(--muted)">${t}</text>`).join('');
+    return `<svg class="figure" viewBox="0 0 340 114" width="340" role="img" aria-label="${label}">${g}</svg>`;
+  }
   A.skill({
     id: 'g6.mean-median', title: 'Mean and median',
     learn: p('The <b>mean</b> (average) shares the total out equally: <b>add all the values and divide by how many there are</b>.') +
       p('The <b>median</b> is the middle value once the data is <b>in order</b>. With an even number of values there are two in the middle; the median is halfway between them (their mean).') +
       p('If you know the mean, you know the total: total = mean × how many. That lets you find a missing value.') +
-      example('Example', `${big('7, 3, 10, 4, 6, 12')}Mean: 42 ÷ 6 = <b>7</b>. In order: 3, 4, 6, 7, 10, 12. The middle two are 6 and 7, so the median is <b>6.5</b>.`),
+      example('Example: mean and median', `${big('7, 3, 10, 4, 6, 12')}Mean: 7 + 3 + 10 + 4 + 6 + 12 = 42, and 42 ÷ 6 = <b>7</b>. Median: in order, 3, 4, 6, 7, 10, 12. The middle two are 6 and 7, so the median is halfway between them, <b>6.5</b>.`) +
+      example('Example: a missing value', `${big('The mean of 4 numbers is 9. Three of them are 6, 10 and 7.')}The total of all 4 is 9 × 4 = 36. The three you know add to 6 + 10 + 7 = 23. The missing number is 36 − 23 = <b>13</b>.`),
     make(rng) {
       const kind = rng.pick(['mean', 'median', 'median', 'missing', 'mean-word']);
       const n = rng.int(4, 7);
@@ -1019,10 +1031,13 @@
 
   A.skill({
     id: 'g6.spread', title: 'MAD, IQR, and box plots',
-    learn: p('Spread tells you how far apart the values are. The <b>mean absolute deviation (MAD)</b> is the average distance from the mean: find the mean, find how far each value is from it, then take the mean of those distances.') +
-      p('The <b>interquartile range (IQR)</b> measures the middle half. Put the data in order and find the median. <b>Q1</b> is the median of the lower half and <b>Q3</b> the median of the upper half (leave the middle value out when the count is odd). <b>IQR = Q3 − Q1.</b>') +
-      p('A <b>box plot</b> shows five numbers: minimum, Q1, median, Q3, maximum. The box goes from Q1 to Q3 and holds the middle 50% of the data; each whisker holds 25%. The range is maximum − minimum.') +
-      example('Example', `${big('2, 4, 6, 8')}Mean = 5. Distances: 3, 1, 1, 3. MAD = 8 ÷ 4 = <b>2</b>.`),
+    learn: p('The <b>spread</b> of a data set tells you how far apart the values are. The <b>mean absolute deviation (MAD)</b> is the average distance from the mean: find the mean, find how far each value is from it, then take the mean of those distances.') +
+      p('The <b>interquartile range (IQR)</b> measures the spread of the middle half. Put the data in order and find the median. <b>Q1</b> is the median of the lower half and <b>Q3</b> is the median of the upper half (leave the middle value out when the count is odd). These are the <b>quartiles</b>: with the median, they cut the data into four parts of about the same size. <b>IQR = Q3 − Q1.</b>') +
+      p('A <b>box plot</b> shows five numbers: the minimum, Q1, the median, Q3 and the maximum. The box goes from Q1 to Q3 and holds the middle 50% of the data; each whisker holds about 25%. The range is maximum − minimum.' +
+        boxPlotSvg([12, 18, 23, 30, 41], 10, 45, 5, 'a box plot on a number line from 10 to 45: the minimum is 12, Q1 is 18, the median is 23, Q3 is 30 and the maximum is 41')) +
+      example('Example: MAD', `${big('2, 4, 6, 8')}The mean is 20 ÷ 4 = 5. The distances from 5 are 3, 1, 1 and 3. MAD = (3 + 1 + 1 + 3) ÷ 4 = 8 ÷ 4 = <b>2</b>.`) +
+      example('Example: IQR', `${big('3, 5, 6, 8, 10, 12, 13, 15, 20')}There are 9 values, so the median is the 5th, 10. Leave it out. Lower half: 3, 5, 6, 8, so Q1 = 5.5. Upper half: 12, 13, 15, 20, so Q3 = 14. IQR = 14 − 5.5 = <b>8.5</b>.`) +
+      example('Example: reading a box plot', `In the box plot above, the IQR is 30 − 18 = <b>12</b> and the range is 41 − 12 = <b>29</b>. About <b>25%</b> of the values are above Q3, 30, and about <b>50%</b> are in the box, from 18 to 30.`),
     make(rng) {
       const kind = rng.pick(['mad', 'mad', 'iqr', 'iqr', 'box']);
       if (kind === 'mad') {
