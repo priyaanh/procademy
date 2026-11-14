@@ -513,17 +513,17 @@
     const r = o.r || 24, span = a2 - a1, [x1, y1] = toward(cx, cy, r, a1), [x2, y2] = toward(cx, cy, r, a2);
     const mid = (a1 + a2) / 2, lr = o.outside ? 18 : Math.min(o.max || 92, Math.max(r + 16, 15 / Math.sin(Math.min(span, 120) * Math.PI / 360)));
     const [lx, ly] = toward(cx, cy, lr, o.outside ? mid + 180 : mid);
-    return `<path class="stroke" style="stroke-width:1.5" d="M${r1(x1)} ${r1(y1)} A${r} ${r} 0 ${span > 180 ? 1 : 0} 0 ${r1(x2)} ${r1(y2)}"/>` + svgText(lx, ly + 5, label, { bold: true });
+    return `<path class="stroke" style="stroke-width:1.5" d="M${r1(x1)} ${r1(y1)} A${r} ${r} 0 ${span > 180 ? 1 : 0} 0 ${r1(x2)} ${r1(y2)}"/>` + svgText(lx, ly + 5, label, { bold: true, size: 14 });
   }
 
   /** a circle with its center; the radius ('r') or the diameter ('d') drawn and labeled; an optional line of text under it */
   function circleSvg(part, partLabel, under, label) {
     const cx = 130, cy = 96, R = 78;
     let g = `<circle cx="${cx}" cy="${cy}" r="${R}" class="fill" style="fill-opacity:.45"/>`;
-    g += part === 'd' ? seg([cx - R, cy], [cx + R, cy], 'line') + svgText(cx, cy - 9, partLabel, { bold: true }) : seg([cx, cy], [cx + R, cy], 'line') + svgText(cx + R / 2, cy - 9, partLabel, { bold: true });
+    g += part === 'd' ? seg([cx - R, cy], [cx + R, cy], 'line') + svgText(cx, cy - 10, partLabel, { bold: true, size: 15 }) : seg([cx, cy], [cx + R, cy], 'line') + svgText(cx + R / 2, cy - 10, partLabel, { bold: true, size: 15 });
     g += `<circle class="dot" cx="${cx}" cy="${cy}" r="4"/>`;
-    if (under) g += svgText(cx, cy + R + 24, under);
-    return figure(260, under ? 206 : 182, label, g, 240);
+    if (under) g += svgText(cx, cy + R + 24, under, { size: 14 });
+    return figure(260, under ? 206 : 182, label, g, 270);
   }
   /** the parts of a circle, for the lesson */
   function circlePartsSvg() {
@@ -542,7 +542,7 @@
       const O = [36, 168], g = seg(O, toward(...O, 158, 0)) + seg(O, toward(...O, 150, 90)) + seg(O, toward(...O, 158, a)) +
         `<polyline class="stroke" style="stroke-width:1.3" points="${O[0] + 12},${O[1]} ${O[0] + 12},${O[1] - 12} ${O[0]},${O[1] - 12}"/>` +
         angleMark(...O, 0, a, `${a}°`, { r: 40 }) + angleMark(...O, a, 90, '?', { r: 52 });
-      return figure(210, 184, `A right angle split into two angles by a ray: one part is ${a} degrees and the other part is marked with a question mark.`, g, 200);
+      return figure(210, 184, `A right angle split into two angles by a ray: one part is ${a} degrees and the other part is marked with a question mark.`, g, 236);
     }
     if (kind === 'vert') {
       const O = [150, 96], g = seg(toward(...O, 132, 180), toward(...O, 132, 0)) + seg(toward(...O, 104, a + 180), toward(...O, 104, a)) +
@@ -557,7 +557,8 @@
   function crossingSvg(a) {
     const O = [150, 96], b = 180 - a;
     const g = seg(toward(...O, 132, 180), toward(...O, 132, 0)) + seg(toward(...O, 104, a + 180), toward(...O, 104, a)) +
-      angleMark(...O, 0, a, `${a}°`) + angleMark(...O, a, 180, `${b}°`, { r: 30 }) + angleMark(...O, 180, 180 + a, `${a}°`) + angleMark(...O, 180 + a, 360, `${b}°`, { r: 30 });
+      angleMark(...O, 0, a, `${a}°`) + angleMark(...O, 180, 180 + a, `${a}°`) +
+      [(a + 180) / 2, (a + 540) / 2].map(d => { const [x, y] = toward(...O, 42, d); return svgText(x, y + 5, `${b}°`, { bold: true }); }).join('');
     return figure(300, 192, `Two straight lines crossing, making four angles: ${a}, ${b}, ${a} and ${b} degrees going around. The opposite angles match.`, g, 300);
   }
   /** a triangle drawn with base angles a and b (degrees), the third angle marked '?' (or its value) */
@@ -593,30 +594,33 @@
     const at = (x0, y0, f) => shape.map(([x, y]) => [x0 + x * sz * f, y0 - y * sz * f]);
     const tri = (pts, cls) => `<polygon class="${cls}" style="fill-opacity:.45" points="${pts.map(q => q.map(r1).join(',')).join(' ')}"/>`;
     const lab = (pts, b, s) => svgText((pts[0][0] + pts[1][0]) / 2, pts[0][1] + 18, b) + svgText((pts[0][0] + pts[2][0]) / 2 - 8, (pts[0][1] + pts[2][1]) / 2, s, { anchor: 'end' });
-    const small = at(56, 150, 1), large = at(176, 150, kk);
-    const g = tri(small, 'fill') + tri(large, 'fill2') + lab(small, base, side) + lab(large, bigBase, bigSide) + notToScale(340, 184);
-    return figure(340, 184, `A triangle with a bottom side of ${base} and a left side of ${side}, and an enlarged copy whose bottom side is ${bigBase} and whose left side is ${bigSide}. Not to scale.`, g, 340);
+    const small = at(56, 124, 1), large = at(176, 124, kk);
+    const g = tri(small, 'fill') + tri(large, 'fill2') + lab(small, base, side) + lab(large, bigBase, bigSide) + notToScale(340, 156);
+    return figure(340, 156, `A triangle with a bottom side of ${base} and a left side of ${side}, and an enlarged copy whose bottom side is ${bigBase} and whose left side is ${bigSide}. Not to scale.`, g, 340);
   }
 
   /* ---------- Unit 6 ---------- */
   A.skill({
     id: 'math7.circles', title: 'Area and circumference of circles',
-    learn: p(`<b>Circumference</b> is the distance around a circle: ${V('C')} = 2π${V('r')} = π${V('d')}. <b>Area</b> is the space inside: ${V('A')} = π${V('r')}².`) +
-      p('The radius goes from the center to the edge; the diameter goes all the way across, so it is twice the radius. On this site use 3.14 for π and round to two decimal places.') +
-      example('Example', `${big('A circle has radius 5 cm.')}${V('C')} = 2 × 3.14 × 5 = <b>31.4 cm</b>. ${V('A')} = 3.14 × 5² = 3.14 × 25 = <b>78.5 cm²</b>.`),
+    learn: p(`A <b>circle</b> is all the points the same distance from its <b>center</b>. The <b>radius</b> (${V('r')}) goes from the center to the edge, and the <b>diameter</b> (${V('d')}) goes all the way across through the center, so it’s twice the radius. The <b>circumference</b> (${V('C')}) is the distance around the circle.`) + circlePartsSvg() +
+      p(`<b>Circumference: ${V('C')} = 2π${V('r')} = π${V('d')}. Area: ${V('A')} = π${V('r')}²</b>, where ${V('r')}² means ${V('r')} × ${V('r')}. The number π (“pi”) is a little more than 3; on this site use 3.14 for π, and round to two decimal places.`) +
+      example('Example: from the radius', `${big('A circle has radius 5 cm.')}${V('C')} = 2 × 3.14 × 5 = <b>31.4 cm</b>. ${V('A')} = 3.14 × 5² = 3.14 × 25 = <b>78.5 cm²</b>.`) +
+      example('Example: from the diameter', `A circle has diameter 12 m. Its circumference is ${V('C')} = 3.14 × 12 = <b>37.68 m</b>. For the area, first halve the diameter: the radius is 6 m, so ${V('A')} = 3.14 × 6² = 3.14 × 36 = <b>113.04 m²</b>.`) +
+      example('Example: working backward', `A circle’s circumference is 43.96 in. Because ${V('C')} = 2π${V('r')}, divide by 2 × 3.14 = 6.28: ${V('r')} = 43.96 ÷ 6.28 = <b>7 in</b>.`),
     make(rng) {
       const kind = rng.pick(['area-r', 'area-d', 'circ-r', 'circ-d', 'r-from-c']);
       const r = rng.pick([2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15]);
       const unit = rng.pick(['cm', 'm', 'in', 'ft']);
-      if (kind === 'r-from-c') { const C = M.round(6.28 * r, 2); return { prompt: `A circle has a circumference of ${N(C)} ${unit}. What is its radius? Use 3.14 for π.`, type: 'number', answer: r, unit, params: { kind, r }, tolerance: 0.05, hints: [`${V('C')} = 2π${V('r')}, so ${V('r')} = ${V('C')} ÷ (2π).`, `${N(C)} ÷ 6.28 = ${N(r)}.`, `The radius is <b>${N(r)} ${unit}</b>.`] }; }
+      if (kind === 'r-from-c') { const C = M.round(6.28 * r, 2); return { prompt: `A circle has a circumference of ${N(C)} ${unit}. What is its radius? Use 3.14 for π.${circleSvg('r', '?', `circumference ${N(C)} ${unit}`, `A circle whose circumference is ${N(C)} ${unit}; its radius is marked with a question mark.`)}`, type: 'number', answer: r, unit, params: { kind, r }, tolerance: 0.05, hints: [`${V('C')} = 2π${V('r')}, so ${V('r')} = ${V('C')} ÷ (2π).`, `${N(C)} ÷ 6.28 = ${N(r)}.`, `The radius is <b>${N(r)} ${unit}</b>.`] }; }
       const given = kind.endsWith('-d') ? `diameter ${N(2 * r)} ${unit}` : `radius ${N(r)} ${unit}`;
+      const pic = kind.endsWith('-d') ? circleSvg('d', `${N(2 * r)} ${unit}`, null, `A circle with a diameter of ${N(2 * r)} ${unit} drawn across it through the center.`) : circleSvg('r', `${N(r)} ${unit}`, null, `A circle with a radius of ${N(r)} ${unit} drawn from its center to the edge.`);
       if (kind.startsWith('area')) {
         const ans = M.round(3.14 * r * r, 2);
-        return { prompt: `A circle has ${given}. What is its area? Use 3.14 for π.`, type: 'number', answer: ans, unit: unit + '²', params: { kind, r }, tolerance: 0.05,
+        return { prompt: `A circle has ${given}. What is its area? Use 3.14 for π.${pic}`, type: 'number', answer: ans, unit: unit + '²', params: { kind, r }, tolerance: 0.05,
           hints: [kind === 'area-d' ? `The radius is half the diameter: ${N(2 * r)} ÷ 2 = ${N(r)} ${unit}.` : `${V('A')} = π${V('r')}², and the radius is ${N(r)} ${unit}.`, `Square the radius: ${N(r)}² = ${N(r * r)}. Then multiply by 3.14.`, `3.14 × ${N(r * r)} = <b>${N(ans)} ${unit}²</b>.`] };
       }
       const ans = M.round(6.28 * r, 2);
-      return { prompt: `A circle has ${given}. What is its circumference? Use 3.14 for π.`, type: 'number', answer: ans, unit, params: { kind, r }, tolerance: 0.05,
+      return { prompt: `A circle has ${given}. What is its circumference? Use 3.14 for π.${pic}`, type: 'number', answer: ans, unit, params: { kind, r }, tolerance: 0.05,
         hints: [kind === 'circ-d' ? `${V('C')} = π${V('d')}: multiply the diameter by 3.14.` : `${V('C')} = 2π${V('r')}: double the radius to get the diameter, ${N(2 * r)} ${unit}, then multiply by 3.14.`, `3.14 × ${N(2 * r)} = <b>${N(ans)} ${unit}</b>.`] };
     },
     verify(q) { const { kind, r } = q.params; const d = 2 * r; const expect = kind === 'r-from-c' ? r : kind.startsWith('area') ? 3.14 * (d / 2) * (d / 2) : 3.14 * d; return Math.abs(expect - q.answer) < 0.006; },
@@ -624,35 +628,39 @@
 
   A.skill({
     id: 'math7.angle-pairs', title: 'Angle relationships',
-    learn: p('<b>Complementary</b> angles add to 90°. <b>Supplementary</b> angles add to 180°, as do angles on a straight line. <b>Vertical</b> angles, the opposite pair made by two crossing lines, are equal. The three angles of any <b>triangle</b> add to 180°.') +
+    learn: p('Angles are measured in degrees (°), and a square corner, a <b>right angle</b>, is 90°. <b>Complementary</b> angles add to 90°. <b>Supplementary</b> angles add to 180°, and so do angles that sit side by side on a straight line. Where two lines cross, the angles opposite each other are <b>vertical angles</b>, and they’re equal. The three angles of any <b>triangle</b> add to 180°.') + crossingSvg(65) +
       p('Most angle questions are a subtraction: find what the angles must add to, then take away the ones you know.') +
-      example('Example', `${big('Two angles of a triangle are 48° and 67°.')}180 − 48 − 67 = <b>65°</b>.`),
+      example('Example: complementary angles', 'Two angles are complementary, and one is 34°. Together they make 90°, so the other is 90 − 34 = <b>56°</b>.') +
+      example('Example: crossing lines', 'Two lines cross, and one angle is 65°, as in the picture above. The angle opposite it is also <b>65°</b>, and the angle beside it on the straight line is 180 − 65 = <b>115°</b>.') +
+      example('Example: a triangle', `${triangleAnglesSvg(48, 67)}Two angles of a triangle are 48° and 67°. 180 − 48 − 67 = <b>65°</b>.`),
     make(rng) {
       const kind = rng.pick(['comp', 'supp', 'vert', 'tri', 'line']);
       const a = rng.int(15, 75), b = rng.int(20, 80);
-      if (kind === 'comp') return { prompt: `Two angles are complementary. One measures ${a}°. What is the other?`, type: 'number', answer: 90 - a, unit: '°', params: { kind, a }, hints: [`Complementary angles add to 90°.`, `90 − ${a} = <b>${90 - a}°</b>.`] };
-      if (kind === 'supp') { const s = a + 60; return { prompt: `Two angles are supplementary. One measures ${s}°. What is the other?`, type: 'number', answer: 180 - s, unit: '°', params: { kind, a: s }, hints: [`Supplementary angles add to 180°.`, `180 − ${s} = <b>${180 - s}°</b>.`] }; }
-      if (kind === 'line') { const s = a + 30; return { prompt: `Two angles sit side by side on a straight line. One measures ${s}°. What is the other?`, type: 'number', answer: 180 - s, unit: '°', params: { kind, a: s }, hints: [`Angles on a straight line add to 180°.`, `180 − ${s} = <b>${180 - s}°</b>.`] }; }
-      if (kind === 'vert') { const s = a + 40; return { prompt: `Two lines cross. One of the angles formed measures ${s}°. What is the measure of the angle directly opposite it (its vertical angle)?`, type: 'number', answer: s, unit: '°', params: { kind, a: s }, hints: [`Vertical angles are the opposite pair where two lines cross.`, `Vertical angles are equal, so the opposite angle is also <b>${s}°</b>.`] }; }
-      return { prompt: `Two angles of a triangle measure ${a}° and ${b}°. What is the third angle?`, type: 'number', answer: 180 - a - b, unit: '°', params: { kind, a, b }, hints: [`The angles of a triangle add to 180°.`, `${a} + ${b} = ${a + b}, and 180 − ${a + b} = <b>${180 - a - b}°</b>.`] };
+      if (kind === 'comp') return { prompt: `Two angles are complementary. One measures ${a}°. What is the other?${anglePairSvg('comp', a)}`, type: 'number', answer: 90 - a, unit: '°', params: { kind, a }, hints: [`Complementary angles add to 90°.`, `90 − ${a} = <b>${90 - a}°</b>.`] };
+      if (kind === 'supp') { const s = a + 60; return { prompt: `Two angles are supplementary. One measures ${s}°. What is the other?${anglePairSvg('supp', s)}`, type: 'number', answer: 180 - s, unit: '°', params: { kind, a: s }, hints: [`Supplementary angles add to 180°.`, `180 − ${s} = <b>${180 - s}°</b>.`] }; }
+      if (kind === 'line') { const s = a + 30; return { prompt: `Two angles sit side by side on a straight line. One measures ${s}°. What is the other?${anglePairSvg('line', s)}`, type: 'number', answer: 180 - s, unit: '°', params: { kind, a: s }, hints: [`Angles on a straight line add to 180°.`, `180 − ${s} = <b>${180 - s}°</b>.`] }; }
+      if (kind === 'vert') { const s = a + 40; return { prompt: `Two lines cross. One of the angles formed measures ${s}°. What is the measure of the angle directly opposite it (its vertical angle)?${anglePairSvg('vert', s)}`, type: 'number', answer: s, unit: '°', params: { kind, a: s }, hints: [`Vertical angles are the opposite pair where two lines cross.`, `Vertical angles are equal, so the opposite angle is also <b>${s}°</b>.`] }; }
+      return { prompt: `Two angles of a triangle measure ${a}° and ${b}°. What is the third angle?${triangleAnglesSvg(a, b)}`, type: 'number', answer: 180 - a - b, unit: '°', params: { kind, a, b }, hints: [`The angles of a triangle add to 180°.`, `${a} + ${b} = ${a + b}, and 180 − ${a + b} = <b>${180 - a - b}°</b>.`] };
     },
     verify(q) { const { kind, a, b } = q.params; if (kind === 'comp') return q.answer + a === 90; if (kind === 'vert') return q.answer === a; if (kind === 'tri') return q.answer + a + b === 180; return q.answer + a === 180; },
   });
 
   A.skill({
     id: 'math7.scale-drawings', title: 'Scale drawings',
-    learn: p('A scale drawing keeps every length in the same ratio to the real thing. A scale of <b>1 cm : 4 m</b> means each centimeter on the drawing stands for 4 meters in real life.') +
-      p('Drawing → real: multiply by the scale. Real → drawing: divide by the scale. Between two similar figures, the <b>scale factor</b> is new length ÷ original length, and every length (but not the area) is multiplied by it.') +
-      example('Example', `${big('Scale 1 cm : 4 m. A wall is 6.5 cm long on the plan.')}Real length = 6.5 × 4 = <b>26 m</b>.`),
+    learn: p('A <b>scale drawing</b>, like a map or a floor plan, shows a real object with every length shrunk (or enlarged) by the same amount. The <b>scale</b> says how they match: <b>1 cm : 4 m</b> means each centimeter on the drawing stands for 4 meters in real life.') +
+      p('<b>Drawing → real:</b> multiply by the scale. <b>Real → drawing:</b> divide by the scale. Two figures with the same shape but different sizes are <b>similar</b>, and the <b>scale factor</b> between them is new length ÷ original length. Every length (but not the area) is multiplied by it.') +
+      example('Example: drawing to real life', `${mapSvg('6.5 cm', '1 cm : 5 km')}Two towns are 6.5 cm apart on a map with the scale 1 cm : 5 km. Each centimeter stands for 5 km, so the real distance is 6.5 × 5 = <b>32.5 km</b>.`) +
+      example('Example: real life to drawing', 'A floor plan uses the scale 1 cm : 4 m, and a room is 18 m long. On the plan it’s 18 ÷ 4 = <b>4.5 cm</b> long.') +
+      example('Example: a scale factor', `${similarSvg('4 cm', '6 cm', '10 cm', '?', 2.5)}A triangle’s 4 cm side becomes 10 cm when it’s enlarged. The scale factor is 10 ÷ 4 = 2.5, so its 6 cm side becomes 6 × 2.5 = <b>15 cm</b>.`),
     make(rng) {
       const kind = rng.pick(['to-real', 'to-real', 'to-drawing', 'factor']);
       const scale = rng.pick([2, 3, 4, 5, 8, 10, 20, 25, 50]);
       const draw = rng.pick([2, 2.5, 3, 3.5, 4, 4.5, 5, 6, 7.5, 8, 9, 12]);
       const real = M.round(draw * scale, 3);
-      if (kind === 'to-real') return { prompt: `A map uses a scale of 1 cm : ${scale} km. Two towns are ${N(draw)} cm apart on the map. How far apart are they in real life?`, type: 'number', answer: real, unit: 'km', params: { kind, scale, draw, real }, hints: [`Each centimeter stands for ${scale} km, so multiply the map distance by ${scale}.`, `${N(draw)} × ${scale} = <b>${N(real)} km</b>.`] };
-      if (kind === 'to-drawing') return { prompt: `A floor plan uses a scale of 1 cm : ${scale} m. A room is ${N(real)} m long. How long is it on the plan?`, type: 'number', answer: draw, unit: 'cm', params: { kind, scale, draw, real }, hints: [`Going from real life to the drawing, divide by the scale.`, `${N(real)} ÷ ${scale} = <b>${N(draw)} cm</b>.`] };
+      if (kind === 'to-real') return { prompt: `A map uses a scale of 1 cm : ${scale} km. Two towns are ${N(draw)} cm apart on the map. How far apart are they in real life?${mapSvg(`${N(draw)} cm`, `1 cm : ${scale} km`)}`, type: 'number', answer: real, unit: 'km', params: { kind, scale, draw, real }, hints: [`Each centimeter stands for ${scale} km, so multiply the map distance by ${scale}.`, `${N(draw)} × ${scale} = <b>${N(real)} km</b>.`] };
+      if (kind === 'to-drawing') return { prompt: `A floor plan uses a scale of 1 cm : ${scale} m. A room is ${N(real)} m long. How long is it on the plan?${planSvg(`${N(real)} m`, '? cm', `1 cm : ${scale} m`)}`, type: 'number', answer: draw, unit: 'cm', params: { kind, scale, draw, real }, hints: [`Going from real life to the drawing, divide by the scale.`, `${N(real)} ÷ ${scale} = <b>${N(draw)} cm</b>.`] };
       const k = rng.pick([1.5, 2, 2.5, 3, 4]), s = rng.int(2, 9), other = rng.int(2, 9);
-      return { prompt: `A triangle with sides ${s} cm and ${other} cm is enlarged so that the ${s} cm side becomes ${N(s * k)} cm. How long does the ${other} cm side become?`, type: 'number', answer: M.round(other * k, 3), unit: 'cm', params: { kind, s, k, other }, hints: [`Find the scale factor: new ÷ original = ${N(s * k)} ÷ ${s} = ${N(k)}.`, `Every side is multiplied by ${N(k)}: ${other} × ${N(k)} = <b>${N(M.round(other * k, 3))} cm</b>.`] };
+      return { prompt: `A triangle with sides ${s} cm and ${other} cm is enlarged so that the ${s} cm side becomes ${N(s * k)} cm. How long does the ${other} cm side become?${similarSvg(`${s} cm`, `${other} cm`, `${N(s * k)} cm`, '?', k)}`, type: 'number', answer: M.round(other * k, 3), unit: 'cm', params: { kind, s, k, other }, hints: [`Find the scale factor: new ÷ original = ${N(s * k)} ÷ ${s} = ${N(k)}.`, `Every side is multiplied by ${N(k)}: ${other} × ${N(k)} = <b>${N(M.round(other * k, 3))} cm</b>.`] };
     },
     verify(q) { const p = q.params; if (p.kind === 'to-real') return Math.abs(q.answer / p.scale - p.draw) < 1e-9; if (p.kind === 'to-drawing') return Math.abs(q.answer * p.scale - p.real) < 1e-9; return Math.abs(q.answer / p.other - (p.s * p.k) / p.s) < 1e-9; },
   });
@@ -1647,7 +1655,7 @@
   /** a triangle with sides a (left) and b (right) labeled, and the bottom side marked with a question mark */
   function thirdSideSvg(a, b) {
     const c = b, x = (a * a - b * b + c * c) / (2 * c), h = Math.sqrt(Math.max(a * a - x * x, 0.01)), s = Math.min(250 / c, 120 / h);
-    const P = [40, 140], Q = [40 + c * s, 140], T = [40 + x * s, 140 - h * s];
+    const x0 = (340 - c * s) / 2, P = [x0, 140], Q = [x0 + c * s, 140], T = [x0 + x * s, 140 - h * s];
     const g = `<polygon class="fill" style="fill-opacity:.45" points="${[P, Q, T].map(q => q.map(r1).join(',')).join(' ')}"/>` +
       svgText((P[0] + T[0]) / 2 - 8, (P[1] + T[1]) / 2, `${a} cm`, { anchor: 'end', bold: true }) + svgText((Q[0] + T[0]) / 2 + 8, (Q[1] + T[1]) / 2, `${b} cm`, { anchor: 'start', bold: true }) +
       svgText((P[0] + Q[0]) / 2, 160, '?', { bold: true, size: 15 }) + notToScale(340, 176);
@@ -1667,9 +1675,10 @@
 
   A.skill({
     id: 'math7.triangle-inequality', title: 'The triangle inequality',
-    learn: p('Three lengths make a triangle only when <b>the two shorter sides add up to more than the longest side</b>. If they add up to exactly the longest side, the two short pieces lie flat along it; if they add up to less, their ends cannot meet.') +
+    learn: p('Three lengths make a triangle only when <b>the two shorter sides add up to more than the longest side</b>. This rule is called the <b>triangle inequality</b>. If the two shorter sides add up to exactly the longest side, they lie flat along it; if they add up to less, their ends can’t meet.') + triangleRuleSvg() +
       p(`So when two sides are ${V('a')} and ${V('b')} (with ${V('b')} the longer), the third side ${V('c')} must be longer than their difference and shorter than their sum: <b>${V('b')} − ${V('a')} &lt; ${V('c')} &lt; ${V('a')} + ${V('b')}</b>.`) +
-      example('Example', `Can 4 cm, 7 cm and 12 cm make a triangle? 4 + 7 = 11, which is less than 12, so <b>no</b>. If two sides are 5 cm and 9 cm, the third side must be between 9 − 5 = 4 cm and 9 + 5 = 14 cm.`),
+      example('Example: testing three lengths', 'Can 4 cm, 7 cm and 12 cm make a triangle? 4 + 7 = 11, which is less than 12, so <b>no</b>. Can 5 cm, 6 cm and 9 cm? 5 + 6 = 11, which is more than 9, so <b>yes</b>.') +
+      example('Example: the third side', `Two sides are 5 cm and 9 cm. The third side must be longer than 9 − 5 = 4 cm and shorter than 9 + 5 = 14 cm: <b>4 &lt; ${V('c')} &lt; 14</b>. As a whole number of centimeters it can be 5, 6, … up to 13: that’s <b>9</b> possible lengths.`),
     make(rng) {
       const kind = rng.pick(['which', 'which', 'range', 'max', 'min', 'count']);
       let a = rng.int(2, 12), b = rng.int(2, 14); if (a === b) b += 3; if (a > b) [a, b] = [b, a];
@@ -1691,7 +1700,7 @@
       if (kind === 'range') {
         const right = `${lo} &lt; ${xx} &lt; ${hi}`;
         const choices = [right].concat(distinct(right, rng.shuffle([`${a} &lt; ${xx} &lt; ${b}`, `${lo} &lt; ${xx} &lt; ${b}`, `${b} &lt; ${xx} &lt; ${hi}`, `${a} &lt; ${xx} &lt; ${hi}`]), 3));
-        return { prompt: `${intro} Which inequality describes every possible length ${xx} of the third side, in centimeters?`, type: 'choice', choices, answer: choices[0], params: { kind, a, b },
+        return { prompt: `${intro} Which inequality describes every possible length ${xx} of the third side, in centimeters?${thirdSideSvg(a, b)}`, type: 'choice', choices, answer: choices[0], params: { kind, a, b },
           hints: [`If the third side were ${hi} cm or longer, the two given sides could not reach across it.`, `If it were ${lo} cm or shorter, it and the ${a} cm side could not reach across the ${b} cm side.`, `${bounds} <b>${lo} &lt; ${xx} &lt; ${hi}</b>.`] };
       }
       const Q = {
@@ -1699,7 +1708,7 @@
         min: [`What is the <b>shortest</b> whole number of centimeters the third side could be?`, lo + 1, `It must be longer than ${lo}, so the shortest whole number is <b>${lo + 1}</b>.`],
         count: [`How many different whole-number lengths, in centimeters, could the third side have?`, hi - lo - 1, `The whole numbers from ${lo + 1} to ${hi - 1}: ${hi - 1} − ${lo + 1} + 1 = <b>${hi - lo - 1}</b>.`],
       }[kind];
-      return { prompt: `${intro} ${Q[0]}`, type: 'number', answer: Q[1], unit: kind === 'count' ? undefined : 'cm', params: { kind, a, b },
+      return { prompt: `${intro} ${Q[0]}${thirdSideSvg(a, b)}`, type: 'number', answer: Q[1], unit: kind === 'count' ? undefined : 'cm', params: { kind, a, b },
         hints: ['The two shorter sides of a triangle must add to more than the longest side.', bounds, Q[2]] };
     },
     verify(q) {
@@ -1803,9 +1812,12 @@
 
   A.skill({
     id: 'math7.cross-sections', title: 'Cross sections of prisms and pyramids',
-    learn: p('A <b>cross section</b> is the flat face you see when you slice straight through a solid. <b>A slice parallel to the base of a prism is an exact copy of the base; a slice parallel to the base of a pyramid has the base’s shape, but smaller.</b>') +
+    learn: p('A <b>cross section</b> is the flat shape you see when you slice straight through a solid. A <b>prism</b> has two matching ends (its bases) joined by flat sides, like a box; a <b>pyramid</b> has one base and sloping sides that meet at a top point. <b>Parallel</b> means running the same way and never meeting, like a floor and a ceiling.') +
+      p('<b>A slice parallel to the base of a prism is an exact copy of the base; a slice parallel to the base of a pyramid has the base’s shape, but smaller.</b>') + slicesSvg() +
       p('Slices in other directions take other shapes. A slice straight down through a prism, parallel to a side face, is a rectangle. A slice straight down through the top point of a pyramid is a triangle; move it off the top point and the top of the triangle is cut off, leaving a trapezoid. Slicing a corner off a cube leaves a triangle.') +
-      example('Example', 'A square pyramid is sliced straight down through its top point, parallel to one edge of its base. The slice crosses the base along a straight line and rises to the top point: the cross section is a <b>triangle</b>.'),
+      example('Example: the shape', 'A square pyramid is sliced straight down through its top point, parallel to one edge of its base. The slice crosses the base along a straight line and rises to the top point: the cross section is a <b>triangle</b>.') +
+      example('Example: the area', 'A box 8 cm long, 5 cm wide and 3 cm tall is sliced parallel to its base. The slice is a copy of the base, an 8 cm by 5 cm rectangle, so its area is 8 × 5 = <b>40 cm²</b>.') +
+      example('Example: halfway up a pyramid', 'A square pyramid with a base 10 cm on each side is sliced parallel to the base, halfway up. The slice is a square whose sides are half the base’s: 10 ÷ 2 = <b>5 cm</b>.'),
     make(rng) {
       if (rng.chance(0.3)) {
         const kind = rng.pick(['box', 'box', 'cube', 'pyramid']);
