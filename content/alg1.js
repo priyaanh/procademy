@@ -64,7 +64,7 @@
     const txt = (x, y, s, anchor) => `<text x="${f(x)}" y="${f(y)}" font-size="13" font-weight="700" text-anchor="${anchor || 'middle'}" stroke="var(--surface)" stroke-width="4" paint-order="stroke">${s}</text>`;
     let g = '';
     for (let k = -R; k <= R; k++) g += `<line class="light" x1="${px(k)}" y1="${py(-R)}" x2="${px(k)}" y2="${py(R)}" stroke-width="${k === 0 ? 0 : 1}"/><line class="light" x1="${px(-R)}" y1="${py(k)}" x2="${px(R)}" y2="${py(k)}" stroke-width="${k === 0 ? 0 : 1}"/>`;
-    if (opts.shade) g += `<polygon points="${opts.shade.map(([x, y]) => `${f(px(x))},${f(py(y))}`).join(' ')}" fill="var(--primary)" fill-opacity="0.16" stroke="none"/>`;
+    if (opts.shade) g += `<polygon points="${opts.shade.map(([x, y]) => `${f(px(x))},${f(py(y))}`).join(' ')}" fill="var(--primary)" fill-opacity="0.22" stroke="none"/>`;
     g += `<line class="stroke" x1="${px(-R)}" y1="${py(0)}" x2="${px(R)}" y2="${py(0)}" stroke-width="1.5"/><line class="stroke" x1="${px(0)}" y1="${py(-R)}" x2="${px(0)}" y2="${py(R)}" stroke-width="1.5"/>`;
     g += `<text x="${px(R) - 10}" y="${py(0) - 6}" font-size="13" font-style="italic">x</text><text x="${px(0) + 6}" y="${py(R) + 12}" font-size="13" font-style="italic">y</text>`;
     const labels = [];
